@@ -143,7 +143,7 @@ function! s:Gdb.update_current_line_sign(add)
 endfunction
 
 
-function! neogdb#Spawn(server_cmd, client_cmd, server_addr, reconnect)
+function! nvimgdb#Spawn(server_cmd, client_cmd, server_addr, reconnect)
   if exists('g:gdb')
     throw 'Gdb already running'
   endif
@@ -185,7 +185,7 @@ function! neogdb#Spawn(server_cmd, client_cmd, server_addr, reconnect)
 endfunction
 
 
-function! neogdb#ToggleBreak()
+function! nvimgdb#ToggleBreak()
   let file_name = bufname('%')
   let file_breakpoints = get(s:breakpoints, file_name, {})
   let linenr = line('.')
@@ -200,7 +200,7 @@ function! neogdb#ToggleBreak()
 endfunction
 
 
-function! neogdb#ClearBreak()
+function! nvimgdb#ClearBreak()
   let s:breakpoints = {}
   call s:RefreshBreakpointSigns()
   call s:RefreshBreakpoints()
@@ -255,7 +255,7 @@ function! s:GetExpression(...) range
 endfunction
 
 
-function! neogdb#Send(data)
+function! nvimgdb#Send(data)
   if !exists('g:gdb')
     throw 'Gdb is not running'
   endif
@@ -263,23 +263,23 @@ function! neogdb#Send(data)
 endfunction
 
 
-function! neogdb#Eval(expr)
-  call neogdb#Send(printf('print %s', a:expr))
+function! nvimgdb#Eval(expr)
+  call nvimgdb#Send(printf('print %s', a:expr))
 endfunction
 
 
-function! neogdb#Watch(expr)
+function! nvimgdb#Watch(expr)
   let expr = a:expr
   if expr[0] != '&'
     let expr = '&' . expr
   endif
 
-  call neogdb#Eval(expr)
-  call neogdb#Send('watch *$')
+  call nvimgdb#Eval(expr)
+  call nvimgdb#Send('watch *$')
 endfunction
 
 
-function! neogdb#Interrupt()
+function! nvimgdb#Interrupt()
   if !exists('g:gdb')
     throw 'Gdb is not running'
   endif
@@ -287,7 +287,7 @@ function! neogdb#Interrupt()
 endfunction
 
 
-function! neogdb#Kill()
+function! nvimgdb#Kill()
   if !exists('g:gdb')
     throw 'Gdb is not running'
   endif
@@ -299,20 +299,20 @@ endfunction
 "command! -nargs=1 GdbDebugServer call s:Spawn(0, s:run_gdb, 'localhost:'.<q-args>, 0)
 "command! -bang -nargs=? GdbDebugTest call s:Test(<q-bang>, <q-args>)
 "command! -nargs=1 -complete=file GdbInspectCore call s:Spawn(0, printf('gdb -q -f -c %s build/bin/nvim', <q-args>), 0, 0)
-command! GdbDebugStop call neogdb#Kill()
-command! GdbToggleBreakpoint call neogdb#ToggleBreak()
-command! GdbClearBreakpoints call neogdb#ClearBreak()
-command! GdbContinue call neogdb#Send("c")
-command! GdbNext call neogdb#Send("n")
-command! GdbStep call neogdb#Send("s")
-command! GdbFinish call neogdb#Send("finish")
-command! GdbFrameUp call neogdb#Send("up")
-command! GdbFrameDown call neogdb#Send("down")
-command! GdbInterrupt call neogdb#Interrupt()
-command! GdbEvalWord call neogdb#Eval(expand('<cword>'))
-command! -range GdbEvalRange call neogdb#Eval(s:GetExpression(<f-args>))
-command! GdbWatchWord call neogdb#Watch(expand('<cword>')
-command! -range GdbWatchRange call neogdb#Watch(s:GetExpression(<f-args>))
+command! GdbDebugStop call nvimgdb#Kill()
+command! GdbToggleBreakpoint call nvimgdb#ToggleBreak()
+command! GdbClearBreakpoints call nvimgdb#ClearBreak()
+command! GdbContinue call nvimgdb#Send("c")
+command! GdbNext call nvimgdb#Send("n")
+command! GdbStep call nvimgdb#Send("s")
+command! GdbFinish call nvimgdb#Send("finish")
+command! GdbFrameUp call nvimgdb#Send("up")
+command! GdbFrameDown call nvimgdb#Send("down")
+command! GdbInterrupt call nvimgdb#Interrupt()
+command! GdbEvalWord call nvimgdb#Eval(expand('<cword>'))
+command! -range GdbEvalRange call nvimgdb#Eval(s:GetExpression(<f-args>))
+command! GdbWatchWord call nvimgdb#Watch(expand('<cword>')
+command! -range GdbWatchRange call nvimgdb#Watch(s:GetExpression(<f-args>))
 
 
 nnoremap <silent> <f8> :GdbContinue<cr>
