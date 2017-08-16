@@ -1,0 +1,77 @@
+*nvimgdb.txt*  GDB integration into neovim
+
+TBD
+
+==============================================================================
+CONTENTS                                                       *NvimgdbContents*
+
+    1. Usage ................ |NvimgdbUsage|
+    2. Mappings ............. |NvimgdbMappings|
+    3. Variables............. |NvimgdbVariables|
+    4. License .............. |NvimgdbLicense|
+    5. Bugs ................. |NvimgdbBugs|
+    6. Contributing ......... |NvimgdbContributing|
+    7. Changelog ............ |NvimgdbChangelog|
+    8. Credits .............. |NvimgdbCredits|
+
+==============================================================================
+Section 1: Usage                                                  *NvimgdbUsage*
+
+This plugin will facilitate debugging programs with GDB. It will automatically
+show debugged source code, breakpoints, and define convenient keymaps similar
+to Qt Creator and Microsofgt Visual Studio.
+
+To start debugging, execute :GdbStart command with GDB launch string as
+parameter: >
+
+    :GdbStart gdb -q -f a.out
+
+This will open a new tab with debugging view: horizontal split with source
+code and terminal.
+
+==============================================================================
+Section 2: Mappings                                            *NvimgdbMappings*
+
+The following mappings are defined initially:
+
+<leader>dd    Fill in command to start debugging, you will still need to enter
+              <cr> to execute it.
+
+When debugging session has started, the following mappings are defined:
+
+<f8>          Continue
+<f10>         Next
+<f11>         Step
+<f12>         Finish
+<c-b>         Toggle breakpoint
+<m-pageup>    Frame Up
+<m-pagedown>  Frame Down
+<f9>          NORMAL: Evaluate word under cursor
+              VISUAL: Evaluate the range
+<m-f9>        NORMAL: Watch word under cursor
+              VISUAL: Watch visual range
+
+==============================================================================
+Section 3: Variables                                          *NvimgdbVariables*
+
+==============================================================================
+Section 4: License                                              *NvimgdbLicense*
+
+Inherits from neovim
+
+==============================================================================
+Section 5: Bugs                                                    *NvimgdbBugs*
+
+==============================================================================
+Section 6: Contributing                                    *NvimgdbContributing*
+
+Patches are welcome to https://github.com/sakhnik/nvim-gdb.vim
+
+==============================================================================
+Section 7: Changelog                                          *NvimgdbChangelog*
+
+==============================================================================
+Section 8: Credits                                              *NvimgdbCredits*
+
+The original version was taken from nvim source code (Thiago de Arruda)
+https://github.com/neovim/neovim/blob/master/contrib/gdb/neovim_gdb.vim
