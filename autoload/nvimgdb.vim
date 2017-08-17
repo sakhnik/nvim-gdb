@@ -179,8 +179,9 @@ function! nvimgdb#Spawn(server_cmd, client_cmd, server_addr, reconnect)
   tnoremap <silent> <f10> <c-\><c-n>:GdbNext<cr>i
   tnoremap <silent> <f11> <c-\><c-n>:GdbStep<cr>i
   tnoremap <silent> <f12> <c-\><c-n>:GdbFinish<cr>i
-  " go to the window that displays the current file
-  exe gdb._jump_window 'wincmd w'
+  tnoremap <silent> <buffer> <esc> <c-\><c-n>
+  " Start inset mode in the GDB window
+  normal i
   let g:gdb = gdb
 endfunction
 
