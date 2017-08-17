@@ -26,6 +26,9 @@ parameter: >
 This will open a new tab with debugging view: horizontal split with source
 code and terminal. Then the whole set of commands will be available.
 
+NOTE: Ensure the flag `-f` is passed to GDB for proper integration. Without it,
+      source code wouldn't be displayed in neovim window.
+
 ==============================================================================
 Section 2: Commands                                          *NvimgdbCommands*
 
@@ -99,3 +102,5 @@ Patches are welcome to https://github.com/sakhnik/nvim-gdb.vim
 
 The original version was taken from nvim source code (Thiago de Arruda)
 https://github.com/neovim/neovim/blob/master/contrib/gdb/neovim_gdb.vim
+
+ vim: set tw=78 ts=8 ft=help norl:
