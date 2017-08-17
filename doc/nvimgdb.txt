@@ -3,19 +3,16 @@
 TBD
 
 ==============================================================================
-CONTENTS                                                       *NvimgdbContents*
+CONTENTS                                                     *NvimgdbContents*
 
     1. Usage ................ |NvimgdbUsage|
-    2. Mappings ............. |NvimgdbMappings|
-    3. Variables............. |NvimgdbVariables|
-    4. License .............. |NvimgdbLicense|
-    5. Bugs ................. |NvimgdbBugs|
-    6. Contributing ......... |NvimgdbContributing|
-    7. Changelog ............ |NvimgdbChangelog|
-    8. Credits .............. |NvimgdbCredits|
+    2. Commands ............. |NvigdbCommands|
+    3. Mappings ............. |NvimgdbMappings|
+    4. Variables............. |NvimgdbVariables|
+    5. Trivia ............... |NvimgdbTrivia|
 
 ==============================================================================
-Section 1: Usage                                                  *NvimgdbUsage*
+Section 1: Usage                                                *NvimgdbUsage*
 
 This plugin will facilitate debugging programs with GDB. It will automatically
 show debugged source code, breakpoints, and define convenient keymaps similar
@@ -27,51 +24,78 @@ parameter: >
     :GdbStart gdb -q -f a.out
 
 This will open a new tab with debugging view: horizontal split with source
-code and terminal.
+code and terminal. Then the whole set of commands will be available.
 
 ==============================================================================
-Section 2: Mappings                                            *NvimgdbMappings*
+Section 2: Commands                                          *NvimgdbCommands*
+
+                                                                   *:GdbStart*
+:GdbStart [command]     Start debugging session with the given GDB launch
+                        command.
+
+                                                        *:GdbToggleBreakpoint*
+                                                        *:GdbClearBreakpoints*
+:GdbToggleBreakpoint    Manage breakpoints in the code: toggle, clear all
+:GdbClearBreakpoints
+
+                                                                *:GdbContinue*
+                                                                    *:GdbNext*
+                                                                    *:GdbStep*
+                                                                  *:GdbFinish*
+:GdbContinue            Continue execution
+:GdbNext                Step over next statement
+:GdbStep                Step into next statement
+:GdbFinish              Step out current stack frame
+
+                                                                 *:GdbFrameUp*
+                                                               *:GdbFrameDown*
+:GdbFrameUp             Navigate up/down one stack frame
+:GdbFrameDown
+
+                                                               *:GdbInterrupt*
+:GdbInterrupt          Break program execution into the debugger
+
+                                                                *:GdbEvalWord*
+                                                               *:GdbEvalRange*
+:GdbEvalWord           Evaluate |<cword>| or |[range]|
+:<range>GdbEvalRange
+
+                                                               *:GdbWatchWord*
+                                                              *:GdbWatchRange*
+:GdbWatchWord          Watch |<cword>| or |[range]|
+:<range>GdbWatchRange
+
+==============================================================================
+Section 3: Mappings                                          *NvimgdbMappings*
 
 The following mappings are defined initially:
 
-<leader>dd    Fill in command to start debugging, you will still need to enter
-              <cr> to execute it.
+<leader>dd             Fill in command to start debugging, you will still need
+                       to enter <cr> to execute it.
 
 When debugging session has started, the following mappings are defined:
 
-<f8>          Continue
-<f10>         Next
-<f11>         Step
-<f12>         Finish
-<c-b>         Toggle breakpoint
-<m-pageup>    Frame Up
-<m-pagedown>  Frame Down
-<f9>          NORMAL: Evaluate word under cursor
-              VISUAL: Evaluate the range
-<m-f9>        NORMAL: Watch word under cursor
-              VISUAL: Watch visual range
+<f8>                   Continue
+<f10>                  Next
+<f11>                  Step
+<f12>                  Finish
+<c-b>                  Toggle breakpoint
+<m-pageup>             Frame Up
+<m-pagedown>           Frame Down
+<f9>                   NORMAL: Evaluate word under cursor
+                       VISUAL: Evaluate the range
+<m-f9>                 NORMAL: Watch word under cursor
+                       VISUAL: Watch visual range
 
 ==============================================================================
-Section 3: Variables                                          *NvimgdbVariables*
+Section 4: Variables                                        *NvimgdbVariables*
 
 ==============================================================================
-Section 4: License                                              *NvimgdbLicense*
+Section 5: Trivia                                              *NvimgdbTrivia*
 
-Inherits from neovim
-
-==============================================================================
-Section 5: Bugs                                                    *NvimgdbBugs*
-
-==============================================================================
-Section 6: Contributing                                    *NvimgdbContributing*
+License inherits from neovim's.
 
 Patches are welcome to https://github.com/sakhnik/nvim-gdb.vim
-
-==============================================================================
-Section 7: Changelog                                          *NvimgdbChangelog*
-
-==============================================================================
-Section 8: Credits                                              *NvimgdbCredits*
 
 The original version was taken from nvim source code (Thiago de Arruda)
 https://github.com/neovim/neovim/blob/master/contrib/gdb/neovim_gdb.vim
