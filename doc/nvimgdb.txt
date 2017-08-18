@@ -28,6 +28,9 @@ code and terminal. Then the whole set of commands will be available.
 
 NOTE: Ensure the flag `-f` is passed to GDB for proper integration. Without it,
       source code wouldn't be displayed in neovim window.
+NOTE: The plugin assumes GDB (or other command you begin debugging with)
+      launches the program stopped. That will allow the plugin to properly
+      configure the debugger.
 
 ==============================================================================
 Section 2: Commands                                          *NvimgdbCommands*
