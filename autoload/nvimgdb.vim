@@ -8,25 +8,9 @@ let s:breakpoints = {}
 let s:max_breakpoint_sign_id = 0
 
 
-let s:GdbServer = {}
-
-
-function s:GdbServer.new(gdb)
-  let this = copy(self)
-  let this._gdb = a:gdb
-  return this
-endfunction
-
-
-function s:GdbServer.on_exit()
-  let self._gdb._server_exited = 1
-endfunction
-
-
 let s:GdbPaused = vimexpect#State([
       \ ['Continuing.', 'continue'],
       \ ['\v[\o32]{2}([^:]+):(\d+):\d+', 'jump'],
-      \ ['Remote communication error.  Target disconnected.:', 'retry'],
       \ ])
 
 
@@ -56,19 +40,8 @@ function s:GdbPaused.jump(file, line, ...)
 endfunction
 
 
-function s:GdbPaused.retry(...)
-  if self._server_exited
-    return
-  endif
-  sleep 1
-  call self.attach()
-  call self.send('continue')
-endfunction
-
-
 let s:GdbRunning = vimexpect#State([
       \ ['\v^Breakpoint \d+', 'pause'],
-      \ ['\v\[Inferior\ +.{-}\ +exited\ +normally', 'disconnected'],
       \ ['(gdb)', 'pause'],
       \ ])
 
@@ -78,24 +51,7 @@ function s:GdbRunning.pause(...)
   if !self._initialized
     call self.send('set confirm off')
     call self.send('set pagination off')
-    if !empty(self._server_addr)
-      call self.send('set remotetimeout 50')
-      call self.attach()
-      call s:RefreshBreakpoints()
-      call self.send('c')
-    endif
     let self._initialized = 1
-  endif
-endfunction
-
-
-function s:GdbRunning.disconnected(...)
-  if !self._server_exited && self._reconnect
-    " Refresh to force a delete of all watchpoints
-    call s:RefreshBreakpoints()
-    sleep 1
-    call self.attach()
-    call self.send('continue')
   endif
 endfunction
 
@@ -110,9 +66,6 @@ function s:Gdb.kill()
   tunmap <f12>
   call self.update_current_line_sign(0)
   exe 'bd! '.self._client_buf
-  if self._server_buf != -1
-    exe 'bd! '.self._server_buf
-  endif
   exe 'tabnext '.self._tab
   tabclose
   unlet g:gdb
@@ -123,10 +76,6 @@ function! s:Gdb.send(data)
   call jobsend(self._client_id, a:data."\<cr>")
 endfunction
 
-
-function! s:Gdb.attach()
-  call self.send(printf('target remote %s', self._server_addr))
-endfunction
 
 
 function! s:Gdb.update_current_line_sign(add)
@@ -143,34 +92,22 @@ function! s:Gdb.update_current_line_sign(add)
 endfunction
 
 
-function! nvimgdb#Spawn(server_cmd, client_cmd, server_addr, reconnect)
+function! nvimgdb#Spawn(client_cmd)
   if exists('g:gdb')
     throw 'Gdb already running'
   endif
   let gdb = vimexpect#Parser(s:GdbRunning, copy(s:Gdb))
-  " gdbserver port
-  let gdb._server_addr = a:server_addr
-  let gdb._reconnect = a:reconnect
   let gdb._initialized = 0
   " window number that will be displaying the current file
   let gdb._jump_window = 1
   let gdb._current_buf = -1
   let gdb._current_line = -1
   let gdb._has_breakpoints = 0 
-  let gdb._server_exited = 0
   " Create new tab for the debugging view
   tabnew
   let gdb._tab = tabpagenr()
-  " create horizontal split to display the current file and maybe gdbserver
+  " create horizontal split to display the current file
   sp
-  let gdb._server_buf = -1
-  if type(a:server_cmd) == type('')
-    " spawn gdbserver in a vertical split
-    let server = s:GdbServer.new(gdb)
-    vsp | enew | let gdb._server_id = termopen(a:server_cmd, server)
-    let gdb._jump_window = 2
-    let gdb._server_buf = bufnr('%')
-  endif
   " go to the bottom window and spawn gdb client
   wincmd j
   enew | let gdb._client_id = termopen(a:client_cmd, gdb)
@@ -296,10 +233,6 @@ function! nvimgdb#Kill()
 endfunction
 
 
-"command! GdbDebugNvim call s:Spawn(printf('make && gdbserver localhost:%d build/bin/nvim', s:gdb_port), s:run_gdb, printf('localhost:%d', s:gdb_port), 0)
-"command! -nargs=1 GdbDebugServer call s:Spawn(0, s:run_gdb, 'localhost:'.<q-args>, 0)
-"command! -bang -nargs=? GdbDebugTest call s:Test(<q-bang>, <q-args>)
-"command! -nargs=1 -complete=file GdbInspectCore call s:Spawn(0, printf('gdb -q -f -c %s build/bin/nvim', <q-args>), 0, 0)
 command! GdbDebugStop call nvimgdb#Kill()
 command! GdbToggleBreakpoint call nvimgdb#ToggleBreak()
 command! GdbClearBreakpoints call nvimgdb#ClearBreak()
