@@ -86,8 +86,8 @@ When debugging session has started, the following mappings are defined:
 <f11>                  Step
 <f12>                  Finish
 <c-b>                  Toggle breakpoint
-<m-pageup>             Frame Up
-<m-pagedown>           Frame Down
+<c-p>                  Frame Up
+<c-n>                  Frame Down
 <f9>                   NORMAL: Evaluate word under cursor
                        VISUAL: Evaluate the range
 <m-f9>                 NORMAL: Watch word under cursor

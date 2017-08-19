@@ -60,10 +60,7 @@ let s:Gdb = {}
 
 
 function s:Gdb.kill()
-  tunmap <f8>
-  tunmap <f10>
-  tunmap <f11>
-  tunmap <f12>
+  call s:UnsetKeymaps()
   call self.update_current_line_sign(0)
   exe 'bd! '.self._client_buf
   exe 'tabnext '.self._tab
@@ -91,6 +88,42 @@ function! s:Gdb.update_current_line_sign(add)
   exe 'sign unplace '.old_line_sign_id
 endfunction
 
+function! s:SetKeymaps()
+  nnoremap <silent> <f8> :GdbContinue<cr>
+  nnoremap <silent> <f10> :GdbNext<cr>
+  nnoremap <silent> <f11> :GdbStep<cr>
+  nnoremap <silent> <f12> :GdbFinish<cr>
+  nnoremap <silent> <c-b> :GdbToggleBreakpoint<cr>
+  nnoremap <silent> <c-p> :GdbFrameUp<cr>
+  nnoremap <silent> <c-n> :GdbFrameDown<cr>
+  nnoremap <silent> <f9> :GdbEvalWord<cr>
+  vnoremap <silent> <f9> :GdbEvalRange<cr>
+  nnoremap <silent> <m-f9> :GdbWatchWord<cr>
+  vnoremap <silent> <m-f9> :GdbWatchRange<cr>
+  tnoremap <silent> <f8> <c-\><c-n>:GdbContinue<cr>i
+  tnoremap <silent> <f10> <c-\><c-n>:GdbNext<cr>i
+  tnoremap <silent> <f11> <c-\><c-n>:GdbStep<cr>i
+  tnoremap <silent> <f12> <c-\><c-n>:GdbFinish<cr>i
+  tnoremap <silent> <buffer> <esc> <c-\><c-n>
+endfunction
+
+function! s:UnsetKeymaps()
+  tunmap <f8>
+  tunmap <f10>
+  tunmap <f11>
+  tunmap <f12>
+  nunmap <f8>
+  nunmap <f10>
+  nunmap <f11>
+  nunmap <f12>
+  nunmap <c-b>
+  nunmap <c-p>
+  nunmap <c-n>
+  nunmap <f9>
+  vunmap <f9>
+  nunmap <m-f9>
+  vunmap <m-f9>
+endfunction
 
 function! nvimgdb#Spawn(client_cmd)
   if exists('g:gdb')
@@ -112,11 +145,7 @@ function! nvimgdb#Spawn(client_cmd)
   wincmd j
   enew | let gdb._client_id = termopen(a:client_cmd, gdb)
   let gdb._client_buf = bufnr('%')
-  tnoremap <silent> <f8> <c-\><c-n>:GdbContinue<cr>i
-  tnoremap <silent> <f10> <c-\><c-n>:GdbNext<cr>i
-  tnoremap <silent> <f11> <c-\><c-n>:GdbStep<cr>i
-  tnoremap <silent> <f12> <c-\><c-n>:GdbFinish<cr>i
-  tnoremap <silent> <buffer> <esc> <c-\><c-n>
+  call s:SetKeymaps()
   " Start inset mode in the GDB window
   normal i
   let g:gdb = gdb
@@ -254,8 +283,8 @@ nnoremap <silent> <f10> :GdbNext<cr>
 nnoremap <silent> <f11> :GdbStep<cr>
 nnoremap <silent> <f12> :GdbFinish<cr>
 nnoremap <silent> <c-b> :GdbToggleBreakpoint<cr>
-nnoremap <silent> <m-pageup> :GdbFrameUp<cr>
-nnoremap <silent> <m-pagedown> :GdbFrameDown<cr>
+nnoremap <silent> <c-p> :GdbFrameUp<cr>
+nnoremap <silent> <c-n> :GdbFrameDown<cr>
 nnoremap <silent> <f9> :GdbEvalWord<cr>
 vnoremap <silent> <f9> :GdbEvalRange<cr>
 nnoremap <silent> <m-f9> :GdbWatchWord<cr>
