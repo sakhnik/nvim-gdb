@@ -96,6 +96,19 @@ When debugging session has started, the following mappings are defined:
 ==============================================================================
 Section 4: Variables                                        *NvimgdbVariables*
 
+The following variables could be defined to change default mappings for the
+debugging commands:
+
+g:nvimgdb_key_continue
+g:nvimgdb_key_next
+g:nvimgdb_key_step
+g:nvimgdb_key_finish
+g:nvimgdb_key_breakpoint
+g:nvimgdb_key_frameup
+g:nvimgdb_key_framedown
+g:nvimgdb_key_eval
+g:nvimgdb_key_watch
+
 ==============================================================================
 Section 5: Trivia                                              *NvimgdbTrivia*
 

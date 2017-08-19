@@ -89,40 +89,103 @@ function! s:Gdb.update_current_line_sign(add)
 endfunction
 
 function! s:SetKeymaps()
-  nnoremap <silent> <f8> :GdbContinue<cr>
-  nnoremap <silent> <f10> :GdbNext<cr>
-  nnoremap <silent> <f11> :GdbStep<cr>
-  nnoremap <silent> <f12> :GdbFinish<cr>
-  nnoremap <silent> <c-b> :GdbToggleBreakpoint<cr>
-  nnoremap <silent> <c-p> :GdbFrameUp<cr>
-  nnoremap <silent> <c-n> :GdbFrameDown<cr>
-  nnoremap <silent> <f9> :GdbEvalWord<cr>
-  vnoremap <silent> <f9> :GdbEvalRange<cr>
-  nnoremap <silent> <m-f9> :GdbWatchWord<cr>
-  vnoremap <silent> <m-f9> :GdbWatchRange<cr>
-  tnoremap <silent> <f8> <c-\><c-n>:GdbContinue<cr>i
-  tnoremap <silent> <f10> <c-\><c-n>:GdbNext<cr>i
-  tnoremap <silent> <f11> <c-\><c-n>:GdbStep<cr>i
-  tnoremap <silent> <f12> <c-\><c-n>:GdbFinish<cr>i
+  if exists("g:nvimgdb_key_continue")
+    let s:key_continue = g:nvimgdb_key_continue
+  else
+    let s:key_continue = '<f8>'
+  endif
+
+  exe 'nnoremap <silent> '.s:key_continue.' :GdbContinue<cr>'
+  exe 'tnoremap <silent> '.s:key_continue.' <c-\><c-n>:GdbContinue<cr>i'
+
+  if exists("g:nvimgdb_key_next")
+    let s:key_next = g:nvimgdb_key_next
+  else
+    let s:key_next = '<f10>'
+  endif
+
+  exe 'nnoremap <silent> '.s:key_next.' :GdbNext<cr>'
+  exe 'tnoremap <silent> '.s:key_next.' <c-\><c-n>:GdbNext<cr>i'
+
+  if exists("g:nvimgdb_key_step")
+    let s:key_step = g:nvimgdb_key_step
+  else
+    let s:key_step = '<f11>'
+  endif
+
+  exe 'nnoremap <silent> '.s:key_step.' :GdbStep<cr>'
+  exe 'tnoremap <silent> '.s:key_step.' <c-\><c-n>:GdbStep<cr>i'
+
+  if exists("g:nvimgdb_key_finish")
+    let s:key_finish = g:nvimgdb_key_finish
+  else
+    let s:key_finish = '<f12>'
+  endif
+
+  exe 'nnoremap <silent> '.s:key_finish.' :GdbFinish<cr>'
+  exe 'tnoremap <silent> '.s:key_finish.' <c-\><c-n>:GdbFinish<cr>i'
+
+  if exists("g:nvimgdb_key_breakpoint")
+    let s:key_breakpoint = g:nvimgdb_key_breakpoint
+  else
+    let s:key_breakpoint = '<c-b>'
+  endif
+
+  exe 'nnoremap <silent> '.s:key_breakpoint.' :GdbToggleBreakpoint<cr>'
+
+  if exists("g:nvimgdb_key_frameup")
+    let s:key_frameup = g:nvimgdb_key_frameup
+  else
+    let s:key_frameup = '<c-p>'
+  endif
+
+  exe 'nnoremap <silent> '.s:key_frameup.' :GdbFrameUp<cr>'
+
+  if exists("g:nvimgdb_key_framedown")
+    let s:key_framedown = g:nvimgdb_key_framedown
+  else
+    let s:key_framedown = '<c-n>'
+  endif
+
+  exe 'nnoremap <silent> '.s:key_framedown.' :GdbFrameDown<cr>'
+
+  if exists("g:nvimgdb_key_eval")
+    let s:key_eval = g:nvimgdb_key_eval
+  else
+    let s:key_eval = '<f9>'
+  endif
+
+  exe 'nnoremap <silent> '.s:key_eval.' :GdbEvalWord<cr>'
+  exe 'vnoremap <silent> '.s:key_eval.' :GdbEvalRange<cr>'
+
+  if exists("g:nvimgdb_key_watch")
+    let s:key_watch = g:nvimgdb_key_watch
+  else
+    let s:key_watch = '<m-f9>'
+  endif
+
+  exe 'nnoremap <silent> '.s:key_watch.' :GdbWatchWord<cr>'
+  exe 'vnoremap <silent> '.s:key_watch.' :GdbWatchRange<cr>'
+
   tnoremap <silent> <buffer> <esc> <c-\><c-n>
 endfunction
 
 function! s:UnsetKeymaps()
-  tunmap <f8>
-  tunmap <f10>
-  tunmap <f11>
-  tunmap <f12>
-  nunmap <f8>
-  nunmap <f10>
-  nunmap <f11>
-  nunmap <f12>
-  nunmap <c-b>
-  nunmap <c-p>
-  nunmap <c-n>
-  nunmap <f9>
-  vunmap <f9>
-  nunmap <m-f9>
-  vunmap <m-f9>
+  exe 'tunmap '.s:key_continue
+  exe 'nunmap '.s:key_continue
+  exe 'tunmap '.s:key_next
+  exe 'nunmap '.s:key_next
+  exe 'tunmap '.s:key_step
+  exe 'nunmap '.s:key_step
+  exe 'tunmap '.s:key_finish
+  exe 'nunmap '.s:key_finish
+  exe 'nunmap '.s:key_breakpoint
+  exe 'nunmap '.s:key_frameup
+  exe 'nunmap '.s:key_framedown
+  exe 'nunmap '.s:key_eval
+  exe 'vunmap '.s:key_eval
+  exe 'nunmap '.s:key_watch
+  exe 'vunmap '.s:key_watch
 endfunction
 
 function! nvimgdb#Spawn(client_cmd)
@@ -276,16 +339,3 @@ command! GdbEvalWord call nvimgdb#Eval(expand('<cword>'))
 command! -range GdbEvalRange call nvimgdb#Eval(s:GetExpression(<f-args>))
 command! GdbWatchWord call nvimgdb#Watch(expand('<cword>')
 command! -range GdbWatchRange call nvimgdb#Watch(s:GetExpression(<f-args>))
-
-
-nnoremap <silent> <f8> :GdbContinue<cr>
-nnoremap <silent> <f10> :GdbNext<cr>
-nnoremap <silent> <f11> :GdbStep<cr>
-nnoremap <silent> <f12> :GdbFinish<cr>
-nnoremap <silent> <c-b> :GdbToggleBreakpoint<cr>
-nnoremap <silent> <c-p> :GdbFrameUp<cr>
-nnoremap <silent> <c-n> :GdbFrameDown<cr>
-nnoremap <silent> <f9> :GdbEvalWord<cr>
-vnoremap <silent> <f9> :GdbEvalRange<cr>
-nnoremap <silent> <m-f9> :GdbWatchWord<cr>
-vnoremap <silent> <m-f9> :GdbWatchRange<cr>
