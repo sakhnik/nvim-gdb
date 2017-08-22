@@ -93,7 +93,7 @@ function! s:SetKeymaps()
   if exists("g:nvimgdb_key_continue")
     let s:key_continue = g:nvimgdb_key_continue
   else
-    let s:key_continue = '<f8>'
+    let s:key_continue = '<f5>'
   endif
 
   exe 'nnoremap <silent> '.s:key_continue.' :GdbContinue<cr>'
@@ -129,7 +129,7 @@ function! s:SetKeymaps()
   if exists("g:nvimgdb_key_breakpoint")
     let s:key_breakpoint = g:nvimgdb_key_breakpoint
   else
-    let s:key_breakpoint = '<c-b>'
+    let s:key_breakpoint = '<f8>'
   endif
 
   exe 'nnoremap <silent> '.s:key_breakpoint.' :GdbToggleBreakpoint<cr>'

@@ -81,11 +81,11 @@ The following mappings are defined initially:
 
 When debugging session has started, the following mappings are defined:
 
-<f8>                   Continue
+<f5>                   Continue
 <f10>                  Next
 <f11>                  Step
 <f12>                  Finish
-<c-b>                  Toggle breakpoint
+<f8>                   Toggle breakpoint
 <c-p>                  Frame Up
 <c-n>                  Frame Down
 <f9>                   NORMAL: Evaluate word under cursor
