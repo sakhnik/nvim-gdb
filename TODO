@@ -1,0 +1,5 @@
+clear breakpoint signs automatically on session end
+backtrace to quickfix
+persistent breakpoints
+breakpoints to quickfix
+session recording/loading
