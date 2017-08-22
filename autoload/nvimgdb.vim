@@ -42,6 +42,7 @@ endfunction
 
 let s:GdbRunning = vimexpect#State([
       \ ['\v^Breakpoint \d+', 'pause'],
+      \ ['\v hit Breakpoint \d+', 'pause'],
       \ ['(gdb)', 'pause'],
       \ ])
 
