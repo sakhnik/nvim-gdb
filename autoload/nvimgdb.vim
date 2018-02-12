@@ -5,6 +5,17 @@ sign define GdbCurrentLine text=⇒
 let s:breakpoints = {}
 let s:max_breakpoint_sign_id = 0
 
+" gdb specifics
+let s:backend_gdb = {
+  \ 'init': ['set confirm off', 'set pagination off']
+  \ }
+
+" lldb specifics
+let s:backend_lldb = {
+  \ 'init': ['settings set frame-format \032\032${line.file.fullpath}:${line.number}:0\n',
+  \          'settings set stop-line-count-before 0',
+  \          'settings set stop-line-count-after 0']
+  \ }
 
 let s:GdbPaused = vimexpect#State([
       \ ['Continuing.', 'continue'],
@@ -47,9 +58,13 @@ let s:GdbRunning = vimexpect#State([
 
 function s:GdbRunning.pause(...)
   call self._parser.switch(s:GdbPaused)
+
+  " For the first time the backend is paused, make sure it's initialized
+  " appropriately
   if !self._initialized
-    call self.send('set confirm off')
-    call self.send('set pagination off')
+    for c in s:backend["init"]
+      call self.send(c)
+    endfor
     let self._initialized = 1
   endif
 endfunction
@@ -187,10 +202,27 @@ function! s:UnsetKeymaps()
   exe 'vunmap '.s:key_watch
 endfunction
 
+
+function! nvimgdb#SelectBackend(client_cmd)
+  " Get the first WORD of the command line, assuming it's a command invocation
+  let cmd = matchstr(a:client_cmd, "\\S\\+")
+  if match(cmd, "lldb$") != -1
+    let s:backend = s:backend_lldb
+  else
+    " Fall back to GDB
+    let s:backend = s:backend_gdb
+  endif
+endfunction
+
+
 function! nvimgdb#Spawn(client_cmd)
   if exists('g:gdb')
     throw 'Gdb already running'
   endif
+
+  " Identify and select the appropriate backend
+  call nvimgdb#SelectBackend(a:client_cmd)
+
   let gdb = vimexpect#Parser(s:GdbRunning, copy(s:Gdb))
   let gdb._initialized = 0
   " window number that will be displaying the current file
