@@ -2,8 +2,6 @@ sign define GdbBreakpoint text=●
 sign define GdbCurrentLine text=⇒
 
 
-let s:gdb_port = 7778
-let s:run_gdb = "gdb -q -f build/bin/nvim"
 let s:breakpoints = {}
 let s:max_breakpoint_sign_id = 0
 
@@ -71,7 +69,7 @@ endfunction
 
 
 function! s:Gdb.send(data)
-  call jobsend(self._client_id, a:data."\<cr>")
+  call chansend(self._client_id, a:data."\<cr>")
 endfunction
 
 
