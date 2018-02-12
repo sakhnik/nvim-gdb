@@ -203,25 +203,18 @@ function! s:UnsetKeymaps()
 endfunction
 
 
-function! nvimgdb#SelectBackend(client_cmd)
-  " Get the first WORD of the command line, assuming it's a command invocation
-  let cmd = matchstr(a:client_cmd, "\\S\\+")
-  if match(cmd, "lldb$") != -1
-    let s:backend = s:backend_lldb
-  else
-    " Fall back to GDB
-    let s:backend = s:backend_gdb
-  endif
-endfunction
-
-
-function! nvimgdb#Spawn(client_cmd)
+function! nvimgdb#Spawn(backend, client_cmd)
   if exists('g:gdb')
     throw 'Gdb already running'
   endif
 
   " Identify and select the appropriate backend
-  call nvimgdb#SelectBackend(a:client_cmd)
+  if a:backend == "lldb"
+    let s:backend = s:backend_lldb
+  else
+    " Fall back to GDB
+    let s:backend = s:backend_gdb
+  endif
 
   let gdb = vimexpect#Parser(s:GdbRunning, copy(s:Gdb))
   let gdb._initialized = 0
