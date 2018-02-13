@@ -17,11 +17,14 @@ let s:backend_gdb = {
   \     ['\v hit Breakpoint \d+', 'pause'],
   \     ['(gdb)', 'pause'],
   \ ],
+  \ 'delete_breakpoints': 'delete',
+  \ 'breakpoint': 'break',
   \ }
 
 " lldb specifics
 let s:backend_lldb = {
   \ 'init': ['settings set frame-format \032\032${line.file.fullpath}:${line.number}:0\n',
+  \          'settings set auto-confirm true',
   \          'settings set stop-line-count-before 0',
   \          'settings set stop-line-count-after 0'],
   \ 'paused': [
@@ -32,6 +35,8 @@ let s:backend_lldb = {
   \     ['\v^Breakpoint \d+:', 'pause'],
   \     ['(lldb)', 'pause'],
   \ ],
+  \ 'delete_breakpoints': 'breakpoint delete',
+  \ 'breakpoint': 'b',
   \ }
 
 
@@ -316,13 +321,13 @@ function! s:RefreshBreakpoints()
     call jobsend(g:gdb._client_id, "\<c-c>")
   endif
   if g:gdb._has_breakpoints
-    call g:gdb.send('delete')
+    call g:gdb.send(g:gdb.backend['delete_breakpoints'])
   endif
   let g:gdb._has_breakpoints = 0
   for [file, breakpoints] in items(s:breakpoints)
     for linenr in keys(breakpoints)
       let g:gdb._has_breakpoints = 1
-      call g:gdb.send('break '.file.':'.linenr)
+      call g:gdb.send(g:gdb.backend['breakpoint'].' '.file.':'.linenr)
     endfor
   endfor
 endfunction
