@@ -1,4 +1,4 @@
-*nvimgdb.txt*  GDB integration into neovim
+*nvimgdb.txt*  GDB and LLDB integration into neovim
 
 TBD
 
@@ -14,14 +14,18 @@ CONTENTS                                                     *NvimgdbContents*
 ==============================================================================
 Section 1: Usage                                                *NvimgdbUsage*
 
-This plugin will facilitate debugging programs with GDB. It will automatically
-show debugged source code, breakpoints, and define convenient keymaps similar
-to Qt Creator and Microsofgt Visual Studio.
+This plugin will facilitate debugging programs with GDB or LLDB. It will
+automatically show debugged source code, breakpoints, and define convenient
+keymaps similar to Qt Creator and Microsofgt Visual Studio.
 
 To start debugging, execute :GdbStart command with GDB launch string as
 parameter: >
 
     :GdbStart gdb -q -f a.out
+
+or alternatively :GdbStartLLDB with LLDB launch string as parameter: >
+
+    :GdbStartLLDB lldb a.out
 
 This will open a new tab with debugging view: horizontal split with source
 code and terminal. Then the whole set of commands will be available.
@@ -37,6 +41,10 @@ Section 2: Commands                                          *NvimgdbCommands*
 
                                                                    *:GdbStart*
 :GdbStart [command]     Start debugging session with the given GDB launch
+                        command.
+
+                                                               *:GdbStartLLDB*
+:GdbStartLLDB [cmd]     Start debugging session with the given LLDB launch
                         command.
 
                                                         *:GdbToggleBreakpoint*
@@ -71,8 +79,11 @@ Section 3: Mappings                                          *NvimgdbMappings*
 
 The following mappings are defined initially:
 
-<leader>dd             Fill in command to start debugging, you will still need
-                       to enter <cr> to execute it.
+<leader>dd             Fill in command to start debugging with GDB, you will
+                       still need to enter <cr> to execute it.
+
+<leader>dl             Fill in command to start debugging with LLDB, you will
+                       still need to enter <cr> to execute it.
 
 When debugging session has started, the following mappings are defined:
 
