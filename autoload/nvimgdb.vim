@@ -7,29 +7,35 @@ let s:max_breakpoint_sign_id = 0
 
 " gdb specifics
 let s:backend_gdb = {
-  \ 'init': ['set confirm off', 'set pagination off']
+  \ 'init': ['set confirm off', 'set pagination off'],
+  \ 'paused': [
+  \     ['Continuing.', 'continue'],
+  \     ['\v[\o32]{2}([^:]+):(\d+):\d+', 'jump'],
+  \ ],
+  \ 'running': [
+  \     ['\v^Breakpoint \d+', 'pause'],
+  \     ['\v hit Breakpoint \d+', 'pause'],
+  \     ['(gdb)', 'pause'],
+  \ ],
   \ }
 
 " lldb specifics
 let s:backend_lldb = {
   \ 'init': ['settings set frame-format \032\032${line.file.fullpath}:${line.number}:0\n',
   \          'settings set stop-line-count-before 0',
-  \          'settings set stop-line-count-after 0']
+  \          'settings set stop-line-count-after 0'],
   \ }
 
-let s:GdbPaused = vimexpect#State([
-      \ ['Continuing.', 'continue'],
-      \ ['\v[\o32]{2}([^:]+):(\d+):\d+', 'jump'],
-      \ ])
 
-
-function s:GdbPaused.continue(...)
-  call self._parser.switch(s:GdbRunning)
+" Transition "paused" -> "continue"
+function s:GdbPaused_continue(...) dict
+  call self._parser.switch(self._state_running)
   call self.update_current_line_sign(0)
 endfunction
 
 
-function s:GdbPaused.jump(file, line, ...)
+" Transition "paused" -> "paused": jump to the frame location
+function s:GdbPaused_jump(file, line, ...) dict
   if tabpagenr() != self._tab
     " Don't jump if we are not in the debugger tab
     return
@@ -49,18 +55,12 @@ function s:GdbPaused.jump(file, line, ...)
 endfunction
 
 
-let s:GdbRunning = vimexpect#State([
-      \ ['\v^Breakpoint \d+', 'pause'],
-      \ ['\v hit Breakpoint \d+', 'pause'],
-      \ ['(gdb)', 'pause'],
-      \ ])
-
-
-function s:GdbRunning.pause(...)
-  call self._parser.switch(s:GdbPaused)
+" Transition "running" -> "pause"
+function s:GdbRunning_pause(...) dict
+  call self._parser.switch(self._state_paused)
 
   " For the first time the backend is paused, make sure it's initialized
-  " appropriately
+  " appropriately. We are sure the interpreter is ready to handle commands now.
   if !self._initialized
     for c in s:backend["init"]
       call self.send(c)
@@ -203,6 +203,21 @@ function! s:UnsetKeymaps()
 endfunction
 
 
+" Initialize the state machine depending on the chosen backend.
+function! nvimgdb#InitMachine(struct)
+  let data = copy(a:struct)
+
+  let data._state_paused = vimexpect#State(s:backend["paused"])
+  let data._state_paused.continue = function("s:GdbPaused_continue", data)
+  let data._state_paused.jump = function("s:GdbPaused_jump", data)
+
+  let data._state_running = vimexpect#State(s:backend["running"])
+  let data._state_running.pause = function("s:GdbRunning_pause", data)
+
+  return vimexpect#Parser(data._state_running, data)
+endfunction
+
+
 function! nvimgdb#Spawn(backend, client_cmd)
   if exists('g:gdb')
     throw 'Gdb already running'
@@ -216,7 +231,7 @@ function! nvimgdb#Spawn(backend, client_cmd)
     let s:backend = s:backend_gdb
   endif
 
-  let gdb = vimexpect#Parser(s:GdbRunning, copy(s:Gdb))
+  let gdb = nvimgdb#InitMachine(s:Gdb)
   let gdb._initialized = 0
   " window number that will be displaying the current file
   let gdb._jump_window = 1
@@ -282,7 +297,7 @@ function! s:RefreshBreakpoints()
   if !exists('g:gdb')
     return
   endif
-  if g:gdb._parser.state() == s:GdbRunning
+  if g:gdb._parser.state() == g:gdb._state_running
     " pause first
     call jobsend(g:gdb._client_id, "\<c-c>")
   endif
