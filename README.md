@@ -19,6 +19,8 @@ Or type `<leader>dl` to do the same with LLDB backend.
 
 [![nvim-gdb](https://asciinema.org/a/E8sKlS53Dm6UzK2MJjEolOyam.png)](https://asciinema.org/a/E8sKlS53Dm6UzK2MJjEolOyam?autoplay=1)
 
+[![nvim-gdb + llvm](https://asciinema.org/a/162697.png)](https://asciinema.org/a/162697)
+
 ## Installation
 
 If you use vim-plug, add the following line to your vimrc file:
