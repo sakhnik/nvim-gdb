@@ -218,7 +218,7 @@ endfunction
 
 
 " Initialize the state machine depending on the chosen backend.
-function! nvimgdb#InitMachine(backend, struct)
+function! s:InitMachine(backend, struct)
   let data = copy(a:struct)
 
   " Identify and select the appropriate backend
@@ -251,7 +251,7 @@ function! nvimgdb#Spawn(backend, client_cmd)
     throw 'Gdb already running'
   endif
 
-  let gdb = nvimgdb#InitMachine(a:backend, s:Gdb)
+  let gdb = s:InitMachine(a:backend, s:Gdb)
   let gdb._initialized = 0
   " window number that will be displaying the current file
   let gdb._jump_window = 1
@@ -275,13 +275,13 @@ endfunction
 
 
 " Breakpoints need full path to the buffer (at least in lldb)
-function! nvimgdb#GetCurrentFilePath()
+function! s:GetCurrentFilePath()
   return expand('%:p')
 endfunction
 
 
 function! nvimgdb#ToggleBreak()
-  let file_name = nvimgdb#GetCurrentFilePath()
+  let file_name = s:GetCurrentFilePath()
   let file_breakpoints = get(s:breakpoints, file_name, {})
   let linenr = line('.')
   if has_key(file_breakpoints, linenr)
@@ -311,7 +311,7 @@ function! s:RefreshBreakpointSigns()
   endwhile
   let s:max_breakpoint_sign_id = 0
   let id = 5000
-  for linenr in keys(get(s:breakpoints, nvimgdb#GetCurrentFilePath(), {}))
+  for linenr in keys(get(s:breakpoints, s:GetCurrentFilePath(), {}))
     exe 'sign place '.id.' name=GdbBreakpoint line='.linenr.' buffer='.buf
     let s:max_breakpoint_sign_id = id
     let id += 1
