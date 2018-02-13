@@ -66,11 +66,6 @@ Section 2: Commands                                          *NvimgdbCommands*
 :GdbEvalWord           Evaluate |<cword>| or |[range]|
 :<range>GdbEvalRange
 
-                                                               *:GdbWatchWord*
-                                                              *:GdbWatchRange*
-:GdbWatchWord          Watch |<cword>| or |[range]|
-:<range>GdbWatchRange
-
 ==============================================================================
 Section 3: Mappings                                          *NvimgdbMappings*
 
@@ -90,8 +85,6 @@ When debugging session has started, the following mappings are defined:
 <c-n>                  Frame Down
 <f9>                   NORMAL: Evaluate word under cursor
                        VISUAL: Evaluate the range
-<m-f9>                 NORMAL: Watch word under cursor
-                       VISUAL: Watch visual range
 
 ==============================================================================
 Section 4: Variables                                        *NvimgdbVariables*
@@ -107,7 +100,6 @@ g:nvimgdb_key_breakpoint
 g:nvimgdb_key_frameup
 g:nvimgdb_key_framedown
 g:nvimgdb_key_eval
-g:nvimgdb_key_watch
 
 ==============================================================================
 Section 5: Trivia                                              *NvimgdbTrivia*

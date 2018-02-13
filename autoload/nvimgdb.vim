@@ -186,15 +186,6 @@ function! s:SetKeymaps()
   exe 'nnoremap <silent> '.s:key_eval.' :GdbEvalWord<cr>'
   exe 'vnoremap <silent> '.s:key_eval.' :GdbEvalRange<cr>'
 
-  if exists("g:nvimgdb_key_watch")
-    let s:key_watch = g:nvimgdb_key_watch
-  else
-    let s:key_watch = '<m-f9>'
-  endif
-
-  exe 'nnoremap <silent> '.s:key_watch.' :GdbWatchWord<cr>'
-  exe 'vnoremap <silent> '.s:key_watch.' :GdbWatchRange<cr>'
-
   tnoremap <silent> <buffer> <esc> <c-\><c-n>
 endfunction
 
@@ -212,8 +203,6 @@ function! s:UnsetKeymaps()
   exe 'nunmap '.s:key_framedown
   exe 'nunmap '.s:key_eval
   exe 'vunmap '.s:key_eval
-  exe 'nunmap '.s:key_watch
-  exe 'vunmap '.s:key_watch
 endfunction
 
 
@@ -363,17 +352,6 @@ function! nvimgdb#Eval(expr)
 endfunction
 
 
-function! nvimgdb#Watch(expr)
-  let expr = a:expr
-  if expr[0] != '&'
-    let expr = '&' . expr
-  endif
-
-  call nvimgdb#Eval(expr)
-  call nvimgdb#Send('watch *$')
-endfunction
-
-
 function! nvimgdb#Interrupt()
   if !exists('g:gdb')
     throw 'Gdb is not running'
@@ -402,5 +380,3 @@ command! GdbFrameDown call nvimgdb#Send("down")
 command! GdbInterrupt call nvimgdb#Interrupt()
 command! GdbEvalWord call nvimgdb#Eval(expand('<cword>'))
 command! -range GdbEvalRange call nvimgdb#Eval(s:GetExpression(<f-args>))
-command! GdbWatchWord call nvimgdb#Watch(expand('<cword>')
-command! -range GdbWatchRange call nvimgdb#Watch(s:GetExpression(<f-args>))
