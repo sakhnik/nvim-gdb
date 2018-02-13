@@ -5,20 +5,51 @@ sign define GdbCurrentLine text=⇒
 let s:breakpoints = {}
 let s:max_breakpoint_sign_id = 0
 
+" gdb specifics
+let s:backend_gdb = {
+  \ 'init': ['set confirm off', 'set pagination off'],
+  \ 'paused': [
+  \     ['Continuing.', 'continue'],
+  \     ['\v[\o32]{2}([^:]+):(\d+):\d+', 'jump'],
+  \ ],
+  \ 'running': [
+  \     ['\v^Breakpoint \d+', 'pause'],
+  \     ['\v hit Breakpoint \d+', 'pause'],
+  \     ['(gdb)', 'pause'],
+  \ ],
+  \ 'delete_breakpoints': 'delete',
+  \ 'breakpoint': 'break',
+  \ }
 
-let s:GdbPaused = vimexpect#State([
-      \ ['Continuing.', 'continue'],
-      \ ['\v[\o32]{2}([^:]+):(\d+):\d+', 'jump'],
-      \ ])
+" lldb specifics
+let s:backend_lldb = {
+  \ 'init': ['settings set frame-format \032\032${line.file.fullpath}:${line.number}:0\n',
+  \          'settings set auto-confirm true',
+  \          'settings set stop-line-count-before 0',
+  \          'settings set stop-line-count-after 0'],
+  \ 'paused': [
+  \     ['\v^Process \d+ resuming$', 'continue'],
+  \     ['\v[\o32]{2}([^:]+):(\d+):\d+', 'jump'],
+  \ ],
+  \ 'running': [
+  \     ['\v^Breakpoint \d+:', 'pause'],
+  \     ['\v^Process \d+ stopped$', 'pause'],
+  \     ['(lldb)', 'pause'],
+  \ ],
+  \ 'delete_breakpoints': 'breakpoint delete',
+  \ 'breakpoint': 'b',
+  \ }
 
 
-function s:GdbPaused.continue(...)
-  call self._parser.switch(s:GdbRunning)
+" Transition "paused" -> "continue"
+function s:GdbPaused_continue(...) dict
+  call self._parser.switch(self._state_running)
   call self.update_current_line_sign(0)
 endfunction
 
 
-function s:GdbPaused.jump(file, line, ...)
+" Transition "paused" -> "paused": jump to the frame location
+function s:GdbPaused_jump(file, line, ...) dict
   if tabpagenr() != self._tab
     " Don't jump if we are not in the debugger tab
     return
@@ -38,18 +69,16 @@ function s:GdbPaused.jump(file, line, ...)
 endfunction
 
 
-let s:GdbRunning = vimexpect#State([
-      \ ['\v^Breakpoint \d+', 'pause'],
-      \ ['\v hit Breakpoint \d+', 'pause'],
-      \ ['(gdb)', 'pause'],
-      \ ])
+" Transition "running" -> "pause"
+function s:GdbRunning_pause(...) dict
+  call self._parser.switch(self._state_paused)
 
-
-function s:GdbRunning.pause(...)
-  call self._parser.switch(s:GdbPaused)
+  " For the first time the backend is paused, make sure it's initialized
+  " appropriately. We are sure the interpreter is ready to handle commands now.
   if !self._initialized
-    call self.send('set confirm off')
-    call self.send('set pagination off')
+    for c in self.backend["init"]
+      call self.send(c)
+    endfor
     let self._initialized = 1
   endif
 endfunction
@@ -157,15 +186,6 @@ function! s:SetKeymaps()
   exe 'nnoremap <silent> '.s:key_eval.' :GdbEvalWord<cr>'
   exe 'vnoremap <silent> '.s:key_eval.' :GdbEvalRange<cr>'
 
-  if exists("g:nvimgdb_key_watch")
-    let s:key_watch = g:nvimgdb_key_watch
-  else
-    let s:key_watch = '<m-f9>'
-  endif
-
-  exe 'nnoremap <silent> '.s:key_watch.' :GdbWatchWord<cr>'
-  exe 'vnoremap <silent> '.s:key_watch.' :GdbWatchRange<cr>'
-
   tnoremap <silent> <buffer> <esc> <c-\><c-n>
 endfunction
 
@@ -183,15 +203,44 @@ function! s:UnsetKeymaps()
   exe 'nunmap '.s:key_framedown
   exe 'nunmap '.s:key_eval
   exe 'vunmap '.s:key_eval
-  exe 'nunmap '.s:key_watch
-  exe 'vunmap '.s:key_watch
 endfunction
 
-function! nvimgdb#Spawn(client_cmd)
+
+" Initialize the state machine depending on the chosen backend.
+function! s:InitMachine(backend, struct)
+  let data = copy(a:struct)
+
+  " Identify and select the appropriate backend
+  if a:backend == "lldb"
+    let data.backend = s:backend_lldb
+  else
+    " Fall back to GDB
+    let data.backend = s:backend_gdb
+  endif
+
+  "  +-jump--+
+  "  |       |
+  "  +--->PAUSED---continue--->RUNNING
+  "          |                   |
+  "          +<-----pause--------+
+  "
+  let data._state_paused = vimexpect#State(data.backend["paused"])
+  let data._state_paused.continue = function("s:GdbPaused_continue", data)
+  let data._state_paused.jump = function("s:GdbPaused_jump", data)
+
+  let data._state_running = vimexpect#State(data.backend["running"])
+  let data._state_running.pause = function("s:GdbRunning_pause", data)
+
+  return vimexpect#Parser(data._state_running, data)
+endfunction
+
+
+function! nvimgdb#Spawn(backend, client_cmd)
   if exists('g:gdb')
     throw 'Gdb already running'
   endif
-  let gdb = vimexpect#Parser(s:GdbRunning, copy(s:Gdb))
+
+  let gdb = s:InitMachine(a:backend, s:Gdb)
   let gdb._initialized = 0
   " window number that will be displaying the current file
   let gdb._jump_window = 1
@@ -214,8 +263,14 @@ function! nvimgdb#Spawn(client_cmd)
 endfunction
 
 
+" Breakpoints need full path to the buffer (at least in lldb)
+function! s:GetCurrentFilePath()
+  return expand('%:p')
+endfunction
+
+
 function! nvimgdb#ToggleBreak()
-  let file_name = bufname('%')
+  let file_name = s:GetCurrentFilePath()
   let file_breakpoints = get(s:breakpoints, file_name, {})
   let linenr = line('.')
   if has_key(file_breakpoints, linenr)
@@ -245,7 +300,7 @@ function! s:RefreshBreakpointSigns()
   endwhile
   let s:max_breakpoint_sign_id = 0
   let id = 5000
-  for linenr in keys(get(s:breakpoints, bufname('%'), {}))
+  for linenr in keys(get(s:breakpoints, s:GetCurrentFilePath(), {}))
     exe 'sign place '.id.' name=GdbBreakpoint line='.linenr.' buffer='.buf
     let s:max_breakpoint_sign_id = id
     let id += 1
@@ -257,18 +312,18 @@ function! s:RefreshBreakpoints()
   if !exists('g:gdb')
     return
   endif
-  if g:gdb._parser.state() == s:GdbRunning
+  if g:gdb._parser.state() == g:gdb._state_running
     " pause first
     call jobsend(g:gdb._client_id, "\<c-c>")
   endif
   if g:gdb._has_breakpoints
-    call g:gdb.send('delete')
+    call g:gdb.send(g:gdb.backend['delete_breakpoints'])
   endif
   let g:gdb._has_breakpoints = 0
   for [file, breakpoints] in items(s:breakpoints)
     for linenr in keys(breakpoints)
       let g:gdb._has_breakpoints = 1
-      call g:gdb.send('break '.file.':'.linenr)
+      call g:gdb.send(g:gdb.backend['breakpoint'].' '.file.':'.linenr)
     endfor
   endfor
 endfunction
@@ -294,17 +349,6 @@ endfunction
 
 function! nvimgdb#Eval(expr)
   call nvimgdb#Send(printf('print %s', a:expr))
-endfunction
-
-
-function! nvimgdb#Watch(expr)
-  let expr = a:expr
-  if expr[0] != '&'
-    let expr = '&' . expr
-  endif
-
-  call nvimgdb#Eval(expr)
-  call nvimgdb#Send('watch *$')
 endfunction
 
 
@@ -336,5 +380,3 @@ command! GdbFrameDown call nvimgdb#Send("down")
 command! GdbInterrupt call nvimgdb#Interrupt()
 command! GdbEvalWord call nvimgdb#Eval(expand('<cword>'))
 command! -range GdbEvalRange call nvimgdb#Eval(s:GetExpression(<f-args>))
-command! GdbWatchWord call nvimgdb#Watch(expand('<cword>')
-command! -range GdbWatchRange call nvimgdb#Watch(s:GetExpression(<f-args>))
