@@ -62,7 +62,7 @@ function s:GdbRunning_pause(...) dict
   " For the first time the backend is paused, make sure it's initialized
   " appropriately. We are sure the interpreter is ready to handle commands now.
   if !self._initialized
-    for c in s:backend["init"]
+    for c in self.backend["init"]
       call self.send(c)
     endfor
     let self._initialized = 1
@@ -204,8 +204,16 @@ endfunction
 
 
 " Initialize the state machine depending on the chosen backend.
-function! nvimgdb#InitMachine(struct)
+function! nvimgdb#InitMachine(backend, struct)
   let data = copy(a:struct)
+
+  " Identify and select the appropriate backend
+  if a:backend == "lldb"
+    let data.backend = s:backend_lldb
+  else
+    " Fall back to GDB
+    let data.backend = s:backend_gdb
+  endif
 
   "  +-jump--+
   "  |       |
@@ -213,11 +221,11 @@ function! nvimgdb#InitMachine(struct)
   "          |                   |
   "          +<-----pause--------+
   "
-  let data._state_paused = vimexpect#State(s:backend["paused"])
+  let data._state_paused = vimexpect#State(data.backend["paused"])
   let data._state_paused.continue = function("s:GdbPaused_continue", data)
   let data._state_paused.jump = function("s:GdbPaused_jump", data)
 
-  let data._state_running = vimexpect#State(s:backend["running"])
+  let data._state_running = vimexpect#State(data.backend["running"])
   let data._state_running.pause = function("s:GdbRunning_pause", data)
 
   return vimexpect#Parser(data._state_running, data)
@@ -229,15 +237,7 @@ function! nvimgdb#Spawn(backend, client_cmd)
     throw 'Gdb already running'
   endif
 
-  " Identify and select the appropriate backend
-  if a:backend == "lldb"
-    let s:backend = s:backend_lldb
-  else
-    " Fall back to GDB
-    let s:backend = s:backend_gdb
-  endif
-
-  let gdb = nvimgdb#InitMachine(s:Gdb)
+  let gdb = nvimgdb#InitMachine(a:backend, s:Gdb)
   let gdb._initialized = 0
   " window number that will be displaying the current file
   let gdb._jump_window = 1
