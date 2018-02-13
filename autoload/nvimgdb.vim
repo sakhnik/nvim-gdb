@@ -28,11 +28,12 @@ let s:backend_lldb = {
   \          'settings set stop-line-count-before 0',
   \          'settings set stop-line-count-after 0'],
   \ 'paused': [
-  \     ['\v^Process \d+ resuming', 'continue'],
+  \     ['\v^Process \d+ resuming$', 'continue'],
   \     ['\v[\o32]{2}([^:]+):(\d+):\d+', 'jump'],
   \ ],
   \ 'running': [
   \     ['\v^Breakpoint \d+:', 'pause'],
+  \     ['\v^Process \d+ stopped$', 'pause'],
   \     ['(lldb)', 'pause'],
   \ ],
   \ 'delete_breakpoints': 'breakpoint delete',
