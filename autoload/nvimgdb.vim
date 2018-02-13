@@ -207,6 +207,12 @@ endfunction
 function! nvimgdb#InitMachine(struct)
   let data = copy(a:struct)
 
+  "  +-jump--+
+  "  |       |
+  "  +--->PAUSED---continue--->RUNNING
+  "          |                   |
+  "          +<-----pause--------+
+  "
   let data._state_paused = vimexpect#State(s:backend["paused"])
   let data._state_paused.continue = function("s:GdbPaused_continue", data)
   let data._state_paused.jump = function("s:GdbPaused_jump", data)
