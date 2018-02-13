@@ -24,6 +24,14 @@ let s:backend_lldb = {
   \ 'init': ['settings set frame-format \032\032${line.file.fullpath}:${line.number}:0\n',
   \          'settings set stop-line-count-before 0',
   \          'settings set stop-line-count-after 0'],
+  \ 'paused': [
+  \     ['\v^Process \d+ resuming', 'continue'],
+  \     ['\v[\o32]{2}([^:]+):(\d+):\d+', 'jump'],
+  \ ],
+  \ 'running': [
+  \     ['\v^Breakpoint \d+:', 'pause'],
+  \     ['(lldb)', 'pause'],
+  \ ],
   \ }
 
 
