@@ -69,7 +69,7 @@ endfunction
 
 
 function! s:Gdb.send(data)
-  call chansend(self._client_id, a:data."\<cr>")
+  call jobsend(self._client_id, a:data."\<cr>")
 endfunction
 
 
