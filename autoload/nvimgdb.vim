@@ -23,13 +23,13 @@ let s:backend_gdb = {
 
 " lldb specifics
 let s:backend_lldb = {
-  \ 'init': ['settings set frame-format \032\032${line.file.fullpath}:${line.number}:0\n',
+  \ 'init': ['settings set frame-format frame #${frame.index}: ${frame.pc}{ ${module.file.basename}{`${function.name-with-args}{${frame.no-debug}${function.pc-offset}}}}{ at \032\032${line.file.fullpath}:${line.number}}{${function.is-optimized} [opt]}\n',
   \          'settings set auto-confirm true',
   \          'settings set stop-line-count-before 0',
   \          'settings set stop-line-count-after 0'],
   \ 'paused': [
   \     ['\v^Process \d+ resuming', 'continue'],
-  \     ['\v[\o32]{2}([^:]+):(\d+):\d+', 'jump'],
+  \     ['\v at [\o32]{2}([^:]+):(\d+)', 'jump'],
   \ ],
   \ 'running': [
   \     ['\v^Breakpoint \d+:', 'pause'],
