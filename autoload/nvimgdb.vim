@@ -371,6 +371,7 @@ endfunction
 command! GdbDebugStop call nvimgdb#Kill()
 command! GdbToggleBreakpoint call nvimgdb#ToggleBreak()
 command! GdbClearBreakpoints call nvimgdb#ClearBreak()
+command! GdbRun call nvimgdb#Send("run")
 command! GdbContinue call nvimgdb#Send("c")
 command! GdbNext call nvimgdb#Send("n")
 command! GdbStep call nvimgdb#Send("s")
