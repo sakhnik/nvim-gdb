@@ -1,23 +1,27 @@
 #!/usr/bin/env python
 
 import os
+import sys
 import time
 import re
 import unittest
 from neovim import attach
 
 
+delay = 0.5
+
+
 # Neovim proxy
 class Engine:
 
     def __init__(self):
-        if not os.path.isfile('a.out'):
-            os.system('g++ -g test.cpp')
+        os.system('g++ -g test.cpp')
         self.nvim = attach('child', argv=["/bin/env", "nvim", "--embed", "-n", "-u", "init.vim"])
         #self.nvim = attach('socket', path='/tmp/nvimtest')
 
     def Command(self, cmd):
         self.nvim.command(cmd)
+        time.sleep(delay)
 
     def GetSigns(self):
         self.nvim.command('redir @z')
@@ -31,11 +35,11 @@ class Engine:
 
     def KeyStrokeL(self, keys):
         self.nvim.input(keys)
-        time.sleep(0.1)
+        time.sleep(delay)
 
     def KeyStroke(self, keys):
         self.nvim.feedkeys(keys, 't')
-        time.sleep(0.1)
+        time.sleep(delay)
 
 
 engine = Engine()
@@ -87,14 +91,12 @@ class TestGdb(unittest.TestCase):
                 engine.KeyStrokeL('<esc><c-w>k')
                 engine.KeyStroke(":e test.cpp\n")
                 engine.KeyStrokeL(':4<cr>')
-                time.sleep(1)
                 engine.KeyStrokeL('<f8>')
                 cur, breaks = engine.GetSigns()
                 self.assertEqual(-1, cur)
                 self.assertListEqual([4], breaks)
 
                 engine.Command("GdbRun")
-                time.sleep(0.2)
                 cur, breaks = engine.GetSigns()
                 self.assertEqual(4, cur)
                 self.assertListEqual([4], breaks)
