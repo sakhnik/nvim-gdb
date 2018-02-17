@@ -5,6 +5,7 @@ notifications:
   email: false
 
 before_install:
+  - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
   - echo "deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty main" | sudo tee -a /etc/apt/sources.list
   - sudo add-apt-repository ppa:neovim-ppa/unstable -y
   - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
