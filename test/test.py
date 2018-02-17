@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import os
-import sys
 import time
 import re
 import unittest
@@ -16,8 +15,11 @@ class Engine:
 
     def __init__(self):
         os.system('g++ -g test.cpp')
-        #self.nvim = attach('child', argv=["/usr/bin/env", "nvim", "--embed", "-n", "-u", "init.vim"])
-        self.nvim = attach('socket', path='/tmp/nvimtest')
+        addr = os.environ.get('NVIM_LISTEN_ADDRESS')
+        if addr:
+            self.nvim = attach('socket', path=addr)
+        else:
+            self.nvim = attach('child', argv=["/usr/bin/env", "nvim", "--embed", "-n", "-u", "init.vim"])
 
     def Command(self, cmd):
         self.nvim.command(cmd)
