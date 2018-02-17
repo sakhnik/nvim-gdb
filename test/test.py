@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import os
-import sys
 import time
 import re
 import unittest
@@ -16,18 +15,18 @@ class Engine:
 
     def __init__(self):
         os.system('g++ -g test.cpp')
-        self.nvim = attach('child', argv=["/bin/env", "nvim", "--embed", "-n", "-u", "init.vim"])
-        #self.nvim = attach('socket', path='/tmp/nvimtest')
+        addr = os.environ.get('NVIM_LISTEN_ADDRESS')
+        if addr:
+            self.nvim = attach('socket', path=addr)
+        else:
+            self.nvim = attach('child', argv=["/usr/bin/env", "nvim", "--embed", "-n", "-u", "init.vim"])
 
     def Command(self, cmd):
         self.nvim.command(cmd)
         time.sleep(delay)
 
     def GetSigns(self):
-        self.nvim.command('redir @z')
-        self.nvim.command('sign place')
-        self.nvim.command('redir END')
-        out = self.nvim.eval('getreg("z")')
+        out = self.nvim.eval('execute("sign place")')
         curline = [int(l) for l in re.findall(r'line=(\d+)\s+id=\d+\s+name=GdbCurrentLine', out)]
         assert(len(curline) <= 1)
         breaks = [int(l) for l in re.findall(r'line=(\d+)\s+id=\d+\s+name=GdbBreakpoint', out)]
