@@ -16,8 +16,8 @@ class Engine:
 
     def __init__(self):
         os.system('g++ -g test.cpp')
-        self.nvim = attach('child', argv=["/usr/bin/env", "nvim", "--embed", "-n", "-u", "init.vim"])
-        #self.nvim = attach('socket', path='/tmp/nvimtest')
+        #self.nvim = attach('child', argv=["/usr/bin/env", "nvim", "--embed", "-n", "-u", "init.vim"])
+        self.nvim = attach('socket', path='/tmp/nvimtest')
 
     def Command(self, cmd):
         self.nvim.command(cmd)
