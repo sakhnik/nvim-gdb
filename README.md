@@ -1,3 +1,5 @@
+[![Travis Build Status](https://travis-ci.org/sakhnik/nvim-gdb.svg?branch=master)](https://travis-ci.org/sakhnik/nvim-gdb)
+
 # GDB for neovim
 
 [Gdb](https://www.gnu.org/software/gdb/) and [LLDB](https://lldb.llvm.org/) integration with NeoVim.
