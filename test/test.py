@@ -26,10 +26,7 @@ class Engine:
         time.sleep(delay)
 
     def GetSigns(self):
-        self.nvim.command('redir @z')
-        self.nvim.command('sign place')
-        self.nvim.command('redir END')
-        out = self.nvim.eval('getreg("z")')
+        out = self.nvim.eval('execute("sign place")')
         curline = [int(l) for l in re.findall(r'line=(\d+)\s+id=\d+\s+name=GdbCurrentLine', out)]
         assert(len(curline) <= 1)
         breaks = [int(l) for l in re.findall(r'line=(\d+)\s+id=\d+\s+name=GdbBreakpoint', out)]
