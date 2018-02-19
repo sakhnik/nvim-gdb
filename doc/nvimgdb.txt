@@ -9,7 +9,8 @@ CONTENTS                                                     *NvimgdbContents*
     2. Commands ............. |NvigdbCommands|
     3. Mappings ............. |NvimgdbMappings|
     4. Variables............. |NvimgdbVariables|
-    5. Trivia ............... |NvimgdbTrivia|
+    5. Limitations........... |NvimgdbLimitations|
+    6. Trivia ............... |NvimgdbTrivia|
 
 ==============================================================================
 Section 1: Usage                                                *NvimgdbUsage*
@@ -115,7 +116,18 @@ g:nvimgdb_key_framedown
 g:nvimgdb_key_eval
 
 ==============================================================================
-Section 5: Trivia                                              *NvimgdbTrivia*
+Section 5: Limitations                                    *NvimgdbLimitations*
+
+- The plugin is sensitive to the debugger settings. If prompt or frame format
+  is changed, the errors may occur.
+
+- LLDB uses the same frame format in multiple different situations. The
+  command "thread backtrace", for instance, will cause jumps in the source
+  code. Workaround: execute "frame info" in the debugger or
+  `:GdbFrameUp` followed by `:GdbFrameDown`.
+
+==============================================================================
+Section 6: Trivia                                              *NvimgdbTrivia*
 
 License inherits from neovim's.
 
