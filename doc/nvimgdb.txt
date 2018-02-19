@@ -16,7 +16,7 @@ Section 1: Usage                                                *NvimgdbUsage*
 
 This plugin will facilitate debugging programs with GDB or LLDB. It will
 automatically show debugged source code, breakpoints, and define convenient
-keymaps similar to Qt Creator and Microsofgt Visual Studio.
+keymaps similar to Qt Creator and Microsoft Visual Studio.
 
 To start debugging, execute :GdbStart command with GDB launch string as
 parameter: >
@@ -32,9 +32,11 @@ code and terminal. Then the whole set of commands will be available.
 
 NOTE: Ensure the flag `-f` is passed to GDB for proper integration. Without it,
       source code wouldn't be displayed in neovim window.
-NOTE: The plugin assumes GDB (or other command you begin debugging with)
-      launches the program stopped. That will allow the plugin to properly
-      configure the debugger.
+
+The plugin performs configuration on the first stop of the debugger. If you
+launch by attaching to already running program, the first stop won't open the
+source code location of the frame. To catch up, just navigate around the call
+stack with `:GdbFrameUp` and `:GdbFrameDown`.
 
 ==============================================================================
 Section 2: Commands                                          *NvimgdbCommands*
