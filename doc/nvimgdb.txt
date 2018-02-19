@@ -18,12 +18,12 @@ This plugin will facilitate debugging programs with GDB or LLDB. It will
 automatically show debugged source code, breakpoints, and define convenient
 keymaps similar to Qt Creator and Microsoft Visual Studio.
 
-To start debugging, execute :GdbStart command with GDB launch string as
+To start debugging, execute `:GdbStart` command with GDB launch string as
 parameter: >
 
     :GdbStart gdb -q -f a.out
 
-or alternatively :GdbStartLLDB with LLDB launch string as parameter: >
+or alternatively `:GdbStartLLDB` with LLDB launch string as parameter: >
 
     :GdbStartLLDB lldb a.out
 
@@ -89,15 +89,15 @@ The following mappings are defined initially:
 
 When debugging session has started, the following mappings are defined:
 
-<f5>                   Continue
-<f10>                  Next
-<f11>                  Step
-<f12>                  Finish
-<f8>                   Toggle breakpoint
-<c-p>                  Frame Up
-<c-n>                  Frame Down
-<f9>                   NORMAL: Evaluate word under cursor
-                       VISUAL: Evaluate the range
+<f5>                   Continue                       (`:GdbContinue`)
+<f10>                  Next                           (`:GdbNext`)
+<f11>                  Step                           (`:GdbStep`)
+<f12>                  Finish                         (`:GdbFinish`)
+<f8>                   Toggle breakpoint              (`:GdbToggleBreakpoint`)
+<c-p>                  Frame Up                       (`:GdbFrameUp`)
+<c-n>                  Frame Down                     (`:GdbFrameDown`)
+<f9>                   NORMAL: Evaluate word under cursor (`:GdbEvalWord`)
+                       VISUAL: Evaluate the range         (`:GdbEvalRange`)
 
 ==============================================================================
 Section 4: Variables                                        *NvimgdbVariables*
