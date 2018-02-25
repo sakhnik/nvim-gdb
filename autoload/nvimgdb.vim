@@ -89,6 +89,7 @@ let s:Gdb = {}
 
 function s:Gdb.kill()
   call s:UnsetKeymaps()
+  call s:UndefCommands()
   call self.update_current_line_sign(0)
   exe 'tabnext '.self._tab
   tabclose
@@ -123,6 +124,7 @@ function! s:Gdb.update_current_line_sign(add)
   endif
   exe 'sign unplace '.old_line_sign_id
 endfunction
+
 
 " Set one keymap
 " Parameters:
@@ -172,6 +174,40 @@ function! s:UnsetKeymaps()
   exe 'nunmap '.s:key_framedown
   exe 'nunmap '.s:key_eval
   exe 'vunmap '.s:key_eval
+endfunction
+
+
+function! s:DefineCommands()
+  command! GdbDebugStop call nvimgdb#Kill()
+  command! GdbToggleBreakpoint call nvimgdb#ToggleBreak()
+  command! GdbClearBreakpoints call nvimgdb#ClearBreak()
+  command! GdbRun call nvimgdb#Send("run")
+  command! GdbContinue call nvimgdb#Send("c")
+  command! GdbNext call nvimgdb#Send("n")
+  command! GdbStep call nvimgdb#Send("s")
+  command! GdbFinish call nvimgdb#Send("finish")
+  command! GdbFrameUp call nvimgdb#Send("up")
+  command! GdbFrameDown call nvimgdb#Send("down")
+  command! GdbInterrupt call nvimgdb#Interrupt()
+  command! GdbEvalWord call nvimgdb#Eval(expand('<cword>'))
+  command! -range GdbEvalRange call nvimgdb#Eval(s:GetExpression(<f-args>))
+endfunction
+
+
+function! s:UndefCommands()
+  delcommand GdbDebugStop
+  delcommand GdbToggleBreakpoint
+  delcommand GdbClearBreakpoints
+  delcommand GdbRun
+  delcommand GdbContinue
+  delcommand GdbNext
+  delcommand GdbStep
+  delcommand GdbFinish
+  delcommand GdbFrameUp
+  delcommand GdbFrameDown
+  delcommand GdbInterrupt
+  delcommand GdbEvalWord
+  delcommand GdbEvalRange
 endfunction
 
 
@@ -225,6 +261,7 @@ function! nvimgdb#Spawn(backend, client_cmd)
   wincmd j
   enew | let gdb._client_id = termopen(a:client_cmd, gdb)
   let gdb._client_buf = bufnr('%')
+  call s:DefineCommands()
   call s:SetKeymaps()
   " Start inset mode in the GDB window
   normal i
@@ -341,18 +378,3 @@ function! nvimgdb#Kill()
   endif
   call g:gdb.kill()
 endfunction
-
-
-command! GdbDebugStop call nvimgdb#Kill()
-command! GdbToggleBreakpoint call nvimgdb#ToggleBreak()
-command! GdbClearBreakpoints call nvimgdb#ClearBreak()
-command! GdbRun call nvimgdb#Send("run")
-command! GdbContinue call nvimgdb#Send("c")
-command! GdbNext call nvimgdb#Send("n")
-command! GdbStep call nvimgdb#Send("s")
-command! GdbFinish call nvimgdb#Send("finish")
-command! GdbFrameUp call nvimgdb#Send("up")
-command! GdbFrameDown call nvimgdb#Send("down")
-command! GdbInterrupt call nvimgdb#Interrupt()
-command! GdbEvalWord call nvimgdb#Eval(expand('<cword>'))
-command! -range GdbEvalRange call nvimgdb#Eval(s:GetExpression(<f-args>))
