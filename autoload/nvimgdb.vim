@@ -90,10 +90,18 @@ let s:Gdb = {}
 function s:Gdb.kill()
   call s:UnsetKeymaps()
   call self.update_current_line_sign(0)
-  exe 'bd! '.self._client_buf
   exe 'tabnext '.self._tab
   tabclose
+  if bufexists(self._client_buf)
+    exe 'bd! '.self._client_buf
+  endif
   unlet g:gdb
+
+  " Cleanup the autocommands
+  augroup NvimGdb
+    au!
+  augroup END
+  augroup! NvimGdb
 endfunction
 
 
@@ -260,6 +268,12 @@ function! nvimgdb#Spawn(backend, client_cmd)
   " Start inset mode in the GDB window
   normal i
   let g:gdb = gdb
+
+  " Check if user closed either of our windows.
+  augroup NvimGdb
+    au!
+    au WinEnter * if tabpagewinnr(g:gdb._tab, '$') == 1 | call g:gdb.kill() | endif
+  augroup END
 endfunction
 
 

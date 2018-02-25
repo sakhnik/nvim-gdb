@@ -39,6 +39,9 @@ launch by attaching to already running program, the first stop won't open the
 source code location of the frame. To catch up, just navigate around the call
 stack with `:GdbFrameUp` and `:GdbFrameDown`.
 
+To quit debugging, either close one of the debugger windows or execute the
+command `:GdbDebugStop`.
+
 ==============================================================================
 Section 2: Commands                                          *NvimgdbCommands*
 
@@ -49,6 +52,11 @@ Section 2: Commands                                          *NvimgdbCommands*
                                                                *:GdbStartLLDB*
 :GdbStartLLDB [cmd]     Start debugging session with the given LLDB launch
                         command.
+
+                                                               *:GdbDebugStop*
+:GdbDebugStop           Quit the debugging session. This command is implicitly
+                        executed if you close either of the windows created by
+                        the debugger.
 
                                                         *:GdbToggleBreakpoint*
                                                         *:GdbClearBreakpoints*
