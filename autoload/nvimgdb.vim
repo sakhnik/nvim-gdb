@@ -124,76 +124,37 @@ function! s:Gdb.update_current_line_sign(add)
   exe 'sign unplace '.old_line_sign_id
 endfunction
 
+" Set one keymap
+" Parameters:
+"   key_svar    Script-wide variable name to remember the mapping
+"   key_gvar    Global variable name for users to override the mapping
+"   key_def     Default key code
+"   action      The command to be called
+"   tmode       Booalean, whether to map in terminal mode too.
+function! s:SetKeymap(key_svar, key_gvar, key_def, action, tmode)
+  if exists(a:key_gvar)
+    exe 'let ' . a:key_svar . ' = ' . a:key_gvar
+  else
+    exe 'let ' . a:key_svar . ' = "' . a:key_def . '"'
+  endif
+  exe 'nnoremap <silent> ' . eval(a:key_svar) . ' :' . a:action . '<cr>'
+  if a:tmode
+    exe 'tnoremap <silent> ' . eval(a:key_svar) . ' <c-\><c-n>:' . a:action . '<cr>i'
+  endif
+endfunction
+
 function! s:SetKeymaps()
-  if exists("g:nvimgdb_key_continue")
-    let s:key_continue = g:nvimgdb_key_continue
-  else
-    let s:key_continue = '<f5>'
-  endif
+  call s:SetKeymap("s:key_continue",   "g:nvimgdb_key_continue",   "<f5>",  "GdbContinue",  1)
+  call s:SetKeymap("s:key_next",       "g:nvimgdb_key_next",       "<f10>", "GdbNext",      1)
+  call s:SetKeymap("s:key_step",       "g:nvimgdb_key_step",       "<f11>", "GdbStep",      1)
+  call s:SetKeymap("s:key_finish",     "g:nvimgdb_key_finish",     "<f12>", "GdbFinish",    1)
 
-  exe 'nnoremap <silent> '.s:key_continue.' :GdbContinue<cr>'
-  exe 'tnoremap <silent> '.s:key_continue.' <c-\><c-n>:GdbContinue<cr>i'
+  call s:SetKeymap("s:key_breakpoint", "g:nvimgdb_key_breakpoint", "<f8>",  "GdbToggleBreakpoint", 0)
+  call s:SetKeymap("s:key_frameup",    "g:nvimgdb_key_frameup",    "<c-p>", "GdbFrameUp",   0)
+  call s:SetKeymap("s:key_framedown",  "g:nvimgdb_key_framedown",  "<c-n>", "GdbFrameDown", 0)
+  call s:SetKeymap("s:key_eval",       "g:nvimgdb_key_eval",       "<f9>",  "GdbEvalWord",  0)
 
-  if exists("g:nvimgdb_key_next")
-    let s:key_next = g:nvimgdb_key_next
-  else
-    let s:key_next = '<f10>'
-  endif
-
-  exe 'nnoremap <silent> '.s:key_next.' :GdbNext<cr>'
-  exe 'tnoremap <silent> '.s:key_next.' <c-\><c-n>:GdbNext<cr>i'
-
-  if exists("g:nvimgdb_key_step")
-    let s:key_step = g:nvimgdb_key_step
-  else
-    let s:key_step = '<f11>'
-  endif
-
-  exe 'nnoremap <silent> '.s:key_step.' :GdbStep<cr>'
-  exe 'tnoremap <silent> '.s:key_step.' <c-\><c-n>:GdbStep<cr>i'
-
-  if exists("g:nvimgdb_key_finish")
-    let s:key_finish = g:nvimgdb_key_finish
-  else
-    let s:key_finish = '<f12>'
-  endif
-
-  exe 'nnoremap <silent> '.s:key_finish.' :GdbFinish<cr>'
-  exe 'tnoremap <silent> '.s:key_finish.' <c-\><c-n>:GdbFinish<cr>i'
-
-  if exists("g:nvimgdb_key_breakpoint")
-    let s:key_breakpoint = g:nvimgdb_key_breakpoint
-  else
-    let s:key_breakpoint = '<f8>'
-  endif
-
-  exe 'nnoremap <silent> '.s:key_breakpoint.' :GdbToggleBreakpoint<cr>'
-
-  if exists("g:nvimgdb_key_frameup")
-    let s:key_frameup = g:nvimgdb_key_frameup
-  else
-    let s:key_frameup = '<c-p>'
-  endif
-
-  exe 'nnoremap <silent> '.s:key_frameup.' :GdbFrameUp<cr>'
-
-  if exists("g:nvimgdb_key_framedown")
-    let s:key_framedown = g:nvimgdb_key_framedown
-  else
-    let s:key_framedown = '<c-n>'
-  endif
-
-  exe 'nnoremap <silent> '.s:key_framedown.' :GdbFrameDown<cr>'
-
-  if exists("g:nvimgdb_key_eval")
-    let s:key_eval = g:nvimgdb_key_eval
-  else
-    let s:key_eval = '<f9>'
-  endif
-
-  exe 'nnoremap <silent> '.s:key_eval.' :GdbEvalWord<cr>'
   exe 'vnoremap <silent> '.s:key_eval.' :GdbEvalRange<cr>'
-
   tnoremap <silent> <buffer> <esc> <c-\><c-n>
 endfunction
 
