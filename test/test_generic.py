@@ -40,12 +40,27 @@ class Engine:
         self.nvim.feedkeys(keys, 't')
         time.sleep(delay)
 
+    def Eval(self, expr):
+        return self.nvim.eval(expr)
+
 
 engine = Engine()
 subtests = {"gdb": ['\\dd', '\n'], "lldb": ['\dl', '\n']}
 
 
 class TestGdb(unittest.TestCase):
+
+    def test_quit(self):
+        cases = [["<esc>", ":GdbDebugStop<cr>"], ["<esc>","ZZ"], ["<esc>","<c-w>w","ZZ"]]
+        for c in cases:
+            with self.subTest(case=c):
+                for k in subtests['gdb']:
+                    engine.KeyStroke(k)
+                for k in c:
+                    engine.KeyStrokeL(k)
+                self.assertEqual(1, engine.Eval('tabpagenr("$")'))
+                # Check that only one buffer has left (count of buffers equals 1)
+                self.assertEqual(1, sum(engine.Eval('buflisted(%d)' % i) for i in range(1, engine.Eval('bufnr("$")'))))
 
     def test_generic(self):
         for backend, launch in subtests.items():
