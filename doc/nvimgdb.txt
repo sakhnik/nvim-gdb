@@ -58,10 +58,10 @@ Section 2: Commands                                          *NvimgdbCommands*
                         executed if you close either of the windows created by
                         the debugger.
 
-                                                        *:GdbToggleBreakpoint*
-                                                        *:GdbClearBreakpoints*
-:GdbToggleBreakpoint    Manage breakpoints in the code: toggle, clear all
-:GdbClearBreakpoints
+                                                        *:GdbBreakpointToggle*
+                                                      *:GdbBreakpointClearAll*
+:GdbBreakpointToggle    Manage breakpoints in the code: toggle, clear all
+:GdbBreakpointClearAll
 
                                                                 *:GdbContinue*
                                                                     *:GdbNext*
@@ -102,7 +102,7 @@ When debugging session has started, the following mappings are defined:
 <f10>                  Next                           (`:GdbNext`)
 <f11>                  Step                           (`:GdbStep`)
 <f12>                  Finish                         (`:GdbFinish`)
-<f8>                   Toggle breakpoint              (`:GdbToggleBreakpoint`)
+<f8>                   Toggle breakpoint              (`:GdbBreakpointToggle`)
 <c-p>                  Frame Up                       (`:GdbFrameUp`)
 <c-n>                  Frame Down                     (`:GdbFrameDown`)
 <f9>                   NORMAL: Evaluate word under cursor (`:GdbEvalWord`)

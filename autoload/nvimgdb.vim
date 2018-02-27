@@ -157,7 +157,7 @@ function! s:SetKeymaps()
   call s:SetKeymap("s:key_step",       "g:nvimgdb_key_step",       "<f11>", "GdbStep",      1)
   call s:SetKeymap("s:key_finish",     "g:nvimgdb_key_finish",     "<f12>", "GdbFinish",    1)
 
-  call s:SetKeymap("s:key_breakpoint", "g:nvimgdb_key_breakpoint", "<f8>",  "GdbToggleBreakpoint", 0)
+  call s:SetKeymap("s:key_breakpoint", "g:nvimgdb_key_breakpoint", "<f8>",  "GdbBreakpointToggle", 0)
   call s:SetKeymap("s:key_frameup",    "g:nvimgdb_key_frameup",    "<c-p>", "GdbFrameUp",   0)
   call s:SetKeymap("s:key_framedown",  "g:nvimgdb_key_framedown",  "<c-n>", "GdbFrameDown", 0)
   call s:SetKeymap("s:key_eval",       "g:nvimgdb_key_eval",       "<f9>",  "GdbEvalWord",  0)
@@ -185,8 +185,8 @@ endfunction
 
 function! s:DefineCommands()
   command! GdbDebugStop call nvimgdb#Kill()
-  command! GdbToggleBreakpoint call nvimgdb#ToggleBreak()
-  command! GdbClearBreakpoints call nvimgdb#ClearBreak()
+  command! GdbBreakpointToggle call nvimgdb#ToggleBreak()
+  command! GdbBreakpointClearAll call nvimgdb#ClearBreak()
   command! GdbRun call nvimgdb#Send("run")
   command! GdbContinue call nvimgdb#Send("c")
   command! GdbNext call nvimgdb#Send("n")
@@ -202,8 +202,8 @@ endfunction
 
 function! s:UndefCommands()
   delcommand GdbDebugStop
-  delcommand GdbToggleBreakpoint
-  delcommand GdbClearBreakpoints
+  delcommand GdbBreakpointToggle
+  delcommand GdbBreakpointClearAll
   delcommand GdbRun
   delcommand GdbContinue
   delcommand GdbNext
