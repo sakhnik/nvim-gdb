@@ -54,6 +54,7 @@ subtests = {"gdb": ['\\dd', '\n'], "lldb": ['\dl', '\n']}
 class TestGdb(unittest.TestCase):
 
     def test_quit(self):
+        ''' Verify that the session exits correctly on window close '''
         cases = [["<esc>", ":GdbDebugStop<cr>"], ["<esc>","ZZ"], ["<esc>","<c-w>w","ZZ"]]
         numBufs = engine.CountBuffers()
         for c in cases:
@@ -67,6 +68,7 @@ class TestGdb(unittest.TestCase):
                 self.assertEqual(numBufs, engine.CountBuffers())
 
     def test_generic(self):
+        ''' Test a generic use case '''
         for backend, launch in subtests.items():
             with self.subTest(backend=backend):
                 for k in launch:
@@ -102,6 +104,7 @@ class TestGdb(unittest.TestCase):
                 engine.Command('GdbDebugStop')
 
     def test_breakpoint(self):
+        ''' Test toggling breakpoints '''
         for backend, launch in subtests.items():
             with self.subTest(backend=backend):
                 for k in launch:
@@ -125,6 +128,24 @@ class TestGdb(unittest.TestCase):
                 self.assertFalse(breaks)
 
                 engine.Command('GdbDebugStop')
+
+    def test_breakpoint_cleanup(self):
+        ''' Verify that breakpoints are cleaned up after session end'''
+        launch = subtests['gdb']
+        for k in launch:
+            engine.KeyStroke(k)
+        engine.KeyStrokeL('<esc><c-w>k')
+        engine.KeyStroke(":e test.cpp\n")
+        engine.KeyStrokeL(':4<cr>')
+        engine.KeyStrokeL('<f8>')
+        cur, breaks = engine.GetSigns()
+        self.assertEqual(-1, cur)
+        self.assertListEqual([4], breaks)
+
+        engine.Command("GdbDebugStop")
+        cur, breaks = engine.GetSigns()
+        self.assertEqual(-1, cur)
+        self.assertFalse(breaks)
 
 
 if __name__ == "__main__":

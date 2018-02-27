@@ -2,9 +2,6 @@ sign define GdbBreakpoint text=●
 sign define GdbCurrentLine text=⇒
 
 
-let s:breakpoints = {}
-let s:max_breakpoint_sign_id = 0
-
 " gdb specifics
 let s:backend_gdb = {
   \ 'init': ['set confirm off', 'set pagination off'],
@@ -88,9 +85,18 @@ let s:Gdb = {}
 
 
 function s:Gdb.kill()
+  " Cleanup user commands and keymaps
   call s:UnsetKeymaps()
   call s:UndefCommands()
+
+  " Clean up the breakpoint signs
+  let g:gdb._breakpoints = {}
+  call s:RefreshBreakpointSigns()
+
+  " Clean up the current line sign
   call self.update_current_line_sign(0)
+
+  " Close the windows and the tab
   exe 'tabnext '.self._tab
   tabclose
   if bufexists(self._client_buf)
@@ -251,7 +257,8 @@ function! nvimgdb#Spawn(backend, client_cmd)
   let gdb._jump_window = 1
   let gdb._current_buf = -1
   let gdb._current_line = -1
-  let gdb._has_breakpoints = 0 
+  let gdb._breakpoints = {}
+  let gdb._max_breakpoint_sign_id = 0
   " Create new tab for the debugging view
   tabnew
   let gdb._tab = tabpagenr()
@@ -283,21 +290,21 @@ endfunction
 
 function! nvimgdb#ToggleBreak()
   let file_name = s:GetCurrentFilePath()
-  let file_breakpoints = get(s:breakpoints, file_name, {})
+  let file_breakpoints = get(g:gdb._breakpoints, file_name, {})
   let linenr = line('.')
   if has_key(file_breakpoints, linenr)
     call remove(file_breakpoints, linenr)
   else
     let file_breakpoints[linenr] = 1
   endif
-  let s:breakpoints[file_name] = file_breakpoints
+  let g:gdb._breakpoints[file_name] = file_breakpoints
   call s:RefreshBreakpointSigns()
   call s:RefreshBreakpoints()
 endfunction
 
 
 function! nvimgdb#ClearBreak()
-  let s:breakpoints = {}
+  let g:gdb._breakpoints = {}
   call s:RefreshBreakpointSigns()
   call s:RefreshBreakpoints()
 endfunction
@@ -306,15 +313,15 @@ endfunction
 function! s:RefreshBreakpointSigns()
   let buf = bufnr('%')
   let i = 5000
-  while i <= s:max_breakpoint_sign_id
+  while i <= g:gdb._max_breakpoint_sign_id
     exe 'sign unplace '.i
     let i += 1
   endwhile
-  let s:max_breakpoint_sign_id = 0
+  let g:gdb._max_breakpoint_sign_id = 0
   let id = 5000
-  for linenr in keys(get(s:breakpoints, s:GetCurrentFilePath(), {}))
+  for linenr in keys(get(g:gdb._breakpoints, s:GetCurrentFilePath(), {}))
     exe 'sign place '.id.' name=GdbBreakpoint line='.linenr.' buffer='.buf
-    let s:max_breakpoint_sign_id = id
+    let g:gdb._max_breakpoint_sign_id = id
     let id += 1
   endfor
 endfunction
@@ -328,13 +335,11 @@ function! s:RefreshBreakpoints()
     " pause first
     call jobsend(g:gdb._client_id, "\<c-c>")
   endif
-  if g:gdb._has_breakpoints
+  if !empty(g:gdb._breakpoints)
     call g:gdb.send(g:gdb.backend['delete_breakpoints'])
   endif
-  let g:gdb._has_breakpoints = 0
-  for [file, breakpoints] in items(s:breakpoints)
+  for [file, breakpoints] in items(g:gdb._breakpoints)
     for linenr in keys(breakpoints)
-      let g:gdb._has_breakpoints = 1
       call g:gdb.send(g:gdb.backend['breakpoint'].' '.file.':'.linenr)
     endfor
   endfor
