@@ -85,12 +85,18 @@ let s:Gdb = {}
 
 
 function s:Gdb.kill()
+  " Cleanup the autocommands
+  augroup NvimGdb
+    au!
+  augroup END
+  augroup! NvimGdb
+
   " Cleanup user commands and keymaps
   call s:UnsetKeymaps()
   call s:UndefCommands()
 
   " Clean up the breakpoint signs
-  let g:gdb._breakpoints = {}
+  let t:gdb._breakpoints = {}
   call s:RefreshBreakpointSigns()
 
   " Clean up the current line sign
@@ -102,13 +108,6 @@ function s:Gdb.kill()
   if bufexists(self._client_buf)
     exe 'bd! '.self._client_buf
   endif
-  unlet g:gdb
-
-  " Cleanup the autocommands
-  augroup NvimGdb
-    au!
-  augroup END
-  augroup! NvimGdb
 endfunction
 
 
@@ -247,8 +246,8 @@ endfunction
 
 
 function! nvimgdb#Spawn(backend, client_cmd)
-  if exists('g:gdb')
-    throw 'Gdb already running'
+  if exists('t:gdb')
+    throw 'gdb already running'
   endif
 
   let gdb = s:InitMachine(a:backend, s:Gdb)
@@ -272,12 +271,12 @@ function! nvimgdb#Spawn(backend, client_cmd)
   call s:SetKeymaps()
   " Start inset mode in the GDB window
   normal i
-  let g:gdb = gdb
+  let t:gdb = gdb
 
   " Check if user closed either of our windows.
   augroup NvimGdb
     au!
-    au WinEnter * if tabpagewinnr(g:gdb._tab, '$') == 1 | call g:gdb.kill() | endif
+    au WinEnter * if tabpagewinnr(t:gdb._tab, '$') == 1 | call t:gdb.kill() | endif
   augroup END
 endfunction
 
@@ -289,22 +288,28 @@ endfunction
 
 
 function! nvimgdb#ToggleBreak()
+  if !exists('t:gdb')
+    return
+  endif
   let file_name = s:GetCurrentFilePath()
-  let file_breakpoints = get(g:gdb._breakpoints, file_name, {})
+  let file_breakpoints = get(t:gdb._breakpoints, file_name, {})
   let linenr = line('.')
   if has_key(file_breakpoints, linenr)
     call remove(file_breakpoints, linenr)
   else
     let file_breakpoints[linenr] = 1
   endif
-  let g:gdb._breakpoints[file_name] = file_breakpoints
+  let t:gdb._breakpoints[file_name] = file_breakpoints
   call s:RefreshBreakpointSigns()
   call s:RefreshBreakpoints()
 endfunction
 
 
 function! nvimgdb#ClearBreak()
-  let g:gdb._breakpoints = {}
+  if !exists('t:gdb')
+    return
+  endif
+  let t:gdb._breakpoints = {}
   call s:RefreshBreakpointSigns()
   call s:RefreshBreakpoints()
 endfunction
@@ -313,34 +318,34 @@ endfunction
 function! s:RefreshBreakpointSigns()
   let buf = bufnr('%')
   let i = 5000
-  while i <= g:gdb._max_breakpoint_sign_id
+  while i <= t:gdb._max_breakpoint_sign_id
     exe 'sign unplace '.i
     let i += 1
   endwhile
-  let g:gdb._max_breakpoint_sign_id = 0
+  let t:gdb._max_breakpoint_sign_id = 0
   let id = 5000
-  for linenr in keys(get(g:gdb._breakpoints, s:GetCurrentFilePath(), {}))
+  for linenr in keys(get(t:gdb._breakpoints, s:GetCurrentFilePath(), {}))
     exe 'sign place '.id.' name=GdbBreakpoint line='.linenr.' buffer='.buf
-    let g:gdb._max_breakpoint_sign_id = id
+    let t:gdb._max_breakpoint_sign_id = id
     let id += 1
   endfor
 endfunction
 
 
 function! s:RefreshBreakpoints()
-  if !exists('g:gdb')
+  if !exists('t:gdb')
     return
   endif
-  if g:gdb._parser.state() == g:gdb._state_running
+  if t:gdb._parser.state() == t:gdb._state_running
     " pause first
-    call jobsend(g:gdb._client_id, "\<c-c>")
+    call jobsend(t:gdb._client_id, "\<c-c>")
   endif
-  if !empty(g:gdb._breakpoints)
-    call g:gdb.send(g:gdb.backend['delete_breakpoints'])
+  if !empty(t:gdb._breakpoints)
+    call t:gdb.send(t:gdb.backend['delete_breakpoints'])
   endif
-  for [file, breakpoints] in items(g:gdb._breakpoints)
+  for [file, breakpoints] in items(t:gdb._breakpoints)
     for linenr in keys(breakpoints)
-      call g:gdb.send(g:gdb.backend['breakpoint'].' '.file.':'.linenr)
+      call t:gdb.send(t:gdb.backend['breakpoint'].' '.file.':'.linenr)
     endfor
   endfor
 endfunction
@@ -357,10 +362,10 @@ endfunction
 
 
 function! nvimgdb#Send(data)
-  if !exists('g:gdb')
-    throw 'Gdb is not running'
+  if !exists('t:gdb')
+    return
   endif
-  call g:gdb.send(a:data)
+  call t:gdb.send(a:data)
 endfunction
 
 
@@ -370,16 +375,16 @@ endfunction
 
 
 function! nvimgdb#Interrupt()
-  if !exists('g:gdb')
-    throw 'Gdb is not running'
+  if !exists('t:gdb')
+    return
   endif
-  call jobsend(g:gdb._client_id, "\<c-c>info line\<cr>")
+  call jobsend(t:gdb._client_id, "\<c-c>info line\<cr>")
 endfunction
 
 
 function! nvimgdb#Kill()
-  if !exists('g:gdb')
-    throw 'Gdb is not running'
+  if !exists('t:gdb')
+    return
   endif
-  call g:gdb.kill()
+  call t:gdb.kill()
 endfunction
