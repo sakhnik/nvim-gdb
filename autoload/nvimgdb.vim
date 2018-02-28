@@ -276,7 +276,7 @@ function! nvimgdb#Spawn(backend, client_cmd)
   " Check if user closed either of our windows.
   augroup NvimGdb
     au!
-    au WinEnter * if tabpagewinnr(t:gdb._tab, '$') == 1 | call t:gdb.kill() | endif
+    au WinEnter * if exists('t:gdb') && tabpagewinnr(t:gdb._tab, '$') == 1 | call t:gdb.kill() | endif
   augroup END
 endfunction
 
