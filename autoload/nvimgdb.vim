@@ -2,6 +2,10 @@ sign define GdbBreakpoint text=●
 sign define GdbCurrentLine text=⇒
 
 
+" Count of active debugging views
+let g:nvimgdb_count = 0
+
+
 " gdb specifics
 let s:backend_gdb = {
   \ 'init': ['set confirm off', 'set pagination off'],
@@ -85,15 +89,18 @@ let s:Gdb = {}
 
 
 function s:Gdb.kill()
-  " Cleanup the autocommands
-  augroup NvimGdb
-    au!
-  augroup END
-  augroup! NvimGdb
+  let g:nvimgdb_count -= 1
+  if !g:nvimgdb_count
+    " Cleanup the autocommands
+    augroup NvimGdb
+      au!
+    augroup END
+    augroup! NvimGdb
 
-  " Cleanup user commands and keymaps
-  call s:UnsetKeymaps()
-  call s:UndefCommands()
+    " Cleanup user commands and keymaps
+    call s:UnsetKeymaps()
+    call s:UndefCommands()
+  endif
 
   " Clean up the breakpoint signs
   let t:gdb._breakpoints = {}
@@ -137,48 +144,50 @@ endfunction
 "   key_gvar    Global variable name for users to override the mapping
 "   key_def     Default key code
 "   action      The command to be called
-"   tmode       Booalean, whether to map in terminal mode too.
-function! s:SetKeymap(key_svar, key_gvar, key_def, action, tmode)
+function! s:SetKeymap(key_svar, key_gvar, key_def, action)
   if exists(a:key_gvar)
     exe 'let ' . a:key_svar . ' = ' . a:key_gvar
   else
     exe 'let ' . a:key_svar . ' = "' . a:key_def . '"'
   endif
   exe 'nnoremap <silent> ' . eval(a:key_svar) . ' :' . a:action . '<cr>'
-  if a:tmode
-    exe 'tnoremap <silent> ' . eval(a:key_svar) . ' <c-\><c-n>:' . a:action . '<cr>i'
-  endif
 endfunction
 
 function! s:SetKeymaps()
-  call s:SetKeymap("s:key_continue",   "g:nvimgdb_key_continue",   "<f5>",  "GdbContinue",  1)
-  call s:SetKeymap("s:key_next",       "g:nvimgdb_key_next",       "<f10>", "GdbNext",      1)
-  call s:SetKeymap("s:key_step",       "g:nvimgdb_key_step",       "<f11>", "GdbStep",      1)
-  call s:SetKeymap("s:key_finish",     "g:nvimgdb_key_finish",     "<f12>", "GdbFinish",    1)
+  " Set global key maps
+  call s:SetKeymap("s:key_continue",   "g:nvimgdb_key_continue",   "<f5>",  "GdbContinue")
+  call s:SetKeymap("s:key_next",       "g:nvimgdb_key_next",       "<f10>", "GdbNext"    )
+  call s:SetKeymap("s:key_step",       "g:nvimgdb_key_step",       "<f11>", "GdbStep"    )
+  call s:SetKeymap("s:key_finish",     "g:nvimgdb_key_finish",     "<f12>", "GdbFinish"  )
 
-  call s:SetKeymap("s:key_breakpoint", "g:nvimgdb_key_breakpoint", "<f8>",  "GdbBreakpointToggle", 0)
-  call s:SetKeymap("s:key_frameup",    "g:nvimgdb_key_frameup",    "<c-p>", "GdbFrameUp",   0)
-  call s:SetKeymap("s:key_framedown",  "g:nvimgdb_key_framedown",  "<c-n>", "GdbFrameDown", 0)
-  call s:SetKeymap("s:key_eval",       "g:nvimgdb_key_eval",       "<f9>",  "GdbEvalWord",  0)
+  call s:SetKeymap("s:key_breakpoint", "g:nvimgdb_key_breakpoint", "<f8>",  "GdbBreakpointToggle")
+  call s:SetKeymap("s:key_frameup",    "g:nvimgdb_key_frameup",    "<c-p>", "GdbFrameUp"         )
+  call s:SetKeymap("s:key_framedown",  "g:nvimgdb_key_framedown",  "<c-n>", "GdbFrameDown"       )
+  call s:SetKeymap("s:key_eval",       "g:nvimgdb_key_eval",       "<f9>",  "GdbEvalWord"        )
 
   exe 'vnoremap <silent> '.s:key_eval.' :GdbEvalRange<cr>'
-  tnoremap <silent> <buffer> <esc> <c-\><c-n>
 endfunction
 
 function! s:UnsetKeymaps()
-  exe 'tunmap '.s:key_continue
+  " Unset global key maps
   exe 'nunmap '.s:key_continue
-  exe 'tunmap '.s:key_next
   exe 'nunmap '.s:key_next
-  exe 'tunmap '.s:key_step
   exe 'nunmap '.s:key_step
-  exe 'tunmap '.s:key_finish
   exe 'nunmap '.s:key_finish
   exe 'nunmap '.s:key_breakpoint
   exe 'nunmap '.s:key_frameup
   exe 'nunmap '.s:key_framedown
   exe 'nunmap '.s:key_eval
   exe 'vunmap '.s:key_eval
+endfunction
+
+function! s:SetTKeymaps()
+  " Set term-local key maps
+  exe 'tnoremap <buffer> <silent> ' . s:key_continue . ' <c-\><c-n>:GdbContinue<cr>i'
+  exe 'tnoremap <buffer> <silent> ' . s:key_next . ' <c-\><c-n>:GdbNext<cr>i'
+  exe 'tnoremap <buffer> <silent> ' . s:key_step . ' <c-\><c-n>:GdbStep<cr>i'
+  exe 'tnoremap <buffer> <silent> ' . s:key_finish . ' <c-\><c-n>:GdbFinish<cr>i'
+  tnoremap <silent> <buffer> <esc> <c-\><c-n>
 endfunction
 
 
@@ -246,10 +255,6 @@ endfunction
 
 
 function! nvimgdb#Spawn(backend, client_cmd)
-  if exists('t:gdb')
-    throw 'gdb already running'
-  endif
-
   let gdb = s:InitMachine(a:backend, s:Gdb)
   let gdb._initialized = 0
   " window number that will be displaying the current file
@@ -267,17 +272,22 @@ function! nvimgdb#Spawn(backend, client_cmd)
   wincmd j
   enew | let gdb._client_id = termopen(a:client_cmd, gdb)
   let gdb._client_buf = bufnr('%')
-  call s:DefineCommands()
-  call s:SetKeymaps()
-  " Start inset mode in the GDB window
-  normal i
   let t:gdb = gdb
 
   " Check if user closed either of our windows.
-  augroup NvimGdb
-    au!
-    au WinEnter * if exists('t:gdb') && tabpagewinnr(t:gdb._tab, '$') == 1 | call t:gdb.kill() | endif
-  augroup END
+  if !g:nvimgdb_count
+    call s:DefineCommands()
+    call s:SetKeymaps()
+    augroup NvimGdb
+      au!
+      au WinEnter * if exists('t:gdb') && tabpagewinnr(t:gdb._tab, '$') == 1 | call t:gdb.kill() | endif
+    augroup END
+  endif
+  let g:nvimgdb_count += 1
+
+  call s:SetTKeymaps()
+  " Start inset mode in the GDB window
+  normal i
 endfunction
 
 
