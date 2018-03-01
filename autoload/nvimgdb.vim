@@ -254,6 +254,28 @@ function! s:InitMachine(backend, struct)
 endfunction
 
 
+" The checks to be executed when navigating the windows
+function! s:OnWinEnter()
+  " If this isn't a debugging session, nothing to do
+  if !exists('t:gdb')
+    return
+  endif
+
+  " If the tabpage should contain at least two windows, finish debugging
+  " otherwise.
+  if tabpagewinnr(t:gdb._tab, '$') == 1
+    call t:gdb.kill()
+    return
+  endif
+
+  "" Refresh the signs as they may have been spoiled
+  "if t:gdb._parser.state() == t:gdb._state_paused
+  "  call t:gdb.update_current_line_sign(1)
+  "endif
+  "call s:RefreshBreakpointSigns()
+endfunction
+
+
 function! nvimgdb#Spawn(backend, client_cmd)
   let gdb = s:InitMachine(a:backend, s:Gdb)
   let gdb._initialized = 0
@@ -280,7 +302,7 @@ function! nvimgdb#Spawn(backend, client_cmd)
     call s:SetKeymaps()
     augroup NvimGdb
       au!
-      au WinEnter * if exists('t:gdb') && tabpagewinnr(t:gdb._tab, '$') == 1 | call t:gdb.kill() | endif
+      au WinEnter * call s:OnWinEnter()
     augroup END
   endif
   let g:nvimgdb_count += 1
