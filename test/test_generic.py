@@ -48,7 +48,7 @@ class Engine:
 
 
 engine = Engine()
-subtests = {"gdb": ['\\dd', '\n'], "lldb": ['\dl', '\n']}
+subtests = {"gdb": [' dd', '\n'], "lldb": [' dl', '\n']}
 
 
 class TestGdb(unittest.TestCase):
