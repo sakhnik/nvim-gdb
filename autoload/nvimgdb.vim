@@ -51,8 +51,8 @@ endfunction
 
 " Transition "paused" -> "paused": jump to the frame location
 function s:GdbPaused_jump(file, line, ...) dict
-  if tabpagenr() != self._tab
-    " Don't jump if we are not in the debugger tab
+  if t:gdb != self
+    " Don't jump if we are not in the current debugger tab
     return
   endif
   let window = winnr()
@@ -110,11 +110,13 @@ function s:Gdb.kill()
   call self.update_current_line_sign(0)
 
   " Close the windows and the tab
-  exe 'tabnext '.self._tab
   tabclose
   if bufexists(self._client_buf)
     exe 'bd! '.self._client_buf
   endif
+
+  " TabEnter isn't fired automatically when a tab is closed
+  call s:OnTabEnter()
 endfunction
 
 
@@ -263,7 +265,7 @@ function! s:OnWinEnter()
 
   " If the tabpage should contain at least two windows, finish debugging
   " otherwise.
-  if tabpagewinnr(t:gdb._tab, '$') == 1
+  if tabpagewinnr(tabpagenr(), '$') == 1
     call t:gdb.kill()
     return
   endif
@@ -300,7 +302,6 @@ function! nvimgdb#Spawn(backend, client_cmd)
   let gdb._max_breakpoint_sign_id = 0
   " Create new tab for the debugging view
   tabnew
-  let gdb._tab = tabpagenr()
   " create horizontal split to display the current file
   sp
   " go to the bottom window and spawn gdb client
