@@ -9,7 +9,6 @@ from neovim import attach
 
 delay = 0.5
 
-
 # Neovim proxy
 class Engine:
 
@@ -44,7 +43,7 @@ class Engine:
         return self.nvim.eval(expr)
 
     def CountBuffers(self):
-        return sum(self.Eval('buflisted(%d)' % i) for i in range(1, self.Eval('bufnr("$")')))
+        return sum(self.Eval('buflisted(%d)' % (i+1)) for i in range(0, self.Eval('bufnr("$")')))
 
 
 engine = Engine()
@@ -53,8 +52,8 @@ subtests = {"gdb": [' dd', '\n'], "lldb": [' dl', '\n']}
 
 class TestGdb(unittest.TestCase):
 
-    def test_quit(self):
-        ''' Verify that the session exits correctly on window close '''
+    def test_10_quit(self):
+        ''' => Verify that the session exits correctly on window close '''
         cases = [["<esc>", ":GdbDebugStop<cr>"], ["<esc>","ZZ"], ["<esc>","<c-w>w","ZZ"]]
         numBufs = engine.CountBuffers()
         for c in cases:
@@ -67,8 +66,8 @@ class TestGdb(unittest.TestCase):
                 # Check that no new buffers have left
                 self.assertEqual(numBufs, engine.CountBuffers())
 
-    def test_generic(self):
-        ''' Test a generic use case '''
+    def test_20_generic(self):
+        ''' => Test a generic use case '''
         for backend, launch in subtests.items():
             with self.subTest(backend=backend):
                 for k in launch:
@@ -103,8 +102,8 @@ class TestGdb(unittest.TestCase):
 
                 engine.Command('GdbDebugStop')
 
-    def test_breakpoint(self):
-        ''' Test toggling breakpoints '''
+    def test_30_breakpoint(self):
+        ''' => Test toggling breakpoints '''
         for backend, launch in subtests.items():
             with self.subTest(backend=backend):
                 for k in launch:
@@ -129,8 +128,8 @@ class TestGdb(unittest.TestCase):
 
                 engine.Command('GdbDebugStop')
 
-    def test_breakpoint_cleanup(self):
-        ''' Verify that breakpoints are cleaned up after session end'''
+    def test_35_breakpoint_cleanup(self):
+        ''' => Verify that breakpoints are cleaned up after session end'''
         launch = subtests['gdb']
         for k in launch:
             engine.KeyStroke(k)
@@ -146,6 +145,50 @@ class TestGdb(unittest.TestCase):
         cur, breaks = engine.GetSigns()
         self.assertEqual(-1, cur)
         self.assertFalse(breaks)
+
+    def test_40_multiview(self):
+        ''' => Test multiple views '''
+        # Launch GDB first
+        for k in subtests['gdb']:
+            engine.KeyStroke(k)
+        engine.KeyStroke('tbreak main\n')
+        engine.KeyStroke('run\n')
+        engine.KeyStrokeL('<esc>')
+        engine.KeyStrokeL('<f10>')
+        engine.KeyStrokeL('<f11>')
+
+        cur, breaks = engine.GetSigns()
+        self.assertEqual(9, cur)
+        self.assertFalse(breaks)
+
+        # Then launch LLDB
+        for k in subtests['lldb']:
+            engine.KeyStroke(k)
+        engine.KeyStroke('tbreak main\n')
+        engine.KeyStroke('run\n')
+        engine.KeyStrokeL('<esc>')
+        engine.KeyStrokeL('<f10>')
+
+        cur, breaks = engine.GetSigns()
+        self.assertEqual(18, cur)
+        self.assertFalse(breaks)
+
+        # Switch to GDB
+        engine.KeyStrokeL('2gt')
+        cur, breaks = engine.GetSigns()
+        self.assertEqual(9, cur)
+        self.assertFalse(breaks)
+
+        # Quit GDB
+        engine.KeyStrokeL('ZZ')
+
+        # Switch back to LLDB
+        cur, breaks = engine.GetSigns()
+        self.assertEqual(18, cur)
+        self.assertFalse(breaks)
+
+        # Quit LLDB
+        engine.KeyStrokeL('ZZ')
 
 
 if __name__ == "__main__":
