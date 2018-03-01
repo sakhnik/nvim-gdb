@@ -267,12 +267,25 @@ function! s:OnWinEnter()
     call t:gdb.kill()
     return
   endif
+endfunction
 
-  "" Refresh the signs as they may have been spoiled
-  "if t:gdb._parser.state() == t:gdb._state_paused
-  "  call t:gdb.update_current_line_sign(1)
-  "endif
+function! s:OnTabEnter()
+  if !exists('t:gdb')
+    return
+  endif
+  " Restore the signs as they may have been spoiled
+  if t:gdb._parser.state() == t:gdb._state_paused
+    call t:gdb.update_current_line_sign(1)
+  endif
   "call s:RefreshBreakpointSigns()
+endfunction
+
+function! s:OnTabLeave()
+  if !exists('t:gdb')
+    return
+  endif
+  " Hide the signs
+  call t:gdb.update_current_line_sign(0)
 endfunction
 
 
@@ -303,6 +316,8 @@ function! nvimgdb#Spawn(backend, client_cmd)
     augroup NvimGdb
       au!
       au WinEnter * call s:OnWinEnter()
+      au TabEnter * call s:OnTabEnter()
+      au TabLeave * call s:OnTabLeave()
     augroup END
   endif
   let g:nvimgdb_count += 1
