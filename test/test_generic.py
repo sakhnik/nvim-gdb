@@ -173,11 +173,13 @@ class TestGdb(unittest.TestCase):
         engine.KeyStrokeL('<c-w>w')
         engine.KeyStrokeL(':4<cr>')
         engine.KeyStrokeL('<f8>')
+        engine.KeyStrokeL(':11<cr>')
+        engine.KeyStrokeL('<f8>')
         engine.KeyStrokeL('<f10>')
 
         cur, breaks = engine.GetSigns()
         self.assertEqual(18, cur)
-        self.assertEqual([4], breaks)
+        self.assertEqual([4, 11], breaks)
 
         # Switch to GDB
         engine.KeyStrokeL('2gt')
@@ -191,7 +193,7 @@ class TestGdb(unittest.TestCase):
         # Switch back to LLDB
         cur, breaks = engine.GetSigns()
         self.assertEqual(18, cur)
-        self.assertEqual([4], breaks)
+        self.assertEqual([4, 11], breaks)
 
         # Quit LLDB
         engine.KeyStrokeL('ZZ')
