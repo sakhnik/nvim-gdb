@@ -333,8 +333,8 @@ endfunction
 
 
 " Breakpoints need full path to the buffer (at least in lldb)
-function! s:GetCurrentFilePath()
-  return expand('%:p')
+function! s:GetFullBufferPath(buf)
+  return expand('#' . a:buf . ':p')
 endfunction
 
 
@@ -342,7 +342,8 @@ function! nvimgdb#ToggleBreak()
   if !exists('t:gdb')
     return
   endif
-  let file_name = s:GetCurrentFilePath()
+  let buf = bufnr('%')
+  let file_name = s:GetFullBufferPath(buf)
   let file_breakpoints = get(t:gdb._breakpoints, file_name, {})
   let linenr = line('.')
   if has_key(file_breakpoints, linenr)
@@ -351,7 +352,7 @@ function! nvimgdb#ToggleBreak()
     let file_breakpoints[linenr] = 1
   endif
   let t:gdb._breakpoints[file_name] = file_breakpoints
-  call s:RefreshBreakpointSigns(bufnr('%'))
+  call s:RefreshBreakpointSigns(buf)
   call s:RefreshBreakpoints()
 endfunction
 
@@ -381,7 +382,7 @@ function! s:SetBreakpointSigns(buf)
   endif
   let t:gdb._max_breakpoint_sign_id = 0
   let id = 5000
-  for linenr in keys(get(t:gdb._breakpoints, s:GetCurrentFilePath(), {}))
+  for linenr in keys(get(t:gdb._breakpoints, s:GetFullBufferPath(a:buf), {}))
     exe 'sign place '.id.' name=GdbBreakpoint line='.linenr.' buffer='.a:buf
     let t:gdb._max_breakpoint_sign_id = id
     let id += 1
