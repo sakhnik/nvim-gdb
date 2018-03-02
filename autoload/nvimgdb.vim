@@ -60,8 +60,10 @@ function s:GdbPaused_jump(file, line, ...) dict
   let self._current_buf = bufnr('%')
   let target_buf = bufnr(a:file, 1)
   if bufnr('%') != target_buf
+    " Switch to the new buffer
     exe 'buffer ' target_buf
     let self._current_buf = target_buf
+    call s:RefreshBreakpoints()
   endif
   exe ':' a:line
   let self._current_line = a:line
@@ -104,7 +106,7 @@ function s:Gdb.kill()
 
   " Clean up the breakpoint signs
   let t:gdb._breakpoints = {}
-  call s:RefreshBreakpointSigns()
+  call s:ClearBreakpointSigns()
 
   " Clean up the current line sign
   call self.update_current_line_sign(0)
@@ -279,7 +281,7 @@ function! s:OnTabEnter()
   if t:gdb._parser.state() == t:gdb._state_paused
     call t:gdb.update_current_line_sign(1)
   endif
-  "call s:RefreshBreakpointSigns()
+  call s:RefreshBreakpointSigns(t:gdb._current_buf)
 endfunction
 
 function! s:OnTabLeave()
@@ -288,6 +290,7 @@ function! s:OnTabLeave()
   endif
   " Hide the signs
   call t:gdb.update_current_line_sign(0)
+  call s:ClearBreakpointSigns()
 endfunction
 
 
@@ -348,7 +351,7 @@ function! nvimgdb#ToggleBreak()
     let file_breakpoints[linenr] = 1
   endif
   let t:gdb._breakpoints[file_name] = file_breakpoints
-  call s:RefreshBreakpointSigns()
+  call s:RefreshBreakpointSigns(bufnr('%'))
   call s:RefreshBreakpoints()
 endfunction
 
@@ -358,25 +361,36 @@ function! nvimgdb#ClearBreak()
     return
   endif
   let t:gdb._breakpoints = {}
-  call s:RefreshBreakpointSigns()
+  call s:ClearBreakpointSigns()
   call s:RefreshBreakpoints()
 endfunction
 
 
-function! s:RefreshBreakpointSigns()
-  let buf = bufnr('%')
+function! s:ClearBreakpointSigns()
   let i = 5000
   while i <= t:gdb._max_breakpoint_sign_id
     exe 'sign unplace '.i
     let i += 1
   endwhile
   let t:gdb._max_breakpoint_sign_id = 0
+endfunction
+
+function! s:SetBreakpointSigns(buf)
+  if a:buf == -1
+    return
+  endif
+  let t:gdb._max_breakpoint_sign_id = 0
   let id = 5000
   for linenr in keys(get(t:gdb._breakpoints, s:GetCurrentFilePath(), {}))
-    exe 'sign place '.id.' name=GdbBreakpoint line='.linenr.' buffer='.buf
+    exe 'sign place '.id.' name=GdbBreakpoint line='.linenr.' buffer='.a:buf
     let t:gdb._max_breakpoint_sign_id = id
     let id += 1
   endfor
+endfunction
+
+function! s:RefreshBreakpointSigns(buf)
+  call s:ClearBreakpointSigns()
+  call s:SetBreakpointSigns(a:buf)
 endfunction
 
 
