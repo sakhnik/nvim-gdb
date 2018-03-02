@@ -154,12 +154,15 @@ class TestGdb(unittest.TestCase):
         engine.KeyStroke('tbreak main\n')
         engine.KeyStroke('run\n')
         engine.KeyStrokeL('<esc>')
+        engine.KeyStrokeL('<c-w>w')
+        engine.KeyStrokeL(':10<cr>')
+        engine.KeyStrokeL('<f8>')
         engine.KeyStrokeL('<f10>')
         engine.KeyStrokeL('<f11>')
 
         cur, breaks = engine.GetSigns()
         self.assertEqual(9, cur)
-        self.assertFalse(breaks)
+        self.assertEqual([10], breaks)
 
         # Then launch LLDB
         for k in subtests['lldb']:
@@ -167,17 +170,20 @@ class TestGdb(unittest.TestCase):
         engine.KeyStroke('tbreak main\n')
         engine.KeyStroke('run\n')
         engine.KeyStrokeL('<esc>')
+        engine.KeyStrokeL('<c-w>w')
+        engine.KeyStrokeL(':4<cr>')
+        engine.KeyStrokeL('<f8>')
         engine.KeyStrokeL('<f10>')
 
         cur, breaks = engine.GetSigns()
         self.assertEqual(18, cur)
-        self.assertFalse(breaks)
+        self.assertEqual([4], breaks)
 
         # Switch to GDB
         engine.KeyStrokeL('2gt')
         cur, breaks = engine.GetSigns()
         self.assertEqual(9, cur)
-        self.assertFalse(breaks)
+        self.assertEqual([10], breaks)
 
         # Quit GDB
         engine.KeyStrokeL('ZZ')
@@ -185,7 +191,7 @@ class TestGdb(unittest.TestCase):
         # Switch back to LLDB
         cur, breaks = engine.GetSigns()
         self.assertEqual(18, cur)
-        self.assertFalse(breaks)
+        self.assertEqual([4], breaks)
 
         # Quit LLDB
         engine.KeyStrokeL('ZZ')
