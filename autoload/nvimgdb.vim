@@ -12,6 +12,7 @@ let s:backend_gdb = {
   \ 'paused': [
   \     ['Continuing.', 'continue'],
   \     ['\v[\o32]{2}([^:]+):(\d+):\d+', 'jump'],
+  \     ['\vBreakpoint (\d+) at ([^:]+): file ([^,]+), line (\d+).', 'breakpoint'],
   \ ],
   \ 'running': [
   \     ['\v^Breakpoint \d+', 'pause'],
@@ -31,6 +32,7 @@ let s:backend_lldb = {
   \ 'paused': [
   \     ['\v^Process \d+ resuming', 'continue'],
   \     ['\v at [\o32]{2}([^:]+):(\d+)', 'jump'],
+  \     ['\vBreakpoint (\d+): where = (.+) at ([^:]+):(\d+)', 'breakpoint'],
   \ ],
   \ 'running': [
   \     ['\v^Breakpoint \d+:', 'pause'],
@@ -71,6 +73,29 @@ function s:GdbPaused_jump(file, line, ...) dict
   call self.update_current_line_sign(1)
 endfunction
 
+" Transition "paused" -> "paused": jump to the frame location
+function s:GdbPaused_breakpoint(num, skip, file, line, ...) dict
+  if !exists("self._pending_breakpoint_file")
+    return
+  endif
+
+  let file_name = self._pending_breakpoint_file
+  let linenr = self._pending_breakpoint_linenr
+  unlet self._pending_breakpoint_file
+  unlet self._pending_breakpoint_linenr
+
+  let target_buf = bufnr(file_name, 1)
+  let file_breakpoints = get(self._breakpoints, file_name, {})
+
+  " Remember the breakpoint number
+  let file_breakpoints[linenr] = a:num
+
+  " Finally, remember and update the breakpoint signs
+  let self._breakpoints[file_name] = file_breakpoints
+  if target_buf == bufnr('%')
+    call s:RefreshBreakpointSigns(target_buf)
+  endif
+endfunction
 
 " Transition "running" -> "pause"
 function s:GdbRunning_pause(...) dict
@@ -241,15 +266,16 @@ function! s:InitMachine(backend, struct)
     let data.backend = s:backend_gdb
   endif
 
-  "  +-jump--+
-  "  |       |
-  "  +--->PAUSED---continue--->RUNNING
-  "          |                   |
-  "          +<-----pause--------+
+  "  +-jump,breakpoint--+
+  "  |                  |
+  "  +-------------->PAUSED---continue--->RUNNING
+  "                     |                   |
+  "                     +<-----pause--------+
   "
   let data._state_paused = vimexpect#State(data.backend["paused"])
   let data._state_paused.continue = function("s:GdbPaused_continue", data)
   let data._state_paused.jump = function("s:GdbPaused_jump", data)
+  let data._state_paused.breakpoint = function("s:GdbPaused_breakpoint", data)
 
   let data._state_running = vimexpect#State(data.backend["running"])
   let data._state_running.pause = function("s:GdbRunning_pause", data)
@@ -342,18 +368,31 @@ function! nvimgdb#ToggleBreak()
   if !exists('t:gdb')
     return
   endif
+  if t:gdb._parser.state() == t:gdb._state_running
+    " pause first
+    call jobsend(t:gdb._client_id, "\<c-c>")
+  endif
+
   let buf = bufnr('%')
   let file_name = s:GetFullBufferPath(buf)
   let file_breakpoints = get(t:gdb._breakpoints, file_name, {})
   let linenr = line('.')
+
   if has_key(file_breakpoints, linenr)
+    " There already is a breakpoint on this line: remove
+    call t:gdb.send(t:gdb.backend['delete_breakpoints'] . ' ' . file_breakpoints[linenr])
     call remove(file_breakpoints, linenr)
+    " Finally, remember and update the breakpoint signs
+    let t:gdb._breakpoints[file_name] = file_breakpoints
+    call s:RefreshBreakpointSigns(buf)
   else
+    " Add a new breakpoint
     let file_breakpoints[linenr] = 1
+    let t:gdb._pending_breakpoint_file = file_name
+    let t:gdb._pending_breakpoint_linenr = linenr
+    call t:gdb.send(t:gdb.backend['breakpoint'] . ' ' . file_name . ':' . linenr)
+    " Adding will be finished in the callback stopped::breakpoint
   endif
-  let t:gdb._breakpoints[file_name] = file_breakpoints
-  call s:RefreshBreakpointSigns(buf)
-  call s:RefreshBreakpoints()
 endfunction
 
 
@@ -361,9 +400,15 @@ function! nvimgdb#ClearBreak()
   if !exists('t:gdb')
     return
   endif
+
   let t:gdb._breakpoints = {}
   call s:ClearBreakpointSigns()
-  call s:RefreshBreakpoints()
+
+  if t:gdb._parser.state() == t:gdb._state_running
+    " pause first
+    call jobsend(t:gdb._client_id, "\<c-c>")
+  endif
+  call t:gdb.send(t:gdb.backend['delete_breakpoints'])
 endfunction
 
 
@@ -392,25 +437,6 @@ endfunction
 function! s:RefreshBreakpointSigns(buf)
   call s:ClearBreakpointSigns()
   call s:SetBreakpointSigns(a:buf)
-endfunction
-
-
-function! s:RefreshBreakpoints()
-  if !exists('t:gdb')
-    return
-  endif
-  if t:gdb._parser.state() == t:gdb._state_running
-    " pause first
-    call jobsend(t:gdb._client_id, "\<c-c>")
-  endif
-  if !empty(t:gdb._breakpoints)
-    call t:gdb.send(t:gdb.backend['delete_breakpoints'])
-  endif
-  for [file, breakpoints] in items(t:gdb._breakpoints)
-    for linenr in keys(breakpoints)
-      call t:gdb.send(t:gdb.backend['breakpoint'].' '.file.':'.linenr)
-    endfor
-  endfor
 endfunction
 
 
