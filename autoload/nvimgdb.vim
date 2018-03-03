@@ -63,7 +63,7 @@ function s:GdbPaused_jump(file, line, ...) dict
     " Switch to the new buffer
     exe 'buffer ' target_buf
     let self._current_buf = target_buf
-    call s:RefreshBreakpoints()
+    call s:RefreshBreakpointSigns(self._current_buf)
   endif
   exe ':' a:line
   let self._current_line = a:line
