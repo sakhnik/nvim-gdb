@@ -287,9 +287,7 @@ endfunction
 " The checks to be executed when navigating the windows
 function! s:OnWinEnter()
   " If this isn't a debugging session, nothing to do
-  if !exists('t:gdb')
-    return
-  endif
+  if !exists('t:gdb') | return | endif
 
   " If the tabpage should contain at least two windows, finish debugging
   " otherwise.
@@ -300,9 +298,8 @@ function! s:OnWinEnter()
 endfunction
 
 function! s:OnTabEnter()
-  if !exists('t:gdb')
-    return
-  endif
+  if !exists('t:gdb') | return | endif
+
   " Restore the signs as they may have been spoiled
   if t:gdb._parser.state() == t:gdb._state_paused
     call t:gdb.update_current_line_sign(1)
@@ -311,9 +308,8 @@ function! s:OnTabEnter()
 endfunction
 
 function! s:OnTabLeave()
-  if !exists('t:gdb')
-    return
-  endif
+  if !exists('t:gdb') | return | endif
+
   " Hide the signs
   call t:gdb.update_current_line_sign(0)
   call s:ClearBreakpointSigns()
@@ -365,9 +361,8 @@ endfunction
 
 
 function! nvimgdb#ToggleBreak()
-  if !exists('t:gdb')
-    return
-  endif
+  if !exists('t:gdb') | return | endif
+
   if t:gdb._parser.state() == t:gdb._state_running
     " pause first
     call jobsend(t:gdb._client_id, "\<c-c>")
@@ -397,9 +392,7 @@ endfunction
 
 
 function! nvimgdb#ClearBreak()
-  if !exists('t:gdb')
-    return
-  endif
+  if !exists('t:gdb') | return | endif
 
   let t:gdb._breakpoints = {}
   call s:ClearBreakpointSigns()
@@ -451,9 +444,7 @@ endfunction
 
 
 function! nvimgdb#Send(data)
-  if !exists('t:gdb')
-    return
-  endif
+  if !exists('t:gdb') | return | endif
   call t:gdb.send(a:data)
 endfunction
 
@@ -464,16 +455,12 @@ endfunction
 
 
 function! nvimgdb#Interrupt()
-  if !exists('t:gdb')
-    return
-  endif
+  if !exists('t:gdb') | return | endif
   call jobsend(t:gdb._client_id, "\<c-c>info line\<cr>")
 endfunction
 
 
 function! nvimgdb#Kill()
-  if !exists('t:gdb')
-    return
-  endif
+  if !exists('t:gdb') | return | endif
   call t:gdb.kill()
 endfunction
