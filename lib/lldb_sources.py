@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import lldb
+import os
 
 
 def dump_module_sources(module, result):
@@ -9,7 +10,7 @@ def dump_module_sources(module, result):
         print >> result, "Module: %s" % (module.file)
         for compile_unit in module.compile_units:
             for line_entry in compile_unit:
-                files.add(str(line_entry.GetFileSpec()))
+                files.add(os.path.normpath(str(line_entry.GetFileSpec())))
         for f in files:
             print >> result, "  %s" % str(f)
 
@@ -24,5 +25,5 @@ def info_sources(debugger, command, result, dict):
 def __lldb_init_module(debugger, dict):
     # Add any commands contained in this module to LLDB
     debugger.HandleCommand(
-        'command script add -f sources.info_sources info_sources')
+        'command script add -f lldb_sources.info_sources info_sources')
     print 'The "info_sources" command has been installed, type "help info_sources" or "info_sources --help" for detailed help.'
