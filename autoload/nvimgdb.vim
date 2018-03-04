@@ -75,14 +75,19 @@ endfunction
 
 " Transition "paused" -> "paused": jump to the frame location
 function s:GdbPaused_breakpoint(num, skip, file, line, ...) dict
-  if !exists("self._pending_breakpoint_file")
-    return
+  if exists("self._pending_breakpoint_file")
+    let file_name = self._pending_breakpoint_file
+    let linenr = self._pending_breakpoint_linenr
+    unlet self._pending_breakpoint_file
+    unlet self._pending_breakpoint_linenr
+  else
+    if !filereadable(a:file)
+      " TODO: apply heuristics
+      return
+    endif
+    let file_name = fnamemodify(a:file, ':p')
+    let linenr = a:line
   endif
-
-  let file_name = self._pending_breakpoint_file
-  let linenr = self._pending_breakpoint_linenr
-  unlet self._pending_breakpoint_file
-  unlet self._pending_breakpoint_linenr
 
   " Remember the breakpoint number
   let file_breakpoints = get(self._breakpoints, file_name, {})
