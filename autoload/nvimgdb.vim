@@ -84,14 +84,13 @@ function s:GdbPaused_breakpoint(num, skip, file, line, ...) dict
   unlet self._pending_breakpoint_file
   unlet self._pending_breakpoint_linenr
 
-  let target_buf = bufnr(file_name, 1)
-  let file_breakpoints = get(self._breakpoints, file_name, {})
-
   " Remember the breakpoint number
+  let file_breakpoints = get(self._breakpoints, file_name, {})
   let file_breakpoints[linenr] = a:num
-
-  " Finally, remember and update the breakpoint signs
   let self._breakpoints[file_name] = file_breakpoints
+
+  " Update the breakpoint signs if the buffer is on screen
+  let target_buf = bufnr(file_name)   " returns -1 if buffer doesn't exist
   if target_buf == bufnr('%')
     call s:RefreshBreakpointSigns(target_buf)
   endif
