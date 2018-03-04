@@ -4,7 +4,7 @@ sign define GdbCurrentLine text=⇒
 
 " Count of active debugging views
 let g:nvimgdb_count = 0
-
+let s:plugin_dir = expand('<sfile>:p:h:h')
 
 " gdb specifics
 let s:backend_gdb = {
@@ -21,6 +21,7 @@ let s:backend_gdb = {
   \ ],
   \ 'delete_breakpoints': 'delete',
   \ 'breakpoint': 'break',
+  \ 'find_source_py': 'gdb_find_source.py',
   \ }
 
 " lldb specifics
@@ -81,12 +82,23 @@ function s:GdbPaused_breakpoint(num, skip, file, line, ...) dict
     unlet self._pending_breakpoint_file
     unlet self._pending_breakpoint_linenr
   else
-    if !filereadable(a:file) || self.backend == s:backend_lldb
-      " TODO: apply heuristics
+    " LLDB isn't supported for now
+    if self.backend == s:backend_lldb | return | endif
+
+    if filereadable(a:file)
+      let file_name = fnamemodify(a:file, ':p')
+      let linenr = a:line
+    else
+      function! FindSource(file) closure
+        exe 'py3 import sys'
+        exe 'py3 sys.argv = ["' . a:file . '"]'
+        exe 'py3file ' . s:plugin_dir . '/lib/' . self.backend['find_source_py']
+        return return_value
+      endfunction
+      let ret = FindSource(a:file)
+      throw string(ret)
       return
     endif
-    let file_name = fnamemodify(a:file, ':p')
-    let linenr = a:line
   endif
 
   " Remember the breakpoint number
