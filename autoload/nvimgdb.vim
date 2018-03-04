@@ -81,7 +81,7 @@ function s:GdbPaused_breakpoint(num, skip, file, line, ...) dict
     unlet self._pending_breakpoint_file
     unlet self._pending_breakpoint_linenr
   else
-    if !filereadable(a:file)
+    if !filereadable(a:file) || self.backend == s:backend_lldb
       " TODO: apply heuristics
       return
     endif
