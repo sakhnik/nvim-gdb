@@ -8,7 +8,9 @@ let s:plugin_dir = expand('<sfile>:p:h:h')
 
 " gdb specifics
 let s:backend_gdb = {
-  \ 'init': ['set confirm off', 'set pagination off'],
+  \ 'init': ['set confirm off',
+  \          'set pagination off',
+  \          'source ' . s:plugin_dir . '/lib/gdb_commands.py'],
   \ 'paused': [
   \     ['Continuing.', 'continue'],
   \     ['\v[\o32]{2}([^:]+):(\d+):\d+', 'jump'],
@@ -85,9 +87,10 @@ function s:GdbPaused_breakpoint(num, skip, file, line, ...) dict
     " LLDB isn't supported for now
     if self.backend == s:backend_lldb | return | endif
 
+    let linenr = a:line
+
     if filereadable(a:file)
       let file_name = fnamemodify(a:file, ':p')
-      let linenr = a:line
     else
       function! FindSource(file) closure
         exe 'py3 import sys'
@@ -96,8 +99,14 @@ function s:GdbPaused_breakpoint(num, skip, file, line, ...) dict
         return return_value
       endfunction
       let ret = FindSource(a:file)
-      throw string(ret)
-      return
+      if !len(ret)
+        return
+      elseif len(ret) == 1
+        let file_name = ret[0]
+      else
+        " TODO: inputlist()
+        return
+      endif
     endif
   endif
 
