@@ -23,7 +23,6 @@ let s:backend_gdb = {
   \ ],
   \ 'delete_breakpoints': 'delete',
   \ 'breakpoint': 'break',
-  \ 'find_source_py': 'gdb_find_source.py',
   \ }
 
 " lldb specifics
@@ -84,29 +83,10 @@ function s:GdbPaused_breakpoint(num, skip, file, line, ...) dict
     unlet self._pending_breakpoint_file
     unlet self._pending_breakpoint_linenr
   else
-    " LLDB isn't supported for now
-    if self.backend == s:backend_lldb | return | endif
-
     let linenr = a:line
-
-    if filereadable(a:file)
-      let file_name = fnamemodify(a:file, ':p')
-    else
-      function! FindSource(file) closure
-        exe 'py3 import sys'
-        exe 'py3 sys.argv = ["' . a:file . '"]'
-        exe 'py3file ' . s:plugin_dir . '/lib/' . self.backend['find_source_py']
-        return return_value
-      endfunction
-      let ret = FindSource(a:file)
-      if !len(ret)
-        return
-      elseif len(ret) == 1
-        let file_name = ret[0]
-      else
-        " TODO: inputlist()
-        return
-      endif
+    let file_name = t:gdb._impl.FindSource(a:file)
+    if empty(file_name)
+      return
     endif
   endif
 
@@ -343,6 +323,7 @@ endfunction
 
 function! nvimgdb#Spawn(backend, client_cmd)
   let gdb = s:InitMachine(a:backend, s:Gdb)
+  exe 'let gdb._impl = nvimgdb#' . a:backend . '#GetImpl()'
   let gdb._initialized = 0
   " window number that will be displaying the current file
   let gdb._jump_window = 1
