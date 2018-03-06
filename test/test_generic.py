@@ -13,7 +13,7 @@ delay = 0.5
 class Engine:
 
     def __init__(self):
-        os.system('g++ -g test.cpp')
+        os.system('g++ -g src/test.cpp')
         addr = os.environ.get('NVIM_LISTEN_ADDRESS')
         if addr:
             self.nvim = attach('socket', path=addr)
@@ -109,7 +109,7 @@ class TestGdb(unittest.TestCase):
                 for k in launch:
                     engine.KeyStroke(k)
                 engine.KeyStrokeL('<esc><c-w>k')
-                engine.KeyStroke(":e test.cpp\n")
+                engine.KeyStroke(":e src/test.cpp\n")
                 engine.KeyStrokeL(':4<cr>')
                 engine.KeyStrokeL('<f8>')
                 cur, breaks = engine.GetSigns()
@@ -134,7 +134,7 @@ class TestGdb(unittest.TestCase):
         for k in launch:
             engine.KeyStroke(k)
         engine.KeyStrokeL('<esc><c-w>k')
-        engine.KeyStroke(":e test.cpp\n")
+        engine.KeyStroke(":e src/test.cpp\n")
         engine.KeyStrokeL(':4<cr>')
         engine.KeyStrokeL('<f8>')
         cur, breaks = engine.GetSigns()
