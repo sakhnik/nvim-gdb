@@ -7,10 +7,11 @@ import unittest
 from neovim import attach
 
 
-delay = 0.5
 
 # Neovim proxy
 class Engine:
+
+    delay = 0.5
 
     def __init__(self):
         os.system('g++ -g src/test.cpp')
@@ -22,7 +23,7 @@ class Engine:
 
     def Command(self, cmd):
         self.nvim.command(cmd)
-        time.sleep(delay)
+        time.sleep(Engine.delay)
 
     def GetSigns(self):
         out = self.nvim.eval('execute("sign place")')
@@ -33,11 +34,11 @@ class Engine:
 
     def KeyStrokeL(self, keys):
         self.nvim.input(keys)
-        time.sleep(delay)
+        time.sleep(Engine.delay)
 
     def KeyStroke(self, keys):
         self.nvim.feedkeys(keys, 't')
-        time.sleep(delay)
+        time.sleep(Engine.delay)
 
     def Eval(self, expr):
         return self.nvim.eval(expr)
