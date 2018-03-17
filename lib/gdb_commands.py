@@ -1,7 +1,11 @@
 import re
 import socket
 
+
 class InfoSources(gdb.Command):
+    ''' A custom GDB command to list all source files and send it to a socket.
+        The files names will be reversed and sorted to simplify searching by basename.
+    '''
     def __init__(self):
         super(InfoSources, self).__init__("nvim-gdb-info-sources", gdb.COMMAND_NONE)
 
