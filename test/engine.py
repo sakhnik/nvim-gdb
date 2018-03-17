@@ -9,7 +9,6 @@ class Engine:
     delay = 0.5
 
     def __init__(self):
-        os.system('g++ -g src/test.cpp')
         addr = os.environ.get('NVIM_LISTEN_ADDRESS')
         if addr:
             self.nvim = attach('socket', path=addr)
