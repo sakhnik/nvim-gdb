@@ -4,11 +4,13 @@ sign define GdbCurrentLine text=⇒
 
 " Count of active debugging views
 let g:nvimgdb_count = 0
-
+let s:plugin_dir = expand('<sfile>:p:h:h')
 
 " gdb specifics
 let s:backend_gdb = {
-  \ 'init': ['set confirm off', 'set pagination off'],
+  \ 'init': ['set confirm off',
+  \          'set pagination off',
+  \          'source ' . s:plugin_dir . '/lib/gdb_commands.py'],
   \ 'paused': [
   \     ['Continuing.', 'continue'],
   \     ['\v[\o32]{2}([^:]+):(\d+):\d+', 'jump'],
@@ -75,14 +77,18 @@ endfunction
 
 " Transition "paused" -> "paused": jump to the frame location
 function s:GdbPaused_breakpoint(num, skip, file, line, ...) dict
-  if !exists("self._pending_breakpoint_file")
-    return
+  if exists("self._pending_breakpoint_file")
+    let file_name = self._pending_breakpoint_file
+    let linenr = self._pending_breakpoint_linenr
+    unlet self._pending_breakpoint_file
+    unlet self._pending_breakpoint_linenr
+  else
+    let linenr = a:line
+    let file_name = t:gdb._impl.FindSource(a:file)
+    if empty(file_name)
+      return
+    endif
   endif
-
-  let file_name = self._pending_breakpoint_file
-  let linenr = self._pending_breakpoint_linenr
-  unlet self._pending_breakpoint_file
-  unlet self._pending_breakpoint_linenr
 
   " Remember the breakpoint number
   let file_breakpoints = get(self._breakpoints, file_name, {})
@@ -317,6 +323,7 @@ endfunction
 
 function! nvimgdb#Spawn(backend, client_cmd)
   let gdb = s:InitMachine(a:backend, s:Gdb)
+  exe 'let gdb._impl = nvimgdb#' . a:backend . '#GetImpl()'
   let gdb._initialized = 0
   " window number that will be displaying the current file
   let gdb._jump_window = 1
