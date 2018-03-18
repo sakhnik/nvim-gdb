@@ -462,7 +462,7 @@ endfunction
 
 function! nvimgdb#Interrupt()
   if !exists('t:gdb') | return | endif
-  call jobsend(t:gdb._client_id, "\<c-c>info line\<cr>")
+  call jobsend(t:gdb._client_id, "\<c-c>")
 endfunction
 
 

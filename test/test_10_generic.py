@@ -157,5 +157,23 @@ class TestGdb(unittest.TestCase):
         eng.KeyStrokeL('ZZ')
 
 
+    def test_50_interrupt(self):
+        ''' => Test interrupt '''
+        for backend, launch in subtests.items():
+            with self.subTest(backend=backend):
+                for k in launch:
+                    eng.KeyStroke(k)
+                eng.KeyStroke('run\n')
+                eng.KeyStrokeL('<esc>')
+                eng.KeyStroke(':GdbInterrupt\n')
+
+                cur, breaks = eng.GetSigns()
+                self.assertEqual(20, cur)
+                self.assertFalse(breaks)
+
+                eng.KeyStrokeL('ZZ')
+
+
+
 if __name__ == "__main__":
     unittest.main()

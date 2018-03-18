@@ -17,5 +17,6 @@ int main()
     {
         Foo(i);
     }
+    for (unsigned i = 0; i < 0xffffffff; ++i);
     return 0;
 }
