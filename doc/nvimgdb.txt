@@ -88,7 +88,8 @@ Section 2: Commands                                          *NvimgdbCommands*
 ==============================================================================
 Section 3: Mappings                                          *NvimgdbMappings*
 
-The following mappings are defined initially:
+The following mappings are defined initially unless the global variable
+g:nvimgdb_disable_start_keymaps is defined and evaluates to true:
 
 <leader>dd             Fill in command to start debugging with GDB, you will
                        still need to enter <cr> to execute it.
@@ -110,6 +111,10 @@ When debugging session has started, the following mappings are defined:
 
 ==============================================================================
 Section 4: Variables                                        *NvimgdbVariables*
+
+If the variable g:nvimgdb_disable_start_keymaps is defined and evaluates to
+true, the initial keymaps to start debugging session are suppressed
+(see |NvimgdbMappings|).
 
 The following variables could be defined to change default mappings for the
 debugging commands:
