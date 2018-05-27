@@ -30,7 +30,7 @@ class TestGdb(unittest.TestCase):
             with self.subTest(backend=backend):
                 for k in launch:
                     eng.KeyStroke(k)
-                eng.KeyStroke('tbreak main\n')
+                eng.KeyStroke('b main\n')
                 eng.KeyStroke('run\n')
                 eng.KeyStrokeL('<esc>')
 
@@ -109,7 +109,7 @@ class TestGdb(unittest.TestCase):
         # Launch GDB first
         for k in subtests['gdb']:
             eng.KeyStroke(k)
-        eng.KeyStroke('tbreak main\n')
+        eng.KeyStroke('b main\n')
         eng.KeyStroke('run\n')
         eng.KeyStrokeL('<esc>')
         eng.KeyStrokeL('<c-w>w')
@@ -125,7 +125,7 @@ class TestGdb(unittest.TestCase):
         # Then launch LLDB
         for k in subtests['lldb']:
             eng.KeyStroke(k)
-        eng.KeyStroke('tbreak main\n')
+        eng.KeyStroke('b main\n')
         eng.KeyStroke('run\n')
         eng.KeyStrokeL('<esc>')
         eng.KeyStrokeL('<c-w>w')
