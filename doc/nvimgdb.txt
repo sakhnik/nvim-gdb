@@ -8,9 +8,10 @@ CONTENTS                                                     *NvimgdbContents*
     1. Usage ................ |NvimgdbUsage|
     2. Commands ............. |NvigdbCommands|
     3. Mappings ............. |NvimgdbMappings|
-    4. Variables............. |NvimgdbVariables|
-    5. Limitations........... |NvimgdbLimitations|
-    6. Trivia ............... |NvimgdbTrivia|
+    4. Variables ............ |NvimgdbVariables|
+    5. Limitations .......... |NvimgdbLimitations|
+    6. Development .......... NvimgdbDevelopment
+    7. Trivia ............... |NvimgdbTrivia|
 
 ==============================================================================
 Section 1: Usage                                                *NvimgdbUsage*
@@ -140,7 +141,16 @@ Section 5: Limitations                                    *NvimgdbLimitations*
   `:GdbFrameUp` followed by `:GdbFrameDown`.
 
 ==============================================================================
-Section 6: Trivia                                              *NvimgdbTrivia*
+Section 6: Development                                    *NvimgdbDevelopment*
+
+- The keymaps are defined buffer-local for every buffer when it's entered,
+  and undefined when a buffer is left. This was done to ensure that users's
+  aren't overridden in long term. However, a more general solution could be
+  to ensure the original keymaps are preserved and restored after debugging
+  session: https://vi.stackexchange.com/questions/7734/how-to-save-and-restore-a-mapping
+
+==============================================================================
+Section 7: Trivia                                              *NvimgdbTrivia*
 
 License inherits from neovim's.
 
