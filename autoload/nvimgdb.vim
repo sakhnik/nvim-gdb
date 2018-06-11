@@ -306,7 +306,7 @@ function! s:OnWinEnter()
   " If this isn't a debugging session, nothing to do
   if !exists('t:gdb') | return | endif
 
-  " If the tabpage should contain at least two windows, finish debugging
+  " The tabpage should contain at least two windows, finish debugging
   " otherwise.
   if tabpagewinnr(tabpagenr(), '$') == 1
     call t:gdb.kill()
