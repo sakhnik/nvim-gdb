@@ -149,6 +149,14 @@ Section 6: Development                                    *NvimgdbDevelopment*
   to ensure the original keymaps are preserved and restored after debugging
   session: https://vi.stackexchange.com/questions/7734/how-to-save-and-restore-a-mapping
 
+- Breakpoints set can be intercepted by the plugin and marked in the source
+  code. This is currently implemented only in GDB, because LLDB doesn't make
+  difference between temporary and persistent ones. There is no need to place
+  a breakpoint sign for a temporary breakpoint. Under the hood, when an
+  unexpected breakpoint notification is recognized, the python plugin will
+  open and bind a socket, issue a custom command to the GDB, and wait until
+  the command sends a message with response via the socket.
+
 ==============================================================================
 Section 7: Trivia                                              *NvimgdbTrivia*
 
