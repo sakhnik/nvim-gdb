@@ -10,7 +10,7 @@ CONTENTS                                                     *NvimgdbContents*
     3. Mappings ............. |NvimgdbMappings|
     4. Variables ............ |NvimgdbVariables|
     5. Limitations .......... |NvimgdbLimitations|
-    6. Development .......... NvimgdbDevelopment
+    6. Development .......... |NvimgdbDevelopment|
     7. Trivia ............... |NvimgdbTrivia|
 
 ==============================================================================
