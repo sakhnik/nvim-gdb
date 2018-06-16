@@ -18,7 +18,7 @@ export NVIM_LISTEN_ADDRESS=/tmp/nvimtest
 rm -rf $NVIM_LISTEN_ADDRESS
 
 # Run the test suite with a visible neovim
-nvim -n -u init.vim &
+nvim --listen $NVIM_LISTEN_ADDRESS -n -u init.vim &
 add_cleanup_action "kill -KILL `jobs -p`; wait; reset"
 
 python3 $@
