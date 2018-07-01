@@ -133,7 +133,7 @@ g:nvimgdb_key_eval
 Section 5: Limitations                                    *NvimgdbLimitations*
 
 - The plugin is sensitive to the debugger settings. If prompt or frame format
-  is changed, the errors may occur.
+  is changed, random errors may occur.
 
 - LLDB uses the same frame format in multiple different situations. The
   command "thread backtrace", for instance, will cause jumps in the source
