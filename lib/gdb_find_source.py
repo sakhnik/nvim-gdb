@@ -25,7 +25,7 @@ sock.bind(server_address)
 sock.settimeout(0.5)
 
 # Let GDB send back the list of sources
-vim.command('call nvimgdb#Send("nvim-gdb-info-sources %s")' % server_address)
+vim.command('call nvimgdb#Send("server nvim-gdb-info-sources %s")' % server_address)
 
 # Receive the result from GDB
 data, addr = sock.recvfrom(65536)
