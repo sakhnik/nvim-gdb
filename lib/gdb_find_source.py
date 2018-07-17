@@ -1,3 +1,4 @@
+"""Find the path to the source by querying GDB."""
 import vim
 import socket
 import sys
@@ -25,7 +26,8 @@ sock.bind(server_address)
 sock.settimeout(0.5)
 
 # Let GDB send back the list of sources
-vim.command('call nvimgdb#Send("server nvim-gdb-info-sources %s")' % server_address)
+vim.command('call nvimgdb#Send("server nvim-gdb-info-sources %s")'
+            % server_address)
 
 # Receive the result from GDB
 data, addr = sock.recvfrom(65536)
@@ -36,19 +38,22 @@ target = os.path.normpath(sys.argv[0])
 target_min_len = len(os.path.basename(target))
 target = target[::-1]
 
-def LongestCommonPrefix(a, b):
+
+def _LongestCommonPrefix(a, b):
     n = min(len(a), len(b))
     for i in range(n):
         if a[i] != b[i]:
             return i
     return n
 
+
 # Filter those source paths that have the maximum suffix match with the target.
-# Note that both the target and the sources are reversed now, so we are working with the prefixes.
+# Note that both the target and the sources are reversed now, so we are
+# working with the prefixes.
 m = target_min_len
 result = []
 for l in lines:
-    x = LongestCommonPrefix(target, l)
+    x = _LongestCommonPrefix(target, l)
     if x > m:
         m = x
         result = [l[::-1]]
