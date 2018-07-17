@@ -346,7 +346,7 @@ function! s:OnBufLeave()
 endfunction
 
 
-function! nvimgdb#Spawn(backend, client_cmd)
+function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   let gdb = s:InitMachine(a:backend, s:Gdb)
   exe 'let gdb._impl = nvimgdb#' . a:backend . '#GetImpl()'
   let gdb._initialized = 0
@@ -362,7 +362,15 @@ function! nvimgdb#Spawn(backend, client_cmd)
   sp
   " go to the bottom window and spawn gdb client
   wincmd j
-  enew | let gdb._client_id = termopen(a:client_cmd, gdb)
+
+  " Prepare the debugger command to run
+  let l:command = ''
+  if a:proxy_cmd != ''
+    let l:command = s:plugin_dir . '/lib/' . a:proxy_cmd . ' '
+  endif
+  let l:command .= a:client_cmd
+
+  enew | let gdb._client_id = termopen(l:command, gdb)
   let gdb._client_buf = bufnr('%')
   let t:gdb = gdb
 
