@@ -45,6 +45,23 @@ let s:backend_lldb = {
   \ 'breakpoint': 'b',
   \ }
 
+" pdb specifics
+let s:backend_pdb = {
+  \ 'init': [],
+  \ 'paused': [
+  \     ['Continuing.', 'continue'],
+  \     ['\v-@<!\> ([^(]+)\((\d+)\)[^(]+\(\)', 'jump'],
+  \     ['\vBreakpoint (\d+) (at) ([^:]+):(\d+)', 'breakpoint'],
+  \ ],
+  \ 'running': [
+  \     ['\v^Breakpoint \d+', 'pause'],
+  \     ['\v hit Breakpoint \d+', 'pause'],
+  \     ['\n> ', 'pause'],
+  \ ],
+  \ 'delete_breakpoints': 'delete',
+  \ 'breakpoint': 'break',
+  \ }
+
 
 " Transition "paused" -> "continue"
 function s:GdbPaused_continue(...) dict
@@ -278,6 +295,8 @@ function! s:InitMachine(backend, struct)
   " Identify and select the appropriate backend
   if a:backend == "lldb"
     let data.backend = s:backend_lldb
+  elseif a:backend == "pdb"
+    let data.backend = s:backend_pdb
   else
     " Fall back to GDB
     let data.backend = s:backend_gdb
