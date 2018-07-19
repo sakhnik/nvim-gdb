@@ -8,6 +8,7 @@ let s:plugin_dir = expand('<sfile>:p:h:h')
 
 " gdb specifics
 let s:backend_gdb = {
+  \ 'init_state': 'running',
   \ 'init': ['set confirm off',
   \          'set pagination off',
   \          'source ' . s:plugin_dir . '/lib/gdb_commands.py'],
@@ -27,6 +28,7 @@ let s:backend_gdb = {
 
 " lldb specifics
 let s:backend_lldb = {
+  \ 'init_state': 'running',
   \ 'init': ['settings set frame-format frame #${frame.index}: ${frame.pc}{ ${module.file.basename}{`${function.name-with-args}{${frame.no-debug}${function.pc-offset}}}}{ at \032\032${line.file.fullpath}:${line.number}}{${function.is-optimized} [opt]}\n',
   \          'settings set auto-confirm true',
   \          'settings set stop-line-count-before 0',
@@ -43,6 +45,21 @@ let s:backend_lldb = {
   \ ],
   \ 'delete_breakpoints': 'breakpoint delete',
   \ 'breakpoint': 'b',
+  \ }
+
+" pdb specifics
+let s:backend_pdb = {
+  \ 'init_state': 'paused',
+  \ 'init': [],
+  \ 'paused': [
+  \     ['\v-@<!\> ([^(]+)\((\d+)\)[^(]+\(\)', 'jump'],
+  \     ['\vBreakpoint (\d+) (at) ([^:]+):(\d+)', 'breakpoint'],
+  \ ],
+  \ 'running': [
+  \ ],
+  \ 'delete_breakpoints': 'clear',
+  \ 'breakpoint': 'break',
+  \ 'finish': 'return',
   \ }
 
 
@@ -63,6 +80,12 @@ function s:GdbPaused_jump(file, line, ...) dict
   exe self._jump_window 'wincmd w'
   let self._current_buf = bufnr('%')
   let target_buf = bufnr(a:file, 1)
+  if target_buf == self._client_buf
+    " The terminal buffer may contain the name of the source file (in pdb, for
+    " instance)
+    exe "e " . a:file
+    let target_buf = bufnr(a:file)
+  endif
   if bufnr('%') != target_buf
     " Switch to the new buffer
     exe 'buffer ' target_buf
@@ -278,6 +301,8 @@ function! s:InitMachine(backend, struct)
   " Identify and select the appropriate backend
   if a:backend == "lldb"
     let data.backend = s:backend_lldb
+  elseif a:backend == "pdb"
+    let data.backend = s:backend_pdb
   else
     " Fall back to GDB
     let data.backend = s:backend_gdb
@@ -297,7 +322,8 @@ function! s:InitMachine(backend, struct)
   let data._state_running = vimexpect#State(data.backend["running"])
   let data._state_running.pause = function("s:GdbRunning_pause", data)
 
-  return vimexpect#Parser(data._state_running, data)
+  let init_state = eval('data._state_' . data.backend["init_state"])
+  return vimexpect#Parser(init_state, data)
 endfunction
 
 
@@ -478,7 +504,11 @@ endfunction
 
 function! nvimgdb#Send(data)
   if !exists('t:gdb') | return | endif
-  call t:gdb.send(a:data)
+  if has_key(t:gdb.backend, a:data)
+    call t:gdb.send(t:gdb.backend[a:data])
+  else
+    call t:gdb.send(a:data)
+  endif
 endfunction
 
 
