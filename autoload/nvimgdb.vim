@@ -8,6 +8,7 @@ let s:plugin_dir = expand('<sfile>:p:h:h')
 
 " gdb specifics
 let s:backend_gdb = {
+  \ 'init_state': 'running',
   \ 'init': ['set confirm off',
   \          'set pagination off',
   \          'source ' . s:plugin_dir . '/lib/gdb_commands.py'],
@@ -27,6 +28,7 @@ let s:backend_gdb = {
 
 " lldb specifics
 let s:backend_lldb = {
+  \ 'init_state': 'running',
   \ 'init': ['settings set frame-format frame #${frame.index}: ${frame.pc}{ ${module.file.basename}{`${function.name-with-args}{${frame.no-debug}${function.pc-offset}}}}{ at \032\032${line.file.fullpath}:${line.number}}{${function.is-optimized} [opt]}\n',
   \          'settings set auto-confirm true',
   \          'settings set stop-line-count-before 0',
@@ -47,13 +49,13 @@ let s:backend_lldb = {
 
 " pdb specifics
 let s:backend_pdb = {
+  \ 'init_state': 'paused',
   \ 'init': [],
   \ 'paused': [
   \     ['\v-@<!\> ([^(]+)\((\d+)\)[^(]+\(\)', 'jump'],
   \     ['\vBreakpoint (\d+) (at) ([^:]+):(\d+)', 'breakpoint'],
   \ ],
   \ 'running': [
-  \     ['^> ', 'pause'],
   \ ],
   \ 'delete_breakpoints': 'clear',
   \ 'breakpoint': 'break',
@@ -313,7 +315,8 @@ function! s:InitMachine(backend, struct)
   let data._state_running = vimexpect#State(data.backend["running"])
   let data._state_running.pause = function("s:GdbRunning_pause", data)
 
-  return vimexpect#Parser(data._state_running, data)
+  let init_state = eval('data._state_' . data.backend["init_state"])
+  return vimexpect#Parser(init_state, data)
 endfunction
 
 
