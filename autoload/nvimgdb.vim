@@ -49,16 +49,13 @@ let s:backend_lldb = {
 let s:backend_pdb = {
   \ 'init': [],
   \ 'paused': [
-  \     ['Continuing.', 'continue'],
   \     ['\v-@<!\> ([^(]+)\((\d+)\)[^(]+\(\)', 'jump'],
   \     ['\vBreakpoint (\d+) (at) ([^:]+):(\d+)', 'breakpoint'],
   \ ],
   \ 'running': [
-  \     ['\v^Breakpoint \d+', 'pause'],
-  \     ['\v hit Breakpoint \d+', 'pause'],
-  \     ['\n> ', 'pause'],
+  \     ['^> ', 'pause'],
   \ ],
-  \ 'delete_breakpoints': 'delete',
+  \ 'delete_breakpoints': 'clear',
   \ 'breakpoint': 'break',
   \ }
 
