@@ -79,6 +79,12 @@ function s:GdbPaused_jump(file, line, ...) dict
   exe self._jump_window 'wincmd w'
   let self._current_buf = bufnr('%')
   let target_buf = bufnr(a:file, 1)
+  if target_buf == self._client_buf
+    " The terminal buffer may contain the name of the source file (in pdb, for
+    " instance)
+    exe "e " . a:file
+    let target_buf = bufnr(a:file)
+  endif
   if bufnr('%') != target_buf
     " Switch to the new buffer
     exe 'buffer ' target_buf
