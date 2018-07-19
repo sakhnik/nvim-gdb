@@ -59,6 +59,7 @@ let s:backend_pdb = {
   \ ],
   \ 'delete_breakpoints': 'clear',
   \ 'breakpoint': 'break',
+  \ 'finish': 'return',
   \ }
 
 
@@ -503,7 +504,11 @@ endfunction
 
 function! nvimgdb#Send(data)
   if !exists('t:gdb') | return | endif
-  call t:gdb.send(a:data)
+  if has_key(t:gdb.backend, a:data)
+    call t:gdb.send(t:gdb.backend[a:data])
+  else
+    call t:gdb.send(a:data)
+  endif
 endfunction
 
 
