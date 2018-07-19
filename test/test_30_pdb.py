@@ -3,6 +3,7 @@
 
 import unittest
 import engine
+import time
 
 
 eng = engine.Engine()
@@ -39,6 +40,7 @@ class TestPdb(unittest.TestCase):
         self.assertFalse(breaks)
 
         eng.KeyStrokeL('<f5>')
+        time.sleep(0.5)
         cur, breaks = eng.GetSigns()
         self.assertEqual(1, cur)
         self.assertFalse(breaks)
