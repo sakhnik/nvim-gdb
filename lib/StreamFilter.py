@@ -34,22 +34,22 @@ class StreamFilter:
                                         self._FinishMatch,
                                         self._Nop)
         self.state = self.passing
-        self.buffer = ''
+        self.buffer = bytearray()
 
     def _Nop(self, ch):
         return False
 
     def _StartHold(self, ch):
-        self.buffer += ch
+        self.buffer.append(ch)
         return False
 
     def _StartFail(self, ch):
         # Send the buffer out
-        self.buffer += ch
+        self.buffer.append(ch)
         return True
 
     def _StartMatch(self, ch):
-        self.buffer = ''
+        self.buffer = bytearray()
         self.state = self.rejecting
         return False
 
@@ -59,13 +59,13 @@ class StreamFilter:
 
     def Filter(self, input):
         """Process input, filter between tokens, return the output."""
-        output = ''
+        output = bytearray()
         for ch in input:
             action = self.state.match(ch)
             if action(ch):
-                output += self.buffer
-                self.buffer = ''
-        return output
+                output.extend(self.buffer)
+                self.buffer = bytearray()
+        return bytes(output)
 
 
 if __name__ == "__main__":
@@ -76,14 +76,14 @@ if __name__ == "__main__":
 
         def test_10_first(self):
             """Test a generic scenario."""
-            f = StreamFilter("  server nvim-gdb-", "\n(gdb) ")
-            self.assertEqual("hello", f.Filter("hello"))
-            self.assertEqual(" world", f.Filter(" world"))
-            self.assertEqual("", f.Filter("  "))
-            self.assertEqual("  again", f.Filter("again"))
-            self.assertEqual("", f.Filter("  server nvim-gdb-breakpoint"))
-            self.assertEqual("", f.Filter("foo-bar"))
-            self.assertEqual("", f.Filter("\n(gdb) "))
-            self.assertEqual("asdf", f.Filter("asdf"))
+            f = StreamFilter(b"  server nvim-gdb-", b"\n(gdb) ")
+            self.assertEqual(b"hello", f.Filter(b"hello"))
+            self.assertEqual(b" world", f.Filter(b" world"))
+            self.assertEqual(b"", f.Filter(b"  "))
+            self.assertEqual(b"  again", f.Filter(b"again"))
+            self.assertEqual(b"", f.Filter(b"  server nvim-gdb-breakpoint"))
+            self.assertEqual(b"", f.Filter(b"foo-bar"))
+            self.assertEqual(b"", f.Filter(b"\n(gdb) "))
+            self.assertEqual(b"asdf", f.Filter(b"asdf"))
 
     unittest.main()

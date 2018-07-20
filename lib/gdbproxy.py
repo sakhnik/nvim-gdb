@@ -18,12 +18,17 @@ import sys
 import termios
 import tty
 
+import StreamFilter
+
 
 class GdbProxy(object):
     """This class does the actual work of the pseudo terminal."""
 
     def __init__(self, argv=None):
         """Create a spawned process."""
+        self.filter = StreamFilter.StreamFilter(b"server nvim-gdb-",
+                                                b"\n(gdb) ")
+
         pid, self.master_fd = pty.fork()
         if pid == pty.CHILD:
             os.execlp(argv[0], *argv)
@@ -82,6 +87,7 @@ class GdbProxy(object):
 
     def write_stdout(self, data):
         """Write to stdout for the child process."""
+        data = self.filter.Filter(data)
         self._write(pty.STDOUT_FILENO, data)
 
     def write_master(self, data):
