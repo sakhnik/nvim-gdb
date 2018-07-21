@@ -65,25 +65,33 @@ class GdbProxy(object):
         sockets = [self.master_fd, pty.STDIN_FILENO]
         while True:
             try:
-                rfds, wfds, xfds = select.select(sockets, [], [])
+                rfds, wfds, xfds = select.select(sockets, [], [], 1.0)
+                select.select
             except select.error as e:
                 if e[0] == errno.EAGAIN:   # Interrupted system call.
                     continue
                 else:
                     raise
 
-            if self.master_fd in rfds:
-                data = os.read(self.master_fd, 1024)
-                self.master_read(data)
-            if pty.STDIN_FILENO in rfds:
-                data = os.read(pty.STDIN_FILENO, 1024)
-                self.stdin_read(data)
+            if not rfds:
+                self._timeout()
+            else:
+                if self.master_fd in rfds:
+                    data = os.read(self.master_fd, 1024)
+                    self.master_read(data)
+                if pty.STDIN_FILENO in rfds:
+                    data = os.read(pty.STDIN_FILENO, 1024)
+                    self.stdin_read(data)
 
     def _write(self, fd, data):
         """Write the data to the file."""
         while data:
             n = os.write(fd, data)
             data = data[n:]
+
+    def _timeout(self):
+        data = self.filter.Timeout()
+        self._write(pty.STDOUT_FILENO, data)
 
     def write_stdout(self, data):
         """Write to stdout for the child process."""
