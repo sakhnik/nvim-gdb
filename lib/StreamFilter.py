@@ -19,6 +19,9 @@ class _StringMatcher:
         self.idx = 0
         return self.fail
 
+    def reset(self):
+        self.idx = 0
+
 
 class StreamFilter:
     """Stream filter class."""
@@ -37,6 +40,7 @@ class StreamFilter:
         self.buffer = bytearray()
 
     def _Nop(self, ch):
+        self.buffer.append(ch)
         return False
 
     def _StartHold(self, ch):
@@ -44,16 +48,17 @@ class StreamFilter:
         return False
 
     def _StartFail(self, ch):
-        # Send the buffer out
         self.buffer.append(ch)
+        # Send the buffer out
         return True
 
     def _StartMatch(self, ch):
-        self.buffer = bytearray()
+        self.buffer.append(ch)
         self.state = self.rejecting
         return False
 
     def _FinishMatch(self, ch):
+        self.buffer = bytearray()
         self.state = self.passing
         return False
 
@@ -65,6 +70,14 @@ class StreamFilter:
             if action(ch):
                 output.extend(self.buffer)
                 self.buffer = bytearray()
+        return bytes(output)
+
+    def Timeout(self):
+        """Process timeout, return whatever was kept in the buffer."""
+        self.state.reset()
+        self.state = self.passing
+        output = self.buffer
+        self.buffer = bytearray()
         return bytes(output)
 
 
@@ -85,5 +98,14 @@ if __name__ == "__main__":
             self.assertEqual(b"", f.Filter(b"foo-bar"))
             self.assertEqual(b"", f.Filter(b"\n(gdb) "))
             self.assertEqual(b"asdf", f.Filter(b"asdf"))
+
+        def test_20_timeout(self):
+            """Test timeout."""
+            f = StreamFilter(b"asdf", b"qwer")
+            self.assertEqual(b"zxcv", f.Filter(b"zxcv"))
+            self.assertEqual(b"", f.Filter(b"asdf"))
+            self.assertEqual(b"", f.Filter(b"xyz"))
+            self.assertEqual(b"asdfxyz", f.Timeout())
+            self.assertEqual(b"qwer", f.Filter(b"qwer"))
 
     unittest.main()
