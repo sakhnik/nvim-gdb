@@ -7,6 +7,7 @@ This will allow to inject server commands not exposing them
 to a user.
 """
 
+import argparse
 import array
 import errno
 import fcntl
@@ -14,7 +15,7 @@ import os
 import pty
 import select
 import signal
-import sys
+import socket
 import termios
 import tty
 
@@ -24,8 +25,24 @@ import StreamFilter
 class GdbProxy(object):
     """This class does the actual work of the pseudo terminal."""
 
-    def __init__(self, argv=None):
+    def __init__(self, server_address, argv):
         """Create a spawned process."""
+
+        if server_address:
+            # Make sure the socket does not already exist
+            try:
+                os.unlink(server_address)
+            except OSError:
+                if os.path.exists(server_address):
+                    raise
+            # Create a UDS socket
+            self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+            self.sock.bind(server_address)
+            self.sock.settimeout(0.5)
+        else:
+            self.sock = None
+
+        # Create the filter
         self.filter = StreamFilter.StreamFilter(b"server nvim-gdb-",
                                                 b"\n(gdb) ")
 
@@ -52,6 +69,13 @@ class GdbProxy(object):
         self.master_fd = None
         signal.signal(signal.SIGWINCH, old_handler)
 
+        if server_address:
+            # Make sure the socket does not already exist
+            try:
+                os.unlink(server_address)
+            except OSError:
+                pass
+
     def _set_pty_size(self):
         """Set the window size of the child pty."""
         assert self.master_fd is not None
@@ -63,6 +87,9 @@ class GdbProxy(object):
     def _process(self):
         """Run the main loop."""
         sockets = [self.master_fd, pty.STDIN_FILENO]
+        if self.sock:
+            sockets.append(self.sock)
+
         while True:
             try:
                 rfds, wfds, xfds = select.select(sockets, [], [], 1.0)
@@ -82,6 +109,9 @@ class GdbProxy(object):
                 if pty.STDIN_FILENO in rfds:
                     data = os.read(pty.STDIN_FILENO, 1024)
                     self.stdin_read(data)
+                if self.sock in rfds:
+                    data, addr = self.sock.recvfrom(65536)
+                    self.write_master(data)
 
     def _write(self, fd, data):
         """Write the data to the file."""
@@ -112,4 +142,13 @@ class GdbProxy(object):
 
 
 if __name__ == '__main__':
-    GdbProxy(sys.argv[1:])
+    parser = argparse.ArgumentParser(
+            description="Run GDB through a filtering proxy.")
+    parser.add_argument('gdb', metavar='GDB', help='GDB command')
+    parser.add_argument('args', metavar='ARGS', nargs='*',
+                        help='GDB arguments')
+    parser.add_argument('-a', '--address', metavar='ADDR',
+                        help='Local socket to receive commands.')
+    args = parser.parse_args()
+
+    GdbProxy(args.address, [args.gdb] + args.args)

@@ -366,7 +366,7 @@ function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   " Prepare the debugger command to run
   let l:command = ''
   if a:proxy_cmd != ''
-    let l:command = s:plugin_dir . '/lib/' . a:proxy_cmd . ' '
+    let l:command = s:plugin_dir . '/lib/' . a:proxy_cmd . ' -- '
   endif
   let l:command .= a:client_cmd
 
