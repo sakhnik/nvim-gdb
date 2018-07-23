@@ -45,11 +45,19 @@ class InfoBreakpoints(gdb.Command):
         sockaddr = args[1]    # Local socket address to send the result to
 
         # List all breakpoints.
-        output = gdb.execute('info breakpoints', from_tty=False, to_string=True)
-        # Parse the output for (file, line)
-        locations = ((f.group(1), f.group(2)) for f in re.finditer(r' at ([^:]+):(\d+)', output))
-        # Filter breakpoints supposedly belonging to the file in question
-        breaks = [ln for (fl, ln) in locations if path.endswith(fl)]
+        output = gdb.execute('info breakpoints',
+                             from_tty=False, to_string=True).splitlines()
+
+        # Select lines in the current file with enabled breakpoints.
+        pattern = re.compile("([^:]+):(\d+)")
+        breaks = []
+        for line in output:
+            fields = re.split("\s+", line)
+            if fields[3] == 'y':    # Is enabled?
+                m = pattern.fullmatch(fields[-1])   # file.cpp:line
+                if (m and path.endswith(m.group(1))):
+                    breaks.append(m.group(2))
+
         # Send the result to the given local socket
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
         sock.sendto(" ".join(breaks).encode('utf-8'), sockaddr)
