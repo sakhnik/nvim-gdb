@@ -328,7 +328,7 @@ endfunction
 
 
 " The checks to be executed when navigating the windows
-function! s:OnWinEnter()
+function! nvimgdb#CheckWindowClosed(...)
   " If this isn't a debugging session, nothing to do
   if !exists('t:gdb') | return | endif
 
@@ -397,7 +397,14 @@ function! nvimgdb#Spawn(backend, client_cmd)
     call s:DefineCommands()
     augroup NvimGdb
       au!
-      au WinEnter * call s:OnWinEnter()
+      " Unfortunately, there is no event to handle a window closed.
+      " It's needed to be handled heuristically:
+      "   When :quit is executed, the cursor will enter another buffer
+      au WinEnter * call nvimgdb#CheckWindowClosed()
+      "   When :only is executed, BufWinLeave will be issued before closing
+      "   window. We start a timer expecting it to expire after the window
+      "   has been closed. It's a race.
+      au BufWinLeave * call timer_start(100, "nvimgdb#CheckWindowClosed")
       au TabEnter * call s:OnTabEnter()
       au TabLeave * call s:OnTabLeave()
       au BufEnter * call s:OnBufEnter()
