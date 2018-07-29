@@ -368,7 +368,12 @@ function! s:OnTabEnter()
   if t:gdb._parser.state() == t:gdb._state_paused
     call t:gdb.update_current_line_sign(1)
   endif
-  call s:RefreshBreakpointSigns(t:gdb._current_buf)
+  if has_key(t:gdb._impl, "InfoBreakpoints")
+    " Ensure breakpoints are shown if are queried dynamically
+    call t:gdb._state_paused.info_breakpoints()
+  else
+    call s:RefreshBreakpointSigns(t:gdb._current_buf)
+  endif
 endfunction
 
 function! s:OnTabLeave()
@@ -384,6 +389,8 @@ function! s:OnBufEnter()
   if !exists('t:gdb') | return | endif
   if &buftype ==# 'terminal' | return | endif
   call s:SetKeymaps()
+  " Ensure breakpoints are shown if are queried dynamically
+  call t:gdb._state_paused.info_breakpoints()
 endfunction
 
 function! s:OnBufLeave()
