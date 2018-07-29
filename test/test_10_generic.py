@@ -41,22 +41,22 @@ class TestGdb(unittest.TestCase):
                 eng.KeyStrokeL('<esc>')
 
                 cur, breaks = eng.GetSigns()
-                self.assertEqual(16, cur)
+                self.assertEqual(17, cur)
                 self.assertFalse(breaks)
 
                 eng.KeyStrokeL('<f10>')
                 cur, breaks = eng.GetSigns()
-                self.assertEqual(18, cur)
+                self.assertEqual(19, cur)
                 self.assertFalse(breaks)
 
                 eng.KeyStrokeL('<f11>')
                 cur, breaks = eng.GetSigns()
-                self.assertEqual(9, cur)
+                self.assertEqual(10, cur)
                 self.assertFalse(breaks)
 
                 eng.KeyStrokeL('<f12>')
                 cur, breaks = eng.GetSigns()
-                self.assertEqual(16, cur)
+                self.assertEqual(17, cur)
                 self.assertFalse(breaks)
 
                 eng.KeyStrokeL('<f5>')
@@ -74,20 +74,20 @@ class TestGdb(unittest.TestCase):
                     eng.KeyStroke(k)
                 eng.KeyStrokeL('<esc><c-w>k')
                 eng.KeyStroke(":e src/test.cpp\n")
-                eng.KeyStrokeL(':4<cr>')
+                eng.KeyStrokeL(':5<cr>')
                 eng.KeyStrokeL('<f8>')
                 cur, breaks = eng.GetSigns()
                 self.assertEqual(-1, cur)
-                self.assertListEqual([4], breaks)
+                self.assertListEqual([5], breaks)
 
                 eng.Command("GdbRun")
                 cur, breaks = eng.GetSigns()
-                self.assertEqual(4, cur)
-                self.assertListEqual([4], breaks)
+                self.assertEqual(5, cur)
+                self.assertListEqual([5], breaks)
 
                 eng.KeyStrokeL('<f8>')
                 cur, breaks = eng.GetSigns()
-                self.assertEqual(4, cur)
+                self.assertEqual(5, cur)
                 self.assertFalse(breaks)
 
                 eng.Command('GdbDebugStop')
@@ -99,11 +99,11 @@ class TestGdb(unittest.TestCase):
             eng.KeyStroke(k)
         eng.KeyStrokeL('<esc><c-w>k')
         eng.KeyStroke(":e src/test.cpp\n")
-        eng.KeyStrokeL(':4<cr>')
+        eng.KeyStrokeL(':5<cr>')
         eng.KeyStrokeL('<f8>')
         cur, breaks = eng.GetSigns()
         self.assertEqual(-1, cur)
-        self.assertListEqual([4], breaks)
+        self.assertListEqual([5], breaks)
 
         eng.Command("GdbDebugStop")
         cur, breaks = eng.GetSigns()
@@ -119,14 +119,14 @@ class TestGdb(unittest.TestCase):
         eng.KeyStroke('run\n')
         eng.KeyStrokeL('<esc>')
         eng.KeyStrokeL('<c-w>w')
-        eng.KeyStrokeL(':10<cr>')
+        eng.KeyStrokeL(':11<cr>')
         eng.KeyStrokeL('<f8>')
         eng.KeyStrokeL('<f10>')
         eng.KeyStrokeL('<f11>')
 
         cur, breaks = eng.GetSigns()
-        self.assertEqual(9, cur)
-        self.assertEqual([10], breaks)
+        self.assertEqual(10, cur)
+        self.assertEqual([11], breaks)
 
         # Then launch LLDB
         for k in subtests['lldb']:
@@ -135,29 +135,29 @@ class TestGdb(unittest.TestCase):
         eng.KeyStroke('run\n')
         eng.KeyStrokeL('<esc>')
         eng.KeyStrokeL('<c-w>w')
-        eng.KeyStrokeL(':4<cr>')
+        eng.KeyStrokeL(':5<cr>')
         eng.KeyStrokeL('<f8>')
-        eng.KeyStrokeL(':11<cr>')
+        eng.KeyStrokeL(':12<cr>')
         eng.KeyStrokeL('<f8>')
         eng.KeyStrokeL('<f10>')
 
         cur, breaks = eng.GetSigns()
-        self.assertEqual(18, cur)
-        self.assertEqual([4, 11], breaks)
+        self.assertEqual(19, cur)
+        self.assertEqual([5, 12], breaks)
 
         # Switch to GDB
         eng.KeyStrokeL('2gt')
         cur, breaks = eng.GetSigns()
-        self.assertEqual(9, cur)
-        self.assertEqual([10], breaks)
+        self.assertEqual(10, cur)
+        self.assertEqual([11], breaks)
 
         # Quit GDB
         eng.KeyStrokeL('ZZ')
 
         # Switch back to LLDB
         cur, breaks = eng.GetSigns()
-        self.assertEqual(18, cur)
-        self.assertEqual([4, 11], breaks)
+        self.assertEqual(19, cur)
+        self.assertEqual([5, 12], breaks)
 
         # Quit LLDB
         eng.KeyStrokeL('ZZ')
@@ -173,7 +173,7 @@ class TestGdb(unittest.TestCase):
                 eng.KeyStroke(':GdbInterrupt\n')
 
                 cur, breaks = eng.GetSigns()
-                self.assertEqual(20, cur)
+                self.assertEqual(22, cur)
                 self.assertFalse(breaks)
 
                 eng.KeyStrokeL('ZZ')

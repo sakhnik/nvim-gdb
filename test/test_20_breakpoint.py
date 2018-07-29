@@ -22,7 +22,7 @@ class TestBreakpoint(unittest.TestCase):
 
         self.assertEqual(1, eng.Eval('len(t:gdb._breakpoints)'))
         p = os.path.abspath('src/test.cpp')
-        self.assertEqual({'16': 1}, eng.Eval('t:gdb._breakpoints["%s"]' % p))
+        self.assertEqual({'17': 1}, eng.Eval('t:gdb._breakpoints["%s"]' % p))
 
         eng.KeyStrokeL('<esc>')
         eng.KeyStrokeL('ZZ')
@@ -40,7 +40,7 @@ class TestBreakpoint(unittest.TestCase):
 
             self.assertEqual(1, eng.Eval('len(t:gdb._breakpoints)'))
             p = os.path.abspath('src/test.cpp')
-            self.assertEqual({'16': 1},
+            self.assertEqual({'17': 1},
                              eng.Eval('t:gdb._breakpoints["%s"]' % p))
 
             eng.KeyStrokeL('<esc>')

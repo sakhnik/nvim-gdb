@@ -1,3 +1,4 @@
+#include "lib.hpp"
 
 unsigned Bar(unsigned i)
 {
@@ -17,6 +18,7 @@ int main()
     {
         Foo(i);
     }
+    Lib::Baz();
     for (unsigned i = 0; i < 0xffffffff; ++i);
     return 0;
 }
