@@ -84,7 +84,15 @@ function s:GdbPaused_info_breakpoints(...) dict
     return
   endif
 
+  " Check whether the backend supports querying breakpoints on each step.
+  if !has_key(t:gdb._impl, "InfoBreakpoints")
+    return
+  endif
+
+  " Get the source code buffer number
   if bufnr('%') == self._client_buf
+    " The debugger terminal window is currently focused, so perform a couple
+    " of jumps.
     let window = winnr()
     exe self._jump_window 'wincmd w'
     let bufnum = bufnr('%')
@@ -92,33 +100,37 @@ function s:GdbPaused_info_breakpoints(...) dict
   else
     let bufnum = bufnr('%')
   endif
+  " Get the source code file name
   let fname = s:GetFullBufferPath(bufnum)
 
+  " If no file name or a weird name with spaces, ignore it (to avoid
+  " misinterpretation)
   if fname == '' || stridx(fname, ' ') != -1
     return
   endif
 
-  if (has_key(t:gdb._impl, "InfoBreakpoints"))
-    let breaks = t:gdb._impl.InfoBreakpoints(fname)
-    let self._breakpoints[fname] = breaks
-    call s:RefreshBreakpointSigns(bufnum)
-    call self.update_current_line_sign(1)
-  endif
+  " Query the breakpoints for the shown file
+  let breaks = t:gdb._impl.InfoBreakpoints(fname)
+  let self._breakpoints[fname] = breaks
+  call s:RefreshBreakpointSigns(bufnum)
+  call self.update_current_line_sign(1)
 endfunction
 
 " Transition "paused" -> "paused": jump to the frame location
 function s:GdbPaused_breakpoint(num, skip, file, line, ...) dict
+  " If the backend supports querying breakpoints randomly, no need to watch
+  " for set breakpoints.
+  if has_key(t:gdb._impl, "InfoBreakpoints")
+    return
+  endif
+
   if exists("self._pending_breakpoint_file")
     let file_name = self._pending_breakpoint_file
     let linenr = self._pending_breakpoint_linenr
     unlet self._pending_breakpoint_file
     unlet self._pending_breakpoint_linenr
   else
-    let linenr = a:line
-    let file_name = t:gdb._impl.FindSource(a:file)
-    if empty(file_name)
-      return
-    endif
+    return
   endif
 
   " Remember the breakpoint number
@@ -452,17 +464,22 @@ function! nvimgdb#ToggleBreak()
   if has_key(file_breakpoints, linenr)
     " There already is a breakpoint on this line: remove
     call t:gdb.send(t:gdb.backend['delete_breakpoints'] . ' ' . file_breakpoints[linenr])
-    call remove(file_breakpoints, linenr)
-    " Finally, remember and update the breakpoint signs
-    let t:gdb._breakpoints[file_name] = file_breakpoints
-    call s:RefreshBreakpointSigns(buf)
+
+    if !has_key(t:gdb._impl, "InfoBreakpoints")
+      call remove(file_breakpoints, linenr)
+      " Finally, remember and update the breakpoint signs
+      let t:gdb._breakpoints[file_name] = file_breakpoints
+      call s:RefreshBreakpointSigns(buf)
+    endif
   else
     " Add a new breakpoint
-    let file_breakpoints[linenr] = 1
-    let t:gdb._pending_breakpoint_file = file_name
-    let t:gdb._pending_breakpoint_linenr = linenr
+    if !has_key(t:gdb._impl, "InfoBreakpoints")
+      let file_breakpoints[linenr] = 1
+      let t:gdb._pending_breakpoint_file = file_name
+      let t:gdb._pending_breakpoint_linenr = linenr
+      " Adding will be finished in the callback stopped::breakpoint
+    endif
     call t:gdb.send(t:gdb.backend['breakpoint'] . ' ' . file_name . ':' . linenr)
-    " Adding will be finished in the callback stopped::breakpoint
   endif
 endfunction
 
