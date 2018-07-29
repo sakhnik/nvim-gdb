@@ -18,10 +18,11 @@ class TestBreakpoint(unittest.TestCase):
         for k in subtests['gdb']:
             eng.KeyStroke(k)
         eng.KeyStroke('break main\n')
+        eng.KeyStroke('run\n')
 
         self.assertEqual(1, eng.Eval('len(t:gdb._breakpoints)'))
         p = os.path.abspath('src/test.cpp')
-        self.assertEqual({'16': '1'}, eng.Eval('t:gdb._breakpoints["%s"]' % p))
+        self.assertEqual({'16': 1}, eng.Eval('t:gdb._breakpoints["%s"]' % p))
 
         eng.KeyStrokeL('<esc>')
         eng.KeyStrokeL('ZZ')
@@ -35,10 +36,11 @@ class TestBreakpoint(unittest.TestCase):
             eng.KeyStroke(':cd /tmp\n')
             eng.KeyStroke(':GdbStart gdb -q -f %s\n' % exe_path)
             eng.KeyStroke('break main\n')
+            eng.KeyStroke('run\n')
 
             self.assertEqual(1, eng.Eval('len(t:gdb._breakpoints)'))
             p = os.path.abspath('src/test.cpp')
-            self.assertEqual({'16': '1'},
+            self.assertEqual({'16': 1},
                              eng.Eval('t:gdb._breakpoints["%s"]' % p))
 
             eng.KeyStrokeL('<esc>')

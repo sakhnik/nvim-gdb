@@ -14,7 +14,7 @@ let s:backend_gdb = {
   \ 'paused': [
   \     ['Continuing.', 'continue'],
   \     ['\v[\o32]{2}([^:]+):(\d+):\d+', 'jump'],
-  \     ['\vBreakpoint (\d+) at ([^:]+): file ([^,]+), line (\d+).', 'breakpoint'],
+  \     ['(gdb)', 'info_breakpoints'],
   \ ],
   \ 'running': [
   \     ['\v^Breakpoint \d+', 'pause'],
@@ -63,16 +63,47 @@ function s:GdbPaused_jump(file, line, ...) dict
   exe self._jump_window 'wincmd w'
   let self._current_buf = bufnr('%')
   let target_buf = bufnr(a:file, 1)
+
   if bufnr('%') != target_buf
     " Switch to the new buffer
     exe 'buffer ' target_buf
     let self._current_buf = target_buf
     call s:RefreshBreakpointSigns(self._current_buf)
   endif
+
   exe ':' a:line
   let self._current_line = a:line
   exe window 'wincmd w'
   call self.update_current_line_sign(1)
+endfunction
+
+" Transition "paused" -> "paused": refresh breakpoints in the current file
+function s:GdbPaused_info_breakpoints(...) dict
+  if t:gdb != self
+    " Don't do anything if we are not in the current debugger tab
+    return
+  endif
+
+  if bufnr('%') == self._client_buf
+    let window = winnr()
+    exe self._jump_window 'wincmd w'
+    let bufnum = bufnr('%')
+    exe window 'wincmd w'
+  else
+    let bufnum = bufnr('%')
+  endif
+  let fname = s:GetFullBufferPath(bufnum)
+
+  if fname == '' || stridx(fname, ' ') != -1
+    return
+  endif
+
+  if (has_key(t:gdb._impl, "InfoBreakpoints"))
+    let breaks = t:gdb._impl.InfoBreakpoints(fname)
+    let self._breakpoints[fname] = breaks
+    call s:RefreshBreakpointSigns(bufnum)
+    call self.update_current_line_sign(1)
+  endif
 endfunction
 
 " Transition "paused" -> "paused": jump to the frame location
@@ -114,6 +145,9 @@ function s:GdbRunning_pause(...) dict
     endfor
     let self._initialized = 1
   endif
+
+  " TODO: find a better way
+  call t:gdb._state_paused.info_breakpoints()
 endfunction
 
 
@@ -292,6 +326,7 @@ function! s:InitMachine(backend, struct)
   let data._state_paused = vimexpect#State(data.backend["paused"])
   let data._state_paused.continue = function("s:GdbPaused_continue", data)
   let data._state_paused.jump = function("s:GdbPaused_jump", data)
+  let data._state_paused.info_breakpoints = function("s:GdbPaused_info_breakpoints", data)
   let data._state_paused.breakpoint = function("s:GdbPaused_breakpoint", data)
 
   let data._state_running = vimexpect#State(data.backend["running"])

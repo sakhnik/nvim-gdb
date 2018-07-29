@@ -51,13 +51,13 @@ class InfoBreakpoints(gdb.Command):
 
         # Select lines in the current file with enabled breakpoints.
         pattern = re.compile("([^:]+):(\d+)")
-        breaks = []
+        breaks = {}   # TODO: support more than one breakpoint per line
         for line in output:
             fields = re.split("\s+", line)
             if fields[3] == 'y':    # Is enabled?
                 m = pattern.fullmatch(fields[-1])   # file.cpp:line
                 if (m and path.endswith(m.group(1))):
-                    breaks.append((int(m.group(2)), int(fields[0])))
+                    breaks[int(m.group(2))] = int(fields[0])
 
         ret = json.dumps(breaks)
 
