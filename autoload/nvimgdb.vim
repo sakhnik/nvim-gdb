@@ -15,7 +15,7 @@ let s:backend_gdb = {
   \ 'paused': [
   \     ['Continuing.', 'continue'],
   \     ['\v[\o32]{2}([^:]+):(\d+):\d+', 'jump'],
-  \     ['\vBreakpoint (\d+) at ([^:]+): file ([^,]+), line (\d+).', 'breakpoint'],
+  \     ['(gdb)', 'info_breakpoints'],
   \ ],
   \ 'running': [
   \     ['\v^Breakpoint \d+', 'pause'],
@@ -86,31 +86,74 @@ function s:GdbPaused_jump(file, line, ...) dict
     exe "e " . a:file
     let target_buf = bufnr(a:file)
   endif
+
   if bufnr('%') != target_buf
     " Switch to the new buffer
     exe 'buffer ' target_buf
     let self._current_buf = target_buf
     call s:RefreshBreakpointSigns(self._current_buf)
   endif
+
   exe ':' a:line
   let self._current_line = a:line
   exe window 'wincmd w'
   call self.update_current_line_sign(1)
 endfunction
 
+" Transition "paused" -> "paused": refresh breakpoints in the current file
+function s:GdbPaused_info_breakpoints(...) dict
+  if t:gdb != self
+    " Don't do anything if we are not in the current debugger tab
+    return
+  endif
+
+  " Check whether the backend supports querying breakpoints on each step.
+  if !has_key(t:gdb._impl, "InfoBreakpoints")
+    return
+  endif
+
+  " Get the source code buffer number
+  if bufnr('%') == self._client_buf
+    " The debugger terminal window is currently focused, so perform a couple
+    " of jumps.
+    let window = winnr()
+    exe self._jump_window 'wincmd w'
+    let bufnum = bufnr('%')
+    exe window 'wincmd w'
+  else
+    let bufnum = bufnr('%')
+  endif
+  " Get the source code file name
+  let fname = s:GetFullBufferPath(bufnum)
+
+  " If no file name or a weird name with spaces, ignore it (to avoid
+  " misinterpretation)
+  if fname == '' || stridx(fname, ' ') != -1
+    return
+  endif
+
+  " Query the breakpoints for the shown file
+  let breaks = t:gdb._impl.InfoBreakpoints(fname)
+  let self._breakpoints[fname] = breaks
+  call s:RefreshBreakpointSigns(bufnum)
+  call self.update_current_line_sign(1)
+endfunction
+
 " Transition "paused" -> "paused": jump to the frame location
 function s:GdbPaused_breakpoint(num, skip, file, line, ...) dict
+  " If the backend supports querying breakpoints randomly, no need to watch
+  " for set breakpoints.
+  if has_key(t:gdb._impl, "InfoBreakpoints")
+    return
+  endif
+
   if exists("self._pending_breakpoint_file")
     let file_name = self._pending_breakpoint_file
     let linenr = self._pending_breakpoint_linenr
     unlet self._pending_breakpoint_file
     unlet self._pending_breakpoint_linenr
   else
-    let linenr = a:line
-    let file_name = t:gdb._impl.FindSource(a:file)
-    if empty(file_name)
-      return
-    endif
+    return
   endif
 
   " Remember the breakpoint number
@@ -137,6 +180,9 @@ function s:GdbRunning_pause(...) dict
     endfor
     let self._initialized = 1
   endif
+
+  " TODO: find a better way
+  call t:gdb._state_paused.info_breakpoints()
 endfunction
 
 
@@ -317,6 +363,7 @@ function! s:InitMachine(backend, struct)
   let data._state_paused = vimexpect#State(data.backend["paused"])
   let data._state_paused.continue = function("s:GdbPaused_continue", data)
   let data._state_paused.jump = function("s:GdbPaused_jump", data)
+  let data._state_paused.info_breakpoints = function("s:GdbPaused_info_breakpoints", data)
   let data._state_paused.breakpoint = function("s:GdbPaused_breakpoint", data)
 
   let data._state_running = vimexpect#State(data.backend["running"])
@@ -347,7 +394,12 @@ function! s:OnTabEnter()
   if t:gdb._parser.state() == t:gdb._state_paused
     call t:gdb.update_current_line_sign(1)
   endif
-  call s:RefreshBreakpointSigns(t:gdb._current_buf)
+  if has_key(t:gdb._impl, "InfoBreakpoints")
+    " Ensure breakpoints are shown if are queried dynamically
+    call t:gdb._state_paused.info_breakpoints()
+  else
+    call s:RefreshBreakpointSigns(t:gdb._current_buf)
+  endif
 endfunction
 
 function! s:OnTabLeave()
@@ -363,6 +415,8 @@ function! s:OnBufEnter()
   if !exists('t:gdb') | return | endif
   if &buftype ==# 'terminal' | return | endif
   call s:SetKeymaps()
+  " Ensure breakpoints are shown if are queried dynamically
+  call t:gdb._state_paused.info_breakpoints()
 endfunction
 
 function! s:OnBufLeave()
@@ -372,7 +426,7 @@ function! s:OnBufLeave()
 endfunction
 
 
-function! nvimgdb#Spawn(backend, client_cmd)
+function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   let gdb = s:InitMachine(a:backend, s:Gdb)
   exe 'let gdb._impl = nvimgdb#' . a:backend . '#GetImpl()'
   let gdb._initialized = 0
@@ -388,7 +442,15 @@ function! nvimgdb#Spawn(backend, client_cmd)
   sp
   " go to the bottom window and spawn gdb client
   wincmd j
-  enew | let gdb._client_id = termopen(a:client_cmd, gdb)
+
+  " Prepare the debugger command to run
+  let l:command = ''
+  if a:proxy_cmd != ''
+    let l:command = s:plugin_dir . '/lib/' . a:proxy_cmd . ' -- '
+  endif
+  let l:command .= a:client_cmd
+
+  enew | let gdb._client_id = termopen(l:command, gdb)
   let gdb._client_buf = bufnr('%')
   let t:gdb = gdb
 
@@ -442,17 +504,22 @@ function! nvimgdb#ToggleBreak()
   if has_key(file_breakpoints, linenr)
     " There already is a breakpoint on this line: remove
     call t:gdb.send(t:gdb.backend['delete_breakpoints'] . ' ' . file_breakpoints[linenr])
-    call remove(file_breakpoints, linenr)
-    " Finally, remember and update the breakpoint signs
-    let t:gdb._breakpoints[file_name] = file_breakpoints
-    call s:RefreshBreakpointSigns(buf)
+
+    if !has_key(t:gdb._impl, "InfoBreakpoints")
+      call remove(file_breakpoints, linenr)
+      " Finally, remember and update the breakpoint signs
+      let t:gdb._breakpoints[file_name] = file_breakpoints
+      call s:RefreshBreakpointSigns(buf)
+    endif
   else
     " Add a new breakpoint
-    let file_breakpoints[linenr] = 1
-    let t:gdb._pending_breakpoint_file = file_name
-    let t:gdb._pending_breakpoint_linenr = linenr
+    if !has_key(t:gdb._impl, "InfoBreakpoints")
+      let file_breakpoints[linenr] = 1
+      let t:gdb._pending_breakpoint_file = file_name
+      let t:gdb._pending_breakpoint_linenr = linenr
+      " Adding will be finished in the callback stopped::breakpoint
+    endif
     call t:gdb.send(t:gdb.backend['breakpoint'] . ' ' . file_name . ':' . linenr)
-    " Adding will be finished in the callback stopped::breakpoint
   endif
 endfunction
 
