@@ -56,11 +56,13 @@ class InfoBreakpoints(gdb.Command):
             if fields[3] == 'y':    # Is enabled?
                 m = pattern.fullmatch(fields[-1])   # file.cpp:line
                 if (m and path.endswith(m.group(1))):
-                    breaks.append(m.group(2))
+                    breaks.append((m.group(2), fields[0]))
+
+        ret = " ".join((line + ":" + num for (line, num) in breaks))
 
         # Send the result to the given local socket
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-        sock.sendto(" ".join(breaks).encode('utf-8'), sockaddr)
+        sock.sendto(ret.encode('utf-8'), sockaddr)
 
 
 InfoBreakpoints()
