@@ -168,6 +168,15 @@ Section 6: Development                                    *NvimgdbDevelopment*
   program that launches gdb in a pseudo terminal, listens a unix socket for
   commands, and processes the output of GDB to filter out service commands.
 
+- LLDB is run in a wrapper that initializes the interpreter, and sources a
+  python script. The script opens a unix domain socket and receives side
+  commands from it in a background thread.
+
+- Breakpoints are queried from GDB and LLDB on every pause using the
+  established side channels: the pty proxy for GDB, and Python script running
+  inside the LLDB. The communication is done via unix domain sockets (see
+  lib/info_breakpoints.py).
+
 ==============================================================================
 Section 7: Trivia                                              *NvimgdbTrivia*
 
