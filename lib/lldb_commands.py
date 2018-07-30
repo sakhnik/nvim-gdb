@@ -44,13 +44,21 @@ def server(server_address):
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
     sock.bind(server_address)
 
-    while True:
-        data, addr = sock.recvfrom(65536)
-        command = re.split(r'\s+', data.decode('utf-8'))
-        if command[0] == "info-breakpoints":
-            fname = command[1]
-            breaks = _GetBreaks(fname)
-            sock.sendto(breaks.encode('utf-8'), 0, addr)
+    try:
+        while True:
+            data, addr = sock.recvfrom(65536)
+            command = re.split(r'\s+', data.decode('utf-8'))
+            if command[0] == "server" and \
+               command[1] == "nvim-gdb-info-breakpoints":
+                fname = command[2]
+                # response_addr = command[3]
+                breaks = _GetBreaks(fname)
+                sock.sendto(breaks.encode('utf-8'), 0, addr)
+    finally:
+        try:
+            os.unlink(server_address)
+        except OSError:
+            pass
 
 
 def init(debugger, command, result, internal_dict):

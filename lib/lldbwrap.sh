@@ -21,11 +21,13 @@ rest="${@:2}"
 # Prepare lldb initialization commands
 this_dir=$(readlink -f `dirname ${BASH_SOURCE[0]}`)
 
+unlink $server_addr
+
 lldb_init=`mktemp /tmp/lldb_init.XXXXXX`
 cat >$lldb_init <<EOF
 command script import $this_dir/lldb_commands.py
 command script add -f lldb_commands.init nvim-gdb-init
-nvim-gdb-init /tmp/nvim-gdb-lldb-sock
+nvim-gdb-init $server_addr
 settings set frame-format frame #\${frame.index}: \${frame.pc}{ \${module.file.basename}{\`\${function.name-with-args}{\${frame.no-debug}\${function.pc-offset}}}}{ at \032\032\${line.file.fullpath}:\${line.number}}{\${function.is-optimized} [opt]}\n
 settings set auto-confirm true
 settings set stop-line-count-before 0
@@ -35,6 +37,7 @@ EOF
 cleanup()
 {
     unlink $lldb_init
+    unlink $server_addr
 }
 trap cleanup EXIT
 

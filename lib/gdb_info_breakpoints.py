@@ -22,10 +22,11 @@ sock.settimeout(0.5)
 
 # File in question
 fname = sys.argv[0]
+proxy_addr = sys.argv[1]
 
 # Let GDB send back the list of sources
-vim.command('call nvimgdb#Send("server nvim-gdb-info-breakpoints %s %s")'
-            % (fname, server_address))
+command = 'server nvim-gdb-info-breakpoints %s %s\n' % (fname, server_address)
+sock.sendto(command.encode('utf-8'), 0, proxy_addr)
 
 # Receive the result from GDB
 data, addr = sock.recvfrom(65536)
