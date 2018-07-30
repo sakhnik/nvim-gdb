@@ -29,14 +29,11 @@ let s:backend_gdb = {
 " lldb specifics
 let s:backend_lldb = {
   \ 'init_state': 'running',
-  \ 'init': ['settings set frame-format frame #${frame.index}: ${frame.pc}{ ${module.file.basename}{`${function.name-with-args}{${frame.no-debug}${function.pc-offset}}}}{ at \032\032${line.file.fullpath}:${line.number}}{${function.is-optimized} [opt]}\n',
-  \          'settings set auto-confirm true',
-  \          'settings set stop-line-count-before 0',
-  \          'settings set stop-line-count-after 0'],
+  \ 'init': [],
   \ 'paused': [
   \     ['\v^Process \d+ resuming', 'continue'],
   \     ['\v at [\o32]{2}([^:]+):(\d+)', 'jump'],
-  \     ['\vBreakpoint (\d+): where = (.+) at ([^:]+):(\d+)', 'breakpoint'],
+  \     ['(lldb)', 'info_breakpoints'],
   \ ],
   \ 'running': [
   \     ['\v^Breakpoint \d+:', 'pause'],
@@ -133,7 +130,7 @@ function s:GdbPaused_info_breakpoints(...) dict
   endif
 
   " Query the breakpoints for the shown file
-  let breaks = t:gdb._impl.InfoBreakpoints(fname)
+  let breaks = t:gdb._impl.InfoBreakpoints(fname, t:gdb._proxy_addr)
   let self._breakpoints[fname] = breaks
   call s:RefreshBreakpointSigns(bufnum)
   call self.update_current_line_sign(1)
@@ -446,7 +443,8 @@ function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   " Prepare the debugger command to run
   let l:command = ''
   if a:proxy_cmd != ''
-    let l:command = s:plugin_dir . '/lib/' . a:proxy_cmd . ' -- '
+    let gdb._proxy_addr = tempname()
+    let l:command = s:plugin_dir . '/lib/' . a:proxy_cmd . ' -a ' . gdb._proxy_addr . ' -- '
   endif
   let l:command .= a:client_cmd
 

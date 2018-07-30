@@ -93,7 +93,6 @@ class GdbProxy(object):
         while True:
             try:
                 rfds, wfds, xfds = select.select(sockets, [], [], 1.0)
-                select.select
             except select.error as e:
                 if e[0] == errno.EAGAIN:   # Interrupted system call.
                     continue
