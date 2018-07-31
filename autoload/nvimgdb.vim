@@ -24,6 +24,7 @@ let s:backend_gdb = {
   \ ],
   \ 'delete_breakpoints': 'delete',
   \ 'breakpoint': 'break',
+  \ 'has_info_breakpoints': 1,
   \ }
 
 " lldb specifics
@@ -42,6 +43,7 @@ let s:backend_lldb = {
   \ ],
   \ 'delete_breakpoints': 'breakpoint delete',
   \ 'breakpoint': 'b',
+  \ 'has_info_breakpoints': 1,
   \ }
 
 " pdb specifics
@@ -57,6 +59,7 @@ let s:backend_pdb = {
   \ 'delete_breakpoints': 'clear',
   \ 'breakpoint': 'break',
   \ 'finish': 'return',
+  \ 'has_info_breakpoints': 0,
   \ }
 
 
@@ -105,7 +108,7 @@ function s:GdbPaused_info_breakpoints(...) dict
   endif
 
   " Check whether the backend supports querying breakpoints on each step.
-  if !has_key(t:gdb._impl, "InfoBreakpoints")
+  if !self.backend["has_info_breakpoints"]
     return
   endif
 
@@ -130,7 +133,7 @@ function s:GdbPaused_info_breakpoints(...) dict
   endif
 
   " Query the breakpoints for the shown file
-  let breaks = t:gdb._impl.InfoBreakpoints(fname, t:gdb._proxy_addr)
+  let breaks = s:InfoBreakpoints(fname, t:gdb._proxy_addr)
   let self._breakpoints[fname] = breaks
   call s:RefreshBreakpointSigns(bufnum)
   call self.update_current_line_sign(1)
@@ -140,7 +143,7 @@ endfunction
 function s:GdbPaused_breakpoint(num, skip, file, line, ...) dict
   " If the backend supports querying breakpoints randomly, no need to watch
   " for set breakpoints.
-  if has_key(t:gdb._impl, "InfoBreakpoints")
+  if self.backend["has_info_breakpoints"]
     return
   endif
 
@@ -214,6 +217,14 @@ function s:Gdb.kill()
 
   " TabEnter isn't fired automatically when a tab is closed
   call s:OnTabEnter()
+endfunction
+
+
+function! s:InfoBreakpoints(file, proxy_addr)
+  exe 'py3 import sys'
+  exe 'py3 sys.argv = ["' . a:file . '", "' . a:proxy_addr . '"]'
+  exe 'py3file ' . s:plugin_dir . '/lib/info_breakpoints.py'
+  return json_decode(return_value)
 endfunction
 
 
@@ -391,7 +402,7 @@ function! s:OnTabEnter()
   if t:gdb._parser.state() == t:gdb._state_paused
     call t:gdb.update_current_line_sign(1)
   endif
-  if has_key(t:gdb._impl, "InfoBreakpoints")
+  if t:gdb.backend["has_info_breakpoints"]
     " Ensure breakpoints are shown if are queried dynamically
     call t:gdb._state_paused.info_breakpoints()
   else
@@ -503,7 +514,7 @@ function! nvimgdb#ToggleBreak()
     " There already is a breakpoint on this line: remove
     call t:gdb.send(t:gdb.backend['delete_breakpoints'] . ' ' . file_breakpoints[linenr])
 
-    if !has_key(t:gdb._impl, "InfoBreakpoints")
+    if !t:gdb.backend["has_info_breakpoints"]
       call remove(file_breakpoints, linenr)
       " Finally, remember and update the breakpoint signs
       let t:gdb._breakpoints[file_name] = file_breakpoints
@@ -511,7 +522,7 @@ function! nvimgdb#ToggleBreak()
     endif
   else
     " Add a new breakpoint
-    if !has_key(t:gdb._impl, "InfoBreakpoints")
+    if !t:gdb.backend["has_info_breakpoints"]
       let file_breakpoints[linenr] = 1
       let t:gdb._pending_breakpoint_file = file_name
       let t:gdb._pending_breakpoint_linenr = linenr
