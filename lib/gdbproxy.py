@@ -143,11 +143,10 @@ class GdbProxy(object):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
             description="Run GDB through a filtering proxy.")
-    parser.add_argument('gdb', metavar='GDB', help='GDB command')
-    parser.add_argument('args', metavar='ARGS', nargs='*',
-                        help='GDB arguments')
+    parser.add_argument('gdb', metavar='ARGS', nargs='+',
+                        help='GDB command with arguments')
     parser.add_argument('-a', '--address', metavar='ADDR',
                         help='Local socket to receive commands.')
     args = parser.parse_args()
 
-    GdbProxy(args.address, [args.gdb] + args.args)
+    GdbProxy(args.address, args.gdb)
