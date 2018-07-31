@@ -436,7 +436,6 @@ endfunction
 
 function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   let gdb = s:InitMachine(a:backend, s:Gdb)
-  exe 'let gdb._impl = nvimgdb#' . a:backend . '#GetImpl()'
   let gdb._initialized = 0
   " window number that will be displaying the current file
   let gdb._jump_window = 1
