@@ -38,6 +38,7 @@ class StreamFilter:
                                         self._Nop)
         self.state = self.passing
         self.buffer = bytearray()
+        self.filtered = None
 
     def _Nop(self, ch):
         self.buffer.append(ch)
@@ -58,6 +59,7 @@ class StreamFilter:
         return False
 
     def _FinishMatch(self, ch):
+        self.filtered = self.buffer
         self.buffer = bytearray()
         self.state = self.passing
         return False
@@ -70,7 +72,11 @@ class StreamFilter:
             if action(ch):
                 output.extend(self.buffer)
                 self.buffer = bytearray()
-        return bytes(output)
+        filtered = None
+        if self.filtered:
+            filtered = bytes(self.filtered)
+            self.filtered = None
+        return bytes(output), filtered
 
     def Timeout(self):
         """Process timeout, return whatever was kept in the buffer."""
@@ -90,22 +96,25 @@ if __name__ == "__main__":
         def test_10_first(self):
             """Test a generic scenario."""
             f = StreamFilter(b"  server nvim-gdb-", b"\n(gdb) ")
-            self.assertEqual(b"hello", f.Filter(b"hello"))
-            self.assertEqual(b" world", f.Filter(b" world"))
-            self.assertEqual(b"", f.Filter(b"  "))
-            self.assertEqual(b"  again", f.Filter(b"again"))
-            self.assertEqual(b"", f.Filter(b"  server nvim-gdb-breakpoint"))
-            self.assertEqual(b"", f.Filter(b"foo-bar"))
-            self.assertEqual(b"", f.Filter(b"\n(gdb) "))
-            self.assertEqual(b"asdf", f.Filter(b"asdf"))
+            self.assertEqual((b"hello", None), f.Filter(b"hello"))
+            self.assertEqual((b" world", None), f.Filter(b" world"))
+            self.assertEqual((b"", None), f.Filter(b"  "))
+            self.assertEqual((b"  again", None), f.Filter(b"again"))
+            self.assertEqual((b"", None),
+                             f.Filter(b"  server nvim-gdb-breakpoint"))
+            self.assertEqual((b"", None), f.Filter(b"foo-bar"))
+            self.assertEqual((b"",
+                              b'  server nvim-gdb-breakpointfoo-bar\n(gdb)'),
+                             f.Filter(b"\n(gdb) "))
+            self.assertEqual((b"asdf", None), f.Filter(b"asdf"))
 
         def test_20_timeout(self):
             """Test timeout."""
             f = StreamFilter(b"asdf", b"qwer")
-            self.assertEqual(b"zxcv", f.Filter(b"zxcv"))
-            self.assertEqual(b"", f.Filter(b"asdf"))
-            self.assertEqual(b"", f.Filter(b"xyz"))
+            self.assertEqual((b"zxcv", None), f.Filter(b"zxcv"))
+            self.assertEqual((b"", None), f.Filter(b"asdf"))
+            self.assertEqual((b"", None), f.Filter(b"xyz"))
             self.assertEqual(b"asdfxyz", f.Timeout())
-            self.assertEqual(b"qwer", f.Filter(b"qwer"))
+            self.assertEqual((b"qwer", None), f.Filter(b"qwer"))
 
     unittest.main()

@@ -15,6 +15,13 @@ class _GdbFeatures:
     command_begin = b"server nvim-gdb-"
     command_end = b"\n(gdb) "
 
+    @staticmethod
+    def ProcessResponse(response, addr, sock):
+        # Gdb invokes a custom gdb command implemented in Python.
+        # It itself is responsible for sending the processed result
+        # to the correct address.
+        pass
+
 
 if __name__ == '__main__':
     BaseProxy.Create(_GdbFeatures)

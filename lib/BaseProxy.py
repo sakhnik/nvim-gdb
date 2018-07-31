@@ -109,7 +109,7 @@ class BaseProxy(object):
                     data = os.read(pty.STDIN_FILENO, 1024)
                     self.stdin_read(data)
                 if self.sock in rfds:
-                    data, addr = self.sock.recvfrom(65536)
+                    data, self.last_addr = self.sock.recvfrom(65536)
                     self.write_master(data)
 
     def _write(self, fd, data):
@@ -124,8 +124,11 @@ class BaseProxy(object):
 
     def write_stdout(self, data):
         """Write to stdout for the child process."""
-        data = self.filter.Filter(data)
+        data, filtered = self.filter.Filter(data)
         self._write(pty.STDOUT_FILENO, data)
+        if filtered:
+            self.features.ProcessResponse(filtered, self.last_addr, self.sock)
+
 
     def write_master(self, data):
         """Write to the child process from its controlling terminal."""
