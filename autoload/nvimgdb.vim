@@ -52,14 +52,14 @@ let s:backend_pdb = {
   \ 'init': [],
   \ 'paused': [
   \     ['\v-@<!\> ([^(]+)\((\d+)\)[^(]+\(\)', 'jump'],
-  \     ['\vBreakpoint (\d+) (at) ([^:]+):(\d+)', 'breakpoint'],
+  \     ['(Pdb)', 'info_breakpoints'],
   \ ],
   \ 'running': [
   \ ],
   \ 'delete_breakpoints': 'clear',
   \ 'breakpoint': 'break',
   \ 'finish': 'return',
-  \ 'has_info_breakpoints': 0,
+  \ 'has_info_breakpoints': 1,
   \ }
 
 
