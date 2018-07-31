@@ -11,17 +11,22 @@ from BaseProxy import BaseProxy
 
 
 class _GdbFeatures:
-    app_name = "GDB"
-    command_begin = b"server nvim-gdb-"
-    command_end = b"\n(gdb) "
+    def __init__(self):
+        self.app_name = "GDB"
+        self.command_begin = b"server nvim-gdb-"
+        self.command_end = b"\n(gdb) "
 
-    @staticmethod
-    def ProcessResponse(response, addr, sock):
+    def ProcessResponse(self, response, addr, sock):
         # Gdb invokes a custom gdb command implemented in Python.
         # It itself is responsible for sending the processed result
         # to the correct address.
         pass
 
+    def FilterCommand(self, command):
+        # Assuming the code is primarily targeted for GDB,
+        # nothing needs be adapted here.
+        return command
+
 
 if __name__ == '__main__':
-    BaseProxy.Create(_GdbFeatures)
+    BaseProxy.Create(_GdbFeatures())
