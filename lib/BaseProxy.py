@@ -128,7 +128,9 @@ class BaseProxy(object):
         data, filtered = self.filter.Filter(data)
         self._write(pty.STDOUT_FILENO, data)
         if filtered:
-            self.features.ProcessResponse(filtered, self.last_addr, self.sock)
+            res = self.features.ProcessResponse(filtered)
+            if res:
+                self.sock.sendto(res, 0, self.last_addr)
 
     def write_master(self, data):
         """Write to the child process from its controlling terminal."""

@@ -21,7 +21,7 @@ class _PdbFeatures:
         self.last_src = None
         self.alias_set = False  # Was alias defined?
 
-    def ProcessResponse(self, response, addr, sock):
+    def ProcessResponse(self, response):
         # Gdb invokes a custom gdb command implemented in Python.
         # It itself is responsible for sending the processed result
         # to the correct address.
@@ -47,7 +47,7 @@ class _PdbFeatures:
                 pass
 
         self.last_src = None
-        sock.sendto(json.dumps(breaks).encode('utf-8'), 0, addr)
+        return json.dumps(breaks).encode('utf-8')
 
     def FilterCommand(self, command):
         # Map GDB commands to Pdb commands.

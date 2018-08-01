@@ -16,11 +16,11 @@ class _GdbFeatures:
         self.command_begin = b"server nvim-gdb-"
         self.command_end = b"\n(gdb) "
 
-    def ProcessResponse(self, response, addr, sock):
+    def ProcessResponse(self, response):
         # Gdb invokes a custom gdb command implemented in Python.
         # It itself is responsible for sending the processed result
         # to the correct address.
-        pass
+        return None
 
     def FilterCommand(self, command):
         # Assuming the code is primarily targeted for GDB,
