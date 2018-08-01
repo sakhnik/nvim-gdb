@@ -52,8 +52,8 @@ class _PdbFeatures:
     def FilterCommand(self, command):
         # Map GDB commands to Pdb commands.
         tokens = re.split(r'\s+', command.decode('utf-8'))
-        if tokens[0] == 'server' and tokens[1] == 'nvim-gdb-info-breakpoints':
-            self.last_src = tokens[2]
+        if tokens[0] == 'info-breakpoints':
+            self.last_src = tokens[1]
             cmd2 = b''
             if not self.alias_set:
                 cmd2 = b'alias nvim-gdb-info-breakpoints break\n'

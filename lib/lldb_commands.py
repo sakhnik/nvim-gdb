@@ -48,9 +48,8 @@ def server(server_address):
         while True:
             data, addr = sock.recvfrom(65536)
             command = re.split(r'\s+', data.decode('utf-8'))
-            if command[0] == "server" and \
-               command[1] == "nvim-gdb-info-breakpoints":
-                fname = command[2]
+            if command[0] == "info-breakpoints":
+                fname = command[1]
                 # response_addr = command[3]
                 breaks = _GetBreaks(fname)
                 sock.sendto(breaks.encode('utf-8'), 0, addr)
