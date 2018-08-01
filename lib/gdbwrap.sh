@@ -27,7 +27,7 @@ gdb_init=`mktemp /tmp/gdb_init.XXXXXX`
 cat >$gdb_init <<EOF
 set confirm off
 set pagination off
-source $this_dir/../lib/gdb_commands.py
+alias -a nvim-gdb-info-breakpoints = info breakpoints
 EOF
 
 cleanup()
