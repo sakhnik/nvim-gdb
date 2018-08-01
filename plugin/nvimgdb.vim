@@ -5,7 +5,7 @@ let g:loaded_nvimgdb = 1
 
 command! -nargs=1 -complete=shellcmd GdbStart call nvimgdb#Spawn('gdb', 'gdbproxy.py', <q-args>)
 command! -nargs=1 -complete=shellcmd GdbStartLLDB call nvimgdb#Spawn('lldb', 'lldbwrap.sh', <q-args>)
-command! -nargs=1 -complete=shellcmd GdbStartPDB call nvimgdb#Spawn('pdb', '', <q-args>)
+command! -nargs=1 -complete=shellcmd GdbStartPDB call nvimgdb#Spawn('pdb', 'pdbproxy.py', <q-args>)
 
 if !exists('g:nvimgdb_disable_start_keymaps') || !g:nvimgdb_disable_start_keymaps
   nnoremap <leader>dd :GdbStart gdb -q -f a.out

@@ -172,10 +172,14 @@ Section 6: Development                                    *NvimgdbDevelopment*
   python script. The script opens a unix domain socket and receives side
   commands from it in a background thread.
 
-- Breakpoints are queried from GDB and LLDB on every pause using the
-  established side channels: the pty proxy for GDB, and Python script running
-  inside the LLDB. The communication is done via unix domain sockets (see
-  lib/info_breakpoints.py).
+- PDB is like GDB run via a proxy application. Although, PDB doesn't have
+  stock distinctive prefix to bypass the history. So an alias is created
+  for that nvim-gdb-info-breakpoints.
+
+- Breakpoints are queried from GDB, LLDB and PDB on every pause using the
+  established side channels: the pty proxy for GDB and PDB, and Python script
+  running inside the LLDB. The communication is done via unix domain sockets
+  (see lib/info_breakpoints.py).
 
 ==============================================================================
 Section 7: Trivia                                              *NvimgdbTrivia*
