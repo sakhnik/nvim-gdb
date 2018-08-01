@@ -23,7 +23,7 @@ keymaps similar to Qt Creator and Microsoft Visual Studio.
 To start debugging, execute `:GdbStart` command with GDB launch string as
 parameter: >
 
-    :GdbStart gdb -q -f a.out
+    :GdbStart gdb -q a.out
 
 or alternatively `:GdbStartLLDB` with LLDB launch string as parameter: >
 
@@ -36,9 +36,6 @@ command as parameter: >
 
 This will open a new tab with debugging view: horizontal split with source
 code and terminal. Then the whole set of commands will be available.
-
-NOTE: Ensure the flag `-f` is passed to GDB for proper integration. Without it,
-      source code wouldn't be displayed in neovim window.
 
 The plugin performs configuration on the first stop of the debugger. If you
 launch by attaching to already running program, the first stop won't open the

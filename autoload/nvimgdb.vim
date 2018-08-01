@@ -9,9 +9,7 @@ let s:plugin_dir = expand('<sfile>:p:h:h')
 " gdb specifics
 let s:backend_gdb = {
   \ 'init_state': 'running',
-  \ 'init': ['set confirm off',
-  \          'set pagination off',
-  \          'source ' . s:plugin_dir . '/lib/gdb_commands.py'],
+  \ 'init': [],
   \ 'paused': [
   \     ['Continuing.', 'continue'],
   \     ['\v[\o32]{2}([^:]+):(\d+):\d+', 'jump'],

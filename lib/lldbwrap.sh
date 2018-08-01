@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Assuming the first argument is path to lldb, the rest is arguments.
+# Assuming the first argument is path to lldb, the rest are arguments.
 # We'd like to ensure lldb is launched with our custom initialization
 # injected.
 
@@ -21,7 +21,7 @@ rest="${@:2}"
 # Prepare lldb initialization commands
 this_dir=$(readlink -f `dirname ${BASH_SOURCE[0]}`)
 
-unlink $server_addr
+unlink $server_addr >/dev/null 2>&1 || true
 
 lldb_init=`mktemp /tmp/lldb_init.XXXXXX`
 cat >$lldb_init <<EOF
