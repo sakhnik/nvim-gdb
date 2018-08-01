@@ -52,7 +52,7 @@ See `:help nvimgdb` for the complete online documentation. Most notable commands
 
 | Mapping          | Command                        | Description                                                   |
 |------------------|--------------------------------|---------------------------------------------------------------|
-| &lt;Leader&gt;dd | `:GdbStart gdb -q -f ./a.out`  | Start debugging session, allows editing the launching command |
+| &lt;Leader&gt;dd | `:GdbStart gdb -q ./a.out`     | Start debugging session, allows editing the launching command |
 | &lt;Leader&gt;dl | `:GdbStartLLDB lldb ./a.out`   | Start debugging session, allows editing the launching command |
 | &lt;Leader&gt;dp | `:GdbStartPDB python -m pdb main.py`   | Start Python debugging session, allows editing the launching command |
 | &lt;F8&gt;       | `:GdbBreakpointToggle`         | Toggle breakpoint in the coursor line                         |

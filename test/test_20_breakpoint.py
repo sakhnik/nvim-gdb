@@ -34,7 +34,7 @@ class TestBreakpoint(unittest.TestCase):
 
         try:
             eng.KeyStroke(':cd /tmp\n')
-            eng.KeyStroke(':GdbStart gdb -q -f %s\n' % exe_path)
+            eng.KeyStroke(':GdbStart gdb -q %s\n' % exe_path)
             eng.KeyStroke('break main\n')
             eng.KeyStroke('run\n')
 
