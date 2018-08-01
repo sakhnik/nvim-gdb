@@ -15,12 +15,12 @@ let s:backend_gdb = {
   \ 'paused': [
   \     ['Continuing.', 'continue'],
   \     ['\v[\o32]{2}([^:]+):(\d+):\d+', 'jump'],
-  \     ['(gdb)', 'info_breakpoints'],
+  \     ['^(gdb) ', 'info_breakpoints'],
   \ ],
   \ 'running': [
   \     ['\v^Breakpoint \d+', 'pause'],
   \     ['\v hit Breakpoint \d+', 'pause'],
-  \     ['(gdb)', 'pause'],
+  \     ['^(gdb) ', 'pause'],
   \ ],
   \ 'delete_breakpoints': 'delete',
   \ 'breakpoint': 'break',
@@ -50,7 +50,7 @@ let s:backend_pdb = {
   \ 'init': [],
   \ 'paused': [
   \     ['\v-@<!\> ([^(]+)\((\d+)\)[^(]+\(\)', 'jump'],
-  \     ['(Pdb)', 'info_breakpoints'],
+  \     ['^(Pdb) ', 'info_breakpoints'],
   \ ],
   \ 'running': [
   \ ],
