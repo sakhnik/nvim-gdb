@@ -25,7 +25,7 @@ fname = sys.argv[0]
 proxy_addr = sys.argv[1]
 
 # Let GDB send back the list of sources
-command = 'info-breakpoints %s %s\n' % (fname, server_address)
+command = 'info-breakpoints %s\n' % fname
 sock.sendto(command.encode('utf-8'), 0, proxy_addr)
 
 # Receive the result from GDB
