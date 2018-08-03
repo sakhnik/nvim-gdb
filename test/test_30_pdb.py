@@ -73,6 +73,42 @@ class TestPdb(unittest.TestCase):
 
         eng.Command('GdbDebugStop')
 
+    def test_30_navigation(self):
+        """=> Test toggling breakpoints while navigating."""
+        eng.KeyStroke(' dp')
+        eng.KeyStroke('\n')
+        eng.KeyStrokeL('<esc>')
+
+        eng.KeyStrokeL('<esc><c-w>k')
+        eng.KeyStroke(":e main.py\n")
+        eng.KeyStrokeL(':5<cr>')
+        eng.KeyStrokeL('<f8>')
+        cur, breaks = eng.GetSigns()
+        self.assertEqual(1, cur)
+        self.assertListEqual([5], breaks)
+
+        # Go to another file
+        eng.KeyStroke(":e test_10_generic.py\n")
+        eng.KeyStroke(":22\n")
+        eng.KeyStrokeL("<f8>")
+        cur, breaks = eng.GetSigns()
+        # TODO: fix this
+        #self.assertEqual(-1, cur)
+        self.assertEqual([22], breaks)
+        eng.KeyStroke(":23\n")
+        eng.KeyStrokeL("<f8>")
+        cur, breaks = eng.GetSigns()
+        #self.assertEqual(-1, cur)
+        self.assertEqual([22, 23], breaks)
+
+        # Return to the original file
+        eng.KeyStroke(":e main.py\n")
+        cur, breaks = eng.GetSigns()
+        self.assertEqual(1, cur)
+        self.assertListEqual([5], breaks)
+
+        eng.Command('GdbDebugStop')
+
 
 if __name__ == "__main__":
     unittest.main()
