@@ -35,7 +35,7 @@ class Engine:
         breaks = [int(l) for l
                   in re.findall(r'line=(\d+)\s+id=\d+\s+name=GdbBreakpoint',
                                 out)]
-        return (curline[0] if curline else -1), breaks
+        return (curline[0] if curline else -1), sorted(breaks)
 
     def KeyStrokeL(self, keys):
         """Send a Vim keystroke to NeoVim."""

@@ -23,10 +23,9 @@ class TestBreakpoint(unittest.TestCase):
                 eng.KeyStroke(break_main[backend])
                 eng.KeyStroke('run\n')
 
-                self.assertEqual(1, eng.Eval('len(t:gdb._breakpoints)'))
-                p = os.path.abspath('src/test.cpp')
-                self.assertEqual({'17': 1},
-                                 eng.Eval('t:gdb._breakpoints["%s"]' % p))
+                cur, breaks = eng.GetSigns()
+                self.assertEqual(17, cur)
+                self.assertEqual([17], breaks)
 
                 eng.KeyStrokeL('<esc>')
                 eng.KeyStrokeL('ZZ')
@@ -46,10 +45,9 @@ class TestBreakpoint(unittest.TestCase):
                     eng.KeyStroke(break_main[backend])
                     eng.KeyStroke('run\n')
 
-                    self.assertEqual(1, eng.Eval('len(t:gdb._breakpoints)'))
-                    p = os.path.abspath('src/test.cpp')
-                    self.assertEqual({'17': 1},
-                                     eng.Eval('t:gdb._breakpoints["%s"]' % p))
+                    cur, breaks = eng.GetSigns()
+                    self.assertEqual(17, cur)
+                    self.assertEqual([17], breaks)
 
                     eng.KeyStrokeL('<esc>')
                     eng.KeyStrokeL('ZZ')
@@ -69,27 +67,26 @@ class TestBreakpoint(unittest.TestCase):
                 eng.KeyStrokeL(":10<cr>")
                 eng.KeyStrokeL("<f8>")
 
-                self.assertEqual(1, eng.Eval('len(t:gdb._breakpoints)'))
-                p = os.path.abspath('src/test.cpp')
-                self.assertEqual(2, eng.Eval('len(t:gdb._breakpoints["%s"])' % p))
-                self.assertEqual(1, eng.Eval('t:gdb._breakpoints["%s"]["5"]' % p))
-                self.assertEqual(2, eng.Eval('t:gdb._breakpoints["%s"]["10"]' % p))
+                cur, breaks = eng.GetSigns()
+                self.assertEqual(-1, cur)
+                self.assertEqual([5, 10], breaks)
 
                 # Go to another file
                 eng.KeyStroke(":e src/lib.hpp\n")
-                p = os.path.abspath('src/lib.hpp')
-                self.assertEqual(0, eng.Eval('len(t:gdb._breakpoints["%s"])' % p))
+                cur, breaks = eng.GetSigns()
+                self.assertEqual(-1, cur)
+                self.assertEqual([], breaks)
                 eng.KeyStroke(":8\n")
                 eng.KeyStrokeL("<f8>")
-                self.assertEqual(1, eng.Eval('len(t:gdb._breakpoints["%s"])' % p))
-                self.assertEqual(3, eng.Eval('t:gdb._breakpoints["%s"]["8"]' % p))
+                cur, breaks = eng.GetSigns()
+                self.assertEqual(-1, cur)
+                self.assertEqual([8], breaks)
 
                 # Return to the first file
                 eng.KeyStroke(":e src/test.cpp\n")
-                p = os.path.abspath('src/test.cpp')
-                self.assertEqual(2, eng.Eval('len(t:gdb._breakpoints["%s"])' % p))
-                self.assertEqual(1, eng.Eval('t:gdb._breakpoints["%s"]["5"]' % p))
-                self.assertEqual(2, eng.Eval('t:gdb._breakpoints["%s"]["10"]' % p))
+                cur, breaks = eng.GetSigns()
+                self.assertEqual(-1, cur)
+                self.assertEqual([5, 10], breaks)
 
                 eng.KeyStrokeL('ZZ')
 
