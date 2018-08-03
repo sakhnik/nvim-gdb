@@ -56,6 +56,42 @@ class TestBreakpoint(unittest.TestCase):
                 finally:
                     eng.KeyStroke(':cd %s\n' % old_cwd)
 
+    def test_30_navigate(self):
+        """=> Verify that breakpoints stay when source code is navigated."""
+        break_bar = {"gdb": "break Bar\n", "lldb": "breakpoint set --fullname Bar\n"}
+        for backend, launch in subtests.items():
+            with self.subTest(backend=backend):
+                for k in launch:
+                    eng.KeyStroke(k)
+                eng.KeyStroke(break_bar[backend])
+                eng.KeyStrokeL("<esc>:wincmd k<cr>")
+                eng.KeyStrokeL(":e src/test.cpp\n")
+                eng.KeyStrokeL(":10<cr>")
+                eng.KeyStrokeL("<f8>")
+
+                self.assertEqual(1, eng.Eval('len(t:gdb._breakpoints)'))
+                p = os.path.abspath('src/test.cpp')
+                self.assertEqual(2, eng.Eval('len(t:gdb._breakpoints["%s"])' % p))
+                self.assertEqual(1, eng.Eval('t:gdb._breakpoints["%s"]["5"]' % p))
+                self.assertEqual(2, eng.Eval('t:gdb._breakpoints["%s"]["10"]' % p))
+
+                # Go to another file
+                eng.KeyStroke(":e src/lib.hpp\n")
+                p = os.path.abspath('src/lib.hpp')
+                self.assertEqual(0, eng.Eval('len(t:gdb._breakpoints["%s"])' % p))
+                eng.KeyStroke(":8\n")
+                eng.KeyStrokeL("<f8>")
+                self.assertEqual(1, eng.Eval('len(t:gdb._breakpoints["%s"])' % p))
+                self.assertEqual(3, eng.Eval('t:gdb._breakpoints["%s"]["8"]' % p))
+
+                # Return to the first file
+                eng.KeyStroke(":e src/test.cpp\n")
+                p = os.path.abspath('src/test.cpp')
+                self.assertEqual(2, eng.Eval('len(t:gdb._breakpoints["%s"])' % p))
+                self.assertEqual(1, eng.Eval('t:gdb._breakpoints["%s"]["5"]' % p))
+                self.assertEqual(2, eng.Eval('t:gdb._breakpoints["%s"]["10"]' % p))
+
+                eng.KeyStrokeL('ZZ')
 
 if __name__ == "__main__":
     unittest.main()
