@@ -26,6 +26,10 @@ before_install:
     elif [ `uname` = Darwin ]; then
       brew install neovim;
       sudo pip install six;
+      echo '#!/bin/bash' > /usr/local/bin/lldb;
+      echo 'export PATH=/usr/bin' >> /usr/local/bin/lldb;
+      echo '/usr/bin/lldb "$@"' >> /usr/local/bin/lldb;
+      chmod +x /usr/local/bin/lldb;
     fi
 
   - sudo pip3 install neovim
