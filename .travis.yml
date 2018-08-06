@@ -30,4 +30,4 @@ before_install:
   - sudo pip3 install neovim
 
 script:
-  - ./test/all.sh
+  - ./test/all.sh -v
