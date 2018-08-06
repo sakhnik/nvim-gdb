@@ -19,10 +19,8 @@ lldb="$1"
 rest="${@:2}"
 
 # Prepare lldb initialization commands
-if [[ ! $(uname -a) =~ Darwin ]]; then
-  canonicalize="-f"
-fi
-this_dir=$(readlink ${canonicalize-} `dirname ${BASH_SOURCE[0]}`)
+readlinkf(){ perl -MCwd -e 'print Cwd::abs_path shift' "$1";}
+this_dir=$(readlinkf `dirname ${BASH_SOURCE[0]}`)
 
 unlink $server_addr >/dev/null 2>&1 || true
 
