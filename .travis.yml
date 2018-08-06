@@ -27,8 +27,7 @@ before_install:
       brew install neovim;
       sudo pip install six;
       echo '#!/bin/bash' > /usr/local/bin/lldb;
-      echo 'export PATH=/usr/bin' >> /usr/local/bin/lldb;
-      echo '/usr/bin/lldb "$@"' >> /usr/local/bin/lldb;
+      echo 'PATH=/usr/bin /usr/bin/lldb "$@"' >> /usr/local/bin/lldb;
       chmod +x /usr/local/bin/lldb;
     fi
 
