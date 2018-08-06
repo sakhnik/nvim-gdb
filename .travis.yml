@@ -1,6 +1,15 @@
 language: c++
-sudo: required
-dist: trusty
+
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      sudo: required
+    - os: osx
+      sudo: required
+  allow_failures:
+    - os: osx
+
 notifications:
   email: false
 
@@ -17,4 +26,4 @@ before_install:
   - sudo ln -sf /usr/bin/lldb-5.0 /usr/bin/lldb
 
 script:
-  - ./test/all.sh -v
+  - ./test/all.sh
