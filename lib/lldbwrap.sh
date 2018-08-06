@@ -19,7 +19,10 @@ lldb="$1"
 rest="${@:2}"
 
 # Prepare lldb initialization commands
-this_dir=$(readlink -f `dirname ${BASH_SOURCE[0]}`)
+if [[ ! $(uname -a) =~ Darwin ]]; then
+  canonicalize="-f"
+fi
+this_dir=$(readlink ${canonicalize-} `dirname ${BASH_SOURCE[0]}`)
 
 unlink $server_addr >/dev/null 2>&1 || true
 
