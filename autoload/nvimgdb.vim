@@ -181,11 +181,14 @@ function s:Gdb.kill()
 endfunction
 
 
+let s:info_breakpoints_loaded = 0
+
 function! s:InfoBreakpoints(file, proxy_addr)
-  exe 'py3 import sys'
-  exe 'py3 sys.argv = ["' . a:file . '", "' . a:proxy_addr . '"]'
-  exe 'py3file ' . s:plugin_dir . '/lib/info_breakpoints.py'
-  return json_decode(return_value)
+  if !s:info_breakpoints_loaded
+    exe 'py3file ' . s:plugin_dir . '/lib/info_breakpoints.py'
+    let s:info_breakpoints_loaded = 1
+  endif
+  return json_decode(py3eval("InfoBreakpoints('" . a:file . "', '" . a:proxy_addr . "')"))
 endfunction
 
 
