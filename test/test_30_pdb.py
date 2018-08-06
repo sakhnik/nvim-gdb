@@ -88,18 +88,18 @@ class TestPdb(unittest.TestCase):
         self.assertListEqual([5], breaks)
 
         # Go to another file
-        eng.KeyStroke(":e test_10_generic.py\n")
-        eng.KeyStroke(":22\n")
+        eng.KeyStroke(":e test_30_pdb.py\n")
+        eng.KeyStroke(":23\n")
         eng.KeyStrokeL("<f8>")
         cur, breaks = eng.GetSigns()
         # TODO: fix this
         #self.assertEqual(-1, cur)
-        self.assertEqual([22], breaks)
-        eng.KeyStroke(":23\n")
+        self.assertEqual([23], breaks)
+        eng.KeyStroke(":24\n")
         eng.KeyStrokeL("<f8>")
         cur, breaks = eng.GetSigns()
         #self.assertEqual(-1, cur)
-        self.assertEqual([22, 23], breaks)
+        self.assertEqual([23, 24], breaks)
 
         # Return to the original file
         eng.KeyStroke(":e main.py\n")

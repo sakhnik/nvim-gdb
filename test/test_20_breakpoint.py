@@ -4,11 +4,18 @@
 import os
 import unittest
 import engine
+import config
 
 
 eng = engine.Engine()
-subtests = {"gdb": [' dd', '\n'], "lldb": [' dl', '\n']}
-break_main = {"gdb": "break main\n", "lldb": "breakpoint set --fullname main\n"}
+
+subtests = {}
+if "gdb" in config.debuggers:
+    subtests['gdb'] = {'launch': [' dd', '\n'],
+                       'break_main': 'break main\n'}
+if "lldb" in config.debuggers:
+    subtests['lldb'] = {'launch': [' dl', '\n'],
+                        'break_main': 'breakpoint set --fullname main\n'}
 
 
 class TestBreakpoint(unittest.TestCase):
@@ -16,11 +23,11 @@ class TestBreakpoint(unittest.TestCase):
 
     def test_10_detect(self):
         """=> Verify manual breakpoint is detected."""
-        for backend, launch in subtests.items():
+        for backend, spec in subtests.items():
             with self.subTest(backend=backend):
-                for k in launch:
+                for k in spec["launch"]:
                     eng.KeyStroke(k)
-                eng.KeyStroke(break_main[backend])
+                eng.KeyStroke(spec["break_main"])
                 eng.KeyStroke('run\n')
 
                 cur, breaks = eng.GetSigns()
@@ -35,14 +42,15 @@ class TestBreakpoint(unittest.TestCase):
         exe_path = os.path.abspath('a.out')
         old_cwd = os.getcwd()
 
-        subs = {"gdb": ":GdbStart gdb -q %s\n" % exe_path,
-                "lldb": ":GdbStartLLDB lldb %s\n" % exe_path}
-        for backend, launch in subs.items():
+        subs = {'gdb': ":GdbStart gdb -q %s\n" % exe_path,
+                'lldb': ":GdbStartLLDB lldb %s\n" % exe_path}
+
+        for backend, spec in subtests.items():
             with self.subTest(backend=backend):
                 try:
                     eng.KeyStroke(':cd /tmp\n')
-                    eng.KeyStroke(launch)
-                    eng.KeyStroke(break_main[backend])
+                    eng.KeyStroke(subs[backend])
+                    eng.KeyStroke(subtests[backend]["break_main"])
                     eng.KeyStroke('run\n')
 
                     cur, breaks = eng.GetSigns()
@@ -57,9 +65,9 @@ class TestBreakpoint(unittest.TestCase):
     def test_30_navigate(self):
         """=> Verify that breakpoints stay when source code is navigated."""
         break_bar = {"gdb": "break Bar\n", "lldb": "breakpoint set --fullname Bar\n"}
-        for backend, launch in subtests.items():
+        for backend, spec in subtests.items():
             with self.subTest(backend=backend):
-                for k in launch:
+                for k in spec['launch']:
                     eng.KeyStroke(k)
                 eng.KeyStroke(break_bar[backend])
                 eng.KeyStrokeL("<esc>:wincmd k<cr>")

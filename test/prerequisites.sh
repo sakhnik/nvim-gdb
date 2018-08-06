@@ -2,10 +2,13 @@
 
 # Check the prerequisites
 echo -n "Check for neovim     " && which nvim
-[[ `uname` != Darwin ]] && \
-    echo -n "Check for gdb        " && which gdb
-echo -n "Check for lldb       " && which lldb
 echo -n "Check for python3    " && which python3
+
+echo "debuggers = {">| config.py
+
+echo -n "Check for gdb        " && which gdb && echo "'gdb': True," >> config.py || true
+echo -n "Check for lldb       " && which lldb && echo "'lldb': True," >> config.py || true
+echo -e "'XXX': False\n}" >> config.py
 
 CXX=g++
 [[ `uname` == Darwin ]] && CXX=clang++
