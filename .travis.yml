@@ -25,6 +25,7 @@ before_install:
       sudo ln -sf /usr/bin/lldb-5.0 /usr/bin/lldb;
     elif [ `uname` = Darwin ]; then
       brew install neovim;
+      sudo pip install six;
     fi
 
   - sudo pip3 install neovim
