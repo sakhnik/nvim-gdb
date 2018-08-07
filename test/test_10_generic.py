@@ -64,7 +64,7 @@ class TestGdb(unittest.TestCase):
 
                 eng.KeyStrokeL('<f12>')
                 cur, breaks = eng.GetSigns()
-                self.assertEqual(17, cur)
+                self.assertIn(cur, [17, 19])  # different for different compilers
                 self.assertFalse(breaks)
 
                 eng.KeyStrokeL('<f5>')
