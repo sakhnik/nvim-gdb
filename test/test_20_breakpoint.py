@@ -11,10 +11,10 @@ eng = engine.Engine()
 
 subtests = {}
 if "gdb" in config.debuggers:
-    subtests['gdb'] = {'launch': [' dd', '\n'],
+    subtests['gdb'] = {'launch': ' dd\n',
                        'break_main': 'break main\n'}
 if "lldb" in config.debuggers:
-    subtests['lldb'] = {'launch': [' dl', '\n'],
+    subtests['lldb'] = {'launch': ' dl\n',
                         'break_main': 'breakpoint set --fullname main\n'}
 
 
@@ -25,10 +25,9 @@ class TestBreakpoint(unittest.TestCase):
         """=> Verify manual breakpoint is detected."""
         for backend, spec in subtests.items():
             with self.subTest(backend=backend):
-                for k in spec["launch"]:
-                    eng.KeyStroke(k)
+                eng.KeyStroke(spec["launch"])
                 eng.KeyStroke(spec["break_main"])
-                eng.KeyStroke('run\n')
+                eng.KeyStroke('run\n', delay=1)
 
                 cur, breaks = eng.GetSigns()
                 self.assertEqual(17, cur)
@@ -51,7 +50,7 @@ class TestBreakpoint(unittest.TestCase):
                     eng.KeyStroke(':cd /tmp\n')
                     eng.KeyStroke(subs[backend])
                     eng.KeyStroke(subtests[backend]["break_main"])
-                    eng.KeyStroke('run\n')
+                    eng.KeyStroke('run\n', delay=1)
 
                     cur, breaks = eng.GetSigns()
                     self.assertEqual(17, cur)
@@ -67,8 +66,7 @@ class TestBreakpoint(unittest.TestCase):
         break_bar = {"gdb": "break Bar\n", "lldb": "breakpoint set --fullname Bar\n"}
         for backend, spec in subtests.items():
             with self.subTest(backend=backend):
-                for k in spec['launch']:
-                    eng.KeyStroke(k)
+                eng.KeyStroke(spec['launch'])
                 eng.KeyStroke(break_bar[backend])
                 eng.KeyStrokeL("<esc>:wincmd k<cr>")
                 eng.KeyStrokeL(":e src/test.cpp\n")
