@@ -10,10 +10,10 @@ eng = engine.Engine()
 
 subtests = {}
 if "gdb" in config.debuggers:
-    subtests['gdb'] = {'launch': [' dd', '\n'],
+    subtests['gdb'] = {'launch': ' dd\n',
                        'tbreak_main': 'tbreak main\n'}
 if "lldb" in config.debuggers:
-    subtests['lldb'] = {'launch': [' dl', '\n'],
+    subtests['lldb'] = {'launch': ' dl\n',
                         'tbreak_main': 'breakpoint set -o true -n main\n'}
 
 
@@ -30,8 +30,7 @@ class TestGdb(unittest.TestCase):
         backend = next(iter(subtests.keys()))
         for c in cases:
             with self.subTest(case=c):
-                for k in subtests[backend]["launch"]:
-                    eng.KeyStrokeL(k)
+                eng.KeyStrokeL(subtests[backend]["launch"], delay=1)
                 for k in c:
                     eng.KeyStrokeL(k)
                 self.assertEqual(1, eng.Eval('tabpagenr("$")'))
@@ -42,10 +41,9 @@ class TestGdb(unittest.TestCase):
         """=> Test a generic use case."""
         for backend, spec in subtests.items():
             with self.subTest(backend=backend):
-                for k in spec["launch"]:
-                    eng.KeyStroke(k)
+                eng.KeyStroke(spec["launch"], delay=1)
                 eng.KeyStroke(spec["tbreak_main"])
-                eng.KeyStroke('run\n')
+                eng.KeyStroke('run\n', delay=1)
                 eng.KeyStrokeL('<esc>')
 
                 cur, breaks = eng.GetSigns()
@@ -78,8 +76,7 @@ class TestGdb(unittest.TestCase):
         """=> Test toggling breakpoints."""
         for backend, spec in subtests.items():
             with self.subTest(backend=backend):
-                for k in spec["launch"]:
-                    eng.KeyStroke(k)
+                eng.KeyStroke(spec["launch"], delay=1)
                 eng.KeyStrokeL('<esc><c-w>k')
                 eng.KeyStroke(":e src/test.cpp\n")
                 eng.KeyStrokeL(':5<cr>')
@@ -104,8 +101,7 @@ class TestGdb(unittest.TestCase):
         """=> Verify that breakpoints are cleaned up after session end."""
         for backend, spec in subtests.items():
             with self.subTest(backend=backend):
-                for k in spec["launch"]:
-                    eng.KeyStroke(k)
+                eng.KeyStroke(spec["launch"], delay=1)
                 eng.KeyStrokeL('<esc><c-w>k')
                 eng.KeyStroke(":e src/test.cpp\n")
                 eng.KeyStrokeL(':5<cr>')
@@ -129,10 +125,9 @@ class TestGdb(unittest.TestCase):
             backend2 = backend1
 
         # Launch the first backend
-        for k in subtests[backend1]["launch"]:
-            eng.KeyStroke(k)
+        eng.KeyStroke(subtests[backend1]["launch"], delay=1)
         eng.KeyStroke(subtests[backend1]["tbreak_main"])
-        eng.KeyStroke('run\n')
+        eng.KeyStroke('run\n', delay=1)
         eng.KeyStrokeL('<esc>')
         eng.KeyStrokeL('<c-w>w')
         eng.KeyStrokeL(':11<cr>')
@@ -145,10 +140,9 @@ class TestGdb(unittest.TestCase):
         self.assertEqual([11], breaks)
 
         # Then launch the second backend
-        for k in subtests[backend2]["launch"]:
-            eng.KeyStroke(k)
+        eng.KeyStroke(subtests[backend2]["launch"], delay=1)
         eng.KeyStroke(subtests[backend2]["tbreak_main"])
-        eng.KeyStroke('run\n')
+        eng.KeyStroke('run\n', delay=1)
         eng.KeyStrokeL('<esc>')
         eng.KeyStrokeL('<c-w>w')
         eng.KeyStrokeL(':5<cr>')
@@ -182,9 +176,8 @@ class TestGdb(unittest.TestCase):
         """=> Test interrupt."""
         for backend, spec in subtests.items():
             with self.subTest(backend=backend):
-                for k in spec["launch"]:
-                    eng.KeyStroke(k)
-                eng.KeyStroke('run\n')
+                eng.KeyStroke(spec["launch"], delay=1)
+                eng.KeyStroke('run\n', delay=1)
                 eng.KeyStrokeL('<esc>')
                 eng.KeyStroke(':GdbInterrupt\n')
 
