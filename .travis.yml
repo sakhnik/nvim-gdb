@@ -7,8 +7,6 @@ matrix:
       sudo: required
     - os: osx
       sudo: required
-  allow_failures:
-    - os: osx
 
 notifications:
   email: false
