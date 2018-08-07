@@ -3,12 +3,18 @@
 
 import unittest
 import engine
+import config
 
 
 eng = engine.Engine()
-subtests = {"gdb": [' dd', '\n'], "lldb": [' dl', '\n']}
-tbreak_main = {"gdb": 'tbreak main\n',
-               "lldb": 'breakpoint set -o true -n main\n'}
+
+subtests = {}
+if "gdb" in config.debuggers:
+    subtests['gdb'] = {'launch': [' dd', '\n'],
+                       'tbreak_main': 'tbreak main\n'}
+if "lldb" in config.debuggers:
+    subtests['lldb'] = {'launch': [' dl', '\n'],
+                        'tbreak_main': 'breakpoint set -o true -n main\n'}
 
 
 class TestGdb(unittest.TestCase):
@@ -20,9 +26,11 @@ class TestGdb(unittest.TestCase):
                  ["<esc>", "ZZ"],
                  ["<esc>", "<c-w>w", "ZZ"]]
         numBufs = eng.CountBuffers()
+        # Use random backend, assuming all they behave the same way.
+        backend = next(iter(subtests.keys()))
         for c in cases:
             with self.subTest(case=c):
-                for k in subtests['gdb']:
+                for k in subtests[backend]["launch"]:
                     eng.KeyStrokeL(k)
                 for k in c:
                     eng.KeyStrokeL(k)
@@ -32,11 +40,11 @@ class TestGdb(unittest.TestCase):
 
     def test_20_generic(self):
         """=> Test a generic use case."""
-        for backend, launch in subtests.items():
+        for backend, spec in subtests.items():
             with self.subTest(backend=backend):
-                for k in launch:
+                for k in spec["launch"]:
                     eng.KeyStroke(k)
-                eng.KeyStroke(tbreak_main[backend])
+                eng.KeyStroke(spec["tbreak_main"])
                 eng.KeyStroke('run\n')
                 eng.KeyStrokeL('<esc>')
 
@@ -56,7 +64,7 @@ class TestGdb(unittest.TestCase):
 
                 eng.KeyStrokeL('<f12>')
                 cur, breaks = eng.GetSigns()
-                self.assertEqual(17, cur)
+                self.assertIn(cur, [17, 19])  # different for different compilers
                 self.assertFalse(breaks)
 
                 eng.KeyStrokeL('<f5>')
@@ -68,9 +76,9 @@ class TestGdb(unittest.TestCase):
 
     def test_30_breakpoint(self):
         """=> Test toggling breakpoints."""
-        for backend, launch in subtests.items():
+        for backend, spec in subtests.items():
             with self.subTest(backend=backend):
-                for k in launch:
+                for k in spec["launch"]:
                     eng.KeyStroke(k)
                 eng.KeyStrokeL('<esc><c-w>k')
                 eng.KeyStroke(":e src/test.cpp\n")
@@ -80,7 +88,7 @@ class TestGdb(unittest.TestCase):
                 self.assertEqual(-1, cur)
                 self.assertListEqual([5], breaks)
 
-                eng.Command("GdbRun")
+                eng.Command("GdbRun", delay=1)
                 cur, breaks = eng.GetSigns()
                 self.assertEqual(5, cur)
                 self.assertListEqual([5], breaks)
@@ -94,28 +102,36 @@ class TestGdb(unittest.TestCase):
 
     def test_35_breakpoint_cleanup(self):
         """=> Verify that breakpoints are cleaned up after session end."""
-        launch = subtests['gdb']
-        for k in launch:
-            eng.KeyStroke(k)
-        eng.KeyStrokeL('<esc><c-w>k')
-        eng.KeyStroke(":e src/test.cpp\n")
-        eng.KeyStrokeL(':5<cr>')
-        eng.KeyStrokeL('<f8>')
-        cur, breaks = eng.GetSigns()
-        self.assertEqual(-1, cur)
-        self.assertListEqual([5], breaks)
+        for backend, spec in subtests.items():
+            with self.subTest(backend=backend):
+                for k in spec["launch"]:
+                    eng.KeyStroke(k)
+                eng.KeyStrokeL('<esc><c-w>k')
+                eng.KeyStroke(":e src/test.cpp\n")
+                eng.KeyStrokeL(':5<cr>')
+                eng.KeyStrokeL('<f8>')
+                cur, breaks = eng.GetSigns()
+                self.assertEqual(-1, cur)
+                self.assertListEqual([5], breaks)
 
-        eng.Command("GdbDebugStop")
-        cur, breaks = eng.GetSigns()
-        self.assertEqual(-1, cur)
-        self.assertFalse(breaks)
+                eng.Command("GdbDebugStop")
+                cur, breaks = eng.GetSigns()
+                self.assertEqual(-1, cur)
+                self.assertFalse(breaks)
 
     def test_40_multiview(self):
         """=> Test multiple views."""
-        # Launch GDB first
-        for k in subtests['gdb']:
+        backends = list(subtests.keys())
+        backend1 = backends[0]
+        if len(backends) > 1:
+            backend2 = backends[1]
+        else:
+            backend2 = backend1
+
+        # Launch the first backend
+        for k in subtests[backend1]["launch"]:
             eng.KeyStroke(k)
-        eng.KeyStroke(tbreak_main['gdb'])
+        eng.KeyStroke(subtests[backend1]["tbreak_main"])
         eng.KeyStroke('run\n')
         eng.KeyStrokeL('<esc>')
         eng.KeyStrokeL('<c-w>w')
@@ -128,10 +144,10 @@ class TestGdb(unittest.TestCase):
         self.assertEqual(10, cur)
         self.assertEqual([11], breaks)
 
-        # Then launch LLDB
-        for k in subtests['lldb']:
+        # Then launch the second backend
+        for k in subtests[backend2]["launch"]:
             eng.KeyStroke(k)
-        eng.KeyStroke(tbreak_main['lldb'])
+        eng.KeyStroke(subtests[backend2]["tbreak_main"])
         eng.KeyStroke('run\n')
         eng.KeyStrokeL('<esc>')
         eng.KeyStrokeL('<c-w>w')
@@ -145,16 +161,16 @@ class TestGdb(unittest.TestCase):
         self.assertEqual(19, cur)
         self.assertEqual([5, 12], breaks)
 
-        # Switch to GDB
+        # Switch to the first backend
         eng.KeyStrokeL('2gt')
         cur, breaks = eng.GetSigns()
         self.assertEqual(10, cur)
         self.assertEqual([11], breaks)
 
-        # Quit GDB
+        # Quit
         eng.KeyStrokeL('ZZ')
 
-        # Switch back to LLDB
+        # Switch back to the second backend
         cur, breaks = eng.GetSigns()
         self.assertEqual(19, cur)
         self.assertEqual([5, 12], breaks)
@@ -164,9 +180,9 @@ class TestGdb(unittest.TestCase):
 
     def test_50_interrupt(self):
         """=> Test interrupt."""
-        for backend, launch in subtests.items():
+        for backend, spec in subtests.items():
             with self.subTest(backend=backend):
-                for k in launch:
+                for k in spec["launch"]:
                     eng.KeyStroke(k)
                 eng.KeyStroke('run\n')
                 eng.KeyStrokeL('<esc>')

@@ -2,3 +2,4 @@ tags
 a.out
 .ropeproject/
 __pycache__/
+test/config.py
