@@ -88,7 +88,7 @@ class TestGdb(unittest.TestCase):
                 self.assertEqual(-1, cur)
                 self.assertListEqual([5], breaks)
 
-                eng.Command("GdbRun")
+                eng.Command("GdbRun", delay=1)
                 cur, breaks = eng.GetSigns()
                 self.assertEqual(5, cur)
                 self.assertListEqual([5], breaks)

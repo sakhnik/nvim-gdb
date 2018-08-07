@@ -9,8 +9,6 @@ from neovim import attach
 class Engine:
     """Neovim engine."""
 
-    delay = 0.5
-
     def __init__(self):
         """Construct an engine."""
         addr = os.environ.get('NVIM_LISTEN_ADDRESS')
@@ -20,10 +18,10 @@ class Engine:
             args = ["/usr/bin/env", "nvim", "--embed", "-n", "-u", "init.vim"]
             self.nvim = attach('child', argv=args)
 
-    def Command(self, cmd):
+    def Command(self, cmd, delay=0.5):
         """Execute a Vim command."""
         self.nvim.command(cmd)
-        time.sleep(Engine.delay)
+        time.sleep(delay)
 
     def GetSigns(self):
         """Get pointer position and list of breakpoints."""
@@ -37,15 +35,15 @@ class Engine:
                                 out)]
         return (curline[0] if curline else -1), sorted(breaks)
 
-    def KeyStrokeL(self, keys):
+    def KeyStrokeL(self, keys, delay=0.5):
         """Send a Vim keystroke to NeoVim."""
         self.nvim.input(keys)
-        time.sleep(Engine.delay)
+        time.sleep(delay)
 
-    def KeyStroke(self, keys):
+    def KeyStroke(self, keys, delay=0.5):
         """Send a string to NeoVim as if typed."""
         self.nvim.feedkeys(keys, 't')
-        time.sleep(Engine.delay)
+        time.sleep(delay)
 
     def Eval(self, expr):
         """Evaluate a Vim expression."""
