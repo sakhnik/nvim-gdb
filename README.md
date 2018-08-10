@@ -69,3 +69,7 @@ The goal is to have a thin wrapper around
 GDB, LLDB and PDB, just like the official
 [TUI](https://sourceware.org/gdb/onlinedocs/gdb/TUI.html). NeoVim will enhance
 debugging with syntax highlighting and source code navigation.
+
+## References
+
+* Overview to the first anniversary: [sakhnik.com](https://sakhnik.com/2018/08/10/nvim-gdb-anni.html)
