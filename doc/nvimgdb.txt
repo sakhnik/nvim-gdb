@@ -56,7 +56,7 @@ Section 2: Commands                                          *NvimgdbCommands*
 :GdbStartLLDB [cmd]     Start debugging session with the given LLDB launch
                         command.
 
-                                                               *:GdbStartLLDB*
+                                                               *:GdbStartPDB*
 :GdbStartPDB [cmd]      Start Python debugging session with the given PDB
                         launch command.
 
