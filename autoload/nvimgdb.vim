@@ -22,6 +22,7 @@ let s:backend_gdb = {
   \ ],
   \ 'delete_breakpoints': 'delete',
   \ 'breakpoint': 'break',
+  \ 'until' : 'until',
   \ }
 
 " lldb specifics
@@ -40,6 +41,7 @@ let s:backend_lldb = {
   \ ],
   \ 'delete_breakpoints': 'breakpoint delete',
   \ 'breakpoint': 'b',
+  \ 'until' : 'thread until',
   \ }
 
 " pdb specifics
@@ -55,6 +57,7 @@ let s:backend_pdb = {
   \ 'delete_breakpoints': 'clear',
   \ 'breakpoint': 'break',
   \ 'finish': 'return',
+  \ 'until' : 'until',
   \ }
 
 
@@ -226,6 +229,7 @@ endfunction
 
 function! s:DefKeymapVars()
   " Set global key maps
+  call s:DefKeymapVar("t:nvimgdb_key_until",      "g:nvimgdb_key_until",      "<f4>" )
   call s:DefKeymapVar("t:nvimgdb_key_continue",   "g:nvimgdb_key_continue",   "<f5>" )
   call s:DefKeymapVar("t:nvimgdb_key_next",       "g:nvimgdb_key_next",       "<f10>")
   call s:DefKeymapVar("t:nvimgdb_key_step",       "g:nvimgdb_key_step",       "<f11>")
@@ -238,6 +242,7 @@ function! s:DefKeymapVars()
 endfunction
 
 function! s:SetKeymaps()
+  exe 'nnoremap <buffer> <silent> ' . t:nvimgdb_key_until . ' :GdbUntil<cr>'
   exe 'nnoremap <buffer> <silent> ' . t:nvimgdb_key_continue . ' :GdbContinue<cr>'
   exe 'nnoremap <buffer> <silent> ' . t:nvimgdb_key_next . ' :GdbNext<cr>'
   exe 'nnoremap <buffer> <silent> ' . t:nvimgdb_key_step . ' :GdbStep<cr>'
@@ -252,6 +257,7 @@ function! s:SetKeymaps()
 endfunction
 
 function! s:UnsetKeymaps()
+  exe 'nunmap <buffer> ' . t:nvimgdb_key_until
   exe 'nunmap <buffer> ' . t:nvimgdb_key_continue
   exe 'nunmap <buffer> ' . t:nvimgdb_key_next
   exe 'nunmap <buffer> ' . t:nvimgdb_key_step
@@ -267,6 +273,7 @@ endfunction
 
 function! s:SetTKeymaps()
   " Set term-local key maps
+  exe 'tnoremap <buffer> <silent> ' . t:nvimgdb_key_until . ' <c-\><c-n>:GdbUntil<cr>i'
   exe 'tnoremap <buffer> <silent> ' . t:nvimgdb_key_continue . ' <c-\><c-n>:GdbContinue<cr>i'
   exe 'tnoremap <buffer> <silent> ' . t:nvimgdb_key_next . ' <c-\><c-n>:GdbNext<cr>i'
   exe 'tnoremap <buffer> <silent> ' . t:nvimgdb_key_step . ' <c-\><c-n>:GdbStep<cr>i'
@@ -283,6 +290,7 @@ function! s:DefineCommands()
   command! GdbBreakpointToggle call nvimgdb#ToggleBreak()
   command! GdbBreakpointClearAll call nvimgdb#ClearBreak()
   command! GdbRun call nvimgdb#Send("run")
+  command! GdbUntil call nvimgdb#Send(t:gdb.backend["until"] . " " . line('.'))
   command! GdbContinue call nvimgdb#Send("c")
   command! GdbNext call nvimgdb#Send("n")
   command! GdbStep call nvimgdb#Send("s")
@@ -300,6 +308,7 @@ function! s:UndefCommands()
   delcommand GdbBreakpointToggle
   delcommand GdbBreakpointClearAll
   delcommand GdbRun
+  delcommand GdbUntil
   delcommand GdbContinue
   delcommand GdbNext
   delcommand GdbStep

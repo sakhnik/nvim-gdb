@@ -56,6 +56,7 @@ See `:help nvimgdb` for the complete online documentation. Most notable commands
 | &lt;Leader&gt;dl | `:GdbStartLLDB lldb ./a.out`   | Start debugging session, allows editing the launching command |
 | &lt;Leader&gt;dp | `:GdbStartPDB python -m pdb main.py`   | Start Python debugging session, allows editing the launching command |
 | &lt;F8&gt;       | `:GdbBreakpointToggle`         | Toggle breakpoint in the coursor line                         |
+| &lt;F4&gt;       | `:GdbUntil`                    | Continue execution until a given line (`until` in gdb)        |
 | &lt;F5&gt;       | `:GdbContinue`                 | Continue execution (`continue` in gdb)                        |
 | &lt;F10&gt;      | `:GdbNext`                     | Step over the next statement (`next` in gdb)                  |
 | &lt;F11&gt;      | `:GdbStep`                     | Step into the next statement (`step` in gdb)                  |

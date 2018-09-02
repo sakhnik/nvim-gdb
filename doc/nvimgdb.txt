@@ -74,10 +74,14 @@ Section 2: Commands                                          *NvimgdbCommands*
                                                                     *:GdbNext*
                                                                     *:GdbStep*
                                                                   *:GdbFinish*
+                                                                   *:GdbUntil*
 :GdbContinue            Continue execution
 :GdbNext                Step over next statement
 :GdbStep                Step into next statement
 :GdbFinish              Step out current stack frame
+:GdbUntil [line]        (lldb,gdb) Continue execution until [line]
+                        (pdb) Continue execution until the next
+                        line number
 
                                                                  *:GdbFrameUp*
                                                                *:GdbFrameDown*
@@ -109,6 +113,7 @@ g:nvimgdb_disable_start_keymaps is defined and evaluates to true:
 
 When debugging session has started, the following mappings are defined:
 
+<f4>                   Until                          (`:GdbUntil`)
 <f5>                   Continue                       (`:GdbContinue`)
 <f10>                  Next                           (`:GdbNext`)
 <f11>                  Step                           (`:GdbStep`)
@@ -129,6 +134,7 @@ true, the initial keymaps to start debugging session are suppressed
 The following variables could be defined to change default mappings for the
 debugging commands:
 
+g:nvimgdb_key_until
 g:nvimgdb_key_continue
 g:nvimgdb_key_next
 g:nvimgdb_key_step
