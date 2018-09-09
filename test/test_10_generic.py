@@ -187,6 +187,25 @@ class TestGdb(unittest.TestCase):
 
                 eng.KeyStrokeL('ZZ')
 
+    def test_60_until(self):
+        """=> Test run until."""
+        for backend, spec in subtests.items():
+            with self.subTest(backend=backend):
+                eng.KeyStroke(spec["launch"], delay=1)
+                eng.KeyStroke(spec["tbreak_main"])
+                eng.KeyStroke('run\n', delay=1)
+                eng.KeyStrokeL('<esc>')
+
+                eng.KeyStrokeL('<c-w>w')
+                eng.KeyStrokeL(':21<cr>')
+                eng.KeyStrokeL('<f4>')
+
+                cur, breaks = eng.GetSigns()
+                self.assertEqual(21, cur)
+                self.assertFalse(breaks)
+
+                eng.KeyStroke('ZZ')
+
 
 if __name__ == "__main__":
     unittest.main()

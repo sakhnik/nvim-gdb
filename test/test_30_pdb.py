@@ -109,6 +109,24 @@ class TestPdb(unittest.TestCase):
 
         eng.Command('GdbDebugStop')
 
+    def test_40_until(self):
+        """=> Test run until line."""
+        eng.KeyStroke(' dp')
+        eng.KeyStroke('\n')
+        eng.KeyStroke('tbreak _main\n')
+        eng.KeyStroke('cont\n')
+        eng.KeyStrokeL('<esc>')
+
+        eng.KeyStrokeL('<c-w>w')
+        eng.KeyStrokeL(':17<cr>')
+        eng.KeyStrokeL('<f4>')
+
+        cur, breaks = eng.GetSigns()
+        self.assertEqual(17, cur)
+        self.assertFalse(breaks)
+
+        eng.KeyStroke('ZZ')
+
 
 if __name__ == "__main__":
     unittest.main()
