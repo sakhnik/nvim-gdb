@@ -6,7 +6,7 @@ matrix:
       dist: trusty
       sudo: required
     - os: osx
-      sudo: required
+      sudo: false
 
 notifications:
   email: false
