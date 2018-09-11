@@ -1,10 +1,17 @@
 #!/bin/bash -x
 
-brew install neovim
+mkdir -p $HOME/bin
 
 pip install --user six
 
-mkdir -p $HOME/bin
+curl -LO https://github.com/neovim/neovim/releases/download/nightly/nvim-macos.tar.gz
+tar -xf nvim-macos.tar.gz
+cat >$HOME/bin/nvim <<EOF
+#!/bin/bash
+`pwd`/nvim-osx64/bin/nvim "\$@"
+EOF
+chmod +x $HOME/bin/nvim
+
 cat >$HOME/bin/lldb <<'EOF'
 #!/bin/bash
 PATH=/usr/bin /usr/bin/lldb "$@"
