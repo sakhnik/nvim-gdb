@@ -127,6 +127,10 @@ function s:GdbPaused_info_breakpoints(...) dict
 
   " Query the breakpoints for the shown file
   let breaks = s:InfoBreakpoints(fname, t:gdb._proxy_addr)
+  if has_key(breaks, "_error")
+    echo "Can't get breakpoints: " . breaks["_error"]
+    return
+  endif
   let self._breakpoints[fname] = breaks
   call s:RefreshBreakpointSigns(bufnum)
   call self.update_current_line_sign(1)
