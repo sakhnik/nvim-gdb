@@ -3,6 +3,10 @@ if exists("g:loaded_nvimgdb") || !has("nvim")
 endif
 let g:loaded_nvimgdb = 1
 
+if !&scrolloff
+    setlocal scrolloff=5
+endif
+
 command! -nargs=1 -complete=shellcmd GdbStart call nvimgdb#Spawn('gdb', 'gdbwrap.sh', <q-args>)
 command! -nargs=1 -complete=shellcmd GdbStartLLDB call nvimgdb#Spawn('lldb', 'lldbwrap.sh', <q-args>)
 command! -nargs=1 -complete=shellcmd GdbStartPDB call nvimgdb#Spawn('pdb', 'pdbproxy.py', <q-args>)
