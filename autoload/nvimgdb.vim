@@ -420,6 +420,12 @@ function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   tabnew
   " create horizontal split to display the current file
   sp
+
+  if !&scrolloff
+    " Make sure the cursor stays visible at all times
+    setlocal scrolloff=5
+  endif
+
   " go to the bottom window and spawn gdb client
   wincmd j
 
