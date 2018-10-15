@@ -6,6 +6,20 @@ sign define GdbCurrentLine text=⇒
 let g:nvimgdb_count = 0
 let s:plugin_dir = expand('<sfile>:p:h:h')
 
+" Default configuration
+let s:default_config = {
+  \ 'key_until': '<f4>',
+  \ 'key_continue': '<f5>',
+  \ 'key_next': '<f10>',
+  \ 'key_step': '<f11>',
+  \ 'key_finish': '<f12>',
+  \ 'key_breakpoint': '<f8>',
+  \ 'key_frameup': '<c-p>',
+  \ 'key_framedown': '<c-n>',
+  \ 'key_eval': '<f9>',
+  \ }
+
+
 " gdb specifics
 let s:backend_gdb = {
   \ 'init_state': 'running',
@@ -231,57 +245,38 @@ function! s:DefKeymapVar(key_lvar, key_gvar, key_def)
   endif
 endfunction
 
-function! s:DefKeymapVars()
-  " Set global key maps
-  call s:DefKeymapVar("t:nvimgdb_key_until",      "g:nvimgdb_key_until",      "<f4>" )
-  call s:DefKeymapVar("t:nvimgdb_key_continue",   "g:nvimgdb_key_continue",   "<f5>" )
-  call s:DefKeymapVar("t:nvimgdb_key_next",       "g:nvimgdb_key_next",       "<f10>")
-  call s:DefKeymapVar("t:nvimgdb_key_step",       "g:nvimgdb_key_step",       "<f11>")
-  call s:DefKeymapVar("t:nvimgdb_key_finish",     "g:nvimgdb_key_finish",     "<f12>")
-
-  call s:DefKeymapVar("t:nvimgdb_key_breakpoint", "g:nvimgdb_key_breakpoint", "<f8>" )
-  call s:DefKeymapVar("t:nvimgdb_key_frameup",    "g:nvimgdb_key_frameup",    "<c-p>")
-  call s:DefKeymapVar("t:nvimgdb_key_framedown",  "g:nvimgdb_key_framedown",  "<c-n>")
-  call s:DefKeymapVar("t:nvimgdb_key_eval",       "g:nvimgdb_key_eval",       "<f9>" )
-endfunction
+let s:default_keymaps = [
+  \ ['n', 'key_until', ':GdbUntil'],
+  \ ['n', 'key_continue', ':GdbContinue'],
+  \ ['n', 'key_next', ':GdbNext'],
+  \ ['n', 'key_step', ':GdbStep'],
+  \ ['n', 'key_finish', ':GdbFinish'],
+  \ ['n', 'key_breakpoint', ':GdbBreakpointToggle'],
+  \ ['n', 'key_frameup', ':GdbFrameUp'],
+  \ ['n', 'key_framedown', ':GdbFrameDown'],
+  \ ['n', 'key_eval', ':GdbEvalWord'],
+  \ ['v', 'key_eval', ':GdbEvalRange'],
+  \ ]
 
 function! s:SetKeymaps()
-  exe 'nnoremap <buffer> <silent> ' . t:nvimgdb_key_until . ' :GdbUntil<cr>'
-  exe 'nnoremap <buffer> <silent> ' . t:nvimgdb_key_continue . ' :GdbContinue<cr>'
-  exe 'nnoremap <buffer> <silent> ' . t:nvimgdb_key_next . ' :GdbNext<cr>'
-  exe 'nnoremap <buffer> <silent> ' . t:nvimgdb_key_step . ' :GdbStep<cr>'
-  exe 'nnoremap <buffer> <silent> ' . t:nvimgdb_key_finish . ' :GdbFinish<cr>'
-
-  exe 'nnoremap <buffer> <silent> ' . t:nvimgdb_key_breakpoint . ' :GdbBreakpointToggle<cr>'
-  exe 'nnoremap <buffer> <silent> ' . t:nvimgdb_key_frameup . ' :GdbFrameUp<cr>'
-  exe 'nnoremap <buffer> <silent> ' . t:nvimgdb_key_framedown . ' :GdbFrameDown<cr>'
-  exe 'nnoremap <buffer> <silent> ' . t:nvimgdb_key_eval . ' :GdbEvalWord<cr>'
-
-  exe 'vnoremap <buffer> <silent> ' . t:nvimgdb_key_eval . ' :GdbEvalRange<cr>'
+  for keymap in s:default_keymaps
+    exe keymap[0] . 'noremap <buffer> <silent> ' . t:config[keymap[1]] . ' ' . keymap[2]'<cr>'
+  endfor
 endfunction
 
 function! s:UnsetKeymaps()
-  exe 'nunmap <buffer> ' . t:nvimgdb_key_until
-  exe 'nunmap <buffer> ' . t:nvimgdb_key_continue
-  exe 'nunmap <buffer> ' . t:nvimgdb_key_next
-  exe 'nunmap <buffer> ' . t:nvimgdb_key_step
-  exe 'nunmap <buffer> ' . t:nvimgdb_key_finish
-
-  exe 'nunmap <buffer> ' . t:nvimgdb_key_breakpoint
-  exe 'nunmap <buffer> ' . t:nvimgdb_key_frameup
-  exe 'nunmap <buffer> ' . t:nvimgdb_key_framedown
-  exe 'nunmap <buffer> ' . t:nvimgdb_key_eval
-
-  exe 'vunmap <buffer> ' . t:nvimgdb_key_eval
+  for keymap in s:default_keymaps
+    exe keymap[0] . 'unmap <buffer> ' . t:config[keymap[1]]
+  endfor
 endfunction
 
 function! s:SetTKeymaps()
   " Set term-local key maps
-  exe 'tnoremap <buffer> <silent> ' . t:nvimgdb_key_until . ' <c-\><c-n>:GdbUntil<cr>i'
-  exe 'tnoremap <buffer> <silent> ' . t:nvimgdb_key_continue . ' <c-\><c-n>:GdbContinue<cr>i'
-  exe 'tnoremap <buffer> <silent> ' . t:nvimgdb_key_next . ' <c-\><c-n>:GdbNext<cr>i'
-  exe 'tnoremap <buffer> <silent> ' . t:nvimgdb_key_step . ' <c-\><c-n>:GdbStep<cr>i'
-  exe 'tnoremap <buffer> <silent> ' . t:nvimgdb_key_finish . ' <c-\><c-n>:GdbFinish<cr>i'
+  exe 'tnoremap <buffer> <silent> ' . t:config['key_until'] . ' <c-\><c-n>:GdbUntil<cr>i'
+  exe 'tnoremap <buffer> <silent> ' . t:config['key_continue'] . ' <c-\><c-n>:GdbContinue<cr>i'
+  exe 'tnoremap <buffer> <silent> ' . t:config['key_next'] . ' <c-\><c-n>:GdbNext<cr>i'
+  exe 'tnoremap <buffer> <silent> ' . t:config['key_step'] . ' <c-\><c-n>:GdbStep<cr>i'
+  exe 'tnoremap <buffer> <silent> ' . t:config['key_finish'] . ' <c-\><c-n>:GdbFinish<cr>i'
   tnoremap <silent> <buffer> <esc> <c-\><c-n>
 
   " Set normal mode keymaps too
@@ -407,6 +402,22 @@ function! s:OnBufLeave()
 endfunction
 
 
+function! s:InitConfig()
+  " Make a copy of the default configuration
+  let config = copy(s:default_config)
+  " See whether a global overload for a specific configuration
+  " key exists. If so, overload the default.
+  for key in keys(config)
+    let varname = 'g:nvimgdb_' . key
+    if exists(varname)
+      exe 'let config[key] = ' . varname
+    endif
+  endfor
+  " Return the resulting configuration
+  return config
+endfunction
+
+
 function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   let gdb = s:InitMachine(a:backend, s:Gdb)
   let gdb._initialized = 0
@@ -441,6 +452,9 @@ function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   let gdb._client_buf = bufnr('%')
   let t:gdb = gdb
 
+  " Prepare configuration specific to this debugging session
+  let t:config = s:InitConfig()
+
   " Check if user closed either of our windows.
   if !g:nvimgdb_count
     call s:DefineCommands()
@@ -462,7 +476,6 @@ function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   endif
   let g:nvimgdb_count += 1
 
-  call s:DefKeymapVars()
   call s:SetTKeymaps()
   " Start inset mode in the GDB window
   normal i
