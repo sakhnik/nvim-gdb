@@ -260,23 +260,38 @@ let s:default_keymaps = [
 
 function! s:SetKeymaps()
   for keymap in s:default_keymaps
-    exe keymap[0] . 'noremap <buffer> <silent> ' . t:config[keymap[1]] . ' ' . keymap[2]'<cr>'
+    let key = t:config[keymap[1]]
+    if !empty(key)
+      exe keymap[0] . 'noremap <buffer> <silent> ' . key . ' ' . keymap[2]'<cr>'
+    endif
   endfor
 endfunction
 
 function! s:UnsetKeymaps()
   for keymap in s:default_keymaps
-    exe keymap[0] . 'unmap <buffer> ' . t:config[keymap[1]]
+    let key = t:config[keymap[1]]
+    if !empty(key)
+      exe keymap[0] . 'unmap <buffer> ' . key
+    endif
   endfor
 endfunction
 
+let s:default_tkeymaps = [
+  \ ['key_until', ':GdbUntil'],
+  \ ['key_continue', ':GdbContinue'],
+  \ ['key_next', ':GdbNext'],
+  \ ['key_step', ':GdbStep'],
+  \ ['key_finish', ':GdbFinish'],
+  \ ]
+
 function! s:SetTKeymaps()
   " Set term-local key maps
-  exe 'tnoremap <buffer> <silent> ' . t:config['key_until'] . ' <c-\><c-n>:GdbUntil<cr>i'
-  exe 'tnoremap <buffer> <silent> ' . t:config['key_continue'] . ' <c-\><c-n>:GdbContinue<cr>i'
-  exe 'tnoremap <buffer> <silent> ' . t:config['key_next'] . ' <c-\><c-n>:GdbNext<cr>i'
-  exe 'tnoremap <buffer> <silent> ' . t:config['key_step'] . ' <c-\><c-n>:GdbStep<cr>i'
-  exe 'tnoremap <buffer> <silent> ' . t:config['key_finish'] . ' <c-\><c-n>:GdbFinish<cr>i'
+  for keymap in s:default_tkeymaps
+    let key = t:config[keymap[0]]
+    if !empty(key)
+      exe 'tnoremap <buffer> <silent> ' . key . ' <c-\><c-n>' . keymap[1] . '<cr>i'
+    endif
+  endfor
   tnoremap <silent> <buffer> <esc> <c-\><c-n>
 
   " Set normal mode keymaps too
