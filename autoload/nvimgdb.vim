@@ -17,6 +17,8 @@ let s:default_config = {
   \ 'key_frameup': '<c-p>',
   \ 'key_framedown': '<c-n>',
   \ 'key_eval': '<f9>',
+  \ 'set_keymaps': function('nvimgdb#SetKeymaps'),
+  \ 'unset_keymaps': function('nvimgdb#UnsetKeymaps'),
   \ }
 
 
@@ -258,7 +260,7 @@ let s:default_keymaps = [
   \ ['v', 'key_eval', ':GdbEvalRange'],
   \ ]
 
-function! s:SetKeymaps()
+function! nvimgdb#SetKeymaps()
   for keymap in s:default_keymaps
     if has_key(t:config, keymap[1])
       let key = t:config[keymap[1]]
@@ -269,7 +271,7 @@ function! s:SetKeymaps()
   endfor
 endfunction
 
-function! s:UnsetKeymaps()
+function! nvimgdb#UnsetKeymaps()
   for keymap in s:default_keymaps
     if has_key(t:config, keymap[1])
       let key = t:config[keymap[1]]
@@ -301,7 +303,9 @@ function! s:SetTKeymaps()
   tnoremap <silent> <buffer> <esc> <c-\><c-n>
 
   " Set normal mode keymaps too
-  call s:SetKeymaps()
+  try
+    call t:config['set_keymaps']()
+  endtry
 endfunction
 
 
@@ -411,7 +415,9 @@ endfunction
 function! s:OnBufEnter()
   if !exists('t:gdb') | return | endif
   if &buftype ==# 'terminal' | return | endif
-  call s:SetKeymaps()
+  try
+    call t:config['set_keymaps']()
+  endtry
   " Ensure breakpoints are shown if are queried dynamically
   call t:gdb._state_paused.info_breakpoints()
 endfunction
@@ -419,7 +425,9 @@ endfunction
 function! s:OnBufLeave()
   if !exists('t:gdb') | return | endif
   if &buftype ==# 'terminal' | return | endif
-  call s:UnsetKeymaps()
+  try
+    call t:config['unset_keymaps']()
+  endtry
 endfunction
 
 
