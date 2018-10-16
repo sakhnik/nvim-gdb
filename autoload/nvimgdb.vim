@@ -432,16 +432,27 @@ endfunction
 
 
 function! s:InitConfig()
-  " Make a copy of the default configuration
-  let config = copy(s:default_config)
+  " Make a copy of the supplied configuration if defined
+  if exists('g:nvimgdb_config')
+    let config = copy(g:nvimgdb_config)
+  else
+    let config = copy(s:default_config)
+  endif
+
+  " If there is config overload defined, add it
+  if exists('g:nvimgdb_config_overload')
+    call extend(config, g:nvimgdb_config_overload)
+  endif
+
   " See whether a global overload for a specific configuration
-  " key exists. If so, overload the default.
+  " key exists. If so, overload that too.
   for key in keys(config)
     let varname = 'g:nvimgdb_' . key
     if exists(varname)
       exe 'let config[key] = ' . varname
     endif
   endfor
+
   " Return the resulting configuration
   return config
 endfunction
