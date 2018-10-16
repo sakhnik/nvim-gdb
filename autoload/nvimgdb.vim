@@ -17,6 +17,7 @@ let s:default_config = {
   \ 'key_frameup': '<c-p>',
   \ 'key_framedown': '<c-n>',
   \ 'key_eval': '<f9>',
+  \ 'set_tkeymaps': function('nvimgdb#SetTKeymaps'),
   \ 'set_keymaps': function('nvimgdb#SetKeymaps'),
   \ 'unset_keymaps': function('nvimgdb#UnsetKeymaps'),
   \ }
@@ -290,7 +291,7 @@ let s:default_tkeymaps = [
   \ ['key_finish', ':GdbFinish'],
   \ ]
 
-function! s:SetTKeymaps()
+function! nvimgdb#SetTKeymaps()
   " Set term-local key maps
   for keymap in s:default_tkeymaps
     if has_key(t:config, keymap[0])
@@ -301,11 +302,6 @@ function! s:SetTKeymaps()
     endif
   endfor
   tnoremap <silent> <buffer> <esc> <c-\><c-n>
-
-  " Set normal mode keymaps too
-  try
-    call t:config['set_keymaps']()
-  endtry
 endfunction
 
 
@@ -516,7 +512,16 @@ function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   endif
   let g:nvimgdb_count += 1
 
-  call s:SetTKeymaps()
+  " Set terminal window keymaps
+  try
+    call t:config['set_tkeymaps']()
+  endtry
+
+  " Set normal mode keymaps too
+  try
+    call t:config['set_keymaps']()
+  endtry
+
   " Start inset mode in the GDB window
   normal i
 endfunction
