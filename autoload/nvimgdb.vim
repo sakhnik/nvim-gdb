@@ -260,18 +260,22 @@ let s:default_keymaps = [
 
 function! s:SetKeymaps()
   for keymap in s:default_keymaps
-    let key = t:config[keymap[1]]
-    if !empty(key)
-      exe keymap[0] . 'noremap <buffer> <silent> ' . key . ' ' . keymap[2]'<cr>'
+    if has_key(t:config, keymap[1])
+      let key = t:config[keymap[1]]
+      if !empty(key)
+        exe keymap[0] . 'noremap <buffer> <silent> ' . key . ' ' . keymap[2]'<cr>'
+      endif
     endif
   endfor
 endfunction
 
 function! s:UnsetKeymaps()
   for keymap in s:default_keymaps
-    let key = t:config[keymap[1]]
-    if !empty(key)
-      exe keymap[0] . 'unmap <buffer> ' . key
+    if has_key(t:config, keymap[1])
+      let key = t:config[keymap[1]]
+      if !empty(key)
+        exe keymap[0] . 'unmap <buffer> ' . key
+      endif
     endif
   endfor
 endfunction
@@ -287,9 +291,11 @@ let s:default_tkeymaps = [
 function! s:SetTKeymaps()
   " Set term-local key maps
   for keymap in s:default_tkeymaps
-    let key = t:config[keymap[0]]
-    if !empty(key)
-      exe 'tnoremap <buffer> <silent> ' . key . ' <c-\><c-n>' . keymap[1] . '<cr>i'
+    if has_key(t:config, keymap[0])
+      let key = t:config[keymap[0]]
+      if !empty(key)
+        exe 'tnoremap <buffer> <silent> ' . key . ' <c-\><c-n>' . keymap[1] . '<cr>i'
+      endif
     endif
   endfor
   tnoremap <silent> <buffer> <esc> <c-\><c-n>
