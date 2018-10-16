@@ -149,7 +149,7 @@ class TestGdb(unittest.TestCase):
         eng.KeyStrokeL('<f8>')
         eng.KeyStrokeL(':12<cr>')
         eng.KeyStrokeL('<f8>')
-        eng.KeyStrokeL('<f10>')
+        eng.KeyStrokeL(' dn')   # custom defined "next": <leader>gn
 
         cur, breaks = eng.GetSigns()
         self.assertEqual(19, cur)
