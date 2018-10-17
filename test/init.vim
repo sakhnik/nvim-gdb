@@ -24,7 +24,7 @@ function! MyUnsetKeymaps()
   nunmap <buffer> <leader>tn
 endfunction
 
-let g:nvimgdb_config_overload = {
+let g:nvimgdb_config_override = {
   \ 'set_tkeymaps': funcref('MySetTKeymaps'),
   \ 'set_keymaps': funcref('MySetKeymaps'),
   \ 'unset_keymaps': funcref('MyUnsetKeymaps'),

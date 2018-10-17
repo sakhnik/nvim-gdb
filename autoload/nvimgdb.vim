@@ -435,13 +435,13 @@ function! s:InitConfig()
     let config = copy(s:default_config)
   endif
 
-  " If there is config overload defined, add it
-  if exists('g:nvimgdb_config_overload')
-    call extend(config, g:nvimgdb_config_overload)
+  " If there is config override defined, add it
+  if exists('g:nvimgdb_config_override')
+    call extend(config, g:nvimgdb_config_override)
   endif
 
-  " See whether a global overload for a specific configuration
-  " key exists. If so, overload that too.
+  " See whether a global override for a specific configuration
+  " key exists. If so, update the config.
   for key in keys(config)
     let varname = 'g:nvimgdb_' . key
     if exists(varname)
