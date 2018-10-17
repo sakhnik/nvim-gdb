@@ -149,7 +149,7 @@ class TestGdb(unittest.TestCase):
         eng.KeyStrokeL('<f8>')
         eng.KeyStrokeL(':12<cr>')
         eng.KeyStrokeL('<f8>')
-        eng.KeyStrokeL(' dn')   # custom defined "next": <leader>gn
+        eng.KeyStrokeL('<f10>')
 
         cur, breaks = eng.GetSigns()
         self.assertEqual(19, cur)
@@ -203,6 +203,30 @@ class TestGdb(unittest.TestCase):
                 cur, breaks = eng.GetSigns()
                 self.assertEqual(21, cur)
                 self.assertFalse(breaks)
+
+                eng.KeyStroke('ZZ')
+
+    def test_70_keymap(self):
+        """=> Test custom programmable keymaps."""
+        for backend, spec in subtests.items():
+            with self.subTest(backend=backend):
+                eng.KeyStroke(spec["launch"], delay=1)
+                eng.KeyStroke(spec["tbreak_main"])
+                eng.KeyStroke('run\n', delay=1)
+
+                self.assertEqual(0, eng.Eval('g:test_tkeymap'))
+                eng.KeyStroke(' tkm')
+                self.assertEqual(1, eng.Eval('g:test_tkeymap'))
+                eng.KeyStrokeL('<esc>')
+                self.assertEqual(0, eng.Eval('g:test_keymap'))
+                eng.KeyStroke(' tn')
+                self.assertEqual(1, eng.Eval('g:test_keymap'))
+                eng.KeyStrokeL(':let g:test_tkeymap = 0 | let g:test_keymap = 0<cr>')
+                eng.KeyStrokeL('<c-w>w')
+                self.assertEqual(0, eng.Eval('g:test_keymap'))
+                eng.KeyStroke(' tn')
+                self.assertEqual(1, eng.Eval('g:test_keymap'))
+                eng.KeyStrokeL(':let g:test_keymap = 0<cr>')
 
                 eng.KeyStroke('ZZ')
 
