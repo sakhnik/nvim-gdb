@@ -46,6 +46,22 @@ To disable the plugin
 let g:loaded_nvimgdb = 1
 ```
 
+The behaviour of the plugin can be tuned by defining specific variables.
+For instance, you could overload some command keymaps:
+```vim
+let g:nvimgdb_config_override = {
+  \ 'key_next': 'n',
+  \ 'key_step': 's',
+  \ 'key_finish': 'f',
+  \ 'key_continue': 'c',
+  \ 'key_until': 'u',
+  \ 'key_breakpoint': 'b',
+  \ }
+```
+
+Likewise, you could define your own hooks to be called when the source window
+is entered and left. Please refer to the online NeoVim help: `:help nvimgdb`.
+
 ## Usage
 
 See `:help nvimgdb` for the complete online documentation. Most notable commands:
