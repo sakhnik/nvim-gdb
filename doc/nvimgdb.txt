@@ -132,17 +132,42 @@ true, the initial keymaps to start debugging session are suppressed
 (see |NvimgdbMappings|).
 
 The following variables could be defined to change default mappings for the
-debugging commands:
+debugging commands: >
 
-g:nvimgdb_key_until
-g:nvimgdb_key_continue
-g:nvimgdb_key_next
-g:nvimgdb_key_step
-g:nvimgdb_key_finish
-g:nvimgdb_key_breakpoint
-g:nvimgdb_key_frameup
-g:nvimgdb_key_framedown
-g:nvimgdb_key_eval
+    g:nvimgdb_config
+    g:nvimgdb_config_override
+<
+These variables are dictionaries with the keys described below. While the
+first redefines the default configuration completely, the second one merely
+allows overriding the given keys. For example, the default config is: >
+
+    let g:nvimgdb_config = {
+      \ 'key_until':      '<f4>',
+      \ 'key_continue':   '<f5>',
+      \ 'key_next':       '<f10>',
+      \ 'key_step':       '<f11>',
+      \ 'key_finish':     '<f12>',
+      \ 'key_breakpoint': '<f8>',
+      \ 'key_frameup':    '<c-p>',
+      \ 'key_framedown':  '<c-n>',
+      \ 'key_eval':       '<f9>',
+      \ 'set_tkeymaps':   function('nvimgdb#SetTKeymaps'),
+      \ 'set_keymaps':    function('nvimgdb#SetKeymaps'),
+      \ 'unset_keymaps':  function('nvimgdb#UnsetKeymaps'),
+      \ }
+<
+The keys starting with `key_` define a key mapping for the respective command.
+The key `set_tkeymaps` allows specifying a hook function, which will be called
+when the terminal window has been created. You can call the default handler
+from within the hook and/or define your own very specific terminal keymaps.
+The keys `set_keymaps` and `unset_keymaps` are called every time when the
+source code windows is entered and left. The first one can be used to define
+source window-specific keymaps and the latter to carefully cleanup them.
+See `test/init.vim` for an example.
+
+Finally, every configuration key can be overridden with a global variable
+prefixed `g:nvimgdb_`. For example, `g:nvimgdb_key_next` overrides
+`g:nvimgdb_config["key_next"]` etc.
 
 ==============================================================================
 Section 5: Limitations                                    *NvimgdbLimitations*
