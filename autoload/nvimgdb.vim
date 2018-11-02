@@ -383,7 +383,7 @@ function! s:InitConfig()
   for key in keys(config)
     let varname = 'g:nvimgdb_' . key
     if exists(varname)
-      exe 'let config[key] = ' . varname
+      let config[key] = eval(varname)
     endif
   endfor
 
