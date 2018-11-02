@@ -582,12 +582,10 @@ function! s:SetBreakpointSigns(buf)
   if a:buf == -1
     return
   endif
-  let t:gdb._max_breakpoint_sign_id = 0
-  let id = 5000
+  let t:gdb._max_breakpoint_sign_id = 5000 - 1
   for linenr in keys(get(t:gdb._breakpoints, s:GetFullBufferPath(a:buf), {}))
-    exe 'sign place '.id.' name=GdbBreakpoint line='.linenr.' buffer='.a:buf
-    let t:gdb._max_breakpoint_sign_id = id
-    let id += 1
+    let t:gdb._max_breakpoint_sign_id += 1
+    exe 'sign place '.t:gdb._max_breakpoint_sign_id.' name=GdbBreakpoint line='.linenr.' buffer='.a:buf
   endfor
 endfunction
 
