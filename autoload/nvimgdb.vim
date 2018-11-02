@@ -23,61 +23,6 @@ let s:default_config = {
   \ }
 
 
-" gdb specifics
-let s:backend_gdb = {
-  \ 'init_state': 'running',
-  \ 'init': [],
-  \ 'paused': [
-  \     ['Continuing.', 'continue'],
-  \     ['\v[\o32]{2}([^:]+):(\d+):\d+', 'jump'],
-  \     ['^(gdb) ', 'info_breakpoints'],
-  \ ],
-  \ 'running': [
-  \     ['\v^Breakpoint \d+', 'pause'],
-  \     ['\v hit Breakpoint \d+', 'pause'],
-  \     ['^(gdb) ', 'pause'],
-  \ ],
-  \ 'delete_breakpoints': 'delete',
-  \ 'breakpoint': 'break',
-  \ 'until' : 'until',
-  \ }
-
-" lldb specifics
-let s:backend_lldb = {
-  \ 'init_state': 'running',
-  \ 'init': [],
-  \ 'paused': [
-  \     ['\v^Process \d+ resuming', 'continue'],
-  \     ['\v at [\o32]{2}([^:]+):(\d+)', 'jump'],
-  \     ['(lldb)', 'info_breakpoints'],
-  \ ],
-  \ 'running': [
-  \     ['\v^Breakpoint \d+:', 'pause'],
-  \     ['\v^Process \d+ stopped', 'pause'],
-  \     ['(lldb)', 'pause'],
-  \ ],
-  \ 'delete_breakpoints': 'breakpoint delete',
-  \ 'breakpoint': 'b',
-  \ 'until' : 'thread until',
-  \ }
-
-" pdb specifics
-let s:backend_pdb = {
-  \ 'init_state': 'paused',
-  \ 'init': [],
-  \ 'paused': [
-  \     ['\v-@<!\> ([^(]+)\((\d+)\)[^(]+\(\)', 'jump'],
-  \     ['^(Pdb) ', 'info_breakpoints'],
-  \ ],
-  \ 'running': [
-  \ ],
-  \ 'delete_breakpoints': 'clear',
-  \ 'breakpoint': 'break',
-  \ 'finish': 'return',
-  \ 'until' : 'until',
-  \ }
-
-
 " Transition "paused" -> "continue"
 function s:GdbPaused_continue(...) dict
   call self._parser.switch(self._state_running)
@@ -346,14 +291,7 @@ function! s:InitMachine(backend, struct)
   let data = copy(a:struct)
 
   " Identify and select the appropriate backend
-  if a:backend == "lldb"
-    let data.backend = s:backend_lldb
-  elseif a:backend == "pdb"
-    let data.backend = s:backend_pdb
-  else
-    " Fall back to GDB
-    let data.backend = s:backend_gdb
-  endif
+  let data.backend = nvimgdb#{a:backend}#backend()
 
   "  +-jump,breakpoint--+
   "  |                  |
@@ -445,7 +383,7 @@ function! s:InitConfig()
   for key in keys(config)
     let varname = 'g:nvimgdb_' . key
     if exists(varname)
-      exe 'let config[key] = ' . varname
+      let config[key] = eval(varname)
     endif
   endfor
 
@@ -582,12 +520,10 @@ function! s:SetBreakpointSigns(buf)
   if a:buf == -1
     return
   endif
-  let t:gdb._max_breakpoint_sign_id = 0
-  let id = 5000
+  let t:gdb._max_breakpoint_sign_id = 5000 - 1
   for linenr in keys(get(t:gdb._breakpoints, s:GetFullBufferPath(a:buf), {}))
-    exe 'sign place '.id.' name=GdbBreakpoint line='.linenr.' buffer='.a:buf
-    let t:gdb._max_breakpoint_sign_id = id
-    let id += 1
+    let t:gdb._max_breakpoint_sign_id += 1
+    exe 'sign place '.t:gdb._max_breakpoint_sign_id.' name=GdbBreakpoint line='.linenr.' buffer='.a:buf
   endfor
 endfunction
 
