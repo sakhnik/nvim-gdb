@@ -154,10 +154,10 @@ let s:info_breakpoints_loaded = 0
 
 function! s:InfoBreakpoints(file, proxy_addr)
   if !s:info_breakpoints_loaded
-    exe 'py3file ' . s:plugin_dir . '/lib/info_breakpoints.py'
+    exe 'luafile ' . s:plugin_dir . '/lua/info_breakpoints.lua'
     let s:info_breakpoints_loaded = 1
   endif
-  return json_decode(py3eval("InfoBreakpoints('" . a:file . "', '" . a:proxy_addr . "')"))
+  return json_decode(luaeval("InfoBreakpoints(_A[1], _A[2])", [a:file, a:proxy_addr]))
 endfunction
 
 
