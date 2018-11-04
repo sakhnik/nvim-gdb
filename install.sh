@@ -1,8 +1,8 @@
 #!/bin/bash -e
 
-this_dir=$(realpath `dirname ${BASH_SOURCE[0]}`)
+cd `dirname ${BASH_SOURCE[0]}`
+this_dir=`pwd -P`   # Unfortunately, readlink -f isn't available in macos
 rocks_tree="$this_dir/lua/rocks"
-cd "$this_dir"
 
 #luarocks=/usr/bin/luarocks-5.1
 if [[ ! -x "$luarocks" ]]; then
