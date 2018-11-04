@@ -29,8 +29,8 @@ s|;\([^-][^;]*"luarocks.loader"[^']*'\)|;--[[\1]]|
 EOF
 
 cat >lua/set_paths.lua <<EOF
-package.path = '`$luarocks path --lr-path`' .. package.path
-package.cpath = '`$luarocks path --lr-cpath`' .. package.cpath
+package.path = '`$luarocks path --lr-path`;' .. package.path
+package.cpath = '`$luarocks path --lr-cpath`;' .. package.cpath
 EOF
 
 $luarocks install moonscript --tree="$rocks_tree"
