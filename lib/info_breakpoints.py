@@ -18,12 +18,15 @@ def InfoBreakpoints(fname, proxy_addr):
             # Break out after 1/2 second
             sock.settimeout(0.5)
 
+            # Connect to the proxy
+            sock.connect(proxy_addr)
+
             # Let GDB send back the list of sources
             command = 'info-breakpoints %s\n' % fname
-            sock.sendto(command.encode('utf-8'), 0, proxy_addr)
+            sock.send(command.encode('utf-8'))
 
             # Receive the result from GDB
-            data, addr = sock.recvfrom(65536)
+            data = sock.recv(65536)
 
             # Return the result to Vim
             return data.decode('utf-8')

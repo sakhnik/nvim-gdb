@@ -1,6 +1,6 @@
 
 " gdb specifics
-function! nvimgdb#gdb#backend()
+function! nvimgdb#backend#gdb#create()
   let backend = {
     \ 'init_state': 'running',
     \ 'init': [],
