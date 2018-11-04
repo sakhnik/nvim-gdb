@@ -4,3 +4,4 @@ a.out
 __pycache__/
 test/config.py
 lua/rocks/
+lua/set_paths.lua

@@ -1,3 +1,4 @@
+require "set_paths"
 libstd = require "posix.stdlib"
 s = require "posix.sys.socket"
 
