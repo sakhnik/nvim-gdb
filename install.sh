@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-this_dir=$(readlink -f `dirname ${BASH_SOURCE[0]}`)
+this_dir=$(realpath `dirname ${BASH_SOURCE[0]}`)
 rocks_tree="$this_dir/lua/rocks"
 cd "$this_dir"
 
