@@ -24,9 +24,7 @@ fi
 
 # Unfortunately, luaposix doesn't build when the luarocks loader
 # is used. So let's comment it out in the LUA_INIT.
-sed -i -f - $luarocks <<'EOF'
-s|;\([^-][^;]*"luarocks.loader"[^']*'\)|;--[[\1]]|
-EOF
+sed -i -e "s|;\\([^-][^;]*\"luarocks.loader\"[^']*'\\)|;--[[\\1]]|" $luarocks
 
 cat >lua/set_paths.lua <<EOF
 package.path = '`$luarocks path --lr-path`;' .. package.path
