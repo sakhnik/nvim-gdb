@@ -16,6 +16,7 @@ matrix:
             - lldb-5.0
             - python3-dev
             - python3-pip
+            - lua5.1
 
     - os: osx
 
@@ -25,6 +26,7 @@ notifications:
 before_install:
   - ./.travis-`uname`.sh
   - pip3 install --user neovim
+  - ./install.sh
 
 script:
   - ./test/all.sh
