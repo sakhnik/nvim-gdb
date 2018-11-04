@@ -1,4 +1,3 @@
-sign define GdbBreakpoint text=●
 sign define GdbCurrentLine text=⇒
 
 
@@ -35,7 +34,7 @@ function s:GdbPaused_jump(file, line, ...) dict
     " Switch to the new buffer
     exe 'buffer ' target_buf
     let self._current_buf = target_buf
-    call s:RefreshBreakpointSigns(self._current_buf)
+    call nvimgdb#breakpoint#refresh(self._current_buf)
   endif
 
   exe ':' a:line
@@ -63,7 +62,7 @@ function s:GdbPaused_info_breakpoints(...) dict
     let bufnum = bufnr('%')
   endif
   " Get the source code file name
-  let fname = s:GetFullBufferPath(bufnum)
+  let fname = nvimgdb#GetFullBufferPath(bufnum)
 
   " If no file name or a weird name with spaces, ignore it (to avoid
   " misinterpretation)
@@ -72,13 +71,8 @@ function s:GdbPaused_info_breakpoints(...) dict
   endif
 
   " Query the breakpoints for the shown file
-  let breaks = s:InfoBreakpoints(fname, t:gdb._proxy_addr)
-  if has_key(breaks, "_error")
-    echo "Can't get breakpoints: " . breaks["_error"]
-    return
-  endif
-  let self._breakpoints[fname] = breaks
-  call s:RefreshBreakpointSigns(bufnum)
+  call nvimgdb#breakpoint#query(bufnum, fname, t:gdb._proxy_addr)
+
   call self.update_current_line_sign(1)
 endfunction
 
@@ -117,8 +111,7 @@ function s:Gdb.kill()
   endif
 
   " Clean up the breakpoint signs
-  let t:gdb._breakpoints = {}
-  call s:ClearBreakpointSigns()
+  call nvimgdb#breakpoint#cleanup()
 
   " Clean up the current line sign
   call self.update_current_line_sign(0)
@@ -131,17 +124,6 @@ function s:Gdb.kill()
 
   " TabEnter isn't fired automatically when a tab is closed
   call s:OnTabEnter()
-endfunction
-
-
-let s:info_breakpoints_loaded = 0
-
-function! s:InfoBreakpoints(file, proxy_addr)
-  if !s:info_breakpoints_loaded
-    exe 'py3file ' . s:plugin_dir . '/lib/info_breakpoints.py'
-    let s:info_breakpoints_loaded = 1
-  endif
-  return json_decode(py3eval("InfoBreakpoints('" . a:file . "', '" . a:proxy_addr . "')"))
 endfunction
 
 
@@ -257,7 +239,7 @@ function! s:OnTabLeave()
 
   " Hide the signs
   call t:gdb.update_current_line_sign(0)
-  call s:ClearBreakpointSigns()
+  call nvimgdb#breakpoint#clear()
 endfunction
 
 
@@ -283,12 +265,13 @@ function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   let gdb._jump_window = 1
   let gdb._current_buf = -1
   let gdb._current_line = -1
-  let gdb._breakpoints = {}
-  let gdb._max_breakpoint_sign_id = 0
   " Create new tab for the debugging view
   tabnew
   " create horizontal split to display the current file
   sp
+
+  " Initialize breakpoint tracking
+  call nvimgdb#breakpoint#init()
 
   if !&scrolloff
     " Make sure the cursor stays visible at all times
@@ -346,7 +329,7 @@ endfunction
 
 
 " Breakpoints need full path to the buffer (at least in lldb)
-function! s:GetFullBufferPath(buf)
+function! nvimgdb#GetFullBufferPath(buf)
   return expand('#' . a:buf . ':p')
 endfunction
 
@@ -360,8 +343,8 @@ function! nvimgdb#ToggleBreak()
   endif
 
   let buf = bufnr('%')
-  let file_name = s:GetFullBufferPath(buf)
-  let file_breakpoints = get(t:gdb._breakpoints, file_name, {})
+  let file_name = nvimgdb#GetFullBufferPath(buf)
+  let file_breakpoints = nvimgdb#breakpoint#get_for_file(file_name)
   let linenr = line('.')
 
   if has_key(file_breakpoints, linenr)
@@ -376,40 +359,13 @@ endfunction
 function! nvimgdb#ClearBreak()
   if !exists('t:gdb') | return | endif
 
-  let t:gdb._breakpoints = {}
-  call s:ClearBreakpointSigns()
+  call nvimgdb#breakpoint#cleanup()
 
   if t:gdb._parser.state() == t:gdb._state_running
     " pause first
     call jobsend(t:gdb._client_id, "\<c-c>")
   endif
   call t:gdb.send(t:gdb.backend['delete_breakpoints'])
-endfunction
-
-
-function! s:ClearBreakpointSigns()
-  let i = 5000
-  while i <= t:gdb._max_breakpoint_sign_id
-    exe 'sign unplace '.i
-    let i += 1
-  endwhile
-  let t:gdb._max_breakpoint_sign_id = 0
-endfunction
-
-function! s:SetBreakpointSigns(buf)
-  if a:buf == -1
-    return
-  endif
-  let t:gdb._max_breakpoint_sign_id = 5000 - 1
-  for linenr in keys(get(t:gdb._breakpoints, s:GetFullBufferPath(a:buf), {}))
-    let t:gdb._max_breakpoint_sign_id += 1
-    exe 'sign place '.t:gdb._max_breakpoint_sign_id.' name=GdbBreakpoint line='.linenr.' buffer='.a:buf
-  endfor
-endfunction
-
-function! s:RefreshBreakpointSigns(buf)
-  call s:ClearBreakpointSigns()
-  call s:SetBreakpointSigns(a:buf)
 endfunction
 
 
