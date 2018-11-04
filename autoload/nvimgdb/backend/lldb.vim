@@ -1,6 +1,6 @@
 
 " lldb specifics
-function! nvimgdb#lldb#backend()
+function! nvimgdb#backend#lldb#create()
   let backend = {
     \ 'init_state': 'running',
     \ 'init': [],

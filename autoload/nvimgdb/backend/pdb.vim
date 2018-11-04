@@ -1,6 +1,6 @@
 
 " pdb specifics
-function! nvimgdb#pdb#backend()
+function! nvimgdb#backend#pdb#create()
   let backend = {
     \ 'init_state': 'paused',
     \ 'init': [],

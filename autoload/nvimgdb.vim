@@ -291,7 +291,7 @@ function! s:InitMachine(backend, struct)
   let data = copy(a:struct)
 
   " Identify and select the appropriate backend
-  let data.backend = nvimgdb#{a:backend}#backend()
+  let data.backend = nvimgdb#backend#{a:backend}#create()
 
   "  +-jump,breakpoint--+
   "  |                  |
