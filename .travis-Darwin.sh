@@ -17,3 +17,5 @@ cat >$HOME/bin/lldb <<'EOF'
 PATH=/usr/bin /usr/bin/lldb "$@"
 EOF
 chmod +x $HOME/bin/lldb
+
+brew install lua@5.1
