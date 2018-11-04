@@ -151,9 +151,9 @@ allows overriding the given keys. For example, the default config is: >
       \ 'key_frameup':    '<c-p>',
       \ 'key_framedown':  '<c-n>',
       \ 'key_eval':       '<f9>',
-      \ 'set_tkeymaps':   function('nvimgdb#SetTKeymaps'),
-      \ 'set_keymaps':    function('nvimgdb#SetKeymaps'),
-      \ 'unset_keymaps':  function('nvimgdb#UnsetKeymaps'),
+      \ 'set_tkeymaps':   function('nvimgdb#keymaps#SetT'),
+      \ 'set_keymaps':    function('nvimgdb#keymaps#Set'),
+      \ 'unset_keymaps':  function('nvimgdb#keymaps#Unset'),
       \ }
 <
 The keys starting with `key_` define a key mapping for the respective command.
