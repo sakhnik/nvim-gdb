@@ -2,6 +2,7 @@
 
 " Transition "paused" -> "continue"
 function s:GdbPaused_continue(...) dict
+  if t:gdb != self | return | endif
   call self._parser.switch(self._state_running)
   call nvimgdb#cursor#Display(0)
 endfunction
@@ -9,27 +10,20 @@ endfunction
 
 " Transition "paused" -> "paused": jump to the frame location
 function s:GdbPaused_jump(file, line, ...) dict
-  if t:gdb != self
-    " Don't jump if we are not in the current debugger tab
-    return
-  endif
+  if t:gdb != self | return | endif
   call nvimgdb#win#Jump(a:file, a:line)
 endfunction
 
 " Transition "paused" -> "paused": refresh breakpoints in the current file
 function s:GdbPaused_info_breakpoints(...) dict
-  if t:gdb != self
-    " Don't do anything if we are not in the current debugger tab
-    return
-  endif
-
+  if t:gdb != self | return | endif
   call nvimgdb#win#QueryBreakpoints()
 endfunction
 
 " Transition "running" -> "pause"
 function s:GdbRunning_pause(...) dict
+  if t:gdb != self | return | endif
   call self._parser.switch(self._state_paused)
-
   call nvimgdb#win#QueryBreakpoints()
 endfunction
 
