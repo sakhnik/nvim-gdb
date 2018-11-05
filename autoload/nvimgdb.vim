@@ -1,7 +1,5 @@
 
 
-" Count of active debugging views
-let g:nvimgdb_count = 0
 let s:plugin_dir = expand('<sfile>:p:h:h')
 
 
@@ -88,17 +86,9 @@ let s:Gdb = {}
 
 
 function s:Gdb.kill()
-  let g:nvimgdb_count -= 1
-  if !g:nvimgdb_count
-    " Cleanup the autocommands
-    augroup NvimGdb
-      au!
-    augroup END
-    augroup! NvimGdb
 
-    " Cleanup user commands and keymaps
-    call s:UndefCommands()
-  endif
+  " Cleanup commands, autocommands etc
+  call nvimgdb#ui#Leave()
 
   " Clean up the breakpoint signs
   call nvimgdb#breakpoint#cleanup()
@@ -113,49 +103,12 @@ function s:Gdb.kill()
   endif
 
   " TabEnter isn't fired automatically when a tab is closed
-  call s:OnTabEnter()
+  call nvimgdb#OnTabEnter()
 endfunction
 
 
 function! s:Gdb.send(data)
   call jobsend(self._client_id, a:data."\<cr>")
-endfunction
-
-
-
-function! s:DefineCommands()
-  command! GdbDebugStop call nvimgdb#Kill()
-  command! GdbBreakpointToggle call nvimgdb#ToggleBreak()
-  command! GdbBreakpointClearAll call nvimgdb#ClearBreak()
-  command! GdbRun call nvimgdb#Send("run")
-  command! GdbUntil call nvimgdb#Send(t:gdb.backend["until"] . " " . line('.'))
-  command! GdbContinue call nvimgdb#Send("c")
-  command! GdbNext call nvimgdb#Send("n")
-  command! GdbStep call nvimgdb#Send("s")
-  command! GdbFinish call nvimgdb#Send("finish")
-  command! GdbFrameUp call nvimgdb#Send("up")
-  command! GdbFrameDown call nvimgdb#Send("down")
-  command! GdbInterrupt call nvimgdb#Interrupt()
-  command! GdbEvalWord call nvimgdb#Eval(expand('<cword>'))
-  command! -range GdbEvalRange call nvimgdb#Eval(s:GetExpression(<f-args>))
-endfunction
-
-
-function! s:UndefCommands()
-  delcommand GdbDebugStop
-  delcommand GdbBreakpointToggle
-  delcommand GdbBreakpointClearAll
-  delcommand GdbRun
-  delcommand GdbUntil
-  delcommand GdbContinue
-  delcommand GdbNext
-  delcommand GdbStep
-  delcommand GdbFinish
-  delcommand GdbFrameUp
-  delcommand GdbFrameDown
-  delcommand GdbInterrupt
-  delcommand GdbEvalWord
-  delcommand GdbEvalRange
 endfunction
 
 
@@ -198,7 +151,7 @@ function! nvimgdb#CheckWindowClosed(...)
   endif
 endfunction
 
-function! s:OnTabEnter()
+function! nvimgdb#OnTabEnter()
   if !exists('t:gdb') | return | endif
 
   " Restore the signs as they may have been spoiled
@@ -210,7 +163,7 @@ function! s:OnTabEnter()
   call t:gdb._state_paused.info_breakpoints()
 endfunction
 
-function! s:OnTabLeave()
+function! nvimgdb#OnTabLeave()
   if !exists('t:gdb') | return | endif
 
   " Hide the signs
@@ -219,7 +172,7 @@ function! s:OnTabLeave()
 endfunction
 
 
-function! s:OnBufEnter()
+function! nvimgdb#OnBufEnter()
   if !exists('t:gdb') | return | endif
   if &buftype ==# 'terminal' | return | endif
   call nvimgdb#keymaps#DispatchSet()
@@ -227,7 +180,7 @@ function! s:OnBufEnter()
   call t:gdb._state_paused.info_breakpoints()
 endfunction
 
-function! s:OnBufLeave()
+function! nvimgdb#OnBufLeave()
   if !exists('t:gdb') | return | endif
   if &buftype ==# 'terminal' | return | endif
   call nvimgdb#keymaps#DispatchUnset()
@@ -273,26 +226,8 @@ function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   " Prepare configuration specific to this debugging session
   call nvimgdb#keymaps#Init()
 
-  " Check if user closed either of our windows.
-  if !g:nvimgdb_count
-    call s:DefineCommands()
-    augroup NvimGdb
-      au!
-      " Unfortunately, there is no event to handle a window closed.
-      " It's needed to be handled heuristically:
-      "   When :quit is executed, the cursor will enter another buffer
-      au WinEnter * call nvimgdb#CheckWindowClosed()
-      "   When :only is executed, BufWinLeave will be issued before closing
-      "   window. We start a timer expecting it to expire after the window
-      "   has been closed. It's a race.
-      au BufWinLeave * call timer_start(100, "nvimgdb#CheckWindowClosed")
-      au TabEnter * call s:OnTabEnter()
-      au TabLeave * call s:OnTabLeave()
-      au BufEnter * call s:OnBufEnter()
-      au BufLeave * call s:OnBufLeave()
-    augroup END
-  endif
-  let g:nvimgdb_count += 1
+  " Initialize the UI commands, autocommands etc
+  call nvimgdb#ui#Enter()
 
   " Set terminal window keymaps
   call nvimgdb#keymaps#DispatchSetT()
