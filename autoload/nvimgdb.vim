@@ -1,10 +1,8 @@
 
 
-let s:plugin_dir = expand('<sfile>:p:h:h')
-
-
 " Transition "paused" -> "continue"
 function s:GdbPaused_continue(...) dict
+  if t:gdb != self | return | endif
   call self._parser.switch(self._state_running)
   call nvimgdb#cursor#Display(0)
 endfunction
@@ -12,73 +10,21 @@ endfunction
 
 " Transition "paused" -> "paused": jump to the frame location
 function s:GdbPaused_jump(file, line, ...) dict
-  if t:gdb != self
-    " Don't jump if we are not in the current debugger tab
-    return
-  endif
-  let window = winnr()
-  exe self._jump_window 'wincmd w'
-  let self._current_buf = bufnr('%')
-  let target_buf = bufnr(a:file, 1)
-  if target_buf == self._client_buf
-    " The terminal buffer may contain the name of the source file (in pdb, for
-    " instance)
-    exe "e " . a:file
-    let target_buf = bufnr(a:file)
-  endif
-
-  if bufnr('%') != target_buf
-    " Switch to the new buffer
-    exe 'buffer ' target_buf
-    let self._current_buf = target_buf
-    call nvimgdb#breakpoint#Refresh(self._current_buf)
-  endif
-
-  exe ':' a:line
-  call nvimgdb#cursor#Set(a:line)
-  exe window 'wincmd w'
-  call nvimgdb#cursor#Display(1)
+  if t:gdb != self | return | endif
+  call nvimgdb#win#Jump(a:file, a:line)
 endfunction
 
 " Transition "paused" -> "paused": refresh breakpoints in the current file
 function s:GdbPaused_info_breakpoints(...) dict
-  if t:gdb != self
-    " Don't do anything if we are not in the current debugger tab
-    return
-  endif
-
-  " Get the source code buffer number
-  if bufnr('%') == self._client_buf
-    " The debugger terminal window is currently focused, so perform a couple
-    " of jumps.
-    let window = winnr()
-    exe self._jump_window 'wincmd w'
-    let bufnum = bufnr('%')
-    exe window 'wincmd w'
-  else
-    let bufnum = bufnr('%')
-  endif
-  " Get the source code file name
-  let fname = nvimgdb#GetFullBufferPath(bufnum)
-
-  " If no file name or a weird name with spaces, ignore it (to avoid
-  " misinterpretation)
-  if fname == '' || stridx(fname, ' ') != -1
-    return
-  endif
-
-  " Query the breakpoints for the shown file
-  call nvimgdb#breakpoint#Query(bufnum, fname, t:gdb._proxy_addr)
-
-  call nvimgdb#cursor#Display(1)
+  if t:gdb != self | return | endif
+  call nvimgdb#win#QueryBreakpoints()
 endfunction
 
 " Transition "running" -> "pause"
 function s:GdbRunning_pause(...) dict
+  if t:gdb != self | return | endif
   call self._parser.switch(self._state_paused)
-
-  " TODO: find a better way
-  call t:gdb._state_paused.info_breakpoints()
+  call nvimgdb#win#QueryBreakpoints()
 endfunction
 
 
@@ -97,18 +43,17 @@ function s:Gdb.kill()
   call nvimgdb#cursor#Display(0)
 
   " Close the windows and the tab
-  tabclose
-  if bufexists(self._client_buf)
-    exe 'bd! '.self._client_buf
+  let tabnr = tabpagenr('$')
+  let client_buf = nvimgdb#client#GetBuf()
+  if bufexists(client_buf)
+    exe 'bd! '.client_buf
+  endif
+  if tabnr == tabpagenr('$')
+    tabclose
   endif
 
   " TabEnter isn't fired automatically when a tab is closed
   call nvimgdb#OnTabEnter()
-endfunction
-
-
-function! s:Gdb.send(data)
-  call jobsend(self._client_id, a:data."\<cr>")
 endfunction
 
 
@@ -147,7 +92,6 @@ function! nvimgdb#CheckWindowClosed(...)
   " otherwise.
   if tabpagewinnr(tabpagenr(), '$') == 1
     call t:gdb.kill()
-    return
   endif
 endfunction
 
@@ -160,7 +104,7 @@ function! nvimgdb#OnTabEnter()
   endif
 
   " Ensure breakpoints are shown if are queried dynamically
-  call t:gdb._state_paused.info_breakpoints()
+  call nvimgdb#win#QueryBreakpoints()
 endfunction
 
 function! nvimgdb#OnTabLeave()
@@ -177,7 +121,7 @@ function! nvimgdb#OnBufEnter()
   if &buftype ==# 'terminal' | return | endif
   call nvimgdb#keymaps#DispatchSet()
   " Ensure breakpoints are shown if are queried dynamically
-  call t:gdb._state_paused.info_breakpoints()
+  call nvimgdb#win#QueryBreakpoints()
 endfunction
 
 function! nvimgdb#OnBufLeave()
@@ -189,13 +133,13 @@ endfunction
 
 function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   let gdb = s:InitMachine(a:backend, s:Gdb)
-  " window number that will be displaying the current file
-  let gdb._jump_window = 1
-  let gdb._current_buf = -1
   " Create new tab for the debugging view
   tabnew
   " create horizontal split to display the current file
   sp
+
+  " Initialize the windowing subsystem
+  call nvimgdb#win#Init()
 
   " Initialize current line tracking
   call nvimgdb#cursor#Init()
@@ -211,16 +155,8 @@ function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   " go to the bottom window and spawn gdb client
   wincmd j
 
-  " Prepare the debugger command to run
-  let l:command = ''
-  if a:proxy_cmd != ''
-    let gdb._proxy_addr = tempname()
-    let l:command = s:plugin_dir . '/lib/' . a:proxy_cmd . ' -a ' . gdb._proxy_addr . ' -- '
-  endif
-  let l:command .= a:client_cmd
+  call nvimgdb#client#Init(a:proxy_cmd, a:client_cmd, gdb)
 
-  enew | let gdb._client_id = termopen(l:command, gdb)
-  let gdb._client_buf = bufnr('%')
   let t:gdb = gdb
 
   " Prepare configuration specific to this debugging session
@@ -245,18 +181,12 @@ function! nvimgdb#GetFullBufferPath(buf)
   return expand('#' . a:buf . ':p')
 endfunction
 
-
-function! nvimgdb#GetCurrentBuffer()
-  return t:gdb._current_buf
-endfunction
-
-
 function! nvimgdb#ToggleBreak()
   if !exists('t:gdb') | return | endif
 
   if t:gdb._parser.state() == t:gdb._state_running
     " pause first
-    call jobsend(t:gdb._client_id, "\<c-c>")
+    call nvimgdb#client#Interrupt()
   endif
 
   let buf = bufnr('%')
@@ -266,9 +196,9 @@ function! nvimgdb#ToggleBreak()
 
   if has_key(file_breakpoints, linenr)
     " There already is a breakpoint on this line: remove
-    call t:gdb.send(t:gdb.backend['delete_breakpoints'] . ' ' . file_breakpoints[linenr])
+    call nvimgdb#client#SendLine(t:gdb.backend['delete_breakpoints'] . ' ' . file_breakpoints[linenr])
   else
-    call t:gdb.send(t:gdb.backend['breakpoint'] . ' ' . file_name . ':' . linenr)
+    call nvimgdb#client#SendLine(t:gdb.backend['breakpoint'] . ' ' . file_name . ':' . linenr)
   endif
 endfunction
 
@@ -280,29 +210,15 @@ function! nvimgdb#ClearBreak()
 
   if t:gdb._parser.state() == t:gdb._state_running
     " pause first
-    call jobsend(t:gdb._client_id, "\<c-c>")
+    call nvimgdb#client#Interrupt()
   endif
-  call t:gdb.send(t:gdb.backend['delete_breakpoints'])
-endfunction
-
-
-function! s:GetExpression(...) range
-  let [lnum1, col1] = getpos("'<")[1:2]
-  let [lnum2, col2] = getpos("'>")[1:2]
-  let lines = getline(lnum1, lnum2)
-  let lines[-1] = lines[-1][:col2 - 1]
-  let lines[0] = lines[0][col1 - 1:]
-  return join(lines, "\n")
+  call nvimgdb#client#SendLine(t:gdb.backend['delete_breakpoints'])
 endfunction
 
 
 function! nvimgdb#Send(data)
   if !exists('t:gdb') | return | endif
-  if has_key(t:gdb.backend, a:data)
-    call t:gdb.send(t:gdb.backend[a:data])
-  else
-    call t:gdb.send(a:data)
-  endif
+  call nvimgdb#client#SendLine(get(t:gdb.backend, a:data, a:data))
 endfunction
 
 
@@ -313,7 +229,7 @@ endfunction
 
 function! nvimgdb#Interrupt()
   if !exists('t:gdb') | return | endif
-  call jobsend(t:gdb._client_id, "\<c-c>")
+  call nvimgdb#client#Interrupt()
 endfunction
 
 
