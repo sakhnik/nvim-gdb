@@ -298,11 +298,7 @@ endfunction
 
 function! nvimgdb#Send(data)
   if !exists('t:gdb') | return | endif
-  if has_key(t:gdb.backend, a:data)
-    call t:gdb.send(t:gdb.backend[a:data])
-  else
-    call t:gdb.send(a:data)
-  endif
+  call t:gdb.send(get(t:gdb.backend, a:data, a:data))
 endfunction
 
 
