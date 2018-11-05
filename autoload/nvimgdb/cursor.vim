@@ -16,7 +16,7 @@ function! nvimgdb#cursor#Display(add)
   " sign after marking the new one
   let old_line_sign_id = t:line_sign_id
   let t:line_sign_id = old_line_sign_id == 4999 ? 4998 : 4999
-  let current_buf = nvimgdb#GetCurrentBuffer()
+  let current_buf = nvimgdb#win#GetCurrentBuffer()
   if a:add && t:current_line != -1 && current_buf != -1
     exe 'sign place '.t:line_sign_id.' name=GdbCurrentLine line='
           \.t:current_line.' buffer='.current_buf
