@@ -3,7 +3,6 @@
 function! nvimgdb#backend#pdb#create()
   let backend = {
     \ 'init_state': 'paused',
-    \ 'init': [],
     \ 'paused': [
     \     ['\v-@<!\> ([^(]+)\((\d+)\)[^(]+\(\)', 'jump'],
     \     ['^(Pdb) ', 'info_breakpoints'],

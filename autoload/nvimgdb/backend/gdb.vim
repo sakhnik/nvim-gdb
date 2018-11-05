@@ -3,7 +3,6 @@
 function! nvimgdb#backend#gdb#create()
   let backend = {
     \ 'init_state': 'running',
-    \ 'init': [],
     \ 'paused': [
     \     ['Continuing.', 'continue'],
     \     ['\v[\o32]{2}([^:]+):(\d+):\d+', 'jump'],

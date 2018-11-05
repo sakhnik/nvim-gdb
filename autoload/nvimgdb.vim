@@ -79,15 +79,6 @@ endfunction
 function s:GdbRunning_pause(...) dict
   call self._parser.switch(self._state_paused)
 
-  " For the first time the backend is paused, make sure it's initialized
-  " appropriately. We are sure the interpreter is ready to handle commands now.
-  if !self._initialized
-    for c in self.backend["init"]
-      call self.send(c)
-    endfor
-    let self._initialized = 1
-  endif
-
   " TODO: find a better way
   call t:gdb._state_paused.info_breakpoints()
 endfunction
@@ -245,7 +236,6 @@ endfunction
 
 function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   let gdb = s:InitMachine(a:backend, s:Gdb)
-  let gdb._initialized = 0
   " window number that will be displaying the current file
   let gdb._jump_window = 1
   let gdb._current_buf = -1
