@@ -36,12 +36,12 @@ function! s:RefreshBreakpointSigns(buf)
   call s:SetBreakpointSigns(a:buf)
 endfunction
 
-function! nvimgdb#breakpoint#init()
+function! nvimgdb#breakpoint#Init()
   let t:breakpoints = {}
   let t:max_breakpoint_sign_id = 0
 endfunction
 
-function! nvimgdb#breakpoint#query(bufnum, fname, proxy_addr)
+function! nvimgdb#breakpoint#Query(bufnum, fname, proxy_addr)
   let breaks = s:InfoBreakpoints(a:fname, a:proxy_addr)
   if has_key(breaks, "_error")
     echo "Can't get breakpoints: " . breaks["_error"]
@@ -51,19 +51,19 @@ function! nvimgdb#breakpoint#query(bufnum, fname, proxy_addr)
   call s:RefreshBreakpointSigns(a:bufnum)
 endfunction
 
-function! nvimgdb#breakpoint#refresh(bufnum)
+function! nvimgdb#breakpoint#Refresh(bufnum)
   call s:RefreshBreakpointSigns(a:bufnum)
 endfunction
 
-function! nvimgdb#breakpoint#clear()
+function! nvimgdb#breakpoint#Clear()
   call s:ClearBreakpointSigns()
 endfunction
 
-function! nvimgdb#breakpoint#cleanup()
+function! nvimgdb#breakpoint#Cleanup()
   let t:breakpoints = {}
   call s:ClearBreakpointSigns()
 endfunction
 
-function! nvimgdb#breakpoint#get_for_file(fname)
+function! nvimgdb#breakpoint#GetForFile(fname)
   return get(t:breakpoints, a:fname, {})
 endfunction

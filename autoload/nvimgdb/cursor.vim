@@ -1,16 +1,16 @@
 
 sign define GdbCurrentLine text=⇒
 
-function! nvimgdb#cursor#init()
+function! nvimgdb#cursor#Init()
   let t:current_line = -1
   let t:line_sign_id = 4999
 endfunction
 
-function! nvimgdb#cursor#set(line)
+function! nvimgdb#cursor#Set(line)
   let t:current_line = a:line
 endfunction
 
-function! nvimgdb#cursor#display(add)
+function! nvimgdb#cursor#Display(add)
   " to avoid flicker when removing/adding the sign column(due to the change in
   " line width), we switch ids for the line sign and only remove the old line
   " sign after marking the new one

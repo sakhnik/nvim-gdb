@@ -1,14 +1,12 @@
 
 
-" Count of active debugging views
-let g:nvimgdb_count = 0
 let s:plugin_dir = expand('<sfile>:p:h:h')
 
 
 " Transition "paused" -> "continue"
 function s:GdbPaused_continue(...) dict
   call self._parser.switch(self._state_running)
-  call nvimgdb#cursor#display(0)
+  call nvimgdb#cursor#Display(0)
 endfunction
 
 
@@ -33,13 +31,13 @@ function s:GdbPaused_jump(file, line, ...) dict
     " Switch to the new buffer
     exe 'buffer ' target_buf
     let self._current_buf = target_buf
-    call nvimgdb#breakpoint#refresh(self._current_buf)
+    call nvimgdb#breakpoint#Refresh(self._current_buf)
   endif
 
   exe ':' a:line
-  call nvimgdb#cursor#set(a:line)
+  call nvimgdb#cursor#Set(a:line)
   exe window 'wincmd w'
-  call nvimgdb#cursor#display(1)
+  call nvimgdb#cursor#Display(1)
 endfunction
 
 " Transition "paused" -> "paused": refresh breakpoints in the current file
@@ -70,23 +68,14 @@ function s:GdbPaused_info_breakpoints(...) dict
   endif
 
   " Query the breakpoints for the shown file
-  call nvimgdb#breakpoint#query(bufnum, fname, t:gdb._proxy_addr)
+  call nvimgdb#breakpoint#Query(bufnum, fname, t:gdb._proxy_addr)
 
-  call nvimgdb#cursor#display(1)
+  call nvimgdb#cursor#Display(1)
 endfunction
 
 " Transition "running" -> "pause"
 function s:GdbRunning_pause(...) dict
   call self._parser.switch(self._state_paused)
-
-  " For the first time the backend is paused, make sure it's initialized
-  " appropriately. We are sure the interpreter is ready to handle commands now.
-  if !self._initialized
-    for c in self.backend["init"]
-      call self.send(c)
-    endfor
-    let self._initialized = 1
-  endif
 
   " TODO: find a better way
   call t:gdb._state_paused.info_breakpoints()
@@ -97,23 +86,15 @@ let s:Gdb = {}
 
 
 function s:Gdb.kill()
-  let g:nvimgdb_count -= 1
-  if !g:nvimgdb_count
-    " Cleanup the autocommands
-    augroup NvimGdb
-      au!
-    augroup END
-    augroup! NvimGdb
 
-    " Cleanup user commands and keymaps
-    call s:UndefCommands()
-  endif
+  " Cleanup commands, autocommands etc
+  call nvimgdb#ui#Leave()
 
   " Clean up the breakpoint signs
-  call nvimgdb#breakpoint#cleanup()
+  call nvimgdb#breakpoint#Cleanup()
 
   " Clean up the current line sign
-  call nvimgdb#cursor#display(0)
+  call nvimgdb#cursor#Display(0)
 
   " Close the windows and the tab
   tabclose
@@ -122,7 +103,7 @@ function s:Gdb.kill()
   endif
 
   " TabEnter isn't fired automatically when a tab is closed
-  call s:OnTabEnter()
+  call nvimgdb#OnTabEnter()
 endfunction
 
 
@@ -131,49 +112,12 @@ function! s:Gdb.send(data)
 endfunction
 
 
-
-function! s:DefineCommands()
-  command! GdbDebugStop call nvimgdb#Kill()
-  command! GdbBreakpointToggle call nvimgdb#ToggleBreak()
-  command! GdbBreakpointClearAll call nvimgdb#ClearBreak()
-  command! GdbRun call nvimgdb#Send("run")
-  command! GdbUntil call nvimgdb#Send(t:gdb.backend["until"] . " " . line('.'))
-  command! GdbContinue call nvimgdb#Send("c")
-  command! GdbNext call nvimgdb#Send("n")
-  command! GdbStep call nvimgdb#Send("s")
-  command! GdbFinish call nvimgdb#Send("finish")
-  command! GdbFrameUp call nvimgdb#Send("up")
-  command! GdbFrameDown call nvimgdb#Send("down")
-  command! GdbInterrupt call nvimgdb#Interrupt()
-  command! GdbEvalWord call nvimgdb#Eval(expand('<cword>'))
-  command! -range GdbEvalRange call nvimgdb#Eval(s:GetExpression(<f-args>))
-endfunction
-
-
-function! s:UndefCommands()
-  delcommand GdbDebugStop
-  delcommand GdbBreakpointToggle
-  delcommand GdbBreakpointClearAll
-  delcommand GdbRun
-  delcommand GdbUntil
-  delcommand GdbContinue
-  delcommand GdbNext
-  delcommand GdbStep
-  delcommand GdbFinish
-  delcommand GdbFrameUp
-  delcommand GdbFrameDown
-  delcommand GdbInterrupt
-  delcommand GdbEvalWord
-  delcommand GdbEvalRange
-endfunction
-
-
 " Initialize the state machine depending on the chosen backend.
 function! s:InitMachine(backend, struct)
   let data = copy(a:struct)
 
   " Identify and select the appropriate backend
-  let data.backend = nvimgdb#backend#{a:backend}#create()
+  let data.backend = nvimgdb#backend#{a:backend}#Get()
 
   "  +-jump,breakpoint--+
   "  |                  |
@@ -207,28 +151,28 @@ function! nvimgdb#CheckWindowClosed(...)
   endif
 endfunction
 
-function! s:OnTabEnter()
+function! nvimgdb#OnTabEnter()
   if !exists('t:gdb') | return | endif
 
   " Restore the signs as they may have been spoiled
   if t:gdb._parser.state() == t:gdb._state_paused
-    call nvimgdb#cursor#display(1)
+    call nvimgdb#cursor#Display(1)
   endif
 
   " Ensure breakpoints are shown if are queried dynamically
   call t:gdb._state_paused.info_breakpoints()
 endfunction
 
-function! s:OnTabLeave()
+function! nvimgdb#OnTabLeave()
   if !exists('t:gdb') | return | endif
 
   " Hide the signs
-  call nvimgdb#cursor#display(0)
-  call nvimgdb#breakpoint#clear()
+  call nvimgdb#cursor#Display(0)
+  call nvimgdb#breakpoint#Clear()
 endfunction
 
 
-function! s:OnBufEnter()
+function! nvimgdb#OnBufEnter()
   if !exists('t:gdb') | return | endif
   if &buftype ==# 'terminal' | return | endif
   call nvimgdb#keymaps#DispatchSet()
@@ -236,7 +180,7 @@ function! s:OnBufEnter()
   call t:gdb._state_paused.info_breakpoints()
 endfunction
 
-function! s:OnBufLeave()
+function! nvimgdb#OnBufLeave()
   if !exists('t:gdb') | return | endif
   if &buftype ==# 'terminal' | return | endif
   call nvimgdb#keymaps#DispatchUnset()
@@ -245,7 +189,6 @@ endfunction
 
 function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   let gdb = s:InitMachine(a:backend, s:Gdb)
-  let gdb._initialized = 0
   " window number that will be displaying the current file
   let gdb._jump_window = 1
   let gdb._current_buf = -1
@@ -255,10 +198,10 @@ function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   sp
 
   " Initialize current line tracking
-  call nvimgdb#cursor#init()
+  call nvimgdb#cursor#Init()
 
   " Initialize breakpoint tracking
-  call nvimgdb#breakpoint#init()
+  call nvimgdb#breakpoint#Init()
 
   if !&scrolloff
     " Make sure the cursor stays visible at all times
@@ -283,26 +226,8 @@ function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   " Prepare configuration specific to this debugging session
   call nvimgdb#keymaps#Init()
 
-  " Check if user closed either of our windows.
-  if !g:nvimgdb_count
-    call s:DefineCommands()
-    augroup NvimGdb
-      au!
-      " Unfortunately, there is no event to handle a window closed.
-      " It's needed to be handled heuristically:
-      "   When :quit is executed, the cursor will enter another buffer
-      au WinEnter * call nvimgdb#CheckWindowClosed()
-      "   When :only is executed, BufWinLeave will be issued before closing
-      "   window. We start a timer expecting it to expire after the window
-      "   has been closed. It's a race.
-      au BufWinLeave * call timer_start(100, "nvimgdb#CheckWindowClosed")
-      au TabEnter * call s:OnTabEnter()
-      au TabLeave * call s:OnTabLeave()
-      au BufEnter * call s:OnBufEnter()
-      au BufLeave * call s:OnBufLeave()
-    augroup END
-  endif
-  let g:nvimgdb_count += 1
+  " Initialize the UI commands, autocommands etc
+  call nvimgdb#ui#Enter()
 
   " Set terminal window keymaps
   call nvimgdb#keymaps#DispatchSetT()
@@ -336,7 +261,7 @@ function! nvimgdb#ToggleBreak()
 
   let buf = bufnr('%')
   let file_name = nvimgdb#GetFullBufferPath(buf)
-  let file_breakpoints = nvimgdb#breakpoint#get_for_file(file_name)
+  let file_breakpoints = nvimgdb#breakpoint#GetForFile(file_name)
   let linenr = line('.')
 
   if has_key(file_breakpoints, linenr)
@@ -351,7 +276,7 @@ endfunction
 function! nvimgdb#ClearBreak()
   if !exists('t:gdb') | return | endif
 
-  call nvimgdb#breakpoint#cleanup()
+  call nvimgdb#breakpoint#Cleanup()
 
   if t:gdb._parser.state() == t:gdb._state_running
     " pause first

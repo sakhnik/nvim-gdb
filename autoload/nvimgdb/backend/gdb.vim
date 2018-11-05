@@ -1,9 +1,8 @@
 
 " gdb specifics
-function! nvimgdb#backend#gdb#create()
+function! nvimgdb#backend#gdb#Get()
   let backend = {
     \ 'init_state': 'running',
-    \ 'init': [],
     \ 'paused': [
     \     ['Continuing.', 'continue'],
     \     ['\v[\o32]{2}([^:]+):(\d+):\d+', 'jump'],
