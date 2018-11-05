@@ -1,4 +1,3 @@
-sign define GdbCurrentLine text=⇒
 
 
 " Count of active debugging views
@@ -9,7 +8,7 @@ let s:plugin_dir = expand('<sfile>:p:h:h')
 " Transition "paused" -> "continue"
 function s:GdbPaused_continue(...) dict
   call self._parser.switch(self._state_running)
-  call self.update_current_line_sign(0)
+  call nvimgdb#cursor#display(0)
 endfunction
 
 
@@ -38,9 +37,9 @@ function s:GdbPaused_jump(file, line, ...) dict
   endif
 
   exe ':' a:line
-  let self._current_line = a:line
+  call nvimgdb#cursor#set(a:line)
   exe window 'wincmd w'
-  call self.update_current_line_sign(1)
+  call nvimgdb#cursor#display(1)
 endfunction
 
 " Transition "paused" -> "paused": refresh breakpoints in the current file
@@ -73,7 +72,7 @@ function s:GdbPaused_info_breakpoints(...) dict
   " Query the breakpoints for the shown file
   call nvimgdb#breakpoint#query(bufnum, fname, t:gdb._proxy_addr)
 
-  call self.update_current_line_sign(1)
+  call nvimgdb#cursor#display(1)
 endfunction
 
 " Transition "running" -> "pause"
@@ -114,7 +113,7 @@ function s:Gdb.kill()
   call nvimgdb#breakpoint#cleanup()
 
   " Clean up the current line sign
-  call self.update_current_line_sign(0)
+  call nvimgdb#cursor#display(0)
 
   " Close the windows and the tab
   tabclose
@@ -131,20 +130,6 @@ function! s:Gdb.send(data)
   call jobsend(self._client_id, a:data."\<cr>")
 endfunction
 
-
-
-function! s:Gdb.update_current_line_sign(add)
-  " to avoid flicker when removing/adding the sign column(due to the change in
-  " line width), we switch ids for the line sign and only remove the old line
-  " sign after marking the new one
-  let old_line_sign_id = get(self, '_line_sign_id', 4999)
-  let self._line_sign_id = old_line_sign_id == 4999 ? 4998 : 4999
-  if a:add && self._current_line != -1 && self._current_buf != -1
-    exe 'sign place '.self._line_sign_id.' name=GdbCurrentLine line='
-          \.self._current_line.' buffer='.self._current_buf
-  endif
-  exe 'sign unplace '.old_line_sign_id
-endfunction
 
 
 function! s:DefineCommands()
@@ -227,7 +212,7 @@ function! s:OnTabEnter()
 
   " Restore the signs as they may have been spoiled
   if t:gdb._parser.state() == t:gdb._state_paused
-    call t:gdb.update_current_line_sign(1)
+    call nvimgdb#cursor#display(1)
   endif
 
   " Ensure breakpoints are shown if are queried dynamically
@@ -238,7 +223,7 @@ function! s:OnTabLeave()
   if !exists('t:gdb') | return | endif
 
   " Hide the signs
-  call t:gdb.update_current_line_sign(0)
+  call nvimgdb#cursor#display(0)
   call nvimgdb#breakpoint#clear()
 endfunction
 
@@ -264,11 +249,13 @@ function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   " window number that will be displaying the current file
   let gdb._jump_window = 1
   let gdb._current_buf = -1
-  let gdb._current_line = -1
   " Create new tab for the debugging view
   tabnew
   " create horizontal split to display the current file
   sp
+
+  " Initialize current line tracking
+  call nvimgdb#cursor#init()
 
   " Initialize breakpoint tracking
   call nvimgdb#breakpoint#init()
@@ -331,6 +318,11 @@ endfunction
 " Breakpoints need full path to the buffer (at least in lldb)
 function! nvimgdb#GetFullBufferPath(buf)
   return expand('#' . a:buf . ':p')
+endfunction
+
+
+function! nvimgdb#GetCurrentBuffer()
+  return t:gdb._current_buf
 endfunction
 
 
