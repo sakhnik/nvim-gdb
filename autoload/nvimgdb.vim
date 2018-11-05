@@ -6,7 +6,7 @@ let s:plugin_dir = expand('<sfile>:p:h:h')
 " Transition "paused" -> "continue"
 function s:GdbPaused_continue(...) dict
   call self._parser.switch(self._state_running)
-  call nvimgdb#cursor#display(0)
+  call nvimgdb#cursor#Display(0)
 endfunction
 
 
@@ -31,13 +31,13 @@ function s:GdbPaused_jump(file, line, ...) dict
     " Switch to the new buffer
     exe 'buffer ' target_buf
     let self._current_buf = target_buf
-    call nvimgdb#breakpoint#refresh(self._current_buf)
+    call nvimgdb#breakpoint#Refresh(self._current_buf)
   endif
 
   exe ':' a:line
-  call nvimgdb#cursor#set(a:line)
+  call nvimgdb#cursor#Set(a:line)
   exe window 'wincmd w'
-  call nvimgdb#cursor#display(1)
+  call nvimgdb#cursor#Display(1)
 endfunction
 
 " Transition "paused" -> "paused": refresh breakpoints in the current file
@@ -68,9 +68,9 @@ function s:GdbPaused_info_breakpoints(...) dict
   endif
 
   " Query the breakpoints for the shown file
-  call nvimgdb#breakpoint#query(bufnum, fname, t:gdb._proxy_addr)
+  call nvimgdb#breakpoint#Query(bufnum, fname, t:gdb._proxy_addr)
 
-  call nvimgdb#cursor#display(1)
+  call nvimgdb#cursor#Display(1)
 endfunction
 
 " Transition "running" -> "pause"
@@ -91,10 +91,10 @@ function s:Gdb.kill()
   call nvimgdb#ui#Leave()
 
   " Clean up the breakpoint signs
-  call nvimgdb#breakpoint#cleanup()
+  call nvimgdb#breakpoint#Cleanup()
 
   " Clean up the current line sign
-  call nvimgdb#cursor#display(0)
+  call nvimgdb#cursor#Display(0)
 
   " Close the windows and the tab
   tabclose
@@ -117,7 +117,7 @@ function! s:InitMachine(backend, struct)
   let data = copy(a:struct)
 
   " Identify and select the appropriate backend
-  let data.backend = nvimgdb#backend#{a:backend}#create()
+  let data.backend = nvimgdb#backend#{a:backend}#Get()
 
   "  +-jump,breakpoint--+
   "  |                  |
@@ -156,7 +156,7 @@ function! nvimgdb#OnTabEnter()
 
   " Restore the signs as they may have been spoiled
   if t:gdb._parser.state() == t:gdb._state_paused
-    call nvimgdb#cursor#display(1)
+    call nvimgdb#cursor#Display(1)
   endif
 
   " Ensure breakpoints are shown if are queried dynamically
@@ -167,8 +167,8 @@ function! nvimgdb#OnTabLeave()
   if !exists('t:gdb') | return | endif
 
   " Hide the signs
-  call nvimgdb#cursor#display(0)
-  call nvimgdb#breakpoint#clear()
+  call nvimgdb#cursor#Display(0)
+  call nvimgdb#breakpoint#Clear()
 endfunction
 
 
@@ -198,10 +198,10 @@ function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   sp
 
   " Initialize current line tracking
-  call nvimgdb#cursor#init()
+  call nvimgdb#cursor#Init()
 
   " Initialize breakpoint tracking
-  call nvimgdb#breakpoint#init()
+  call nvimgdb#breakpoint#Init()
 
   if !&scrolloff
     " Make sure the cursor stays visible at all times
@@ -261,7 +261,7 @@ function! nvimgdb#ToggleBreak()
 
   let buf = bufnr('%')
   let file_name = nvimgdb#GetFullBufferPath(buf)
-  let file_breakpoints = nvimgdb#breakpoint#get_for_file(file_name)
+  let file_breakpoints = nvimgdb#breakpoint#GetForFile(file_name)
   let linenr = line('.')
 
   if has_key(file_breakpoints, linenr)
@@ -276,7 +276,7 @@ endfunction
 function! nvimgdb#ClearBreak()
   if !exists('t:gdb') | return | endif
 
-  call nvimgdb#breakpoint#cleanup()
+  call nvimgdb#breakpoint#Cleanup()
 
   if t:gdb._parser.state() == t:gdb._state_running
     " pause first

@@ -1,6 +1,6 @@
 
 " lldb specifics
-function! nvimgdb#backend#lldb#create()
+function! nvimgdb#backend#lldb#Get()
   let backend = {
     \ 'init_state': 'running',
     \ 'paused': [
