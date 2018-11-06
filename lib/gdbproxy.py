@@ -9,9 +9,9 @@ to a user.
 
 import re
 import json
+import os
 
 from BaseProxy import BaseProxy
-
 
 class _GdbFeatures:
     def __init__(self):
@@ -33,7 +33,7 @@ class _GdbFeatures:
                 fields = re.split("\s+", line)
                 if fields[3] == 'y':    # Is enabled?
                     m = pattern.fullmatch(fields[-1])   # file.cpp:line
-                    if (m and self.last_src.endswith(m.group(1))):
+                    if (m and (self.last_src.endswith(m.group(1)) or self.last_src.endswith(os.path.realpath(m.group(1))))):
                         breaks[int(m.group(2))] = int(fields[0])
             except Exception as e:
                 pass
