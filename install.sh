@@ -31,5 +31,7 @@ package.path = '`$luarocks path --lr-path`;' .. package.path
 package.cpath = '`$luarocks path --lr-cpath`;' .. package.cpath
 EOF
 
-$luarocks install moonscript --tree="$rocks_tree"
 $luarocks install luaposix --tree="$rocks_tree"
+$luarocks install moonscript --tree="$rocks_tree"
+
+"$rocks_tree/bin/moonc" lua/info_breakpoints.moon
