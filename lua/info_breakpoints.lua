@@ -1,6 +1,7 @@
 require "set_paths"
 libstd = require "posix.stdlib"
 s = require "posix.sys.socket"
+u = require "posix.unistd"
 
 function InfoBreakpoints(fname, proxy_addr)
     dir = libstd.mkdtemp('/tmp/nvimgdb-sock-XXXXXX')
@@ -10,6 +11,7 @@ function InfoBreakpoints(fname, proxy_addr)
     s.connect(sock, {family = s.AF_UNIX, path = proxy_addr})
     s.send(sock, "info-breakpoints " .. fname .. "\n")
     data = s.recv(sock, 65536)
+    u.close(sock)
     os.remove(dir .. "/socket")
     os.remove(dir)
     return data
