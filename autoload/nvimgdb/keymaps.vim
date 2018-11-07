@@ -30,8 +30,8 @@ let s:default_keymaps = [
 
 function! nvimgdb#keymaps#Set()
   for keymap in s:default_keymaps
-    if has_key(t:config, keymap[1])
-      let key = t:config[keymap[1]]
+    if has_key(t:gdb_keymaps_config, keymap[1])
+      let key = t:gdb_keymaps_config[keymap[1]]
       if !empty(key)
         exe keymap[0] . 'noremap <buffer> <silent> ' . key . ' ' . keymap[2]'<cr>'
       endif
@@ -41,8 +41,8 @@ endfunction
 
 function! nvimgdb#keymaps#Unset()
   for keymap in s:default_keymaps
-    if has_key(t:config, keymap[1])
-      let key = t:config[keymap[1]]
+    if has_key(t:gdb_keymaps_config, keymap[1])
+      let key = t:gdb_keymaps_config[keymap[1]]
       if !empty(key)
         exe keymap[0] . 'unmap <buffer> ' . key
       endif
@@ -61,8 +61,8 @@ let s:default_tkeymaps = [
 function! nvimgdb#keymaps#SetT()
   " Set term-local key maps
   for keymap in s:default_tkeymaps
-    if has_key(t:config, keymap[0])
-      let key = t:config[keymap[0]]
+    if has_key(t:gdb_keymaps_config, keymap[0])
+      let key = t:gdb_keymaps_config[keymap[0]]
       if !empty(key)
         exe 'tnoremap <buffer> <silent> ' . key . ' <c-\><c-n>' . keymap[1] . '<cr>i'
       endif
@@ -73,19 +73,19 @@ endfunction
 
 function! nvimgdb#keymaps#DispatchSet()
   try
-    call t:config['set_keymaps']()
+    call t:gdb_keymaps_config['set_keymaps']()
   endtry
 endfunction
 
 function! nvimgdb#keymaps#DispatchUnset()
   try
-    call t:config['unset_keymaps']()
+    call t:gdb_keymaps_config['unset_keymaps']()
   endtry
 endfunction
 
 function! nvimgdb#keymaps#DispatchSetT()
   try
-    call t:config['set_tkeymaps']()
+    call t:gdb_keymaps_config['set_tkeymaps']()
   endtry
 endfunction
 
@@ -112,5 +112,5 @@ function! nvimgdb#keymaps#Init()
   endfor
 
   " Return the resulting configuration
-  let t:config = config
+  let t:gdb_keymaps_config = config
 endfunction
