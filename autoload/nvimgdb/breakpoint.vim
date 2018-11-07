@@ -13,21 +13,21 @@ endfunction
 
 function! s:ClearBreakpointSigns()
   let i = 5000
-  while i <= t:max_breakpoint_sign_id
+  while i <= t:gdb_breakpoint_max_sign_id
     exe 'sign unplace '.i
     let i += 1
   endwhile
-  let t:max_breakpoint_sign_id = 0
+  let t:gdb_breakpoint_max_sign_id = 0
 endfunction
 
 function! s:SetBreakpointSigns(buf)
   if a:buf == -1
     return
   endif
-  let t:max_breakpoint_sign_id = 5000 - 1
-  for linenr in keys(get(t:breakpoints, nvimgdb#GetFullBufferPath(a:buf), {}))
-    let t:max_breakpoint_sign_id += 1
-    exe 'sign place '.t:max_breakpoint_sign_id.' name=GdbBreakpoint line='.linenr.' buffer='.a:buf
+  let t:gdb_breakpoint_max_sign_id = 5000 - 1
+  for linenr in keys(get(t:gdb_breakpoints, nvimgdb#GetFullBufferPath(a:buf), {}))
+    let t:gdb_breakpoint_max_sign_id += 1
+    exe 'sign place '.t:gdb_breakpoint_max_sign_id.' name=GdbBreakpoint line='.linenr.' buffer='.a:buf
   endfor
 endfunction
 
@@ -37,8 +37,8 @@ function! s:RefreshBreakpointSigns(buf)
 endfunction
 
 function! nvimgdb#breakpoint#Init()
-  let t:breakpoints = {}
-  let t:max_breakpoint_sign_id = 0
+  let t:gdb_breakpoints = {}
+  let t:gdb_breakpoint_max_sign_id = 0
 endfunction
 
 function! nvimgdb#breakpoint#Disconnect(proxy_addr)
@@ -53,7 +53,7 @@ function! nvimgdb#breakpoint#Query(bufnum, fname, proxy_addr)
     echo "Can't get breakpoints: " . breaks["_error"]
     return
   endif
-  let t:breakpoints[a:fname] = breaks
+  let t:gdb_breakpoints[a:fname] = breaks
   call s:RefreshBreakpointSigns(a:bufnum)
 endfunction
 
@@ -66,10 +66,10 @@ function! nvimgdb#breakpoint#Clear()
 endfunction
 
 function! nvimgdb#breakpoint#Cleanup()
-  let t:breakpoints = {}
+  let t:gdb_breakpoints = {}
   call s:ClearBreakpointSigns()
 endfunction
 
 function! nvimgdb#breakpoint#GetForFile(fname)
-  return get(t:breakpoints, a:fname, {})
+  return get(t:gdb_breakpoints, a:fname, {})
 endfunction
