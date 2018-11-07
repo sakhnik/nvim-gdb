@@ -42,6 +42,8 @@ function s:Gdb.kill()
   " Clean up the current line sign
   call nvimgdb#cursor#Display(0)
 
+  call nvimgdb#win#Cleanup()
+
   " Close the windows and the tab
   let tabnr = tabpagenr('$')
   let client_buf = nvimgdb#client#GetBuf()
