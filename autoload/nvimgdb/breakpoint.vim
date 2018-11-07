@@ -41,6 +41,12 @@ function! nvimgdb#breakpoint#Init()
   let t:max_breakpoint_sign_id = 0
 endfunction
 
+function! nvimgdb#breakpoint#Disconnect(proxy_addr)
+  if s:info_breakpoints_loaded
+    call py3eval("InfoBreakpointsDisconnect('" . a:proxy_addr . "')")
+  endif
+endfunction
+
 function! nvimgdb#breakpoint#Query(bufnum, fname, proxy_addr)
   let breaks = s:InfoBreakpoints(a:fname, a:proxy_addr)
   if has_key(breaks, "_error")

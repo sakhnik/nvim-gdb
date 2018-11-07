@@ -5,6 +5,10 @@ function! nvimgdb#win#Init()
   let t:current_buf = -1
 endfunction
 
+function! nvimgdb#win#Cleanup()
+  call nvimgdb#breakpoint#Disconnect(nvimgdb#client#GetProxyAddr())
+endfunction
+
 function! nvimgdb#win#GetCurrentBuffer()
   return t:current_buf
 endfunction
