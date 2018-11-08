@@ -1,5 +1,5 @@
-
 sign define GdbCurrentLine text=⇒
+sign define GdbBreakpoint text=●
 
 lua V = require("gdb.v")
 lua gdb = require("gdb")
@@ -41,7 +41,7 @@ function s:Gdb.kill()
   call nvimgdb#ui#Leave()
 
   " Clean up the breakpoint signs
-  call nvimgdb#breakpoint#Cleanup()
+  lua gdb.breakpoint.cleanupSigns()
 
   " Clean up the current line sign
   lua gdb.cursor.display(0)
@@ -118,7 +118,7 @@ function! nvimgdb#OnTabLeave()
 
   " Hide the signs
   lua gdb.cursor.display(0)
-  call nvimgdb#breakpoint#Clear()
+  lua gdb.breakpoint.clearSigns()
 endfunction
 
 
@@ -151,7 +151,7 @@ function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   lua gdb.cursor.init()
 
   " Initialize breakpoint tracking
-  call nvimgdb#breakpoint#Init()
+  lua gdb.breakpoint.init()
 
   if !&scrolloff
     " Make sure the cursor stays visible at all times
@@ -197,14 +197,14 @@ function! nvimgdb#ToggleBreak()
 
   let buf = bufnr('%')
   let file_name = nvimgdb#GetFullBufferPath(buf)
-  let file_breakpoints = nvimgdb#breakpoint#GetForFile(file_name)
+  let file_breakpoints = luaeval("gdb.breakpoint.getForFile(_A)", file_name)
   let linenr = line('.')
 
-  if has_key(file_breakpoints, linenr)
+  if empty(file_breakpoints) || !has_key(file_breakpoints, linenr)
+    call nvimgdb#client#SendLine(t:gdb.backend['breakpoint'] . ' ' . file_name . ':' . linenr)
+  else
     " There already is a breakpoint on this line: remove
     call nvimgdb#client#SendLine(t:gdb.backend['delete_breakpoints'] . ' ' . file_breakpoints[linenr])
-  else
-    call nvimgdb#client#SendLine(t:gdb.backend['breakpoint'] . ' ' . file_name . ':' . linenr)
   endif
 endfunction
 
@@ -212,7 +212,7 @@ endfunction
 function! nvimgdb#ClearBreak()
   if !exists('t:gdb') | return | endif
 
-  call nvimgdb#breakpoint#Cleanup()
+  lua gdb.breakpoint.cleanupSigns()
 
   if t:gdb._parser.state() == t:gdb._state_running
     " pause first

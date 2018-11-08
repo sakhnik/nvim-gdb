@@ -6,7 +6,7 @@ function! nvimgdb#win#Init()
 endfunction
 
 function! nvimgdb#win#Cleanup()
-  call nvimgdb#breakpoint#Disconnect(nvimgdb#client#GetProxyAddr())
+  call luaeval("gdb.breakpoint.disconnect(_A)", nvimgdb#client#GetProxyAddr())
 endfunction
 
 function! nvimgdb#win#GetCurrentBuffer()
@@ -29,7 +29,7 @@ function! nvimgdb#win#Jump(file, line)
     " Switch to the new buffer
     exe 'buffer ' target_buf
     let t:gdb_win_current_buf = target_buf
-    call nvimgdb#breakpoint#Refresh(t:gdb_win_current_buf)
+    call luaeval("gdb.breakpoint.refreshSigns(_A)", t:gdb_win_current_buf)
   endif
 
   exe ':' a:line
@@ -60,7 +60,7 @@ function! nvimgdb#win#QueryBreakpoints()
   endif
 
   " Query the breakpoints for the shown file
-  call nvimgdb#breakpoint#Query(bufnum, fname, nvimgdb#client#GetProxyAddr())
+  call luaeval("gdb.breakpoint.query(_A[1], _A[2], _A[3])", [bufnum, fname, nvimgdb#client#GetProxyAddr()])
 
   lua gdb.cursor.display(1)
 endfunction
