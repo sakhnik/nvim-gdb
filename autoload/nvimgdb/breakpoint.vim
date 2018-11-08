@@ -1,7 +1,7 @@
 sign define GdbBreakpoint text=●
 
 function! s:InfoBreakpoints(file, proxy_addr)
-  return json_decode(luaeval("gdb_breakpoint.query(_A[1], _A[2])", [a:file, a:proxy_addr]))
+  return json_decode(luaeval("gdb.breakpoint.query(_A[1], _A[2])", [a:file, a:proxy_addr]))
 endfunction
 
 function! s:ClearBreakpointSigns()
@@ -35,7 +35,7 @@ function! nvimgdb#breakpoint#Init()
 endfunction
 
 function! nvimgdb#breakpoint#Disconnect(proxy_addr)
-  call luaeval("gdb_breakpoint.disconnect(_A)", a:proxy_addr)
+  call luaeval("gdb.breakpoint.disconnect(_A)", a:proxy_addr)
 endfunction
 
 function! nvimgdb#breakpoint#Query(bufnum, fname, proxy_addr)
