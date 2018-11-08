@@ -33,9 +33,9 @@ function! nvimgdb#win#Jump(file, line)
   endif
 
   exe ':' a:line
-  call nvimgdb#cursor#Set(a:line)
+  call luaeval("gdb_cursor.set(_A)", a:line)
   exe window 'wincmd w'
-  call nvimgdb#cursor#Display(1)
+  lua gdb_cursor.display(1)
 endfunction
 
 function! nvimgdb#win#QueryBreakpoints()
@@ -62,5 +62,5 @@ function! nvimgdb#win#QueryBreakpoints()
   " Query the breakpoints for the shown file
   call nvimgdb#breakpoint#Query(bufnum, fname, nvimgdb#client#GetProxyAddr())
 
-  call nvimgdb#cursor#Display(1)
+  lua gdb_cursor.display(1)
 endfunction

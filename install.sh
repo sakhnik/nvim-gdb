@@ -34,4 +34,5 @@ EOF
 $luarocks install luaposix --tree="$rocks_tree"
 $luarocks install moonscript --tree="$rocks_tree"
 
-"$rocks_tree/bin/moonc" lua/gdb/breakpoint.moon
+# Compile all moon scripts
+find lua -name '*.moon' -exec "$rocks_tree/bin/moonc" {} \;

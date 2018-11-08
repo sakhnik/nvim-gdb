@@ -1,11 +1,14 @@
 
+sign define GdbCurrentLine text=⇒
+
 lua gdb_breakpoint = require("gdb.breakpoint")
+lua gdb_cursor = require("gdb.cursor")
 
 " Transition "paused" -> "continue"
 function s:GdbPaused_continue(...) dict
   if t:gdb != self | return | endif
   call self._parser.switch(self._state_running)
-  call nvimgdb#cursor#Display(0)
+  lua gdb_cursor.display(0)
 endfunction
 
 
@@ -41,7 +44,7 @@ function s:Gdb.kill()
   call nvimgdb#breakpoint#Cleanup()
 
   " Clean up the current line sign
-  call nvimgdb#cursor#Display(0)
+  lua gdb_cursor.display(0)
 
   call nvimgdb#win#Cleanup()
 
@@ -103,7 +106,7 @@ function! nvimgdb#OnTabEnter()
 
   " Restore the signs as they may have been spoiled
   if t:gdb._parser.state() == t:gdb._state_paused
-    call nvimgdb#cursor#Display(1)
+    lua gdb_cursor.display(1)
   endif
 
   " Ensure breakpoints are shown if are queried dynamically
@@ -114,7 +117,7 @@ function! nvimgdb#OnTabLeave()
   if !exists('t:gdb') | return | endif
 
   " Hide the signs
-  call nvimgdb#cursor#Display(0)
+  lua gdb_cursor.display(0)
   call nvimgdb#breakpoint#Clear()
 endfunction
 
@@ -145,7 +148,7 @@ function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   call nvimgdb#win#Init()
 
   " Initialize current line tracking
-  call nvimgdb#cursor#Init()
+  lua gdb_cursor.init()
 
   " Initialize breakpoint tracking
   call nvimgdb#breakpoint#Init()
