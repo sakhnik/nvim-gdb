@@ -1,14 +1,13 @@
 sign define GdbBreakpoint text=●
 
-let s:plugin_dir = expand('<sfile>:p:h:h:h')
 let s:info_breakpoints_loaded = 0
 
 function! s:InfoBreakpoints(file, proxy_addr)
   if !s:info_breakpoints_loaded
-    exe 'luafile ' . s:plugin_dir . '/lua/info_breakpoints.lua'
+    lua gdb_breakpoint = require("info_breakpoints")
     let s:info_breakpoints_loaded = 1
   endif
-  return json_decode(luaeval("InfoBreakpoints(_A[1], _A[2])", [a:file, a:proxy_addr]))
+  return json_decode(luaeval("gdb_breakpoint.query(_A[1], _A[2])", [a:file, a:proxy_addr]))
 endfunction
 
 function! s:ClearBreakpointSigns()
@@ -43,13 +42,7 @@ endfunction
 
 function! nvimgdb#breakpoint#Disconnect(proxy_addr)
   if s:info_breakpoints_loaded
-    call py3eval("InfoBreakpointsDisconnect('" . a:proxy_addr . "')")
-  endif
-endfunction
-
-function! nvimgdb#breakpoint#Disconnect(proxy_addr)
-  if s:info_breakpoints_loaded
-    call luaeval("InfoBreakpointsDisconnect(_A)", a:proxy_addr)
+    call luaeval("gdb_breakpoint.disconnect(_A)", a:proxy_addr)
   endif
 endfunction
 
