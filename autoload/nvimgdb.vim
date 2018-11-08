@@ -1,4 +1,5 @@
 
+lua gdb_breakpoint = require("gdb.breakpoint")
 
 " Transition "paused" -> "continue"
 function s:GdbPaused_continue(...) dict
