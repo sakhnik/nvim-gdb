@@ -4,7 +4,7 @@ let s:info_breakpoints_loaded = 0
 
 function! s:InfoBreakpoints(file, proxy_addr)
   if !s:info_breakpoints_loaded
-    lua gdb_breakpoint = require("info_breakpoints")
+    lua gdb_breakpoint = require("gdb.breakpoint")
     let s:info_breakpoints_loaded = 1
   endif
   return json_decode(luaeval("gdb_breakpoint.query(_A[1], _A[2])", [a:file, a:proxy_addr]))

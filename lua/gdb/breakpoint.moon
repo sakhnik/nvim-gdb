@@ -18,13 +18,13 @@ GetSocket = (proxy_addr) ->
         clientSet[proxy_addr] = {sock, dir}
         sock
 
-InfoBreakpointsQuery = (fname, proxy_addr) ->
+BreakpointQuery = (fname, proxy_addr) ->
     sock = GetSocket proxy_addr
     s.send(sock, "info-breakpoints " .. fname .. "\n")
     data = s.recv(sock, 65536)
     data
 
-InfoBreakpointsDisconnect = (proxy_addr) ->
+BreakpointDisconnect = (proxy_addr) ->
     data = clientSet[proxy_addr]
     if data != nil
         u.close(data[1])
@@ -33,7 +33,7 @@ InfoBreakpointsDisconnect = (proxy_addr) ->
         clientSet[proxy_addr] = nil
 
 ret = {
-    query: InfoBreakpointsQuery,
-    disconnect: InfoBreakpointsDisconnect,
+    query: BreakpointQuery,
+    disconnect: BreakpointDisconnect,
 }
 ret

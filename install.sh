@@ -34,4 +34,4 @@ EOF
 $luarocks install luaposix --tree="$rocks_tree"
 $luarocks install moonscript --tree="$rocks_tree"
 
-"$rocks_tree/bin/moonc" lua/info_breakpoints.moon
+"$rocks_tree/bin/moonc" lua/gdb/breakpoint.moon
