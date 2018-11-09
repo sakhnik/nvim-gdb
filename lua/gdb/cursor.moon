@@ -14,7 +14,7 @@ CursorDisplay = (add) ->
     -- sign after marking the new one
     old_sign_id = sign_id.get()
     sign_id.set(4999 + 4998 - old_sign_id)
-    current_buf = V.call("nvimgdb#win#GetCurrentBuffer", {})
+    current_buf = gdb.win.getCurrentBuffer!
     if add != 0 and line.get() != -1 and current_buf != -1
         V.cmd(fmt('sign place %d name=GdbCurrentLine line=%d buffer=%d',
             sign_id.get(), line.get(), current_buf))

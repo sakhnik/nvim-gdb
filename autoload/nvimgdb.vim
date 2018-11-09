@@ -15,20 +15,20 @@ endfunction
 " Transition "paused" -> "paused": jump to the frame location
 function s:GdbPaused_jump(file, line, ...) dict
   if t:gdb != self | return | endif
-  call nvimgdb#win#Jump(a:file, a:line)
+  call luaeval("gdb.win.jump(_A[1], _A[2])", [a:file, a:line])
 endfunction
 
 " Transition "paused" -> "paused": refresh breakpoints in the current file
 function s:GdbPaused_info_breakpoints(...) dict
   if t:gdb != self | return | endif
-  call nvimgdb#win#QueryBreakpoints()
+  lua gdb.win.queryBreakpoints()
 endfunction
 
 " Transition "running" -> "pause"
 function s:GdbRunning_pause(...) dict
   if t:gdb != self | return | endif
   call self._parser.switch(self._state_paused)
-  call nvimgdb#win#QueryBreakpoints()
+  lua gdb.win.queryBreakpoints()
 endfunction
 
 
@@ -46,7 +46,7 @@ function s:Gdb.kill()
   " Clean up the current line sign
   lua gdb.cursor.display(0)
 
-  call nvimgdb#win#Cleanup()
+  lua gdb.win.cleanup()
 
   " Close the windows and the tab
   let tabnr = tabpagenr('$')
@@ -110,7 +110,7 @@ function! nvimgdb#OnTabEnter()
   endif
 
   " Ensure breakpoints are shown if are queried dynamically
-  call nvimgdb#win#QueryBreakpoints()
+  lua gdb.win.queryBreakpoints()
 endfunction
 
 function! nvimgdb#OnTabLeave()
@@ -127,7 +127,7 @@ function! nvimgdb#OnBufEnter()
   if &buftype ==# 'terminal' | return | endif
   call nvimgdb#keymaps#DispatchSet()
   " Ensure breakpoints are shown if are queried dynamically
-  call nvimgdb#win#QueryBreakpoints()
+  lua gdb.win.queryBreakpoints()
 endfunction
 
 function! nvimgdb#OnBufLeave()
@@ -145,7 +145,7 @@ function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   sp
 
   " Initialize the windowing subsystem
-  call nvimgdb#win#Init()
+  lua gdb.win.init()
 
   " Initialize current line tracking
   lua gdb.cursor.init()
