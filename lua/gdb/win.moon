@@ -6,7 +6,7 @@ fmt = string.format
 
 Init = ->
     -- window number that will be displaying the current file
-    jumpWin.set(1)
+    jumpWin.set(V.cur_win!)
     curBuf.set(-1)
 
 Cleanup = ->
@@ -14,7 +14,7 @@ Cleanup = ->
 
 Jump = (file, line) ->
     window = V.cur_winnr!
-    V.cmd(fmt("%dwincmd w", jumpWin.get!))
+    V.cmd(fmt("%dwincmd w", V.win_get_nr(jumpWin.get!)))
     curBuf.set(V.cur_buf!)
     target_buf = V.call("bufnr", {file, 1})
     if target_buf == V.call("nvimgdb#client#GetBuf", {})
@@ -36,16 +36,7 @@ Jump = (file, line) ->
 
 QueryBreakpoints = ->
     -- Get the source code buffer number
-    bufnum = -1
-    if V.call("bufnr", {'%'}) == V.call("nvimgdb#client#GetBuf", {})
-        -- The debugger terminal window is currently focused, so perform a couple
-        -- of jumps.
-        window = V.cur_winnr!
-        V.cmd(fmt("%dwincmd w", jumpWin.get!))
-        bufnum = V.call("bufnr", {'%'})
-        V.cmd(fmt("%dwincmd w", window))
-    else
-        bufnum = V.call("bufnr", {'%'})
+    bufnum = V.win_get_buf(jumpWin.get!)
 
     -- Get the source code file name
     fname = V.call("nvimgdb#GetFullBufferPath", {bufnum})

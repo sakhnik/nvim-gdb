@@ -139,8 +139,10 @@ endfunction
 
 function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   let gdb = s:InitMachine(a:backend, s:Gdb)
+
   " Create new tab for the debugging view
   tabnew
+
   " create horizontal split to display the current file
   sp
 

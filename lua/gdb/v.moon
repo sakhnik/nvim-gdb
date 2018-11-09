@@ -2,6 +2,9 @@ cur_tab = vim.api.nvim_get_current_tabpage
 
 V = {
     cur_tab: cur_tab
+    cur_win: vim.api.nvim_get_current_win
+    win_get_nr: vim.api.nvim_win_get_number
+    win_get_buf: vim.api.nvim_win_get_buf
     cur_winnr: -> vim.api.nvim_win_get_number(vim.api.nvim_get_current_win!)
     cur_buf: vim.api.nvim_get_current_buf
     set_tvar: (k,v) -> vim.api.nvim_tabpage_set_var(cur_tab!, k, v)
