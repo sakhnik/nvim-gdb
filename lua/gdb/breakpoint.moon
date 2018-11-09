@@ -6,16 +6,7 @@ json = require "JSON"
 
 clientSet = {}
 
-breaks = {}  -- tabpage -> {file -> {line -> id}}}
-
-breaksInit = ->
-    breaks[V.cur_tab!] = {}
-breaksGet = ->
-    breaks[V.cur_tab!]
-breaksClear = ->
-    breaks[V.cur_tab!] = nil
-breaksSet = (fname, br) ->
-    breaks[V.cur_tab!][fname] = br
+breaks = V.def_tstorage()  -- tabpage -> {file -> {line -> id}}}
 
 max_sign_id = V.def_tvar("gdb_breakpoint_max_sign_id")
 
@@ -49,7 +40,7 @@ Disconnect = (proxy_addr) ->
         os.remove(data[2])
         clientSet[proxy_addr] = nil
     -- TODO: move to a proper destructor
-    breaksClear!
+    breaks\clear!
 
 
 ClearSigns = ->
@@ -61,7 +52,7 @@ SetSigns = (buf) ->
     if buf != -1
         sign_id = 5000 - 1
         bpath = V.call("nvimgdb#GetFullBufferPath", {buf})
-        for line, _ in pairs(breaksGet![bpath] or {})
+        for line, _ in pairs(breaks\get![bpath] or {})
             sign_id += 1
             V.cmd(fmt('sign place %d name=GdbBreakpoint line=%d buffer=%d', sign_id, line, buf))
         max_sign_id.set(sign_id)
@@ -71,7 +62,7 @@ RefreshSigns = (buf) ->
     SetSigns(buf)
 
 Init = ->
-    breaksInit!
+    breaks\init!
     max_sign_id.set(0)
 
 Query = (bufnum, fname, proxy_addr) ->
@@ -81,15 +72,15 @@ Query = (bufnum, fname, proxy_addr) ->
     if err
         V.cmd("echo \"Can't get breakpoints: \"" .. err)
     else
-        breaksSet(fname, br)
+        breaks\set(fname, br)
         RefreshSigns(bufnum)
 
 CleanupSigns = ->
-    breaksInit!
+    breaks\init!
     ClearSigns!
 
 GetForFile = (fname) ->
-    breaksGet![fname] or {}
+    breaks\get![fname] or {}
 
 ret = {
     init: Init,
