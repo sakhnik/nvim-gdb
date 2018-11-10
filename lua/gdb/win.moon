@@ -10,14 +10,14 @@ Init = ->
     curBuf.set(-1)
 
 Cleanup = ->
-    gdb.breakpoint.disconnect(V.call("nvimgdb#client#GetProxyAddr", {}))
+    gdb.breakpoint.disconnect(gdb.client.getProxyAddr!)
 
 Jump = (file, line) ->
     window = V.cur_winnr!
     V.cmd(fmt("%dwincmd w", V.win_get_nr(jumpWin.get!)))
     curBuf.set(V.cur_buf!)
     target_buf = V.call("bufnr", {file, 1})
-    if target_buf == V.call("nvimgdb#client#GetBuf", {})
+    if target_buf == gdb.client.getBuf!
         -- The terminal buffer may contain the name of the source file (in pdb, for
         -- instance)
         V.call("e " .. file)
@@ -45,7 +45,7 @@ QueryBreakpoints = ->
     -- misinterpretation)
     if fname != '' and fname\find(' ') == nil
         -- Query the breakpoints for the shown file
-        gdb.breakpoint.query(bufnum, fname, V.call("nvimgdb#client#GetProxyAddr", {}))
+        gdb.breakpoint.query(bufnum, fname, gdb.client.getProxyAddr!)
         gdb.cursor.display(1)
 
 ret = {

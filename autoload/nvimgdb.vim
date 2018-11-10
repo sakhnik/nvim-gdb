@@ -4,38 +4,8 @@ sign define GdbBreakpoint text=●
 lua V = require("gdb.v")
 lua gdb = require("gdb")
 
-" Transition "paused" -> "continue"
-function s:GdbPaused_continue(...) dict
-  if t:gdb != self | return | endif
-  call self._parser.switch(self._state_running)
-  lua gdb.cursor.display(0)
-endfunction
 
-
-" Transition "paused" -> "paused": jump to the frame location
-function s:GdbPaused_jump(file, line, ...) dict
-  if t:gdb != self | return | endif
-  call luaeval("gdb.win.jump(_A[1], _A[2])", [a:file, a:line])
-endfunction
-
-" Transition "paused" -> "paused": refresh breakpoints in the current file
-function s:GdbPaused_info_breakpoints(...) dict
-  if t:gdb != self | return | endif
-  lua gdb.win.queryBreakpoints()
-endfunction
-
-" Transition "running" -> "pause"
-function s:GdbRunning_pause(...) dict
-  if t:gdb != self | return | endif
-  call self._parser.switch(self._state_paused)
-  lua gdb.win.queryBreakpoints()
-endfunction
-
-
-let s:Gdb = {}
-
-
-function s:Gdb.kill()
+function s:GdbKill()
 
   " Cleanup commands, autocommands etc
   call nvimgdb#ui#Leave()
@@ -48,9 +18,11 @@ function s:Gdb.kill()
 
   lua gdb.win.cleanup()
 
+  let client_buf = luaeval("gdb.client.getBuf()")
+  lua gdb.client.cleanup()
+
   " Close the windows and the tab
   let tabnr = tabpagenr('$')
-  let client_buf = nvimgdb#client#GetBuf()
   if bufexists(client_buf)
     exe 'bd! '.client_buf
   endif
@@ -63,49 +35,23 @@ function s:Gdb.kill()
 endfunction
 
 
-" Initialize the state machine depending on the chosen backend.
-function! s:InitMachine(backend, struct)
-  let data = copy(a:struct)
-
-  " Identify and select the appropriate backend
-  let data.backend = nvimgdb#backend#{a:backend}#Get()
-
-  "  +-jump,breakpoint--+
-  "  |                  |
-  "  +-------------->PAUSED---continue--->RUNNING
-  "                     |                   |
-  "                     +<-----pause--------+
-  "
-  let data._state_paused = vimexpect#State(data.backend["paused"])
-  let data._state_paused.continue = function("s:GdbPaused_continue", data)
-  let data._state_paused.jump = function("s:GdbPaused_jump", data)
-  let data._state_paused.info_breakpoints = function("s:GdbPaused_info_breakpoints", data)
-
-  let data._state_running = vimexpect#State(data.backend["running"])
-  let data._state_running.pause = function("s:GdbRunning_pause", data)
-
-  let init_state = eval('data._state_' . data.backend["init_state"])
-  return vimexpect#Parser(init_state, data)
-endfunction
-
-
 " The checks to be executed when navigating the windows
 function! nvimgdb#CheckWindowClosed(...)
   " If this isn't a debugging session, nothing to do
-  if !exists('t:gdb') | return | endif
+  if !luaeval("gdb.client.checkTab()") | return | endif
 
   " The tabpage should contain at least two windows, finish debugging
   " otherwise.
   if tabpagewinnr(tabpagenr(), '$') == 1
-    call t:gdb.kill()
+    call s:GdbKill()
   endif
 endfunction
 
 function! nvimgdb#OnTabEnter()
-  if !exists('t:gdb') | return | endif
+  if !luaeval("gdb.client.checkTab()") | return | endif
 
   " Restore the signs as they may have been spoiled
-  if t:gdb._parser.state() == t:gdb._state_paused
+  if luaeval("gdb.client.isPaused()")
     lua gdb.cursor.display(1)
   endif
 
@@ -114,7 +60,7 @@ function! nvimgdb#OnTabEnter()
 endfunction
 
 function! nvimgdb#OnTabLeave()
-  if !exists('t:gdb') | return | endif
+  if !luaeval("gdb.client.checkTab()") | return | endif
 
   " Hide the signs
   lua gdb.cursor.display(0)
@@ -123,7 +69,7 @@ endfunction
 
 
 function! nvimgdb#OnBufEnter()
-  if !exists('t:gdb') | return | endif
+  if !luaeval("gdb.client.checkTab()") | return | endif
   if &buftype ==# 'terminal' | return | endif
   call nvimgdb#keymaps#DispatchSet()
   " Ensure breakpoints are shown if are queried dynamically
@@ -131,15 +77,13 @@ function! nvimgdb#OnBufEnter()
 endfunction
 
 function! nvimgdb#OnBufLeave()
-  if !exists('t:gdb') | return | endif
+  if !luaeval("gdb.client.checkTab()") | return | endif
   if &buftype ==# 'terminal' | return | endif
   call nvimgdb#keymaps#DispatchUnset()
 endfunction
 
 
 function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
-  let gdb = s:InitMachine(a:backend, s:Gdb)
-
   " Create new tab for the debugging view
   tabnew
 
@@ -163,9 +107,7 @@ function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   " go to the bottom window and spawn gdb client
   wincmd j
 
-  call nvimgdb#client#Init(a:proxy_cmd, a:client_cmd, gdb)
-
-  let t:gdb = gdb
+  call luaeval("gdb.client.init(_A[1], _A[2], _A[3])", [a:proxy_cmd, a:client_cmd, a:backend])
 
   " Prepare configuration specific to this debugging session
   call nvimgdb#keymaps#Init()
@@ -190,11 +132,11 @@ function! nvimgdb#GetFullBufferPath(buf)
 endfunction
 
 function! nvimgdb#ToggleBreak()
-  if !exists('t:gdb') | return | endif
+  if !luaeval("gdb.client.checkTab()") | return | endif
 
-  if t:gdb._parser.state() == t:gdb._state_running
+  if luaeval("gdb.client.isRunning()")
     " pause first
-    call nvimgdb#client#Interrupt()
+    lua gdb.client.interrupt()
   endif
 
   let buf = bufnr('%')
@@ -203,30 +145,32 @@ function! nvimgdb#ToggleBreak()
   let linenr = line('.')
 
   if empty(file_breakpoints) || !has_key(file_breakpoints, linenr)
-    call nvimgdb#client#SendLine(t:gdb.backend['breakpoint'] . ' ' . file_name . ':' . linenr)
+    call luaeval("gdb.client.sendLine(gdb.client.getCommand('breakpoint') .. _A)",
+          \ ' ' . file_name . ':' . linenr)
   else
     " There already is a breakpoint on this line: remove
-    call nvimgdb#client#SendLine(t:gdb.backend['delete_breakpoints'] . ' ' . file_breakpoints[linenr])
+    call luaeval("gdb.client.sendLine(gdb.client.getCommand('delete_breakpoints') .. _A)",
+          \ ' ' . file_breakpoints[linenr])
   endif
 endfunction
 
 
 function! nvimgdb#ClearBreak()
-  if !exists('t:gdb') | return | endif
+  if !luaeval("gdb.client.checkTab()") | return | endif
 
   lua gdb.breakpoint.cleanupSigns()
 
-  if t:gdb._parser.state() == t:gdb._state_running
+  if luaeval("gdb.client.isRunning()")
     " pause first
-    call nvimgdb#client#Interrupt()
+    lua gdb.client.interrupt()
   endif
-  call nvimgdb#client#SendLine(t:gdb.backend['delete_breakpoints'])
+  call luaeval("gdb.client.sendLine(gdb.client.getCommand('delete_breakpoints'))")
 endfunction
 
 
 function! nvimgdb#Send(data)
-  if !exists('t:gdb') | return | endif
-  call nvimgdb#client#SendLine(get(t:gdb.backend, a:data, a:data))
+  if !luaeval("gdb.client.checkTab()") | return | endif
+  call luaeval("gdb.client.sendLine(gdb.client.getCommand(_A))", a:data)
 endfunction
 
 
@@ -236,12 +180,26 @@ endfunction
 
 
 function! nvimgdb#Interrupt()
-  if !exists('t:gdb') | return | endif
-  call nvimgdb#client#Interrupt()
+  if !luaeval("gdb.client.checkTab()") | return | endif
+  lua gdb.client.interrupt()
 endfunction
 
 
 function! nvimgdb#Kill()
-  if !exists('t:gdb') | return | endif
-  call t:gdb.kill()
+  if !luaeval("gdb.client.checkTab()") | return | endif
+  call s:GdbKill()
+endfunction
+
+let s:plugin_dir = expand('<sfile>:p:h:h')
+
+function! nvimgdb#GetPluginDir()
+  return s:plugin_dir
+endfunction
+
+function! nvimgdb#TermOpen(command, tab)
+  enew
+  return termopen(a:command,
+    \ {'tab': a:tab,
+    \  'on_stdout': {j,d,e -> luaeval("gdb.client.onStdout(_A[1], _A[2], _A[3])", [j,d,e])}
+    \ })
 endfunction

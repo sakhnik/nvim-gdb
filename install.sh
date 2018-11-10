@@ -34,6 +34,7 @@ EOF
 $luarocks install luaposix --tree="$rocks_tree"
 $luarocks install moonscript --tree="$rocks_tree"
 $luarocks install json-lua --tree="$rocks_tree"
+$luarocks install Lrexlib-PCRE --tree="$rocks_tree"
 
 # Compile all moon scripts
 find lua -name '*.moon' -exec "$rocks_tree/bin/moonc" {} \;
