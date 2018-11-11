@@ -1,4 +1,7 @@
-[![Travis Build Status](https://travis-ci.org/sakhnik/nvim-gdb.svg?branch=master)](https://travis-ci.org/sakhnik/nvim-gdb)
+ 
+Branch | Status | Description
+-------| -------|------------
+[legacy](https://github.com/sakhnik/nvim-gdb/tree/legacy) | [![Travis Build Status](https://travis-ci.org/sakhnik/nvim-gdb.svg?branch=legacy)](https://travis-ci.org/sakhnik/nvim-gdb) | The original version mostly in VimL and some Python
 
 # GDB for neovim
 
@@ -30,7 +33,7 @@ Or type `<leader>dp` to start debugging a python program.
 If you use vim-plug, add the following line to your vimrc file:
 
 ```vim
-Plug 'sakhnik/nvim-gdb'
+Plug 'sakhnik/nvim-gdb', { 'branch': 'legacy' }
 ```
 
 Or use any other plugin manager:
