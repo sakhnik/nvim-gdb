@@ -72,20 +72,26 @@ function! nvimgdb#keymaps#SetT()
 endfunction
 
 function! nvimgdb#keymaps#DispatchSet()
+  if !exists("t:gdb_keymaps_config") | return | endif
   try
     call t:gdb_keymaps_config['set_keymaps']()
+  catch /.*/
   endtry
 endfunction
 
 function! nvimgdb#keymaps#DispatchUnset()
+  if !exists("t:gdb_keymaps_config") | return | endif
   try
     call t:gdb_keymaps_config['unset_keymaps']()
+  catch /.*/
   endtry
 endfunction
 
 function! nvimgdb#keymaps#DispatchSetT()
+  if !exists("t:gdb_keymaps_config") | return | endif
   try
     call t:gdb_keymaps_config['set_tkeymaps']()
+  catch /.*/
   endtry
 endfunction
 
