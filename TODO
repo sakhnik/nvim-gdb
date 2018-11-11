@@ -1,4 +1,4 @@
 backtrace to quickfix
 breakpoints to quickfix
-session recording/loading
 use neovim as lua interpreter to soften prerequisites
+investigate buffer jumps (avoid excessive keymaps remappings)
