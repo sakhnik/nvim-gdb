@@ -1,6 +1,7 @@
  
 Branch | Status | Description
 -------| -------|------------
+[master](https://github.com/sakhnik/nvim-gdb/tree/master) | [![Travis Build Status](https://travis-ci.org/sakhnik/nvim-gdb.svg?branch=master)](https://travis-ci.org/sakhnik/nvim-gdb) | Modern version implemented in Moonscript and some VimL
 [legacy](https://github.com/sakhnik/nvim-gdb/tree/legacy) | [![Travis Build Status](https://travis-ci.org/sakhnik/nvim-gdb.svg?branch=legacy)](https://travis-ci.org/sakhnik/nvim-gdb) | The original version mostly in VimL and some Python
 
 # GDB for neovim
@@ -30,13 +31,21 @@ Or type `<leader>dp` to start debugging a python program.
 
 ## Installation
 
-If you use vim-plug, add the following line to your vimrc file:
+Check the prerequisites in the script [test/prerequisites.sh](https://github.com/sakhnik/nvim-gdb/blob/master/test/prerequisites.sh).
+
+If you use vim-plug, add the following line to your vimrc file for the mainstream version:
+
+```vim
+Plug 'sakhnik/nvim-gdb', { 'do': './install.sh' }
+```
+
+or for the original VimL version:
 
 ```vim
 Plug 'sakhnik/nvim-gdb', { 'branch': 'legacy' }
 ```
 
-Or use any other plugin manager:
+You can use any other plugin manager too:
 
   - vundle
   - neobundle
