@@ -3,6 +3,7 @@ cur_tab = vim.api.nvim_get_current_tabpage
 V = {
     cur_tab: cur_tab
     cur_win: vim.api.nvim_get_current_win
+    list_wins: -> vim.api.nvim_tabpage_list_wins(cur_tab!)
     win_get_nr: vim.api.nvim_win_get_number
     win_get_buf: vim.api.nvim_win_get_buf
     cur_winnr: -> vim.api.nvim_win_get_number(vim.api.nvim_get_current_win!)

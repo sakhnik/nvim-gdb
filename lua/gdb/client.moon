@@ -7,7 +7,7 @@ tst = V.def_tstorage!
 
 fmt = string.format
 
-Init = (proxy_cmd, client_cmd, backend) ->
+Init = (win, proxy_cmd, client_cmd, backend) ->
     tst\init!
     b = gdb.backend[backend]
     tst\set("backend", b)
@@ -20,6 +20,9 @@ Init = (proxy_cmd, client_cmd, backend) ->
         command = fmt("%s/lib/%s -a %s -- %s",
             V.call("nvimgdb#GetPluginDir", {}), proxy_cmd, proxyAddr.get!,
             client_cmd)
+
+    -- Go to the yet-to-be terminal window
+    V.cmd(fmt("%dwincmd w", V.win_get_nr(win)))
 
     clientId.set(V.call("nvimgdb#TermOpen", {command, V.cur_tab!}))
     clientBuf.set(V.cur_buf!)

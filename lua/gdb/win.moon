@@ -4,9 +4,9 @@ curBuf = V.def_tvar("gdb_win_current_buf")
 
 fmt = string.format
 
-Init = ->
+Init = (win) ->
     -- window number that will be displaying the current file
-    jumpWin.set(V.cur_win!)
+    jumpWin.set(win)
     curBuf.set(-1)
 
 Cleanup = ->

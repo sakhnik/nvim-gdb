@@ -84,30 +84,7 @@ endfunction
 
 
 function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
-  " Create new tab for the debugging view
-  tabnew
-
-  " create horizontal split to display the current file
-  sp
-
-  " Initialize the windowing subsystem
-  lua gdb.win.init()
-
-  " Initialize current line tracking
-  lua gdb.cursor.init()
-
-  " Initialize breakpoint tracking
-  lua gdb.breakpoint.init()
-
-  if !&scrolloff
-    " Make sure the cursor stays visible at all times
-    setlocal scrolloff=5
-  endif
-
-  " go to the bottom window and spawn gdb client
-  wincmd j
-
-  call luaeval("gdb.client.init(_A[1], _A[2], _A[3])", [a:proxy_cmd, a:client_cmd, a:backend])
+  call luaeval("gdb.app.init(_A[1], _A[2], _A[3])", [a:backend, a:proxy_cmd, a:client_cmd])
 
   " Prepare configuration specific to this debugging session
   call nvimgdb#keymaps#Init()
