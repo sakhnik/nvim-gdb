@@ -8,6 +8,7 @@ Init = (backendStr, proxyCmd, clientCmd) ->
     table.sort wins
     wcli, wjump = unpack(wins)
 
+    -- TODO: restore
     --if !&scrolloff
     -- Make sure the cursor stays visible at all times
     --  setlocal scrolloff=5
