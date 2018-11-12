@@ -1,13 +1,22 @@
 rex = require "rex_pcre"
 
+-- Abstract interface for a debugger state machine
 class Scm
-    new: =>
-        @running = {}
-        @paused = {}
-        @state = nil
+    isPaused: => assert(nil, "Not implemented")     -- is the inferior paused?
+    isRunning: => assert(nil, "Not implemented")    -- is the inferior running?
+    feed: (line) => assert(nil, "Not implemented")  -- process a single line
 
-    addTrans: (state, rx, handler) =>
-        state[#state + 1] = {rx, handler}
+-- Common SCM implementation for the integrated backends
+class BaseScm extends Scm
+    new: =>
+        @running = {}   -- The running state {{matcher, matchingFunc, handler}}
+        @paused = {}    -- The paused state {{matcher, matchingFunc, handler}}
+        @state = nil    -- Current state (either @running or @paused)
+
+    -- Add a new transition for a given state using {matcher, matchingFunc}
+    -- Call the handler when matched.
+    addTrans: (state, matcher, func, handler) =>
+        state[#state + 1] = {matcher, func, handler}
 
     -- Transition "paused" -> "continue"
     continue: (...) =>
@@ -35,9 +44,10 @@ class Scm
 
     feed: (line) =>
         for k, v in ipairs(@state)
-            m1, m2 = v[1]\match(line)
+            matcher, func, handler = unpack(v)
+            m1, m2 = func(matcher, line)
             if m1
-                v[2](self, m1, m2)
+                handler(self, m1, m2)
                 break
 
 
@@ -45,7 +55,7 @@ Init = (backend) ->
     backend.initScm!
 
 ret =
-    Scm: Scm
+    BaseScm: BaseScm
     init: Init
 
 ret

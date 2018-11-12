@@ -1,19 +1,22 @@
 rex = require "rex_pcre"
 
+r = rex.new                     -- construct a new matcher
+m = (r, line) -> r\match(line)  -- matching function
+
 -- gdb specifics
 
 InitScm = ->
-    class GdbScm extends gdb.scm.Scm
+    class GdbScm extends gdb.scm.BaseScm
         new: =>
             super!
 
-            @addTrans(@paused, rex.new([[Continuing\.]]), @continue)
-            @addTrans(@paused, rex.new([[[\032]{2}([^:]+):(\d+):\d+]]), @jump)
-            @addTrans(@paused, rex.new([[^\(gdb\) ]]), @query)
+            @addTrans(@paused, r([[Continuing\.]]),               m, @continue)
+            @addTrans(@paused, r([[[\032]{2}([^:]+):(\d+):\d+]]), m, @jump)
+            @addTrans(@paused, r([[^\(gdb\) ]]),                  m, @query)
 
-            @addTrans(@running, rex.new([[^Breakpoint \d+]]), @pause)
-            @addTrans(@running, rex.new([[ hit Breakpoint \d+]]), @pause)
-            @addTrans(@running, rex.new([[^\(gdb\) ]]), @pause)
+            @addTrans(@running, r([[^Breakpoint \d+]]),           m, @pause)
+            @addTrans(@running, r([[ hit Breakpoint \d+]]),       m, @pause)
+            @addTrans(@running, r([[^\(gdb\) ]]),                 m, @pause)
 
             @state = @running
 
