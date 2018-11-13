@@ -52,6 +52,10 @@ endfunction
 function! nvimgdb#OnBufEnter()
   if !luaeval("gdb.client.checkTab()") | return | endif
   if &buftype ==# 'terminal' | return | endif
+
+  " Make sure the cursor stays visible at all times
+  if !&scrolloff | setlocal scrolloff=5 | endif
+
   call nvimgdb#keymaps#DispatchSet()
   " Ensure breakpoints are shown if are queried dynamically
   lua gdb.win.queryBreakpoints()
