@@ -16,9 +16,9 @@ CursorDisplay = (add) ->
     sign_id.set(4999 + 4998 - old_sign_id)
     current_buf = gdb.win.getCurrentBuffer!
     if add != 0 and line.get() != -1 and current_buf != -1
-        V.cmd(fmt('sign place %d name=GdbCurrentLine line=%d buffer=%d',
-            sign_id.get(), line.get(), current_buf))
-    V.cmd('sign unplace ' .. old_sign_id)
+        V.exe fmt('sign place %d name=GdbCurrentLine line=%d buffer=%d',
+            sign_id.get(), line.get(), current_buf)
+    V.exe ('sign unplace ' .. old_sign_id)
 
 ret = {
     init: CursorInit,

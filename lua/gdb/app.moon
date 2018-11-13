@@ -3,7 +3,7 @@ fmt = string.format
 
 Init = (backendStr, proxyCmd, clientCmd) ->
     -- Create new tab for the debugging view and split horizontally
-    V.cmd("tabnew | sp")
+    V.exe "tabnew | sp"
 
     -- Enumerate the available windows
     wins = V.list_wins!
@@ -42,9 +42,9 @@ Cleanup = ->
     -- Close the windows and the tab
     tabCount = #V.list_tabs!
     if V.buf_is_loaded(client_buf)
-        V.cmd ("bd! " .. client_buf)
+        V.exe ("bd! " .. client_buf)
     if tabCount == #V.list_tabs!
-        V.cmd "tabclose"
+        V.exe "tabclose"
 
 ret =
     init: Init

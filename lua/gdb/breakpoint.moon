@@ -45,7 +45,7 @@ Disconnect = (proxy_addr) ->
 
 ClearSigns = ->
     for i = 5000, max_sign_id.get()
-        V.cmd('sign unplace ' .. i)
+        V.exe ('sign unplace ' .. i)
     max_sign_id.set(0)
 
 SetSigns = (buf) ->
@@ -54,7 +54,7 @@ SetSigns = (buf) ->
         bpath = V.call("nvimgdb#GetFullBufferPath", {buf})
         for line, _ in pairs(breaks\get![bpath] or {})
             sign_id += 1
-            V.cmd(fmt('sign place %d name=GdbBreakpoint line=%d buffer=%d', sign_id, line, buf))
+            V.exe fmt('sign place %d name=GdbBreakpoint line=%d buffer=%d', sign_id, line, buf)
         max_sign_id.set(sign_id)
 
 RefreshSigns = (buf) ->
@@ -70,7 +70,7 @@ Query = (bufnum, fname, proxy_addr) ->
     br = json\decode(resp)
     err = br._error
     if err
-        V.cmd("echo \"Can't get breakpoints: \"" .. err)
+        V.exe ("echo \"Can't get breakpoints: \"" .. err)
     else
         breaks\set(fname, br)
         RefreshSigns(bufnum)

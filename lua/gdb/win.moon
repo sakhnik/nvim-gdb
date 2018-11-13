@@ -14,7 +14,7 @@ Cleanup = ->
 
 Jump = (file, line) ->
     window = V.cur_winnr!
-    V.cmd(fmt("%dwincmd w", V.win_get_nr(jumpWin.get!)))
+    V.exe fmt("%dwincmd w", V.win_get_nr(jumpWin.get!))
     curBuf.set(V.cur_buf!)
     target_buf = V.call("bufnr", {file, 1})
     if target_buf == gdb.client.getBuf!
@@ -25,13 +25,13 @@ Jump = (file, line) ->
 
     if V.call("bufnr", {'%'}) != target_buf
         -- Switch to the new buffer
-        V.cmd('buffer ' .. target_buf)
+        V.exe ('buffer ' .. target_buf)
         curBuf.set(target_buf)
         gdb.breakpoint.refreshSigns(curBuf.get())
 
-    V.cmd(':' .. line)
+    V.exe (':' .. line)
     gdb.cursor.set(line)
-    V.cmd(fmt('%swincmd w', window))
+    V.exe fmt('%swincmd w', window)
     gdb.cursor.display(1)
 
 QueryBreakpoints = ->

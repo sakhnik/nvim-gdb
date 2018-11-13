@@ -22,7 +22,7 @@ Init = (win, proxy_cmd, client_cmd, backend) ->
             client_cmd)
 
     -- Go to the yet-to-be terminal window
-    V.cmd(fmt("%dwincmd w", V.win_get_nr(win)))
+    V.exe fmt("%dwincmd w", V.win_get_nr(win))
 
     clientId.set(V.call("nvimgdb#TermOpen", {command, V.cur_tab!}))
     clientBuf.set(V.cur_buf!)
