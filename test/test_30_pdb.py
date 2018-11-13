@@ -15,7 +15,7 @@ class TestPdb(unittest.TestCase):
     def test_10_generic(self):
         """=> Test a generic use case."""
         eng.KeyStroke(' dp')
-        eng.KeyStroke('\n')
+        eng.KeyStroke('\n', delay=0.3)
         eng.KeyStroke('tbreak _main\n')
         eng.KeyStroke('cont\n')
         eng.KeyStrokeL('<esc>')
@@ -39,8 +39,7 @@ class TestPdb(unittest.TestCase):
         self.assertEqual(10, cur)
         self.assertFalse(breaks)
 
-        eng.KeyStrokeL('<f5>')
-        time.sleep(0.5)
+        eng.KeyStrokeL('<f5>', delay=1)
         cur, breaks = eng.GetSigns()
         self.assertEqual(1, cur)
         self.assertFalse(breaks)
@@ -50,7 +49,7 @@ class TestPdb(unittest.TestCase):
     def test_20_breakpoint(self):
         """=> Test toggling breakpoints."""
         eng.KeyStroke(' dp')
-        eng.KeyStroke('\n')
+        eng.KeyStroke('\n', delay=0.3)
         eng.KeyStrokeL('<esc>')
 
         eng.KeyStrokeL('<esc><c-w>k')
@@ -66,7 +65,7 @@ class TestPdb(unittest.TestCase):
         self.assertEqual(5, cur)
         self.assertListEqual([5], breaks)
 
-        eng.KeyStrokeL('<f8>')
+        eng.KeyStrokeL('<f8>', delay=0.3)
         cur, breaks = eng.GetSigns()
         self.assertEqual(5, cur)
         self.assertFalse(breaks)
@@ -76,7 +75,7 @@ class TestPdb(unittest.TestCase):
     def test_30_navigation(self):
         """=> Test toggling breakpoints while navigating."""
         eng.KeyStroke(' dp')
-        eng.KeyStroke('\n')
+        eng.KeyStroke('\n', delay=0.3)
         eng.KeyStrokeL('<esc>')
 
         eng.KeyStrokeL('<esc><c-w>k')
@@ -112,7 +111,7 @@ class TestPdb(unittest.TestCase):
     def test_40_until(self):
         """=> Test run until line."""
         eng.KeyStroke(' dp')
-        eng.KeyStroke('\n')
+        eng.KeyStroke('\n', delay=0.3)
         eng.KeyStroke('tbreak _main\n')
         eng.KeyStroke('cont\n')
         eng.KeyStrokeL('<esc>')

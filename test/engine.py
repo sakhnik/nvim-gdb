@@ -18,7 +18,7 @@ class Engine:
             args = ["/usr/bin/env", "nvim", "--embed", "-n", "-u", "init.vim"]
             self.nvim = attach('child', argv=args)
 
-    def Command(self, cmd, delay=0.5):
+    def Command(self, cmd, delay=0.1):
         """Execute a Vim command."""
         self.nvim.command(cmd)
         time.sleep(delay)
@@ -35,12 +35,12 @@ class Engine:
                                 out)]
         return (curline[0] if curline else -1), sorted(breaks)
 
-    def KeyStrokeL(self, keys, delay=0.5):
+    def KeyStrokeL(self, keys, delay=0.1):
         """Send a Vim keystroke to NeoVim."""
         self.nvim.input(keys)
         time.sleep(delay)
 
-    def KeyStroke(self, keys, delay=0.5):
+    def KeyStroke(self, keys, delay=0.1):
         """Send a string to NeoVim as if typed."""
         self.nvim.feedkeys(keys, 't')
         time.sleep(delay)
