@@ -179,7 +179,7 @@ class TestGdb(unittest.TestCase):
                 eng.KeyStroke(spec["launch"], delay=1)
                 eng.KeyStroke('run\n', delay=1)
                 eng.KeyStrokeL('<esc>')
-                eng.KeyStroke(':GdbInterrupt\n')
+                eng.KeyStroke(':GdbInterrupt\n', delay=0.3)
 
                 cur, breaks = eng.GetSigns()
                 self.assertEqual(22, cur)

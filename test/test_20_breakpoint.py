@@ -25,7 +25,7 @@ class TestBreakpoint(unittest.TestCase):
         """=> Verify manual breakpoint is detected."""
         for backend, spec in subtests.items():
             with self.subTest(backend=backend):
-                eng.KeyStroke(spec["launch"])
+                eng.KeyStroke(spec["launch"], delay=1)
                 eng.KeyStroke(spec["break_main"])
                 eng.KeyStroke('run\n', delay=1)
 
@@ -48,7 +48,7 @@ class TestBreakpoint(unittest.TestCase):
             with self.subTest(backend=backend):
                 try:
                     eng.KeyStroke(':cd /tmp\n')
-                    eng.KeyStroke(subs[backend])
+                    eng.KeyStroke(subs[backend], delay=1)
                     eng.KeyStroke(subtests[backend]["break_main"])
                     eng.KeyStroke('run\n', delay=1)
 
@@ -66,7 +66,7 @@ class TestBreakpoint(unittest.TestCase):
         break_bar = {"gdb": "break Bar\n", "lldb": "breakpoint set --fullname Bar\n"}
         for backend, spec in subtests.items():
             with self.subTest(backend=backend):
-                eng.KeyStroke(spec['launch'])
+                eng.KeyStroke(spec['launch'], delay=1)
                 eng.KeyStroke(break_bar[backend])
                 eng.KeyStrokeL("<esc>:wincmd k<cr>")
                 eng.KeyStrokeL(":e src/test.cpp\n")
@@ -101,7 +101,7 @@ class TestBreakpoint(unittest.TestCase):
         break_bar = {"gdb": "break Bar\n", "lldb": "breakpoint set --fullname Bar\n"}
         for backend, spec in subtests.items():
             with self.subTest(backend=backend):
-                eng.KeyStroke(spec['launch'])
+                eng.KeyStroke(spec['launch'], delay=1)
                 eng.KeyStroke(break_bar[backend])
                 eng.KeyStroke(spec['break_main'])
                 eng.KeyStrokeL("<esc>:wincmd k<cr>")

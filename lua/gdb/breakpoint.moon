@@ -66,14 +66,18 @@ Init = ->
     max_sign_id.set(0)
 
 Query = (bufnum, fname, proxy_addr) ->
+    breaks\set(fname, {})
     resp = DoQuery(fname, proxy_addr)
-    br = json\decode(resp)
-    err = br._error
-    if err
-        V.exe ("echo \"Can't get breakpoints: \"" .. err)
-    else
-        breaks\set(fname, br)
-        RefreshSigns(bufnum)
+    if resp
+        br = json\decode(resp)
+        err = br._error
+        if err
+            V.exe ("echo \"Can't get breakpoints: \"" .. err)
+        else
+            breaks\set(fname, br)
+            RefreshSigns(bufnum)
+    --else
+        -- TODO: notify about error
 
 CleanupSigns = ->
     breaks\init!
