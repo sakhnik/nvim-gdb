@@ -46,8 +46,32 @@ Cleanup = ->
     if tabCount == #V.list_tabs!
         V.exe "tabclose"
 
+GetFullBufferPath = (bufNr) ->
+    -- Breakpoints need full path to the buffer (at least in lldb)
+    V.call("expand", {fmt('#%d:p', bufNr)})
+
+ToggleBreak = ->
+    if gdb.client.checkTab()
+        if gdb.client.isRunning()
+            -- pause first
+            gdb.client.interrupt()
+
+        buf = V.cur_buf!
+        fileName = GetFullBufferPath(buf)
+        fileBreaks = gdb.breakpoint.getForFile(fileName)
+        lineNr = '' .. V.call("line", {"."})    -- Must be string to query from the fileBreaks
+
+        breakId = fileBreaks[lineNr]
+        if breakId != nil
+            -- There already is a breakpoint on this line: remove
+            gdb.client.sendLine(gdb.client.getCommand('delete_breakpoints') .. ' ' .. breakId)
+        else
+            gdb.client.sendLine(gdb.client.getCommand('breakpoint') .. ' ' .. fileName .. ':' .. lineNr)
+
 ret =
     init: Init
     cleanup: Cleanup
+    toggleBreak: ToggleBreak
+    getFullBufferPath: GetFullBufferPath
 
 ret

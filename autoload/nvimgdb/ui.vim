@@ -32,7 +32,7 @@ endfunction
 
 function! s:DefineCommands()
   command! GdbDebugStop call nvimgdb#Kill()
-  command! GdbBreakpointToggle call nvimgdb#ToggleBreak()
+  command! GdbBreakpointToggle lua gdb.app.toggleBreak()
   command! GdbBreakpointClearAll call nvimgdb#ClearBreak()
   command! GdbRun call nvimgdb#Send("run")
   command! GdbUntil call nvimgdb#Send(luaeval("gdb.client.getCommand('until')") . " " . line('.'))

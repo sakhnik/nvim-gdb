@@ -36,24 +36,23 @@ Jump = (file, line) ->
 
 QueryBreakpoints = ->
     -- Get the source code buffer number
-    bufnum = V.win_get_buf(jumpWin.get!)
+    bufNum = V.win_get_buf(jumpWin.get!)
 
     -- Get the source code file name
-    fname = V.call("nvimgdb#GetFullBufferPath", {bufnum})
+    fname = gdb.app.getFullBufferPath(bufNum)
 
     -- If no file name or a weird name with spaces, ignore it (to avoid
     -- misinterpretation)
     if fname != '' and fname\find(' ') == nil
         -- Query the breakpoints for the shown file
-        gdb.breakpoint.query(bufnum, fname, gdb.client.getProxyAddr!)
+        gdb.breakpoint.query(bufNum, fname, gdb.client.getProxyAddr!)
         gdb.cursor.display(1)
 
-ret = {
+ret =
     init: Init
     cleanup: Cleanup
     getCurrentBuffer: curBuf.get
     jump: Jump
     queryBreakpoints: QueryBreakpoints
-}
 
 ret

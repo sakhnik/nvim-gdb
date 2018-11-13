@@ -51,7 +51,7 @@ ClearSigns = ->
 SetSigns = (buf) ->
     if buf != -1
         sign_id = 5000 - 1
-        bpath = V.call("nvimgdb#GetFullBufferPath", {buf})
+        bpath = gdb.app.getFullBufferPath(buf)
         for line, _ in pairs(breaks\get![bpath] or {})
             sign_id += 1
             V.exe fmt('sign place %d name=GdbBreakpoint line=%d buffer=%d', sign_id, line, buf)

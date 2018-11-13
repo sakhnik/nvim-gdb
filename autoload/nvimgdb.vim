@@ -5,8 +5,7 @@ lua V = require("gdb.v")
 lua gdb = require("gdb")
 
 
-function s:GdbKill()
-
+function! s:GdbKill()
   " Cleanup commands, autocommands etc
   call nvimgdb#ui#Leave()
 
@@ -82,35 +81,6 @@ function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
 
   " Start inset mode in the GDB window
   normal i
-endfunction
-
-
-" Breakpoints need full path to the buffer (at least in lldb)
-function! nvimgdb#GetFullBufferPath(buf)
-  return expand('#' . a:buf . ':p')
-endfunction
-
-function! nvimgdb#ToggleBreak()
-  if !luaeval("gdb.client.checkTab()") | return | endif
-
-  if luaeval("gdb.client.isRunning()")
-    " pause first
-    lua gdb.client.interrupt()
-  endif
-
-  let buf = bufnr('%')
-  let file_name = nvimgdb#GetFullBufferPath(buf)
-  let file_breakpoints = luaeval("gdb.breakpoint.getForFile(_A)", file_name)
-  let linenr = line('.')
-
-  if empty(file_breakpoints) || !has_key(file_breakpoints, linenr)
-    call luaeval("gdb.client.sendLine(gdb.client.getCommand('breakpoint') .. _A)",
-          \ ' ' . file_name . ':' . linenr)
-  else
-    " There already is a breakpoint on this line: remove
-    call luaeval("gdb.client.sendLine(gdb.client.getCommand('delete_breakpoints') .. _A)",
-          \ ' ' . file_breakpoints[linenr])
-  endif
 endfunction
 
 
