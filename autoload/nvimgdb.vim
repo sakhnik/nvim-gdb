@@ -84,19 +84,6 @@ function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
 endfunction
 
 
-function! nvimgdb#ClearBreak()
-  if !luaeval("gdb.client.checkTab()") | return | endif
-
-  lua gdb.breakpoint.cleanupSigns()
-
-  if luaeval("gdb.client.isRunning()")
-    " pause first
-    lua gdb.client.interrupt()
-  endif
-  call luaeval("gdb.client.sendLine(gdb.client.getCommand('delete_breakpoints'))")
-endfunction
-
-
 function! nvimgdb#Send(data)
   if !luaeval("gdb.client.checkTab()") | return | endif
   call luaeval("gdb.client.sendLine(gdb.client.getCommand(_A))", a:data)

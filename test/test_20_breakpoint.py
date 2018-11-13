@@ -96,5 +96,30 @@ class TestBreakpoint(unittest.TestCase):
 
                 eng.KeyStrokeL('ZZ')
 
+    def test_40_clear_all(self):
+        """=> Verify that can clear all breakpoints."""
+        break_bar = {"gdb": "break Bar\n", "lldb": "breakpoint set --fullname Bar\n"}
+        for backend, spec in subtests.items():
+            with self.subTest(backend=backend):
+                eng.KeyStroke(spec['launch'])
+                eng.KeyStroke(break_bar[backend])
+                eng.KeyStroke(spec['break_main'])
+                eng.KeyStrokeL("<esc>:wincmd k<cr>")
+                eng.KeyStrokeL(":e src/test.cpp\n")
+                eng.KeyStrokeL(":10<cr>")
+                eng.KeyStrokeL("<f8>")
+
+                cur, breaks = eng.GetSigns()
+                self.assertEqual(-1, cur)
+                self.assertEqual([5, 10, 17], breaks)
+
+                eng.KeyStroke(":GdbBreakpointClearAll\n", delay=1)
+                cur, breaks = eng.GetSigns()
+                self.assertEqual(-1, cur)
+                self.assertFalse(breaks)
+
+                eng.KeyStrokeL('ZZ')
+
+
 if __name__ == "__main__":
     unittest.main()

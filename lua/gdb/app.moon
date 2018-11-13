@@ -68,10 +68,21 @@ ToggleBreak = ->
         else
             gdb.client.sendLine(gdb.client.getCommand('breakpoint') .. ' ' .. fileName .. ':' .. lineNr)
 
+ClearBreaks = ->
+    if gdb.client.checkTab()
+
+        if gdb.client.isRunning()
+            -- pause first
+            gdb.client.interrupt()
+
+        -- The breakpoint signs will be requeried later automatically
+        gdb.client.sendLine(gdb.client.getCommand('delete_breakpoints'))
+
 ret =
     init: Init
     cleanup: Cleanup
-    toggleBreak: ToggleBreak
     getFullBufferPath: GetFullBufferPath
+    toggleBreak: ToggleBreak
+    clearBreaks: ClearBreaks
 
 ret
