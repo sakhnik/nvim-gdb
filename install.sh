@@ -22,6 +22,8 @@ if [[ ! -x "$luarocks" ]]; then
     fi
 fi
 
+$luarocks install luarocks --tree="$rocks_tree"
+
 # Unfortunately, luaposix doesn't build when the luarocks loader
 # is used. So let's comment it out in the LUA_INIT.
 sed -i -e "s|;\\([^-][^;]*\"luarocks.loader\"[^']*'\\)|;--[[\\1]]|" $luarocks
