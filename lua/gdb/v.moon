@@ -4,6 +4,8 @@ V = {
     cur_tab: cur_tab
     cur_win: vim.api.nvim_get_current_win
     list_wins: -> vim.api.nvim_tabpage_list_wins(cur_tab!)
+    list_tabs: vim.api.nvim_list_tabpages
+    buf_is_loaded: vim.api.nvim_buf_is_loaded
     win_get_nr: vim.api.nvim_win_get_number
     win_get_buf: vim.api.nvim_win_get_buf
     cur_winnr: -> vim.api.nvim_win_get_number(vim.api.nvim_get_current_win!)

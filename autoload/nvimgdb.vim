@@ -10,25 +10,7 @@ function s:GdbKill()
   " Cleanup commands, autocommands etc
   call nvimgdb#ui#Leave()
 
-  " Clean up the breakpoint signs
-  lua gdb.breakpoint.cleanupSigns()
-
-  " Clean up the current line sign
-  lua gdb.cursor.display(0)
-
-  lua gdb.win.cleanup()
-
-  let client_buf = luaeval("gdb.client.getBuf()")
-  lua gdb.client.cleanup()
-
-  " Close the windows and the tab
-  let tabnr = tabpagenr('$')
-  if bufexists(client_buf)
-    exe 'bd! '.client_buf
-  endif
-  if tabnr == tabpagenr('$')
-    tabclose
-  endif
+  lua gdb.app.cleanup()
 
   " TabEnter isn't fired automatically when a tab is closed
   call nvimgdb#OnTabEnter()

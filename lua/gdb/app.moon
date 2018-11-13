@@ -1,4 +1,6 @@
 
+fmt = string.format
+
 Init = (backendStr, proxyCmd, clientCmd) ->
     -- Create new tab for the debugging view and split horizontally
     V.cmd("tabnew | sp")
@@ -25,7 +27,27 @@ Init = (backendStr, proxyCmd, clientCmd) ->
     -- go to the other window and spawn gdb client
     gdb.client.init(wcli, proxyCmd, clientCmd, backendStr)
 
+Cleanup = ->
+    -- Clean up the breakpoint signs
+    gdb.breakpoint.cleanupSigns!
+
+    -- Clean up the current line sign
+    gdb.cursor.display(0)
+
+    gdb.win.cleanup!
+
+    client_buf = gdb.client.getBuf!
+    gdb.client.cleanup!
+
+    -- Close the windows and the tab
+    tabCount = #V.list_tabs!
+    if V.buf_is_loaded(client_buf)
+        V.cmd ("bd! " .. client_buf)
+    if tabCount == #V.list_tabs!
+        V.cmd "tabclose"
+
 ret =
     init: Init
+    cleanup: Cleanup
 
 ret
