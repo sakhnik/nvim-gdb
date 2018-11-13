@@ -1,7 +1,7 @@
 gdb =
     app: require "gdb.app"
     breakpoint: require "gdb.breakpoint"
-    cursor: require "gdb.cursor"
+    Cursor: require "gdb.cursor"
     win: require "gdb.win"
     scm: require "gdb.scm"
     client: require "gdb.client"

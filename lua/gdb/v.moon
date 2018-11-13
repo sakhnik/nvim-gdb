@@ -30,7 +30,7 @@ V.def_tvar = (n) -> {
 
 -- A table attached to a tabpage
 class TStorage
-    data: {}
+    new: => @data = {}
     init: => @data[V.cur_tab!] = {}         -- Create a tabpage-specific table
     get: => @data[V.cur_tab!]               -- Access the table
     set: (k,v) => @data[V.cur_tab!][k] = v  -- Set key-value

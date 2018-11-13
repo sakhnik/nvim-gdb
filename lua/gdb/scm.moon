@@ -21,7 +21,7 @@ class BaseScm extends Scm
     -- Transition "paused" -> "continue"
     continue: (...) =>
         @state = @running
-        gdb.cursor.display(0)
+        gdb.app.get!.cursor\hide()
 
     -- Transition "paused" -> "paused": jump to the frame location
     jump: (file, line, ...) =>

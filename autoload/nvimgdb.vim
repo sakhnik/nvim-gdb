@@ -12,7 +12,7 @@ function! s:GdbKill()
   lua gdb.app.cleanup()
 
   " TabEnter isn't fired automatically when a tab is closed
-  call nvimgdb#OnTabEnter()
+  lua gdb.app.tabEnter()
 endfunction
 
 
@@ -27,27 +27,6 @@ function! nvimgdb#CheckWindowClosed(...)
     call s:GdbKill()
   endif
 endfunction
-
-function! nvimgdb#OnTabEnter()
-  if !luaeval("gdb.client.checkTab()") | return | endif
-
-  " Restore the signs as they may have been spoiled
-  if luaeval("gdb.client.isPaused()")
-    lua gdb.cursor.display(1)
-  endif
-
-  " Ensure breakpoints are shown if are queried dynamically
-  lua gdb.win.queryBreakpoints()
-endfunction
-
-function! nvimgdb#OnTabLeave()
-  if !luaeval("gdb.client.checkTab()") | return | endif
-
-  " Hide the signs
-  lua gdb.cursor.display(0)
-  lua gdb.breakpoint.clearSigns()
-endfunction
-
 
 function! nvimgdb#OnBufEnter()
   if !luaeval("gdb.client.checkTab()") | return | endif

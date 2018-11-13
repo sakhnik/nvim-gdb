@@ -30,9 +30,9 @@ Jump = (file, line) ->
         gdb.breakpoint.refreshSigns(curBuf.get())
 
     V.exe (':' .. line)
-    gdb.cursor.set(line)
+    gdb.app.get!.cursor\set(target_buf, line)
     V.exe fmt('%swincmd w', window)
-    gdb.cursor.display(1)
+    gdb.app.get!.cursor\show()
 
 QueryBreakpoints = ->
     -- Get the source code buffer number
@@ -46,7 +46,7 @@ QueryBreakpoints = ->
     if fname != '' and fname\find(' ') == nil
         -- Query the breakpoints for the shown file
         gdb.breakpoint.query(bufNum, fname, gdb.client.getProxyAddr!)
-        gdb.cursor.display(1)
+        gdb.app.get!.cursor\show!
 
 ret =
     init: Init

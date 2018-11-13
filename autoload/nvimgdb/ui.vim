@@ -75,8 +75,8 @@ function! nvimgdb#ui#Enter()
       "   window. We start a timer expecting it to expire after the window
       "   has been closed. It's a race.
       au BufWinLeave * call timer_start(100, "nvimgdb#CheckWindowClosed")
-      au TabEnter * call nvimgdb#OnTabEnter()
-      au TabLeave * call nvimgdb#OnTabLeave()
+      au TabEnter * lua gdb.app.tabEnter()
+      au TabLeave * lua gdb.app.tabLeave()
       au BufEnter * call nvimgdb#OnBufEnter()
       au BufLeave * call nvimgdb#OnBufLeave()
     augroup END

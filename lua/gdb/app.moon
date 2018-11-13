@@ -1,6 +1,9 @@
 
 fmt = string.format
 
+-- Tabpage local storage
+tls = V.def_tstorage!
+
 Init = (backendStr, proxyCmd, clientCmd) ->
     -- Create new tab for the debugging view and split horizontally
     V.exe "tabnew | sp"
@@ -10,11 +13,14 @@ Init = (backendStr, proxyCmd, clientCmd) ->
     table.sort wins
     wcli, wjump = unpack(wins)
 
+    -- Initialize the storage
+    tls\init!
+
     -- Initialize the windowing subsystem
     gdb.win.init(wjump)
 
     -- Initialize current line tracking
-    gdb.cursor.init!
+    tls\set("cursor", gdb.Cursor())
 
     -- Initialize breakpoint tracking
     gdb.breakpoint.init!
@@ -27,12 +33,15 @@ Cleanup = ->
     gdb.breakpoint.cleanupSigns!
 
     -- Clean up the current line sign
-    gdb.cursor.display(0)
+    tls\get!.cursor\hide!
 
     gdb.win.cleanup!
 
     client_buf = gdb.client.getBuf!
     gdb.client.cleanup!
+
+    -- Free the tabpage local storage for the current tabpage.
+    tls\clear!
 
     -- Close the windows and the tab
     tabCount = #V.list_tabs!
@@ -73,11 +82,31 @@ ClearBreaks = ->
         -- The breakpoint signs will be requeried later automatically
         gdb.client.sendLine(gdb.client.getCommand('delete_breakpoints'))
 
+TabEnter = ->
+    if gdb.client.checkTab!
+        -- Restore the signs as they may have been spoiled
+        if gdb.client.isPaused!
+            tls\get!.cursor\show!
+
+        -- Ensure breakpoints are shown if are queried dynamically
+        gdb.win.queryBreakpoints!
+
+TabLeave = ->
+    if gdb.client.checkTab()
+        -- Hide the signs
+        store = tls\get!
+        if store
+            store.cursor\hide()
+        gdb.breakpoint.clearSigns()
+
 ret =
     init: Init
     cleanup: Cleanup
     getFullBufferPath: GetFullBufferPath
     toggleBreak: ToggleBreak
     clearBreaks: ClearBreaks
+    get: -> tls\get!
+    tabLeave: TabLeave
+    tabEnter: TabEnter
 
 ret
