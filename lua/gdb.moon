@@ -4,7 +4,7 @@ gdb =
     Cursor: require "gdb.cursor"
     win: require "gdb.win"
     scm: require "gdb.scm"
-    client: require "gdb.client"
+    Client: require "gdb.client"
     backend:
         gdb: require "gdb.backend.gdb"
         lldb: require "gdb.backend.lldb"

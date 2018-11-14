@@ -14,7 +14,7 @@ Jump = (file, line) ->
     V.exe fmt("%dwincmd w", V.win_get_nr(jumpWin.get!))
     curBuf.set(V.cur_buf!)
     target_buf = V.call("bufnr", {file, 1})
-    if target_buf == gdb.client.getBuf!
+    if target_buf == gdb.app.dispatch("getClient")\getBuf!
         -- The terminal buffer may contain the name of the source file (in pdb, for
         -- instance)
         V.call("e " .. file)

@@ -26,7 +26,7 @@ class App
         @scm = gdb.scm.init(@backend)
 
         -- go to the other window and spawn gdb client
-        gdb.client.init(wcli, proxyCmd, clientCmd)
+        @client = gdb.Client(wcli, proxyCmd, clientCmd)
 
         -- Initialize the windowing subsystem
         gdb.win.init(wjump)
@@ -35,7 +35,7 @@ class App
         @cursor = gdb.Cursor()
 
         -- Initialize breakpoint tracking
-        @breakpoint = gdb.Breakpoint(gdb.client.getProxyAddr!)
+        @breakpoint = gdb.Breakpoint(@client\getProxyAddr!)
 
 
     cleanup: =>
@@ -46,23 +46,20 @@ class App
         -- Clean up the current line sign
         @cursor\hide!
 
-        client_buf = gdb.client.getBuf!
-
         -- Free the tabpage local storage for the current tabpage.
         tls\clear!
 
         -- Close the windows and the tab
         tabCount = #V.list_tabs!
-        if V.buf_is_loaded(client_buf)
-            V.exe ("bd! " .. client_buf)
+        clientBuf = @client\getBuf!
+        if V.buf_is_loaded(clientBuf)
+            V.exe ("bd! " .. clientBuf)
         if tabCount == #V.list_tabs!
             V.exe "tabclose"
 
-    getCursor: =>
-        @cursor
-
-    getBreakpoint: =>
-        @breakpoint
+    getCursor: => @cursor
+    getBreakpoint: => @breakpoint
+    getClient: => @client
 
     getCommand: (cmd) =>
         c = @backend[cmd]
@@ -72,10 +69,15 @@ class App
         for _, v in ipairs(d)
             @scm\feed(v)
 
+    send: (data) =>
+        @client\sendLine(@getCommand(data))
+
+    interrupt: => @client\interrupt!
+
     toggleBreak: =>
         if @scm\isRunning()
             -- pause first
-            gdb.client.interrupt()
+            @client\interrupt()
 
         buf = V.cur_buf!
         fileName = GetFullBufferPath(buf)
@@ -85,17 +87,17 @@ class App
         breakId = fileBreaks[lineNr]
         if breakId != nil
             -- There already is a breakpoint on this line: remove
-            gdb.client.sendLine(@getCommand('delete_breakpoints') .. ' ' .. breakId)
+            @client\sendLine(@getCommand('delete_breakpoints') .. ' ' .. breakId)
         else
-            gdb.client.sendLine(@getCommand('breakpoint') .. ' ' .. fileName .. ':' .. lineNr)
+            @client\sendLine(@getCommand('breakpoint') .. ' ' .. fileName .. ':' .. lineNr)
 
     clearBreaks: =>
         if @scm\isRunning()
             -- pause first
-            gdb.client.interrupt()
+            @client\interrupt()
 
         -- The breakpoint signs will be requeried later automatically
-        gdb.client.sendLine(@getCommand('delete_breakpoints'))
+        @send('delete_breakpoints')
 
     tabEnter: =>
         -- Restore the signs as they may have been spoiled

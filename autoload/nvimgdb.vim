@@ -67,20 +67,8 @@ function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
 endfunction
 
 
-function! nvimgdb#Send(data)
-  if !luaeval("gdb.app.checkTab()") | return | endif
-  call luaeval("gdb.client.sendLine(gdb.app.dispatch('getCommand', _A))", a:data)
-endfunction
-
-
 function! nvimgdb#Eval(expr)
-  call nvimgdb#Send(printf('print %s', a:expr))
-endfunction
-
-
-function! nvimgdb#Interrupt()
-  if !luaeval("gdb.app.checkTab()") | return | endif
-  lua gdb.client.interrupt()
+  call luaeval("gdb.app.dispatch('send', _A)", printf('print %s', a:expr))
 endfunction
 
 
