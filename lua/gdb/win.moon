@@ -9,9 +9,6 @@ Init = (win) ->
     jumpWin.set(win)
     curBuf.set(-1)
 
-Cleanup = ->
-    gdb.breakpoint.disconnect(gdb.client.getProxyAddr!)
-
 Jump = (file, line) ->
     window = V.cur_winnr!
     V.exe fmt("%dwincmd w", V.win_get_nr(jumpWin.get!))
@@ -27,7 +24,7 @@ Jump = (file, line) ->
         -- Switch to the new buffer
         V.exe ('buffer ' .. target_buf)
         curBuf.set(target_buf)
-        gdb.breakpoint.refreshSigns(curBuf.get())
+        gdb.app.get!.breakpoint\refreshSigns(curBuf.get!)
 
     V.exe (':' .. line)
     gdb.app.get!.cursor\set(target_buf, line)
@@ -45,12 +42,11 @@ QueryBreakpoints = ->
     -- misinterpretation)
     if fname != '' and fname\find(' ') == nil
         -- Query the breakpoints for the shown file
-        gdb.breakpoint.query(bufNum, fname, gdb.client.getProxyAddr!)
+        gdb.app.get!.breakpoint\query(bufNum, fname)
         gdb.app.get!.cursor\show!
 
 ret =
     init: Init
-    cleanup: Cleanup
     getCurrentBuffer: curBuf.get
     jump: Jump
     queryBreakpoints: QueryBreakpoints

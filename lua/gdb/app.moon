@@ -16,6 +16,9 @@ Init = (backendStr, proxyCmd, clientCmd) ->
     -- Initialize the storage
     tls\init!
 
+    -- go to the other window and spawn gdb client
+    gdb.client.init(wcli, proxyCmd, clientCmd, backendStr)
+
     -- Initialize the windowing subsystem
     gdb.win.init(wjump)
 
@@ -23,19 +26,16 @@ Init = (backendStr, proxyCmd, clientCmd) ->
     tls\set("cursor", gdb.Cursor())
 
     -- Initialize breakpoint tracking
-    gdb.breakpoint.init!
+    tls\set("breakpoint", gdb.Breakpoint(gdb.client.getProxyAddr!))
 
-    -- go to the other window and spawn gdb client
-    gdb.client.init(wcli, proxyCmd, clientCmd, backendStr)
 
 Cleanup = ->
     -- Clean up the breakpoint signs
-    gdb.breakpoint.cleanupSigns!
+    tls\get!.breakpoint\resetSigns!
+    tls\get!.breakpoint\cleanup!
 
     -- Clean up the current line sign
     tls\get!.cursor\hide!
-
-    gdb.win.cleanup!
 
     client_buf = gdb.client.getBuf!
     gdb.client.cleanup!
@@ -62,7 +62,7 @@ ToggleBreak = ->
 
         buf = V.cur_buf!
         fileName = GetFullBufferPath(buf)
-        fileBreaks = gdb.breakpoint.getForFile(fileName)
+        fileBreaks = tls\get!.breakpoint\getForFile(fileName)
         lineNr = '' .. V.call("line", {"."})    -- Must be string to query from the fileBreaks
 
         breakId = fileBreaks[lineNr]
@@ -97,7 +97,7 @@ TabLeave = ->
         store = tls\get!
         if store
             store.cursor\hide()
-        gdb.breakpoint.clearSigns()
+        tls\get!.breakpoint\clearSigns!
 
 ret =
     init: Init

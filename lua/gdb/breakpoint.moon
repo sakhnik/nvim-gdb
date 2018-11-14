@@ -4,96 +4,77 @@ s = require "posix.sys.socket"
 u = require "posix.unistd"
 json = require "JSON"
 
-clientSet = {}
-
-breaks = V.def_tstorage()  -- tabpage -> {file -> {line -> id}}}
-
-max_sign_id = V.def_tvar("gdb_breakpoint_max_sign_id")
-
 fmt = string.format
 
 
-GetSocket = (proxy_addr) ->
-    data = clientSet[proxy_addr]
-    if data != nil
-        data[1]
-    else
+class Breakpoint
+    new: (proxyAddr) =>
+        @proxyAddr = proxyAddr
+        @breaks = {}    -- {file -> {line -> id}}
+        @maxSignId = 0
+        @sock = -1
+        @sockDir = ""
+
+    cleanup: =>
+        if @sock != -1
+            u.close(@sock)
+        if @sockDir != ""
+            os.remove(@sockDir .. "/socket")
+            os.remove(@sockDir)
+
+    connect = (proxyAddr) ->
         dir = libstd.mkdtemp('/tmp/nvimgdb-sock-XXXXXX')
         sock = s.socket(s.AF_UNIX, s.SOCK_DGRAM, 0)
-        s.bind(sock, {family: s.AF_UNIX, path: dir .. "/socket"})
-        s.setsockopt(sock, s.SOL_SOCKET, s.SO_RCVTIMEO, 0, 500000)
-        s.connect(sock, {family: s.AF_UNIX, path: proxy_addr})
-        clientSet[proxy_addr] = {sock, dir}
-        sock
+        assert(sock != -1)
+        assert(s.bind(sock, {family: s.AF_UNIX, path: dir .. "/socket"}))
+        assert(s.setsockopt(sock, s.SOL_SOCKET, s.SO_RCVTIMEO, 0, 500000))
+        assert(s.connect(sock, {family: s.AF_UNIX, path: proxyAddr}))
+        sock, dir
 
-DoQuery = (fname, proxy_addr) ->
-    sock = GetSocket proxy_addr
-    s.send(sock, fmt("info-breakpoints %s\n", fname))
-    data = s.recv(sock, 65536)
-    data
+    doQuery: (fname) =>
+        if @sock == -1
+            @sock, @sockDir = connect @proxyAddr
+        assert s.send(@sock, fmt("info-breakpoints %s\n", fname))
+        data = s.recv(@sock, 65536)
+        data
 
-Disconnect = (proxy_addr) ->
-    data = clientSet[proxy_addr]
-    if data != nil
-        u.close(data[1])
-        os.remove(data[2] .. "/socket")
-        os.remove(data[2])
-        clientSet[proxy_addr] = nil
-    -- TODO: move to a proper destructor
-    breaks\clear!
+    clearSigns: =>
+        for i = 5000, @maxSignId
+            V.exe ('sign unplace ' .. i)
+        @maxSignId = 0
 
+    setSigns: (buf) =>
+        if buf != -1
+            signId = 5000 - 1
+            bpath = gdb.app.getFullBufferPath(buf)
+            for line, _ in pairs(@breaks[bpath] or {})
+                signId += 1
+                V.exe fmt('sign place %d name=GdbBreakpoint line=%d buffer=%d', signId, line, buf)
+            @maxSignId = signId
 
-ClearSigns = ->
-    for i = 5000, max_sign_id.get()
-        V.exe ('sign unplace ' .. i)
-    max_sign_id.set(0)
+    refreshSigns: (buf) =>
+        @clearSigns!
+        @setSigns(buf)
 
-SetSigns = (buf) ->
-    if buf != -1
-        sign_id = 5000 - 1
-        bpath = gdb.app.getFullBufferPath(buf)
-        for line, _ in pairs(breaks\get![bpath] or {})
-            sign_id += 1
-            V.exe fmt('sign place %d name=GdbBreakpoint line=%d buffer=%d', sign_id, line, buf)
-        max_sign_id.set(sign_id)
+    query: (bufNum, fname) =>
+        @breaks[fname] = {}
+        resp = @doQuery fname
+        if resp
+            br = json\decode(resp)
+            err = br._error
+            if err
+                V.exe ("echo \"Can't get breakpoints: \"" .. err)
+            else
+                @breaks[fname] = br
+                @refreshSigns(bufNum)
+        --else
+            -- TODO: notify about error
 
-RefreshSigns = (buf) ->
-    ClearSigns()
-    SetSigns(buf)
+    resetSigns: =>
+        @breaks = {}
+        @clearSigns!
 
-Init = ->
-    breaks\init!
-    max_sign_id.set(0)
+    getForFile: (fname) =>
+        @breaks[fname] or {}
 
-Query = (bufnum, fname, proxy_addr) ->
-    breaks\set(fname, {})
-    resp = DoQuery(fname, proxy_addr)
-    if resp
-        br = json\decode(resp)
-        err = br._error
-        if err
-            V.exe ("echo \"Can't get breakpoints: \"" .. err)
-        else
-            breaks\set(fname, br)
-            RefreshSigns(bufnum)
-    --else
-        -- TODO: notify about error
-
-CleanupSigns = ->
-    breaks\init!
-    ClearSigns!
-
-GetForFile = (fname) ->
-    breaks\get![fname] or {}
-
-ret = {
-    init: Init,
-    query: Query,
-    refreshSigns: RefreshSigns,
-    clearSigns: ClearSigns,
-    cleanupSigns: CleanupSigns,
-    disconnect: Disconnect,
-    getForFile: GetForFile,
-}
-
-ret
+Breakpoint
