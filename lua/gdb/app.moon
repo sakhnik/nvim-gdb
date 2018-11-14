@@ -4,6 +4,9 @@ fmt = string.format
 -- Tabpage local storage
 tls = V.def_tstorage!
 
+CheckTab = ->
+    tls\get! != nil
+
 Init = (backendStr, proxyCmd, clientCmd) ->
     -- Create new tab for the debugging view and split horizontally
     V.exe "tabnew | sp"
@@ -55,7 +58,7 @@ GetFullBufferPath = (bufNr) ->
     V.call("expand", {fmt('#%d:p', bufNr)})
 
 ToggleBreak = ->
-    if gdb.client.checkTab()
+    if CheckTab!
         if gdb.client.isRunning()
             -- pause first
             gdb.client.interrupt()
@@ -73,7 +76,7 @@ ToggleBreak = ->
             gdb.client.sendLine(gdb.client.getCommand('breakpoint') .. ' ' .. fileName .. ':' .. lineNr)
 
 ClearBreaks = ->
-    if gdb.client.checkTab()
+    if CheckTab!
 
         if gdb.client.isRunning()
             -- pause first
@@ -83,7 +86,7 @@ ClearBreaks = ->
         gdb.client.sendLine(gdb.client.getCommand('delete_breakpoints'))
 
 TabEnter = ->
-    if gdb.client.checkTab!
+    if CheckTab!
         -- Restore the signs as they may have been spoiled
         if gdb.client.isPaused!
             tls\get!.cursor\show!
@@ -92,7 +95,7 @@ TabEnter = ->
         gdb.win.queryBreakpoints!
 
 TabLeave = ->
-    if gdb.client.checkTab()
+    if CheckTab!
         -- Hide the signs
         store = tls\get!
         if store
@@ -106,6 +109,7 @@ ret =
     toggleBreak: ToggleBreak
     clearBreaks: ClearBreaks
     get: -> tls\get!
+    checkTab: CheckTab
     tabLeave: TabLeave
     tabEnter: TabEnter
 

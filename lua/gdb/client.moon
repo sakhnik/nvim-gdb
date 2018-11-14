@@ -51,7 +51,6 @@ ret =
     init: Init
     cleanup: Cleanup
     onStdout: OnStdout
-    checkTab: -> tst\get! != nil
     getCommand: GetCommand
     getBuf: clientBuf.get
     getProxyAddr: proxyAddr.get

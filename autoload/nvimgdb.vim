@@ -19,7 +19,7 @@ endfunction
 " The checks to be executed when navigating the windows
 function! nvimgdb#CheckWindowClosed(...)
   " If this isn't a debugging session, nothing to do
-  if !luaeval("gdb.client.checkTab()") | return | endif
+  if !luaeval("gdb.app.checkTab()") | return | endif
 
   " The tabpage should contain at least two windows, finish debugging
   " otherwise.
@@ -29,7 +29,7 @@ function! nvimgdb#CheckWindowClosed(...)
 endfunction
 
 function! nvimgdb#OnBufEnter()
-  if !luaeval("gdb.client.checkTab()") | return | endif
+  if !luaeval("gdb.app.checkTab()") | return | endif
   if &buftype ==# 'terminal' | return | endif
 
   " Make sure the cursor stays visible at all times
@@ -41,7 +41,7 @@ function! nvimgdb#OnBufEnter()
 endfunction
 
 function! nvimgdb#OnBufLeave()
-  if !luaeval("gdb.client.checkTab()") | return | endif
+  if !luaeval("gdb.app.checkTab()") | return | endif
   if &buftype ==# 'terminal' | return | endif
   call nvimgdb#keymaps#DispatchUnset()
 endfunction
@@ -68,7 +68,7 @@ endfunction
 
 
 function! nvimgdb#Send(data)
-  if !luaeval("gdb.client.checkTab()") | return | endif
+  if !luaeval("gdb.app.checkTab()") | return | endif
   call luaeval("gdb.client.sendLine(gdb.client.getCommand(_A))", a:data)
 endfunction
 
@@ -79,13 +79,13 @@ endfunction
 
 
 function! nvimgdb#Interrupt()
-  if !luaeval("gdb.client.checkTab()") | return | endif
+  if !luaeval("gdb.app.checkTab()") | return | endif
   lua gdb.client.interrupt()
 endfunction
 
 
 function! nvimgdb#Kill()
-  if !luaeval("gdb.client.checkTab()") | return | endif
+  if !luaeval("gdb.app.checkTab()") | return | endif
   call s:GdbKill()
 endfunction
 
