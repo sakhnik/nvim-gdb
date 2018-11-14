@@ -32,6 +32,9 @@ class Breakpoint
         sock, dir
 
     doQuery: (fname) =>
+        -- It takes time for the proxy to open a side channel.
+        -- So we're connecting to the socket lazily during
+        -- the first query.
         if @sock == -1
             @sock, @sockDir = connect @proxyAddr
         assert s.send(@sock, fmt("info-breakpoints %s\n", fname))
