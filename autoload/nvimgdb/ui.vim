@@ -32,8 +32,8 @@ endfunction
 
 function! s:DefineCommands()
   command! GdbDebugStop call nvimgdb#Kill()
-  command! GdbBreakpointToggle lua gdb.app.toggleBreak()
-  command! GdbBreakpointClearAll lua gdb.app.clearBreaks()
+  command! GdbBreakpointToggle lua gdb.app.dispatch("toggleBreak")
+  command! GdbBreakpointClearAll lua gdb.app.dispatch("clearBreaks")
   command! GdbRun call nvimgdb#Send("run")
   command! GdbUntil call nvimgdb#Send(luaeval("gdb.client.getCommand('until')") . " " . line('.'))
   command! GdbContinue call nvimgdb#Send("c")
@@ -75,8 +75,8 @@ function! nvimgdb#ui#Enter()
       "   window. We start a timer expecting it to expire after the window
       "   has been closed. It's a race.
       au BufWinLeave * call timer_start(100, "nvimgdb#CheckWindowClosed")
-      au TabEnter * lua gdb.app.tabEnter()
-      au TabLeave * lua gdb.app.tabLeave()
+      au TabEnter * lua gdb.app.dispatch("tabEnter")
+      au TabLeave * lua gdb.app.dispatch("tabLeave")
       au BufEnter * call nvimgdb#OnBufEnter()
       au BufLeave * call nvimgdb#OnBufLeave()
     augroup END

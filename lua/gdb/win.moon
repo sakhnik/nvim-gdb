@@ -24,12 +24,12 @@ Jump = (file, line) ->
         -- Switch to the new buffer
         V.exe ('buffer ' .. target_buf)
         curBuf.set(target_buf)
-        gdb.app.get!.breakpoint\refreshSigns(curBuf.get!)
+        gdb.app.dispatch("getBreakpoint")\refreshSigns(curBuf.get!)
 
     V.exe (':' .. line)
-    gdb.app.get!.cursor\set(target_buf, line)
+    gdb.app.dispatch("getCursor")\set(target_buf, line)
     V.exe fmt('%swincmd w', window)
-    gdb.app.get!.cursor\show()
+    gdb.app.dispatch("getCursor")\show()
 
 QueryBreakpoints = ->
     -- Get the source code buffer number
@@ -42,8 +42,8 @@ QueryBreakpoints = ->
     -- misinterpretation)
     if fname != '' and fname\find(' ') == nil
         -- Query the breakpoints for the shown file
-        gdb.app.get!.breakpoint\query(bufNum, fname)
-        gdb.app.get!.cursor\show!
+        gdb.app.dispatch("getBreakpoint")\query(bufNum, fname)
+        gdb.app.dispatch("getCursor")\show!
 
 ret =
     init: Init

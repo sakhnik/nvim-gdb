@@ -12,7 +12,7 @@ function! s:GdbKill()
   lua gdb.app.cleanup()
 
   " TabEnter isn't fired automatically when a tab is closed
-  lua gdb.app.tabEnter()
+  lua gdb.app.dispatch("tabEnter")
 endfunction
 
 

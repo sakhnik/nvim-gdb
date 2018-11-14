@@ -8,7 +8,7 @@ tst = V.def_tstorage!
 fmt = string.format
 
 Init = (win, proxy_cmd, client_cmd, backend) ->
-    tst\init!
+    tst\init {}
     b = gdb.backend[backend]
     tst\set("backend", b)
     tst\set("scm", gdb.scm.init(b))
