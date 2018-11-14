@@ -22,8 +22,11 @@ class App
         table.sort wins
         wcli, wjump = unpack(wins)
 
+        @backend = gdb.backend[backendStr]
+        @scm = gdb.scm.init(@backend)
+
         -- go to the other window and spawn gdb client
-        gdb.client.init(wcli, proxyCmd, clientCmd, backendStr)
+        gdb.client.init(wcli, proxyCmd, clientCmd)
 
         -- Initialize the windowing subsystem
         gdb.win.init(wjump)
@@ -33,9 +36,6 @@ class App
 
         -- Initialize breakpoint tracking
         @breakpoint = gdb.Breakpoint(gdb.client.getProxyAddr!)
-
-        -- Initialize the storage
-        tls\init @
 
 
     cleanup: =>
@@ -47,7 +47,6 @@ class App
         @cursor\hide!
 
         client_buf = gdb.client.getBuf!
-        gdb.client.cleanup!
 
         -- Free the tabpage local storage for the current tabpage.
         tls\clear!
@@ -65,8 +64,16 @@ class App
     getBreakpoint: =>
         @breakpoint
 
+    getCommand: (cmd) =>
+        c = @backend[cmd]
+        c and c or cmd
+
+    onStdout: (j,d,e) =>
+        for _, v in ipairs(d)
+            @scm\feed(v)
+
     toggleBreak: =>
-        if gdb.client.isRunning()
+        if @scm\isRunning()
             -- pause first
             gdb.client.interrupt()
 
@@ -78,21 +85,21 @@ class App
         breakId = fileBreaks[lineNr]
         if breakId != nil
             -- There already is a breakpoint on this line: remove
-            gdb.client.sendLine(gdb.client.getCommand('delete_breakpoints') .. ' ' .. breakId)
+            gdb.client.sendLine(@getCommand('delete_breakpoints') .. ' ' .. breakId)
         else
-            gdb.client.sendLine(gdb.client.getCommand('breakpoint') .. ' ' .. fileName .. ':' .. lineNr)
+            gdb.client.sendLine(@getCommand('breakpoint') .. ' ' .. fileName .. ':' .. lineNr)
 
     clearBreaks: =>
-        if gdb.client.isRunning()
+        if @scm\isRunning()
             -- pause first
             gdb.client.interrupt()
 
         -- The breakpoint signs will be requeried later automatically
-        gdb.client.sendLine(gdb.client.getCommand('delete_breakpoints'))
+        gdb.client.sendLine(@getCommand('delete_breakpoints'))
 
     tabEnter: =>
         -- Restore the signs as they may have been spoiled
-        if gdb.client.isPaused!
+        if @scm\isPaused!
             @cursor\show!
 
         -- Ensure breakpoints are shown if are queried dynamically
@@ -104,6 +111,12 @@ class App
         @breakpoint\clearSigns!
 
 
+Init = (backendStr, proxyCmd, clientCmd) ->
+    app = App backendStr, proxyCmd, clientCmd
+    -- Remember the instance into the tabpage-specific storage
+    tls\init app
+
+
 -- Dispatch a call to the current tabpage-specific
 -- instance of the application.
 Dispatch = (name, ...) ->
@@ -112,7 +125,7 @@ Dispatch = (name, ...) ->
         App.__base[name](app, ...)
 
 ret =
-    init: App
+    init: Init
     cleanup: -> Dispatch("cleanup")
     getFullBufferPath: GetFullBufferPath
     checkTab: CheckTab

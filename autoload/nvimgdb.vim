@@ -69,7 +69,7 @@ endfunction
 
 function! nvimgdb#Send(data)
   if !luaeval("gdb.app.checkTab()") | return | endif
-  call luaeval("gdb.client.sendLine(gdb.client.getCommand(_A))", a:data)
+  call luaeval("gdb.client.sendLine(gdb.app.dispatch('getCommand', _A))", a:data)
 endfunction
 
 
@@ -97,8 +97,9 @@ endfunction
 
 function! nvimgdb#TermOpen(command, tab)
   enew
+  " TODO: Fix dispatching to the specified tab, not the current one
   return termopen(a:command,
     \ {'tab': a:tab,
-    \  'on_stdout': {j,d,e -> luaeval("gdb.client.onStdout(_A[1], _A[2], _A[3])", [j,d,e])}
+    \  'on_stdout': {j,d,e -> luaeval("gdb.app.dispatch('onStdout', _A[1], _A[2], _A[3])", [j,d,e])}
     \ })
 endfunction
