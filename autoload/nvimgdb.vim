@@ -67,11 +67,6 @@ function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
 endfunction
 
 
-function! nvimgdb#Eval(expr)
-  call luaeval("gdb.app.dispatch('send', _A)", printf('print %s', a:expr))
-endfunction
-
-
 function! nvimgdb#Kill()
   if !luaeval("gdb.app.checkTab()") | return | endif
   call s:GdbKill()

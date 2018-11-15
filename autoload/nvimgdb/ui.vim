@@ -43,8 +43,8 @@ function! s:DefineCommands()
   command! GdbFrameUp lua gdb.app.dispatch('send', 'up')
   command! GdbFrameDown lua gdb.app.dispatch('send', 'down')
   command! GdbInterrupt lua gdb.app.dispatch('interrupt')
-  command! GdbEvalWord call nvimgdb#Eval(expand('<cword>'))
-  command! -range GdbEvalRange call nvimgdb#Eval(s:GetExpression(<f-args>))
+  command! GdbEvalWord call luaeval("gdb.app.dispatch('send', _A)", 'print ' . expand('<cword>'))
+  command! -range GdbEvalRange call luaeval("gdb.app.dispatch('send', _A)", 'print ' . s:GetExpression(<f-args>))
 endfunction
 
 
