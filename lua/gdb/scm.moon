@@ -46,12 +46,14 @@ class BaseScm extends Scm
     isRunning: =>
         @state == @running
 
+    -- Process a line of the debugger output through the SCM.
     feed: (line) =>
-        for k, v in ipairs(@state)
+        -- If there is a matcher matching the line, call its handler.
+        for _, v in ipairs(@state)
             matcher, func, handler = unpack(v)
             m1, m2 = func(matcher, line)
             if m1
-                handler(self, m1, m2)
+                handler(@, m1, m2)
                 break
 
 
