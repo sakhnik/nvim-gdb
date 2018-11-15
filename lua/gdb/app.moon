@@ -1,8 +1,16 @@
 
 fmt = string.format
 
+-- A table attached to a tabpage
+class TStorage
+    new: => @data = {}
+    init: (v) => @data[V.cur_tab!] = v      -- Create a tabpage-specific table
+    get: => @data[V.cur_tab!]               -- Access the table for the current page
+    getTab: (t) => @data[t]                 -- Access the table for given page
+    clear: => @data[V.cur_tab!] = nil       -- Delete the tabpage-specific table
+
 -- Tabpage local storage
-tls = V.def_tstorage!
+tls = TStorage()
 
 CheckTab = ->
     tls\get! != nil

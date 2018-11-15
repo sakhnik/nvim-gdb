@@ -22,21 +22,4 @@ if V.buf_is_loaded == nil
     -- Fall back to the Vim function
     V.buf_is_loaded = (b) -> V.call("bufexists", {b}) != 0
 
--- A tabpage-specific vim variable
-V.def_tvar = (n) -> {
-    set: (v) -> V.set_tvar(n, v),
-    get: () -> V.get_tvar(n),
-}
-
--- A table attached to a tabpage
-class TStorage
-    new: => @data = {}
-    init: (v) => @data[V.cur_tab!] = v      -- Create a tabpage-specific table
-    get: => @data[V.cur_tab!]               -- Access the table for the current page
-    getTab: (t) => @data[t]                 -- Access the table for given page
-    set: (k,v) => @data[V.cur_tab!][k] = v  -- Set key-value
-    clear: => @data[V.cur_tab!] = nil       -- Delete the tabpage-specific table
-
-V.def_tstorage = TStorage
-
 V
