@@ -85,9 +85,7 @@ endfunction
 
 function! nvimgdb#TermOpen(command, tab)
   enew
-  " TODO: Fix dispatching to the specified tab, not the current one
   return termopen(a:command,
-    \ {'tab': a:tab,
-    \  'on_stdout': {j,d,e -> luaeval("gdb.app.dispatch('onStdout', _A[1], _A[2], _A[3])", [j,d,e])}
+    \ {'on_stdout': {j,d,e -> luaeval("gdb.app.onStdout(_A[1], _A[2], _A[3], _A[4])", [a:tab,j,d,e])}
     \ })
 endfunction

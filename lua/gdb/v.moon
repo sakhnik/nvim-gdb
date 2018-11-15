@@ -32,7 +32,8 @@ V.def_tvar = (n) -> {
 class TStorage
     new: => @data = {}
     init: (v) => @data[V.cur_tab!] = v      -- Create a tabpage-specific table
-    get: => @data[V.cur_tab!]               -- Access the table
+    get: => @data[V.cur_tab!]               -- Access the table for the current page
+    getTab: (t) => @data[t]                 -- Access the table for given page
     set: (k,v) => @data[V.cur_tab!][k] = v  -- Set key-value
     clear: => @data[V.cur_tab!] = nil       -- Delete the tabpage-specific table
 

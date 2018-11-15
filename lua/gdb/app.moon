@@ -126,11 +126,17 @@ Dispatch = (name, ...) ->
     if app
         App.__base[name](app, ...)
 
+-- Dispatch client stdout output to it's tabpage's SCM
+OnStdout = (tab, j, d, e) ->
+    app = tls\getTab tab
+    app\onStdout(j, d, e)
+
 ret =
     init: Init
     cleanup: -> Dispatch("cleanup")
     getFullBufferPath: GetFullBufferPath
     checkTab: CheckTab
     dispatch: Dispatch
+    onStdout: OnStdout
 
 ret
