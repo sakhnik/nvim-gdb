@@ -5,7 +5,6 @@ class Win
     new: (win, client, cursor, breakpoint) =>
         -- window number that will be displaying the current file
         @jumpWin = win
-        @curBuf = -1
         @client = client
         @cursor = cursor
         @breakpoint = breakpoint
@@ -13,7 +12,7 @@ class Win
     jump: (file, line) =>
         window = V.cur_winnr!
         V.exe fmt("%dwincmd w", V.win_get_nr(@jumpWin))
-        @curBuf = V.cur_buf!
+        curBuf = V.cur_buf!
         targetBuf = V.call("bufnr", {file, 1})
         if targetBuf == @client\getBuf!
             -- The terminal buffer may contain the name of the source file (in pdb, for
@@ -24,8 +23,8 @@ class Win
         if V.call("bufnr", {'%'}) != targetBuf
             -- Switch to the new buffer
             V.exe ('buffer ' .. targetBuf)
-            @curBuf = targetBuf
-            @breakpoint\refreshSigns(@curBuf)
+            curBuf = targetBuf
+            @breakpoint\refreshSigns(curBuf)
 
         V.exe (':' .. line)
         @cursor\set(targetBuf, line)
