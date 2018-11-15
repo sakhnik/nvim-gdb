@@ -136,7 +136,6 @@ Init = (backendStr, proxyCmd, clientCmd) ->
 
 -- Dispatch a call to the current tabpage-specific
 -- instance of the application.
--- TODO: populate functions from the class instead
 Dispatch = (name, ...) ->
     app = tls\get!
     if app
@@ -149,10 +148,14 @@ OnStdout = (tab, j, d, e) ->
 
 ret =
     init: Init
-    cleanup: -> Dispatch("cleanup")
     getFullBufferPath: GetFullBufferPath
     checkTab: CheckTab
-    dispatch: Dispatch
     onStdout: OnStdout
+
+-- Allow calling object functions by dispatching
+-- to the tabpage local instance.
+for k, v in pairs(App.__base)
+    if type(v) == "function" and ret[k] == nil
+        ret[k] = (...) -> Dispatch(k, ...)
 
 ret

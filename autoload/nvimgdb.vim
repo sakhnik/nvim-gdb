@@ -12,7 +12,7 @@ function! s:GdbKill()
   lua gdb.app.cleanup()
 
   " TabEnter isn't fired automatically when a tab is closed
-  lua gdb.app.dispatch("tabEnter")
+  lua gdb.app.tabEnter()
 endfunction
 
 
@@ -37,7 +37,7 @@ function! nvimgdb#OnBufEnter()
 
   call nvimgdb#keymaps#DispatchSet()
   " Ensure breakpoints are shown if are queried dynamically
-  lua gdb.app.dispatch("queryBreakpoints")
+  lua gdb.app.queryBreakpoints()
 endfunction
 
 function! nvimgdb#OnBufLeave()
