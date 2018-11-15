@@ -2,7 +2,7 @@ sign define GdbCurrentLine text=⇒
 sign define GdbBreakpoint text=●
 
 lua V = require("gdb.v")
-lua gdb = require("gdb")
+lua gdb = {["app"] = require("gdb.app")}
 
 
 function! s:GdbKill()

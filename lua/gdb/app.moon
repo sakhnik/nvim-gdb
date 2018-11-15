@@ -49,7 +49,7 @@ class App
         @win = Win(wjump, @client, @cursor, @breakpoint)
 
         -- Initialize the SCM
-        @scm = gdb.scm.init(@backend, @cursor, @win)
+        @scm = @backend\initScm(@cursor, @win)
 
         -- The SCM should be ready by now, spawn the debugger!
         @client\start!

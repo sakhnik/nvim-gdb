@@ -1,12 +1,13 @@
 require "set_paths"
 rex = require "rex_pcre"
+BaseScm = require "gdb.scm"
 
 r = rex.new                     -- construct a new matcher
 m = (r, line) -> r\match(line)  -- matching function
 
 --  lldb specifics
 
-class LldbScm extends gdb.scm.BaseScm
+class LldbScm extends BaseScm
     new: (...) =>
         super select(2, ...)
 

@@ -55,11 +55,4 @@ class BaseScm extends Scm
                 break
 
 
-Init = (backend, ...) ->
-    backend.initScm(backend, ...)
-
-ret =
-    BaseScm: BaseScm
-    init: Init
-
-ret
+BaseScm
