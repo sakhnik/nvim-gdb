@@ -28,8 +28,8 @@ class Win
 
         V.exe (':' .. line)
         @cursor\set(targetBuf, line)
-        V.exe fmt('%swincmd w', window)
         @cursor\show()
+        V.exe fmt('%swincmd w', window)
 
     queryBreakpoints: =>
         -- Get the source code buffer number
