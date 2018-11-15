@@ -73,11 +73,6 @@ class App
         if tabCount == #V.list_tabs!
             V.exe "tabclose"
 
-    getCursor: => @cursor
-    getBreakpoint: => @breakpoint
-    getClient: => @client
-    getWin: => @win
-
     getCommand: (cmd) =>
         c = @backend[cmd]
         c and c or cmd
