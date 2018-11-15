@@ -39,7 +39,7 @@ class TestPdb(unittest.TestCase):
         self.assertEqual(10, cur)
         self.assertFalse(breaks)
 
-        eng.KeyStrokeL('<f5>', delay=1)
+        eng.KeyStrokeL('<f5>', delay=1.2)
         cur, breaks = eng.GetSigns()
         self.assertEqual(1, cur)
         self.assertFalse(breaks)
