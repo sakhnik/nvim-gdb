@@ -30,4 +30,4 @@ before_install:
   - ./install.sh
 
 script:
-  - ./test/all.sh -v
+  - ./test/all.sh
