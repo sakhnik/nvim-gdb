@@ -62,7 +62,7 @@ function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   " Set normal mode keymaps too
   call nvimgdb#keymaps#DispatchSet()
 
-  " Start inset mode in the GDB window
+  " Start insert mode in the GDB window
   normal i
 endfunction
 
