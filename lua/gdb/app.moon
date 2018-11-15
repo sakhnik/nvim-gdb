@@ -1,3 +1,7 @@
+Client = require "gdb.client"
+Cursor = require "gdb.cursor"
+Breakpoint = require "gdb.breakpoint"
+Win = require "gdb.win"
 
 fmt = string.format
 
@@ -33,16 +37,16 @@ class App
         @backend = require "gdb.backend." .. backendStr
 
         -- go to the other window and spawn gdb client
-        @client = gdb.Client(wcli, proxyCmd, clientCmd)
+        @client = Client(wcli, proxyCmd, clientCmd)
 
         -- Initialize current line tracking
-        @cursor = gdb.Cursor()
+        @cursor = Cursor()
 
         -- Initialize breakpoint tracking
-        @breakpoint = gdb.Breakpoint(@client\getProxyAddr!)
+        @breakpoint = Breakpoint(@client\getProxyAddr!)
 
         -- Initialize the windowing subsystem
-        @win = gdb.Win(wjump, @client, @cursor, @breakpoint)
+        @win = Win(wjump, @client, @cursor, @breakpoint)
 
         -- Initialize the SCM
         @scm = gdb.scm.init(@backend, @cursor, @win)
@@ -137,6 +141,7 @@ Init = (backendStr, proxyCmd, clientCmd) ->
 
 -- Dispatch a call to the current tabpage-specific
 -- instance of the application.
+-- TODO: populate functions from the class instead
 Dispatch = (name, ...) ->
     app = tls\get!
     if app

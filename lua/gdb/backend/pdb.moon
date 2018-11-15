@@ -1,3 +1,4 @@
+require "set_paths"
 rex = require "rex_pcre"
 
 r = rex.new                     -- construct a new matcher

@@ -1,4 +1,3 @@
-rex = require "rex_pcre"
 
 -- Abstract interface for a debugger state machine
 class Scm
