@@ -25,16 +25,16 @@ class BaseScm extends Scm
 
     -- Transition "paused" -> "paused": jump to the frame location
     jump: (file, line, ...) =>
-        gdb.win.jump(file, line)
+        gdb.app.dispatch("getWin")\jump(file, line)
 
     -- Transition "paused" -> "paused": refresh breakpoints in the current file
     query: (...) =>
-        gdb.win.queryBreakpoints()
+        gdb.app.dispatch("getWin")\queryBreakpoints!
 
     -- Transition "running" -> "pause"
     pause: (...) =>
         @state = @paused
-        gdb.win.queryBreakpoints()
+        gdb.app.dispatch("getWin")\queryBreakpoints!
 
     isPaused: =>
         @state == @paused

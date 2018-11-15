@@ -37,7 +37,7 @@ function! nvimgdb#OnBufEnter()
 
   call nvimgdb#keymaps#DispatchSet()
   " Ensure breakpoints are shown if are queried dynamically
-  lua gdb.win.queryBreakpoints()
+  lua gdb.app.dispatch("queryBreakpoints")
 endfunction
 
 function! nvimgdb#OnBufLeave()

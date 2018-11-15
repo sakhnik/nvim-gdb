@@ -28,14 +28,14 @@ class App
         -- go to the other window and spawn gdb client
         @client = gdb.Client(wcli, proxyCmd, clientCmd)
 
-        -- Initialize the windowing subsystem
-        gdb.win.init(wjump)
-
         -- Initialize current line tracking
         @cursor = gdb.Cursor()
 
         -- Initialize breakpoint tracking
         @breakpoint = gdb.Breakpoint(@client\getProxyAddr!)
+
+        -- Initialize the windowing subsystem
+        @win = gdb.Win(wjump, @client, @cursor, @breakpoint)
 
 
     cleanup: =>
@@ -60,6 +60,7 @@ class App
     getCursor: => @cursor
     getBreakpoint: => @breakpoint
     getClient: => @client
+    getWin: => @win
 
     getCommand: (cmd) =>
         c = @backend[cmd]
@@ -105,12 +106,15 @@ class App
             @cursor\show!
 
         -- Ensure breakpoints are shown if are queried dynamically
-        gdb.win.queryBreakpoints!
+        @win\queryBreakpoints!
 
     tabLeave: =>
         -- Hide the signs
         @cursor\hide()
         @breakpoint\clearSigns!
+
+    queryBreakpoints: =>
+        @win\queryBreakpoints!
 
 
 Init = (backendStr, proxyCmd, clientCmd) ->
