@@ -31,7 +31,6 @@ class App
         wcli, wjump = unpack(wins)
 
         @backend = gdb.backend[backendStr]
-        @scm = gdb.scm.init(@backend)
 
         -- go to the other window and spawn gdb client
         @client = gdb.Client(wcli, proxyCmd, clientCmd)
@@ -45,6 +44,11 @@ class App
         -- Initialize the windowing subsystem
         @win = gdb.Win(wjump, @client, @cursor, @breakpoint)
 
+        -- Initialize the SCM
+        @scm = gdb.scm.init(@backend)
+
+        -- The SCM should be ready by now, spawn the debugger!
+        @client\start!
 
     cleanup: =>
         -- Clean up the breakpoint signs

@@ -79,7 +79,6 @@ function! nvimgdb#GetPluginDir()
 endfunction
 
 function! nvimgdb#TermOpen(command, tab)
-  enew
   return termopen(a:command,
     \ {'on_stdout': {j,d,e -> luaeval("gdb.app.onStdout(_A[1], _A[2], _A[3], _A[4])", [a:tab,j,d,e])}
     \ })
