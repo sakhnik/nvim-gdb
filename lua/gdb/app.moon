@@ -30,7 +30,7 @@ class App
         table.sort wins
         wcli, wjump = unpack(wins)
 
-        @backend = gdb.backend[backendStr]
+        @backend = require "gdb.backend." .. backendStr
 
         -- go to the other window and spawn gdb client
         @client = gdb.Client(wcli, proxyCmd, clientCmd)
@@ -45,7 +45,7 @@ class App
         @win = gdb.Win(wjump, @client, @cursor, @breakpoint)
 
         -- Initialize the SCM
-        @scm = gdb.scm.init(@backend)
+        @scm = gdb.scm.init(@backend, @cursor, @win)
 
         -- The SCM should be ready by now, spawn the debugger!
         @client\start!

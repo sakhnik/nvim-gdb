@@ -8,7 +8,12 @@ class Scm
 
 -- Common SCM implementation for the integrated backends
 class BaseScm extends Scm
-    new: =>
+    new: (cursor, win) =>
+        assert cursor.__class.__name == "Cursor"
+        assert win.__class.__name == "Win"
+        @cursor = cursor
+        @win = win
+
         @running = {}   -- The running state {{matcher, matchingFunc, handler}}
         @paused = {}    -- The paused state {{matcher, matchingFunc, handler}}
         @state = nil    -- Current state (either @running or @paused)
@@ -21,20 +26,20 @@ class BaseScm extends Scm
     -- Transition "paused" -> "continue"
     continue: (...) =>
         @state = @running
-        gdb.app.dispatch("getCursor")\hide()
+        @cursor\hide()
 
     -- Transition "paused" -> "paused": jump to the frame location
     jump: (file, line, ...) =>
-        gdb.app.dispatch("getWin")\jump(file, line)
+        @win\jump(file, line)
 
     -- Transition "paused" -> "paused": refresh breakpoints in the current file
     query: (...) =>
-        gdb.app.dispatch("getWin")\queryBreakpoints!
+        @win\queryBreakpoints!
 
     -- Transition "running" -> "pause"
     pause: (...) =>
         @state = @paused
-        gdb.app.dispatch("getWin")\queryBreakpoints!
+        @win\queryBreakpoints!
 
     isPaused: =>
         @state == @paused
@@ -51,8 +56,8 @@ class BaseScm extends Scm
                 break
 
 
-Init = (backend) ->
-    backend.initScm!
+Init = (backend, ...) ->
+    backend.initScm(backend, ...)
 
 ret =
     BaseScm: BaseScm
