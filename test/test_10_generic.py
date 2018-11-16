@@ -230,6 +230,21 @@ class TestGdb(unittest.TestCase):
 
                 eng.KeyStroke('ZZ')
 
+    def test_80_exit(self):
+        """=> Test the cursor is hidden after program end."""
+        for backend, spec in subtests.items():
+            with self.subTest(backend=backend):
+                eng.KeyStroke(spec["launch"], delay=1)
+                eng.KeyStroke(spec["tbreak_main"])
+                eng.KeyStroke('run\n', delay=1)
+
+                eng.KeyStrokeL('<f5>')
+                cur, breaks = eng.GetSigns()
+                self.assertEqual(-1, cur)
+                self.assertFalse(breaks)
+
+                eng.KeyStroke('ZZ')
+
 
 if __name__ == "__main__":
     unittest.main()
