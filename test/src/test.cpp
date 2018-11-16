@@ -12,13 +12,13 @@ unsigned Foo(unsigned n)
     return n + Bar(n - 1);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
     for (int i = 0; i < 10; ++i)
     {
         Foo(i);
     }
     Lib::Baz();
-    for (unsigned i = 0; i < 0xffffffff; ++i);
+    for (unsigned i = 0, n = Lib::GetLoopCount(argc, argv); i < n; ++i);
     return 0;
 }

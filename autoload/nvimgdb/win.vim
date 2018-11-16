@@ -35,7 +35,7 @@ function! nvimgdb#win#Jump(file, line)
   exe ':' a:line
   call nvimgdb#cursor#Set(a:line)
   exe window 'wincmd w'
-  call nvimgdb#cursor#Display(1)
+  call nvimgdb#cursor#Show()
 endfunction
 
 function! nvimgdb#win#QueryBreakpoints()
@@ -62,5 +62,6 @@ function! nvimgdb#win#QueryBreakpoints()
   " Query the breakpoints for the shown file
   call nvimgdb#breakpoint#Query(bufnum, fname, nvimgdb#client#GetProxyAddr())
 
-  call nvimgdb#cursor#Display(1)
+  " Redraw the cursor over breakpoint if was set before.
+  call nvimgdb#cursor#Reshow()
 endfunction

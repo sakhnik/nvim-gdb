@@ -13,3 +13,18 @@ int Baz()
 }
 
 } //namespace Lib;
+
+#include <cstdlib>
+
+namespace Lib {
+
+unsigned GetLoopCount(int argc, char *argv[])
+{
+    if (argc > 1)
+    {
+        return strtoul(argv[1], nullptr, 10);
+    }
+    return 0xffff;
+}
+
+} //namespace Lib;

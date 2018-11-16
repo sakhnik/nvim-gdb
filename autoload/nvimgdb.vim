@@ -4,7 +4,7 @@
 function s:GdbPaused_continue(...) dict
   if t:gdb != self | return | endif
   call self._parser.switch(self._state_running)
-  call nvimgdb#cursor#Display(0)
+  call nvimgdb#cursor#Hide()
 endfunction
 
 
@@ -40,7 +40,7 @@ function s:Gdb.kill()
   call nvimgdb#breakpoint#Cleanup()
 
   " Clean up the current line sign
-  call nvimgdb#cursor#Display(0)
+  call nvimgdb#cursor#Hide()
 
   call nvimgdb#win#Cleanup()
 
@@ -102,7 +102,7 @@ function! nvimgdb#OnTabEnter()
 
   " Restore the signs as they may have been spoiled
   if t:gdb._parser.state() == t:gdb._state_paused
-    call nvimgdb#cursor#Display(1)
+    call nvimgdb#cursor#Show()
   endif
 
   " Ensure breakpoints are shown if are queried dynamically
@@ -113,7 +113,7 @@ function! nvimgdb#OnTabLeave()
   if !exists('t:gdb') | return | endif
 
   " Hide the signs
-  call nvimgdb#cursor#Display(0)
+  call nvimgdb#cursor#Hide()
   call nvimgdb#breakpoint#Clear()
 endfunction
 

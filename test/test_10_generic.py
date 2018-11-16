@@ -177,7 +177,7 @@ class TestGdb(unittest.TestCase):
         for backend, spec in subtests.items():
             with self.subTest(backend=backend):
                 eng.KeyStroke(spec["launch"], delay=1)
-                eng.KeyStroke('run\n', delay=1)
+                eng.KeyStroke('run 4294967295\n', delay=1)
                 eng.KeyStrokeL('<esc>')
                 eng.KeyStroke(':GdbInterrupt\n', delay=0.3)
 
