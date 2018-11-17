@@ -11,13 +11,13 @@ class Win
 
     jump: (file, line) =>
         window = V.cur_winnr!
-        V.exe fmt("%dwincmd w", V.win_get_nr(@jumpWin))
+        V.jump_win V.win_get_nr(@jumpWin)
         curBuf = V.cur_buf!
         targetBuf = V.call("bufnr", {file, 1})
         if targetBuf == @client\getBuf!
             -- The terminal buffer may contain the name of the source file (in pdb, for
             -- instance)
-            V.call("e " .. file)
+            V.exe ("e " .. file)
             targetBuf = V.call("bufnr", {file})
 
         if V.call("bufnr", {'%'}) != targetBuf
@@ -29,7 +29,7 @@ class Win
         V.exe (':' .. line)
         @cursor\set(targetBuf, line)
         @cursor\show()
-        V.exe fmt('%swincmd w', window)
+        V.jump_win window
 
     queryBreakpoints: =>
         -- Get the source code buffer number

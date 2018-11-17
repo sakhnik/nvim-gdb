@@ -18,4 +18,8 @@ if V.buf_is_loaded == nil
     -- Fall back to the Vim function
     V.buf_is_loaded = (b) -> V.call("bufexists", {b}) != 0
 
+-- Jump to the given window number
+V.jump_win = (num) ->
+    V.exe (num .. 'wincmd w')
+
 V
