@@ -101,4 +101,5 @@ debugging with syntax highlighting and source code navigation.
 
 ## References
 
-* Overview to the first anniversary: [sakhnik.com](https://sakhnik.com/2018/08/10/nvim-gdb-anni.html)
+* Porting to Moonscript: [2018-11-17](https://sakhnik.com/2018/11/17/nvimgdb-lua.html)
+* Overview to the first anniversary: [2018-08-10](https://sakhnik.com/2018/08/10/nvim-gdb-anni.html)
