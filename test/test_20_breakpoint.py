@@ -7,7 +7,7 @@ import engine
 import config
 
 
-eng = engine.Engine()
+e = engine.Engine()
 
 subtests = {}
 if "gdb" in config.debuggers:
@@ -25,16 +25,16 @@ class TestBreakpoint(unittest.TestCase):
         """=> Verify manual breakpoint is detected."""
         for backend, spec in subtests.items():
             with self.subTest(backend=backend):
-                eng.KeyStroke(spec["launch"], delay=1)
-                eng.KeyStroke(spec["break_main"])
-                eng.KeyStroke('run\n', delay=1)
+                e.Ty(spec["launch"], delay=1)
+                e.Ty(spec["break_main"])
+                e.Ty('run\n', delay=1)
 
-                cur, breaks = eng.GetSigns()
+                cur, breaks = e.GetSigns()
                 self.assertEqual(17, cur)
                 self.assertEqual([17], breaks)
 
-                eng.KeyStrokeL('<esc>')
-                eng.KeyStrokeL('ZZ')
+                e.In('<esc>')
+                e.In('ZZ')
 
     def test_20_cd(self):
         """=> Verify manual breakpoint is detected from a random directory."""
@@ -47,78 +47,78 @@ class TestBreakpoint(unittest.TestCase):
         for backend, spec in subtests.items():
             with self.subTest(backend=backend):
                 try:
-                    eng.KeyStroke(':cd /tmp\n')
-                    eng.KeyStroke(subs[backend], delay=1)
-                    eng.KeyStroke(subtests[backend]["break_main"])
-                    eng.KeyStroke('run\n', delay=1)
+                    e.Ty(':cd /tmp\n')
+                    e.Ty(subs[backend], delay=1)
+                    e.Ty(subtests[backend]["break_main"])
+                    e.Ty('run\n', delay=1)
 
-                    cur, breaks = eng.GetSigns()
+                    cur, breaks = e.GetSigns()
                     self.assertEqual(17, cur)
                     self.assertEqual([17], breaks)
 
-                    eng.KeyStrokeL('<esc>')
-                    eng.KeyStrokeL('ZZ')
+                    e.In('<esc>')
+                    e.In('ZZ')
                 finally:
-                    eng.KeyStroke(':cd %s\n' % old_cwd)
+                    e.Ty(':cd %s\n' % old_cwd)
 
     def test_30_navigate(self):
         """=> Verify that breakpoints stay when source code is navigated."""
         break_bar = {"gdb": "break Bar\n", "lldb": "breakpoint set --fullname Bar\n"}
         for backend, spec in subtests.items():
             with self.subTest(backend=backend):
-                eng.KeyStroke(spec['launch'], delay=1)
-                eng.KeyStroke(break_bar[backend])
-                eng.KeyStrokeL("<esc>:wincmd k<cr>")
-                eng.KeyStrokeL(":e src/test.cpp\n")
-                eng.KeyStrokeL(":10<cr>")
-                eng.KeyStrokeL("<f8>")
+                e.Ty(spec['launch'], delay=1)
+                e.Ty(break_bar[backend])
+                e.In("<esc>:wincmd k<cr>")
+                e.In(":e src/test.cpp\n")
+                e.In(":10<cr>")
+                e.In("<f8>")
 
-                cur, breaks = eng.GetSigns()
+                cur, breaks = e.GetSigns()
                 self.assertEqual(-1, cur)
                 self.assertEqual([5, 10], breaks)
 
                 # Go to another file
-                eng.KeyStroke(":e src/lib.hpp\n")
-                cur, breaks = eng.GetSigns()
+                e.Ty(":e src/lib.hpp\n")
+                cur, breaks = e.GetSigns()
                 self.assertEqual(-1, cur)
                 self.assertEqual([], breaks)
-                eng.KeyStroke(":8\n")
-                eng.KeyStrokeL("<f8>")
-                cur, breaks = eng.GetSigns()
+                e.Ty(":8\n")
+                e.In("<f8>")
+                cur, breaks = e.GetSigns()
                 self.assertEqual(-1, cur)
                 self.assertEqual([8], breaks)
 
                 # Return to the first file
-                eng.KeyStroke(":e src/test.cpp\n")
-                cur, breaks = eng.GetSigns()
+                e.Ty(":e src/test.cpp\n")
+                cur, breaks = e.GetSigns()
                 self.assertEqual(-1, cur)
                 self.assertEqual([5, 10], breaks)
 
-                eng.KeyStrokeL('ZZ')
+                e.In('ZZ')
 
     def test_40_clear_all(self):
         """=> Verify that can clear all breakpoints."""
         break_bar = {"gdb": "break Bar\n", "lldb": "breakpoint set --fullname Bar\n"}
         for backend, spec in subtests.items():
             with self.subTest(backend=backend):
-                eng.KeyStroke(spec['launch'], delay=1)
-                eng.KeyStroke(break_bar[backend])
-                eng.KeyStroke(spec['break_main'])
-                eng.KeyStrokeL("<esc>:wincmd k<cr>")
-                eng.KeyStrokeL(":e src/test.cpp\n")
-                eng.KeyStrokeL(":10<cr>")
-                eng.KeyStrokeL("<f8>")
+                e.Ty(spec['launch'], delay=1)
+                e.Ty(break_bar[backend])
+                e.Ty(spec['break_main'])
+                e.In("<esc>:wincmd k<cr>")
+                e.In(":e src/test.cpp\n")
+                e.In(":10<cr>")
+                e.In("<f8>")
 
-                cur, breaks = eng.GetSigns()
+                cur, breaks = e.GetSigns()
                 self.assertEqual(-1, cur)
                 self.assertEqual([5, 10, 17], breaks)
 
-                eng.KeyStroke(":GdbBreakpointClearAll\n", delay=1)
-                cur, breaks = eng.GetSigns()
+                e.Ty(":GdbBreakpointClearAll\n", delay=1)
+                cur, breaks = e.GetSigns()
                 self.assertEqual(-1, cur)
                 self.assertFalse(breaks)
 
-                eng.KeyStrokeL('ZZ')
+                e.In('ZZ')
 
 
 if __name__ == "__main__":
