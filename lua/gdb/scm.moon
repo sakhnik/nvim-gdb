@@ -31,11 +31,7 @@ class BaseScm extends Scm
     jump: (file, line, ...) =>
         @win\jump(file, line)
 
-    -- Transition "paused" -> "paused": refresh breakpoints in the current file
-    query: (...) =>
-        @win\queryBreakpoints!
-
-    -- Transition "running" -> "pause"
+    -- Transition ANY -> "pause"
     pause: (...) =>
         @state = @paused
         @win\queryBreakpoints!

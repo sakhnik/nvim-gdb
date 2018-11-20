@@ -11,7 +11,7 @@ class PdbScm extends BaseScm
     new: (...) =>
         super select(2, ...)
         @addTrans(@paused, r([[(?<!-)> ([^(]+)\((\d+)\)[^(]+\(\)]]), m, @jump)
-        @addTrans(@paused, r([[^\(Pdb\) ]]),                         m, @query)
+        @addTrans(@paused, r([[^\(Pdb\) ]]),                         m, @pause)
         @state = @paused
 
 backend =

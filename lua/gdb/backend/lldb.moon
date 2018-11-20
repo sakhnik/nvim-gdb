@@ -13,7 +13,7 @@ class LldbScm extends BaseScm
 
         @addTrans(@paused, r([[^Process \d+ resuming]]),      m, @continue)
         @addTrans(@paused, r([[ at [\032]{2}([^:]+):(\d+)]]), m, @jump)
-        @addTrans(@paused, r([[(lldb)]]),                     m, @query)
+        @addTrans(@paused, r([[(lldb)]]),                     m, @pause)
 
         @addTrans(@running, r([[^Breakpoint \d+:]]),          m, @pause)
         @addTrans(@running, r([[^Process \d+ stopped]]),      m, @pause)

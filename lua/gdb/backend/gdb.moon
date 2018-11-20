@@ -13,7 +13,7 @@ class GdbScm extends BaseScm
 
         @addTrans(@paused, r([[Continuing\.]]),               m, @continue)
         @addTrans(@paused, r([[[\032]{2}([^:]+):(\d+):\d+]]), m, @jump)
-        @addTrans(@paused, r([[^\(gdb\) ]]),                  m, @query)
+        @addTrans(@paused, r([[^\(gdb\) ]]),                  m, @pause)
 
         @addTrans(@running, r([[^Breakpoint \d+]]),           m, @pause)
         @addTrans(@running, r([[ hit Breakpoint \d+]]),       m, @pause)
