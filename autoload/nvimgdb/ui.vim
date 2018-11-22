@@ -32,19 +32,19 @@ endfunction
 
 function! s:DefineCommands()
   command! GdbDebugStop call nvimgdb#Kill()
-  command! GdbBreakpointToggle lua gdb.app.toggleBreak()
-  command! GdbBreakpointClearAll lua gdb.app.clearBreaks()
-  command! GdbRun lua gdb.app.send('run')
-  command! GdbUntil call luaeval("gdb.app.send(gdb.app.getCommand('until') .. ' ' .. _A)", line('.'))
-  command! GdbContinue lua gdb.app.send('c')
-  command! GdbNext lua gdb.app.send('n')
-  command! GdbStep lua gdb.app.send('s')
-  command! GdbFinish lua gdb.app.send('finish')
-  command! GdbFrameUp lua gdb.app.send('up')
-  command! GdbFrameDown lua gdb.app.send('down')
-  command! GdbInterrupt lua gdb.app.interrupt()
-  command! GdbEvalWord call luaeval("gdb.app.send(_A)", 'print ' . expand('<cword>'))
-  command! -range GdbEvalRange call luaeval("gdb.app.send(_A)", 'print ' . s:GetExpression(<f-args>))
+  command! GdbBreakpointToggle lua gdb.toggleBreak()
+  command! GdbBreakpointClearAll lua gdb.clearBreaks()
+  command! GdbRun lua gdb.send('run')
+  command! GdbUntil call luaeval("gdb.send(gdb.getCommand('until') .. ' ' .. _A)", line('.'))
+  command! GdbContinue lua gdb.send('c')
+  command! GdbNext lua gdb.send('n')
+  command! GdbStep lua gdb.send('s')
+  command! GdbFinish lua gdb.send('finish')
+  command! GdbFrameUp lua gdb.send('up')
+  command! GdbFrameDown lua gdb.send('down')
+  command! GdbInterrupt lua gdb.interrupt()
+  command! GdbEvalWord call luaeval("gdb.send(_A)", 'print ' . expand('<cword>'))
+  command! -range GdbEvalRange call luaeval("gdb.send(_A)", 'print ' . s:GetExpression(<f-args>))
 endfunction
 
 
@@ -75,8 +75,8 @@ function! nvimgdb#ui#Enter()
       "   window. We start a timer expecting it to expire after the window
       "   has been closed. It's a race.
       au BufWinLeave * call timer_start(100, "nvimgdb#CheckWindowClosed")
-      au TabEnter * lua gdb.app.tabEnter()
-      au TabLeave * lua gdb.app.tabLeave()
+      au TabEnter * lua gdb.tabEnter()
+      au TabLeave * lua gdb.tabLeave()
       au BufEnter * call nvimgdb#OnBufEnter()
       au BufLeave * call nvimgdb#OnBufLeave()
     augroup END

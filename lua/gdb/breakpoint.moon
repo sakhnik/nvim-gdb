@@ -49,7 +49,7 @@ class Breakpoint
     setSigns: (buf) =>
         if buf != -1
             signId = 5000 - 1
-            bpath = gdb.app.getFullBufferPath(buf)
+            bpath = gdb.getFullBufferPath(buf)
             for line, _ in pairs(@breaks[bpath] or {})
                 signId += 1
                 V.exe fmt('sign place %d name=GdbBreakpoint line=%d buffer=%d', signId, line, buf)

@@ -36,7 +36,7 @@ class Win
         bufNum = V.win_get_buf(@jumpWin)
 
         -- Get the source code file name
-        fname = gdb.app.getFullBufferPath(bufNum)
+        fname = gdb.getFullBufferPath(bufNum)
 
         -- If no file name or a weird name with spaces, ignore it (to avoid
         -- misinterpretation)

@@ -2,24 +2,24 @@ sign define GdbCurrentLine text=⇒
 sign define GdbBreakpoint text=●
 
 lua V = require("gdb.v")
-lua gdb = {["app"] = require("gdb.app")}
+lua gdb = require("gdb.app")
 
 
 function! s:GdbKill()
   " Cleanup commands, autocommands etc
   call nvimgdb#ui#Leave()
 
-  lua gdb.app.cleanup()
+  lua gdb.cleanup()
 
   " TabEnter isn't fired automatically when a tab is closed
-  lua gdb.app.tabEnter()
+  lua gdb.tabEnter()
 endfunction
 
 
 " The checks to be executed when navigating the windows
 function! nvimgdb#CheckWindowClosed(...)
   " If this isn't a debugging session, nothing to do
-  if !luaeval("gdb.app.checkTab()") | return | endif
+  if !luaeval("gdb.checkTab()") | return | endif
 
   " The tabpage should contain at least two windows, finish debugging
   " otherwise.
@@ -29,7 +29,7 @@ function! nvimgdb#CheckWindowClosed(...)
 endfunction
 
 function! nvimgdb#OnBufEnter()
-  if !luaeval("gdb.app.checkTab()") | return | endif
+  if !luaeval("gdb.checkTab()") | return | endif
   if &buftype ==# 'terminal' | return | endif
 
   " Make sure the cursor stays visible at all times
@@ -37,18 +37,18 @@ function! nvimgdb#OnBufEnter()
 
   call nvimgdb#keymaps#DispatchSet()
   " Ensure breakpoints are shown if are queried dynamically
-  lua gdb.app.queryBreakpoints()
+  lua gdb.queryBreakpoints()
 endfunction
 
 function! nvimgdb#OnBufLeave()
-  if !luaeval("gdb.app.checkTab()") | return | endif
+  if !luaeval("gdb.checkTab()") | return | endif
   if &buftype ==# 'terminal' | return | endif
   call nvimgdb#keymaps#DispatchUnset()
 endfunction
 
 
 function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
-  call luaeval("gdb.app.init(_A[1], _A[2], _A[3])", [a:backend, a:proxy_cmd, a:client_cmd])
+  call luaeval("gdb.init(_A[1], _A[2], _A[3])", [a:backend, a:proxy_cmd, a:client_cmd])
 
   " Prepare configuration specific to this debugging session
   call nvimgdb#keymaps#Init()
@@ -68,7 +68,7 @@ endfunction
 
 
 function! nvimgdb#Kill()
-  if !luaeval("gdb.app.checkTab()") | return | endif
+  if !luaeval("gdb.checkTab()") | return | endif
   call s:GdbKill()
 endfunction
 
@@ -80,6 +80,6 @@ endfunction
 
 function! nvimgdb#TermOpen(command, tab)
   return termopen(a:command,
-    \ {'on_stdout': {j,d,e -> luaeval("gdb.app.onStdout(_A[1], _A[2], _A[3], _A[4])", [a:tab,j,d,e])}
+    \ {'on_stdout': {j,d,e -> luaeval("gdb.onStdout(_A[1], _A[2], _A[3], _A[4])", [a:tab,j,d,e])}
     \ })
 endfunction
