@@ -34,9 +34,6 @@ function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
 
   " Initialize the UI commands, autocommands etc
   call nvimgdb#ui#Enter()
-
-  " Start insert mode in the GDB window
-  normal i
 endfunction
 
 

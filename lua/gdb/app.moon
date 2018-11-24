@@ -65,6 +65,9 @@ class App
         keymaps\dispatchSetT!
         keymaps\dispatchSet!
 
+        -- Start insert mode in the GDB window
+        V.exe "normal i"
+
 
     cleanup: =>
         -- Clean up the breakpoint signs
