@@ -118,3 +118,5 @@ class Keymaps
 
         -- Remember the resulting configuration
         @config = config
+
+Keymaps
