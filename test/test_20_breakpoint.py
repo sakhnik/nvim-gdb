@@ -30,7 +30,7 @@ class TestBreakpoint(unittest.TestCase):
                 e.Ty('run\n', delay=1)
 
                 cur, breaks = e.GetSigns()
-                self.assertEqual(17, cur)
+                self.assertEqual('test.cpp:17', cur)
                 self.assertEqual([17], breaks)
 
                 e.In('<esc>')
@@ -53,7 +53,7 @@ class TestBreakpoint(unittest.TestCase):
                     e.Ty('run\n', delay=1)
 
                     cur, breaks = e.GetSigns()
-                    self.assertEqual(17, cur)
+                    self.assertEqual('test.cpp:17', cur)
                     self.assertEqual([17], breaks)
 
                     e.In('<esc>')
@@ -74,24 +74,24 @@ class TestBreakpoint(unittest.TestCase):
                 e.In("<f8>")
 
                 cur, breaks = e.GetSigns()
-                self.assertEqual(-1, cur)
+                self.assertFalse(cur)
                 self.assertEqual([5, 10], breaks)
 
                 # Go to another file
                 e.Ty(":e src/lib.hpp\n")
                 cur, breaks = e.GetSigns()
-                self.assertEqual(-1, cur)
+                self.assertFalse(cur)
                 self.assertEqual([], breaks)
                 e.Ty(":8\n")
                 e.In("<f8>")
                 cur, breaks = e.GetSigns()
-                self.assertEqual(-1, cur)
+                self.assertFalse(cur)
                 self.assertEqual([8], breaks)
 
                 # Return to the first file
                 e.Ty(":e src/test.cpp\n")
                 cur, breaks = e.GetSigns()
-                self.assertEqual(-1, cur)
+                self.assertFalse(cur)
                 self.assertEqual([5, 10], breaks)
 
                 e.In('ZZ')
@@ -110,12 +110,12 @@ class TestBreakpoint(unittest.TestCase):
                 e.In("<f8>")
 
                 cur, breaks = e.GetSigns()
-                self.assertEqual(-1, cur)
+                self.assertFalse(cur)
                 self.assertEqual([5, 10, 17], breaks)
 
                 e.Ty(":GdbBreakpointClearAll\n", delay=1)
                 cur, breaks = e.GetSigns()
-                self.assertEqual(-1, cur)
+                self.assertFalse(cur)
                 self.assertFalse(breaks)
 
                 e.In('ZZ')
