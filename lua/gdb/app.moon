@@ -17,6 +17,9 @@ class TStorage
 -- Tabpage local storage
 tls = TStorage()
 
+-- Prepare keymaps configuration
+keymaps = Keymaps!
+
 CheckTab = ->
     tls\get! != nil
 
@@ -57,11 +60,6 @@ class App
 
         -- Remember the instance into the tabpage-specific storage
         tls\init @
-
-        -- Prepare configuration specific to this debugging session
-        @keymaps = Keymaps!
-        @keymaps\dispatchSetT!
-        @keymaps\dispatchSet!
 
 
     cleanup: =>
@@ -141,17 +139,13 @@ class App
         if V.get_buf_option(V.cur_buf!, 'buftype') != 'terminal'
             -- Make sure the cursor stays visible at all times
             V.exe "if !&scrolloff | setlocal scrolloff=5 | endif"
-            @keymaps\dispatchSet!
+            keymaps\dispatchSet!
             -- Ensure breakpoints are shown if are queried dynamically
             @win\queryBreakpoints!
 
     onBufLeave: =>
         if V.get_buf_option(V.cur_buf!, 'buftype') != 'terminal'
-            @keymaps\dispatchUnset!
-
-    keymapsSetT: => @keymaps\setT!
-    keymapsSet: => @keymaps\set!
-    keymapsUnset: => @keymaps\unset!
+            keymaps\dispatchUnset!
 
 Init = (backendStr, proxyCmd, clientCmd) ->
     App backendStr, proxyCmd, clientCmd
@@ -175,6 +169,7 @@ ret =
     getFullBufferPath: GetFullBufferPath
     checkTab: CheckTab
     onStdout: OnStdout
+    keymaps: keymaps
 
 -- Allow calling object functions by dispatching
 -- to the tabpage local instance.

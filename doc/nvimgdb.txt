@@ -151,9 +151,9 @@ allows overriding the given keys. For example, the default config is: >
       \ 'key_frameup':    '<c-p>',
       \ 'key_framedown':  '<c-n>',
       \ 'key_eval':       '<f9>',
-      \ 'set_tkeymaps':   'gdb.keymapsSetT',
-      \ 'set_keymaps':    'gdb.keymapsSet',
-      \ 'unset_keymaps':  'get.keymapsUnset',
+      \ 'set_tkeymaps':   'gdb.keymaps:setT',
+      \ 'set_keymaps':    'gdb.keymaps:set',
+      \ 'unset_keymaps':  'get.keymaps:unset',
       \ }
 <
 The keys starting with `key_` define a key mapping for the respective command.
