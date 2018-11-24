@@ -58,26 +58,46 @@ class Keymaps
     dispatchSetT: =>
         @dispatch 'set_tkeymaps'
 
+    -- Turn a string into a funcref either Lua or Vim, preferring Lua.
+    filterFuncref = (defConf, k, v) ->
+        -- Lookup the key in the default config.
+        defVal = defConf[k]
+        if defVal == nil
+            return nil   -- No need to add it to the configuration.
+        -- Check whether the key should be a function.
+        if type(defVal) != 'function'
+            return v
+        -- TODO: implement a proper check whether a string describes a Lua function.
+        func = _G[v]
+        if func != nil
+            return func
+        -- Finally, turn the value into a Vim function call.
+        return -> V.call(v, {})
+
     new: =>
+        -- Default configuration
+        defaultConfig =
+            'key_until': '<f4>'
+            'key_continue': '<f5>'
+            'key_next': '<f10>'
+            'key_step': '<f11>'
+            'key_finish': '<f12>'
+            'key_breakpoint': '<f8>'
+            'key_frameup': '<c-p>'
+            'key_framedown': '<c-n>'
+            'key_eval': '<f9>'
+            'set_tkeymaps': @setT
+            'set_keymaps': @set
+            'unset_keymaps': @unset
+
         -- Make a copy of the supplied configuration if defined
         config = nil
         if V.call("exists", {'g:nvimgdb_config'}) == 1
             config = V.get_var('nvimgdb_config')
+            for k,v in pairs(config)
+                config[k] = filterFuncref(defaultConfig, k, v)
+
         if config == nil
-            -- Default configuration
-            defaultConfig =
-                'key_until': '<f4>'
-                'key_continue': '<f5>'
-                'key_next': '<f10>'
-                'key_step': '<f11>'
-                'key_finish': '<f12>'
-                'key_breakpoint': '<f8>'
-                'key_frameup': '<c-p>'
-                'key_framedown': '<c-n>'
-                'key_eval': '<f9>'
-                'set_tkeymaps': @setT
-                'set_keymaps': @set
-                'unset_keymaps': @unset
             config = {k,v for k,v in pairs defaultConfig}
 
         -- If there is config override defined, add it
@@ -85,7 +105,7 @@ class Keymaps
             override = V.get_var('nvimgdb_config_override')
             if override != nil
                 for k,v in pairs(override)
-                    config[k] = v
+                    config[k] = filterFuncref(defaultConfig, k, v)
 
         -- See whether a global override for a specific configuration
         -- key exists. If so, update the config.

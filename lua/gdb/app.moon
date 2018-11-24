@@ -55,6 +55,9 @@ class App
         -- The SCM should be ready by now, spawn the debugger!
         @client\start!
 
+        -- Remember the instance into the tabpage-specific storage
+        tls\init @
+
         -- Prepare configuration specific to this debugging session
         @keymaps = Keymaps!
         @keymaps\dispatchSetT!
@@ -146,10 +149,13 @@ class App
         if V.get_buf_option(V.cur_buf!, 'buftype') != 'terminal'
             @keymaps\dispatchUnset!
 
+    keymapsSetT: => @keymaps\setT!
+    keymapsSet: => @keymaps\set!
+    keymapsUnset: => @keymaps\unset!
+
 Init = (backendStr, proxyCmd, clientCmd) ->
-    app = App backendStr, proxyCmd, clientCmd
-    -- Remember the instance into the tabpage-specific storage
-    tls\init app
+    App backendStr, proxyCmd, clientCmd
+    0  -- return a POD value to make Vim happy
 
 
 -- Dispatch a call to the current tabpage-specific

@@ -206,7 +206,6 @@ class TestGdb(unittest.TestCase):
 
                 e.Ty('ZZ')
 
-    @unittest.skip("until restored")
     def test_70_keymap(self):
         """=> Test custom programmable keymaps."""
         for backend, spec in subtests.items():
