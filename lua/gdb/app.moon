@@ -2,6 +2,7 @@ Client = require "gdb.client"
 Cursor = require "gdb.cursor"
 Breakpoint = require "gdb.breakpoint"
 Win = require "gdb.win"
+Keymaps = require "gdb.keymaps"
 
 fmt = string.format
 
@@ -53,6 +54,12 @@ class App
 
         -- The SCM should be ready by now, spawn the debugger!
         @client\start!
+
+        -- Prepare configuration specific to this debugging session
+        @keymaps = Keymaps!
+        @keymaps\dispatchSetT!
+        @keymaps\dispatchSet!
+
 
     cleanup: =>
         -- Clean up the breakpoint signs
@@ -127,6 +134,17 @@ class App
     queryBreakpoints: =>
         @win\queryBreakpoints!
 
+    onBufEnter: =>
+        if V.get_buf_option(V.cur_buf!, 'buftype') != 'terminal'
+            -- Make sure the cursor stays visible at all times
+            V.exe "if !&scrolloff | setlocal scrolloff=5 | endif"
+            @keymaps\dispatchSet!
+            -- Ensure breakpoints are shown if are queried dynamically
+            @win\queryBreakpoints!
+
+    onBufLeave: =>
+        if V.get_buf_option(V.cur_buf!, 'buftype') != 'terminal'
+            @keymaps\dispatchUnset!
 
 Init = (backendStr, proxyCmd, clientCmd) ->
     app = App backendStr, proxyCmd, clientCmd

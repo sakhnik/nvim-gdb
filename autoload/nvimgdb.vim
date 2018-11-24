@@ -28,39 +28,12 @@ function! nvimgdb#CheckWindowClosed(...)
   endif
 endfunction
 
-function! nvimgdb#OnBufEnter()
-  if !luaeval("gdb.checkTab()") | return | endif
-  if &buftype ==# 'terminal' | return | endif
-
-  " Make sure the cursor stays visible at all times
-  if !&scrolloff | setlocal scrolloff=5 | endif
-
-  call nvimgdb#keymaps#DispatchSet()
-  " Ensure breakpoints are shown if are queried dynamically
-  lua gdb.queryBreakpoints()
-endfunction
-
-function! nvimgdb#OnBufLeave()
-  if !luaeval("gdb.checkTab()") | return | endif
-  if &buftype ==# 'terminal' | return | endif
-  call nvimgdb#keymaps#DispatchUnset()
-endfunction
-
 
 function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   call luaeval("gdb.init(_A[1], _A[2], _A[3])", [a:backend, a:proxy_cmd, a:client_cmd])
 
-  " Prepare configuration specific to this debugging session
-  call nvimgdb#keymaps#Init()
-
   " Initialize the UI commands, autocommands etc
   call nvimgdb#ui#Enter()
-
-  " Set terminal window keymaps
-  call nvimgdb#keymaps#DispatchSetT()
-
-  " Set normal mode keymaps too
-  call nvimgdb#keymaps#DispatchSet()
 
   " Start insert mode in the GDB window
   normal i

@@ -9,6 +9,7 @@ V =
     cur_winnr: -> vim.api.nvim_win_get_number(vim.api.nvim_get_current_win!)
     cur_buf: vim.api.nvim_get_current_buf
     get_var: vim.api.nvim_get_var
+    get_buf_option: vim.api.nvim_buf_get_option
     exe: (c) -> vim.api.nvim_command(c)
     call: (n, a) -> vim.api.nvim_call_function(n, a)
 
