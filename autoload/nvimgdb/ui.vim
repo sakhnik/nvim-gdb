@@ -77,8 +77,8 @@ function! nvimgdb#ui#Enter()
       au BufWinLeave * call timer_start(100, "nvimgdb#CheckWindowClosed")
       au TabEnter * lua gdb.tabEnter()
       au TabLeave * lua gdb.tabLeave()
-      au BufEnter * call nvimgdb#OnBufEnter()
-      au BufLeave * call nvimgdb#OnBufLeave()
+      au BufEnter * lua gdb.onBufEnter()
+      au BufLeave * lua gdb.onBufLeave()
     augroup END
   endif
   let g:nvimgdb_count += 1

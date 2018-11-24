@@ -151,19 +151,20 @@ allows overriding the given keys. For example, the default config is: >
       \ 'key_frameup':    '<c-p>',
       \ 'key_framedown':  '<c-n>',
       \ 'key_eval':       '<f9>',
-      \ 'set_tkeymaps':   function('nvimgdb#keymaps#SetT'),
-      \ 'set_keymaps':    function('nvimgdb#keymaps#Set'),
-      \ 'unset_keymaps':  function('nvimgdb#keymaps#Unset'),
+      \ 'set_tkeymaps':   'gdb.keymaps:setT',
+      \ 'set_keymaps':    'gdb.keymaps:set',
+      \ 'unset_keymaps':  'get.keymaps:unset',
       \ }
 <
 The keys starting with `key_` define a key mapping for the respective command.
 The key `set_tkeymaps` allows specifying a hook function, which will be called
-when the terminal window has been created. You can call the default handler
-from within the hook and/or define your own very specific terminal keymaps.
-The keys `set_keymaps` and `unset_keymaps` are called every time when the
-source code windows is entered and left. The first one can be used to define
-source window-specific keymaps and the latter to carefully cleanup them.
-See `test/init.vim` for an example.
+when the terminal window has been created.  The function is specified as a
+string value.  It should correspond to either a Lua function or a Vim function.
+You can call the default handler from within the hook and/or define your own
+very specific terminal keymaps.  The keys `set_keymaps` and `unset_keymaps`
+are called every time when the source code windows is entered and left.  The
+first one can be used to define source window-specific keymaps and the latter
+to carefully cleanup them.  See `test/init.vim` for an example.
 
 Finally, every configuration key can be overridden with a global variable
 prefixed `g:nvimgdb_`. For example, `g:nvimgdb_key_next` overrides

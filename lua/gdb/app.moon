@@ -2,6 +2,7 @@ Client = require "gdb.client"
 Cursor = require "gdb.cursor"
 Breakpoint = require "gdb.breakpoint"
 Win = require "gdb.win"
+Keymaps = require "gdb.keymaps"
 
 fmt = string.format
 
@@ -15,6 +16,9 @@ class TStorage
 
 -- Tabpage local storage
 tls = TStorage()
+
+-- Prepare keymaps configuration
+keymaps = Keymaps!
 
 CheckTab = ->
     tls\get! != nil
@@ -53,6 +57,17 @@ class App
 
         -- The SCM should be ready by now, spawn the debugger!
         @client\start!
+
+        -- Remember the instance into the tabpage-specific storage
+        tls\init @
+
+        -- Set initial keymaps in the terminal window.
+        keymaps\dispatchSetT!
+        keymaps\dispatchSet!
+
+        -- Start insert mode in the GDB window
+        V.exe "normal i"
+
 
     cleanup: =>
         -- Clean up the breakpoint signs
@@ -127,11 +142,21 @@ class App
     queryBreakpoints: =>
         @win\queryBreakpoints!
 
+    onBufEnter: =>
+        if V.get_buf_option(V.cur_buf!, 'buftype') != 'terminal'
+            -- Make sure the cursor stays visible at all times
+            V.exe "if !&scrolloff | setlocal scrolloff=5 | endif"
+            keymaps\dispatchSet!
+            -- Ensure breakpoints are shown if are queried dynamically
+            @win\queryBreakpoints!
+
+    onBufLeave: =>
+        if V.get_buf_option(V.cur_buf!, 'buftype') != 'terminal'
+            keymaps\dispatchUnset!
 
 Init = (backendStr, proxyCmd, clientCmd) ->
-    app = App backendStr, proxyCmd, clientCmd
-    -- Remember the instance into the tabpage-specific storage
-    tls\init app
+    App backendStr, proxyCmd, clientCmd
+    0  -- return a POD value to make Vim happy
 
 
 -- Dispatch a call to the current tabpage-specific
@@ -151,6 +176,7 @@ ret =
     getFullBufferPath: GetFullBufferPath
     checkTab: CheckTab
     onStdout: OnStdout
+    keymaps: keymaps
 
 -- Allow calling object functions by dispatching
 -- to the tabpage local instance.
