@@ -67,8 +67,9 @@ class Keymaps
         -- Check whether the key should be a function.
         if type(defVal) != 'function'
             return v
+        -- NOTE: will be deprecated in Lua 5.2, so will have to use load() then.
         func = loadstring(v)
-        if func != nil
+        if type(func) == 'function'
             return func
         -- Finally, turn the value into a Vim function call.
         return -> V.call(v, {})
