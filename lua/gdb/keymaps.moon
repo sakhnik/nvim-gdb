@@ -114,7 +114,7 @@ class Keymaps
             if V.call("exists", {vname}) == 1
                 val = V.get_var(vname)
                 if val != nil
-                    config[key] = val
+                    config[key] = filterFuncref(defaultConfig, key, val)
 
         -- Remember the resulting configuration
         @config = config
