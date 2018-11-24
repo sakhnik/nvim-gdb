@@ -32,12 +32,6 @@ endfunction
 function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   call luaeval("gdb.init(_A[1], _A[2], _A[3])", [a:backend, a:proxy_cmd, a:client_cmd])
 
-  " Set initial keymaps in the terminal window.
-  " This should be done after the app have been initialized,
-  " because the user callbacks may dispatch through there.
-  lua gdb.keymaps:dispatchSetT()
-  lua gdb.keymaps:dispatchSet()
-
   " Initialize the UI commands, autocommands etc
   call nvimgdb#ui#Enter()
 

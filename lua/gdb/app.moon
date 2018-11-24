@@ -61,6 +61,10 @@ class App
         -- Remember the instance into the tabpage-specific storage
         tls\init @
 
+        -- Set initial keymaps in the terminal window.
+        keymaps\dispatchSetT!
+        keymaps\dispatchSet!
+
 
     cleanup: =>
         -- Clean up the breakpoint signs
