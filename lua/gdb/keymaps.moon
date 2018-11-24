@@ -67,8 +67,7 @@ class Keymaps
         -- Check whether the key should be a function.
         if type(defVal) != 'function'
             return v
-        -- TODO: implement a proper check whether a string describes a Lua function.
-        func = _G[v]
+        func = loadstring(v)
         if func != nil
             return func
         -- Finally, turn the value into a Vim function call.
