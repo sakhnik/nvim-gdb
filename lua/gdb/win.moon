@@ -17,12 +17,12 @@ class Win
         if targetBuf == @client\getBuf!
             -- The terminal buffer may contain the name of the source file (in pdb, for
             -- instance)
-            V.exe ("e " .. file)
+            V.exe ("noswapfile view " .. file)
             targetBuf = V.call("bufnr", {file})
 
         if V.call("bufnr", {'%'}) != targetBuf
             -- Switch to the new buffer
-            V.exe ('buffer ' .. targetBuf)
+            V.exe ('noswapfile buffer ' .. targetBuf)
             curBuf = targetBuf
             @breakpoint\refreshSigns(curBuf)
 
