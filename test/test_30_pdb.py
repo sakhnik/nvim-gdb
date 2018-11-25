@@ -4,6 +4,7 @@
 import unittest
 import engine
 import time
+import os
 
 
 e = engine.Engine()
@@ -21,27 +22,27 @@ class TestPdb(unittest.TestCase):
         e.In('<esc>')
 
         cur, breaks = e.GetSigns()
-        self.assertEqual(15, cur)
+        self.assertEqual('main.py:15', cur)
         self.assertFalse(breaks)
 
         e.In('<f10>')
         cur, breaks = e.GetSigns()
-        self.assertEqual(16, cur)
+        self.assertEqual('main.py:16', cur)
         self.assertFalse(breaks)
 
         e.In('<f11>')
         cur, breaks = e.GetSigns()
-        self.assertEqual(8, cur)
+        self.assertEqual('main.py:8', cur)
         self.assertFalse(breaks)
 
         e.In('<f12>')
         cur, breaks = e.GetSigns()
-        self.assertEqual(10, cur)
+        self.assertEqual('main.py:10', cur)
         self.assertFalse(breaks)
 
         e.In('<f5>', delay=1.2)
         cur, breaks = e.GetSigns()
-        self.assertEqual(1, cur)
+        self.assertEqual('main.py:1', cur)
         self.assertFalse(breaks)
 
         e.Command('GdbDebugStop')
@@ -57,17 +58,17 @@ class TestPdb(unittest.TestCase):
         e.In(':5<cr>')
         e.In('<f8>')
         cur, breaks = e.GetSigns()
-        self.assertEqual(1, cur)
+        self.assertEqual('main.py:1', cur)
         self.assertListEqual([5], breaks)
 
         e.Command("GdbContinue")
         cur, breaks = e.GetSigns()
-        self.assertEqual(5, cur)
+        self.assertEqual('main.py:5', cur)
         self.assertListEqual([5], breaks)
 
         e.In('<f8>', delay=0.3)
         cur, breaks = e.GetSigns()
-        self.assertEqual(5, cur)
+        self.assertEqual('main.py:5', cur)
         self.assertFalse(breaks)
 
         e.Command('GdbDebugStop')
@@ -79,31 +80,29 @@ class TestPdb(unittest.TestCase):
         e.In('<esc>')
 
         e.In('<esc><c-w>k')
-        e.Ty(":e main.py\n")
         e.In(':5<cr>')
         e.In('<f8>')
         cur, breaks = e.GetSigns()
-        self.assertEqual(1, cur)
+        self.assertEqual('main.py:1', cur)
         self.assertListEqual([5], breaks)
 
         # Go to another file
         e.Ty(":e test_30_pdb.py\n")
-        e.Ty(":23\n")
-        e.In("<f8>")
-        cur, breaks = e.GetSigns()
-        # TODO: fix this
-        #self.assertEqual(-1, cur)
-        self.assertEqual([23], breaks)
         e.Ty(":24\n")
         e.In("<f8>")
         cur, breaks = e.GetSigns()
-        #self.assertEqual(-1, cur)
-        self.assertEqual([23, 24], breaks)
+        self.assertEqual('main.py:1', cur)
+        self.assertEqual([24], breaks)
+        e.Ty(":25\n")
+        e.In("<f8>")
+        cur, breaks = e.GetSigns()
+        self.assertEqual('main.py:1', cur)
+        self.assertEqual([24, 25], breaks)
 
         # Return to the original file
         e.Ty(":e main.py\n")
         cur, breaks = e.GetSigns()
-        self.assertEqual(1, cur)
+        self.assertEqual('main.py:1', cur)
         self.assertListEqual([5], breaks)
 
         e.Command('GdbDebugStop')
@@ -121,8 +120,10 @@ class TestPdb(unittest.TestCase):
         e.In('<f4>')
 
         cur, breaks = e.GetSigns()
-        # TODO: Fix in Travis
-        #self.assertEqual(18, cur)
+        # While the check works fine locally, doesn't work in Travis.
+        # Probably, because of different versions of Python interpreter.
+        if not os.getenv("TRAVIS_BUILD_ID"):
+            self.assertEqual('main.py:18', cur)
         self.assertFalse(breaks)
 
         e.Ty('ZZ')

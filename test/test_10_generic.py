@@ -47,27 +47,27 @@ class TestGdb(unittest.TestCase):
                 e.In('<esc>')
 
                 cur, breaks = e.GetSigns()
-                self.assertEqual(17, cur)
+                self.assertEqual('test.cpp:17', cur)
                 self.assertFalse(breaks)
 
                 e.In('<f10>')
                 cur, breaks = e.GetSigns()
-                self.assertEqual(19, cur)
+                self.assertEqual('test.cpp:19', cur)
                 self.assertFalse(breaks)
 
                 e.In('<f11>')
                 cur, breaks = e.GetSigns()
-                self.assertEqual(10, cur)
+                self.assertEqual('test.cpp:10', cur)
                 self.assertFalse(breaks)
 
                 e.In('<f12>')
                 cur, breaks = e.GetSigns()
-                self.assertIn(cur, [17, 19])  # different for different compilers
+                self.assertIn(cur, ['test.cpp:17', 'test.cpp:19'])  # different for different compilers
                 self.assertFalse(breaks)
 
                 e.In('<f5>')
                 cur, breaks = e.GetSigns()
-                self.assertEqual(-1, cur)
+                self.assertFalse(cur)
                 self.assertFalse(breaks)
 
                 e.Command('GdbDebugStop')
@@ -82,17 +82,17 @@ class TestGdb(unittest.TestCase):
                 e.In(':5<cr>')
                 e.In('<f8>')
                 cur, breaks = e.GetSigns()
-                self.assertEqual(-1, cur)
+                self.assertFalse(cur)
                 self.assertListEqual([5], breaks)
 
                 e.Command("GdbRun", delay=1)
                 cur, breaks = e.GetSigns()
-                self.assertEqual(5, cur)
+                self.assertEqual('test.cpp:5', cur)
                 self.assertListEqual([5], breaks)
 
                 e.In('<f8>')
                 cur, breaks = e.GetSigns()
-                self.assertEqual(5, cur)
+                self.assertEqual('test.cpp:5', cur)
                 self.assertFalse(breaks)
 
                 e.Command('GdbDebugStop')
@@ -107,12 +107,12 @@ class TestGdb(unittest.TestCase):
                 e.In(':5<cr>')
                 e.In('<f8>')
                 cur, breaks = e.GetSigns()
-                self.assertEqual(-1, cur)
+                self.assertFalse(cur)
                 self.assertListEqual([5], breaks)
 
                 e.Command("GdbDebugStop")
                 cur, breaks = e.GetSigns()
-                self.assertEqual(-1, cur)
+                self.assertFalse(cur)
                 self.assertFalse(breaks)
 
     def test_40_multiview(self):
@@ -136,7 +136,7 @@ class TestGdb(unittest.TestCase):
         e.In('<f11>')
 
         cur, breaks = e.GetSigns()
-        self.assertEqual(10, cur)
+        self.assertEqual('test.cpp:10', cur)
         self.assertEqual([11], breaks)
 
         # Then launch the second backend
@@ -152,13 +152,13 @@ class TestGdb(unittest.TestCase):
         e.In('<f10>')
 
         cur, breaks = e.GetSigns()
-        self.assertEqual(19, cur)
+        self.assertEqual('test.cpp:19', cur)
         self.assertEqual([5, 12], breaks)
 
         # Switch to the first backend
         e.In('2gt')
         cur, breaks = e.GetSigns()
-        self.assertEqual(10, cur)
+        self.assertEqual('test.cpp:10', cur)
         self.assertEqual([11], breaks)
 
         # Quit
@@ -166,7 +166,7 @@ class TestGdb(unittest.TestCase):
 
         # Switch back to the second backend
         cur, breaks = e.GetSigns()
-        self.assertEqual(19, cur)
+        self.assertEqual('test.cpp:19', cur)
         self.assertEqual([5, 12], breaks)
 
         # Quit LLDB
@@ -182,7 +182,7 @@ class TestGdb(unittest.TestCase):
                 e.Ty(':GdbInterrupt\n', delay=0.3)
 
                 cur, breaks = e.GetSigns()
-                self.assertEqual(22, cur)
+                self.assertEqual('test.cpp:22', cur)
                 self.assertFalse(breaks)
 
                 e.In('ZZ')
@@ -201,7 +201,7 @@ class TestGdb(unittest.TestCase):
                 e.In('<f4>')
 
                 cur, breaks = e.GetSigns()
-                self.assertEqual(21, cur)
+                self.assertEqual('test.cpp:21', cur)
                 self.assertFalse(breaks)
 
                 e.Ty('ZZ')
@@ -240,7 +240,7 @@ class TestGdb(unittest.TestCase):
 
                 e.In('<f5>')
                 cur, breaks = e.GetSigns()
-                self.assertEqual(-1, cur)
+                self.assertFalse(cur)
                 self.assertFalse(breaks)
 
                 e.Ty('ZZ')

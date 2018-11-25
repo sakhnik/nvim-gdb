@@ -25,15 +25,28 @@ class Engine:
 
     def GetSigns(self):
         """Get pointer position and list of breakpoints."""
+
         out = self.nvim.eval('execute("sign place")')
-        curline = [int(l) for l in
-                   re.findall(r'line=(\d+)\s+id=\d+\s+name=GdbCurrentLine',
-                              out)]
-        assert(len(curline) <= 1)
+
+        fname = ''     # Filename where the current line sign is
+        curline = -1   # The line where the current line sign is
+        cur = ''       # The return value from the function in the form fname:line
+        for l in out.splitlines():
+            m = re.match(r'Signs for ([^:]+):', l)
+            if m:
+                fname = os.path.basename(m.group(1))
+                continue
+            m = re.match(r'    line=(\d+)\s+id=\d+\s+name=GdbCurrentLine', l)
+            if m:
+                # There can be only one current line sign
+                assert(curline == -1)
+                curline = int(m.group(1))
+                cur = "%s:%d" % (fname, curline)
+
         breaks = [int(l) for l
                   in re.findall(r'line=(\d+)\s+id=\d+\s+name=GdbBreakpoint',
                                 out)]
-        return (curline[0] if curline else -1), sorted(breaks)
+        return cur, sorted(breaks)
 
     def In(self, keys, delay=0.1):
         """Send a Vim keystroke to NeoVim."""
