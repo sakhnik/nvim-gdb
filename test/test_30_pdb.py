@@ -45,7 +45,7 @@ class TestPdb(unittest.TestCase):
         self.assertEqual('main.py:1', cur)
         self.assertFalse(breaks)
 
-        e.Command('GdbDebugStop')
+        e.Exe('GdbDebugStop')
 
     def test_20_breakpoint(self):
         """=> Test toggling breakpoints."""
@@ -61,7 +61,7 @@ class TestPdb(unittest.TestCase):
         self.assertEqual('main.py:1', cur)
         self.assertListEqual([5], breaks)
 
-        e.Command("GdbContinue")
+        e.Exe("GdbContinue")
         cur, breaks = e.GetSigns()
         self.assertEqual('main.py:5', cur)
         self.assertListEqual([5], breaks)
@@ -71,7 +71,7 @@ class TestPdb(unittest.TestCase):
         self.assertEqual('main.py:5', cur)
         self.assertFalse(breaks)
 
-        e.Command('GdbDebugStop')
+        e.Exe('GdbDebugStop')
 
     def test_30_navigation(self):
         """=> Test toggling breakpoints while navigating."""
@@ -105,7 +105,7 @@ class TestPdb(unittest.TestCase):
         self.assertEqual('main.py:1', cur)
         self.assertListEqual([5], breaks)
 
-        e.Command('GdbDebugStop')
+        e.Exe('GdbDebugStop')
 
     def test_40_until(self):
         """=> Test run until line."""
