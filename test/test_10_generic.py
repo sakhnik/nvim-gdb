@@ -70,7 +70,7 @@ class TestGdb(unittest.TestCase):
                 self.assertFalse(cur)
                 self.assertFalse(breaks)
 
-                e.Command('GdbDebugStop')
+                e.Exe('GdbDebugStop')
 
     def test_30_breakpoint(self):
         """=> Test toggling breakpoints."""
@@ -85,7 +85,7 @@ class TestGdb(unittest.TestCase):
                 self.assertFalse(cur)
                 self.assertListEqual([5], breaks)
 
-                e.Command("GdbRun", delay=1)
+                e.Exe("GdbRun", delay=1)
                 cur, breaks = e.GetSigns()
                 self.assertEqual('test.cpp:5', cur)
                 self.assertListEqual([5], breaks)
@@ -95,7 +95,7 @@ class TestGdb(unittest.TestCase):
                 self.assertEqual('test.cpp:5', cur)
                 self.assertFalse(breaks)
 
-                e.Command('GdbDebugStop')
+                e.Exe('GdbDebugStop')
 
     def test_35_breakpoint_cleanup(self):
         """=> Verify that breakpoints are cleaned up after session end."""
@@ -110,7 +110,7 @@ class TestGdb(unittest.TestCase):
                 self.assertFalse(cur)
                 self.assertListEqual([5], breaks)
 
-                e.Command("GdbDebugStop")
+                e.Exe("GdbDebugStop")
                 cur, breaks = e.GetSigns()
                 self.assertFalse(cur)
                 self.assertFalse(breaks)

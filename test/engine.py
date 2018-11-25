@@ -18,7 +18,7 @@ class Engine:
             args = ["/usr/bin/env", "nvim", "--embed", "-n", "-u", "init.vim"]
             self.nvim = attach('child', argv=args)
 
-    def Command(self, cmd, delay=0.1):
+    def Exe(self, cmd, delay=0.1):
         """Execute a Vim command."""
         self.nvim.command(cmd)
         time.sleep(delay)
