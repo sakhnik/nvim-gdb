@@ -4,6 +4,7 @@
 import unittest
 import engine
 import time
+import os
 
 
 e = engine.Engine()
@@ -87,16 +88,16 @@ class TestPdb(unittest.TestCase):
 
         # Go to another file
         e.Ty(":e test_30_pdb.py\n")
-        e.Ty(":23\n")
-        e.In("<f8>")
-        cur, breaks = e.GetSigns()
-        self.assertEqual('main.py:1', cur)
-        self.assertEqual([23], breaks)
         e.Ty(":24\n")
         e.In("<f8>")
         cur, breaks = e.GetSigns()
         self.assertEqual('main.py:1', cur)
-        self.assertEqual([23, 24], breaks)
+        self.assertEqual([24], breaks)
+        e.Ty(":25\n")
+        e.In("<f8>")
+        cur, breaks = e.GetSigns()
+        self.assertEqual('main.py:1', cur)
+        self.assertEqual([24, 25], breaks)
 
         # Return to the original file
         e.Ty(":e main.py\n")
@@ -119,8 +120,10 @@ class TestPdb(unittest.TestCase):
         e.In('<f4>')
 
         cur, breaks = e.GetSigns()
-        # TODO: Fix in Travis
-        #self.assertEqual('main.py:18', cur)
+        # While the check works fine locally, doesn't work in Travis.
+        # Probably, because of different versions of Python interpreter.
+        if not os.getenv("TRAVIS_BUILD_ID"):
+            self.assertEqual('main.py:18', cur)
         self.assertFalse(breaks)
 
         e.Ty('ZZ')
