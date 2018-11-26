@@ -21,13 +21,13 @@ function! nvimgdb#win#Jump(file, line)
   if target_buf == nvimgdb#client#GetBuf()
     " The terminal buffer may contain the name of the source file (in pdb, for
     " instance)
-    exe "e " . a:file
+    exe "noswapfile view " . a:file
     let target_buf = bufnr(a:file)
   endif
 
   if bufnr('%') != target_buf
     " Switch to the new buffer
-    exe 'buffer ' target_buf
+    exe 'noswapfile buffer ' target_buf
     let t:gdb_win_current_buf = target_buf
     call nvimgdb#breakpoint#Refresh(t:gdb_win_current_buf)
   endif

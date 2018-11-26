@@ -15,8 +15,11 @@ class Engine:
         if addr:
             self.nvim = attach('socket', path=addr)
         else:
-            args = ["/usr/bin/env", "nvim", "--embed", "-n", "-u", "init.vim"]
+            args = ["/usr/bin/env", "nvim", "--embed", "--headless", "-n", "-u", "init.vim"]
             self.nvim = attach('child', argv=args)
+            # Dummy request to make sure the embedded Nvim proceeds
+            # See in neovim bd8d43c6fef868 (startup: wait for embedder before executing)
+            self.Eval("0")
 
     def Exe(self, cmd, delay=0.1):
         """Execute a Vim command."""
