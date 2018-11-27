@@ -21,8 +21,6 @@ rest="${@:2}"
 # Prepare gdb initialization commands
 this_dir=$(readlink -f `dirname ${BASH_SOURCE[0]}`)
 
-unlink $server_addr >/dev/null 2>&1 || true
-
 gdb_init=`mktemp /tmp/gdb_init.XXXXXX`
 cat >$gdb_init <<EOF
 set confirm off
@@ -33,7 +31,6 @@ EOF
 cleanup()
 {
     unlink $gdb_init
-    unlink $server_addr
 }
 trap cleanup EXIT
 

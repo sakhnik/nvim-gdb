@@ -35,12 +35,6 @@ def _GetBreaks(fname):
 
 
 def server(server_address):
-    # Make sure the socket does not already exist
-    try:
-        os.unlink(server_address)
-    except OSError:
-        pass
-
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
     sock.bind(server_address)
 
