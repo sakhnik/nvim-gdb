@@ -29,12 +29,6 @@ class BaseProxy(object):
         self.features = features
 
         if server_address:
-            # Make sure the socket does not already exist
-            try:
-                os.unlink(server_address)
-            except OSError:
-                if os.path.exists(server_address):
-                    raise
             # Create a UDS socket
             self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
             self.sock.bind(server_address)

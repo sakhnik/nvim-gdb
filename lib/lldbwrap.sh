@@ -23,8 +23,6 @@ rest="${@:2}"
 readlinkf(){ perl -MCwd -e 'print Cwd::abs_path shift' "$1";}
 this_dir=$(readlinkf `dirname ${BASH_SOURCE[0]}`)
 
-unlink $server_addr >/dev/null 2>&1 || true
-
 lldb_init=`mktemp /tmp/lldb_init.XXXXXX`
 cat >$lldb_init <<EOF
 command script import $this_dir/lldb_commands.py
