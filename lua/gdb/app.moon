@@ -3,6 +3,7 @@ Cursor = require "gdb.cursor"
 Breakpoint = require "gdb.breakpoint"
 Win = require "gdb.win"
 Keymaps = require "gdb.keymaps"
+SockDir = require "gdb.sockdir"
 
 fmt = string.format
 
@@ -40,14 +41,17 @@ class App
 
         @backend = require "gdb.backend." .. backendStr
 
+        -- Create a temporary unique directory for all the sockets.
+        @sockDir = SockDir!
+
         -- go to the other window and spawn gdb client
-        @client = Client(wcli, proxyCmd, clientCmd)
+        @client = Client(wcli, proxyCmd, clientCmd, @sockDir\get!)
 
         -- Initialize current line tracking
         @cursor = Cursor()
 
         -- Initialize breakpoint tracking
-        @breakpoint = Breakpoint(@client\getProxyAddr!)
+        @breakpoint = Breakpoint(@client\getProxyAddr!, @sockDir\get!)
 
         -- Initialize the windowing subsystem
         @win = Win(wjump, @client, @cursor, @breakpoint)
@@ -87,6 +91,10 @@ class App
             V.exe ("bd! " .. clientBuf)
         if tabCount == #V.list_tabs!
             V.exe "tabclose"
+
+        @client\cleanup!
+        @sockDir\cleanup!
+
 
     getCommand: (cmd) =>
         c = @backend[cmd]

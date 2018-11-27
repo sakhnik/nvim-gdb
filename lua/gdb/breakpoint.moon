@@ -1,5 +1,4 @@
 require "set_paths"
-libstd = require "posix.stdlib"
 s = require "posix.sys.socket"
 u = require "posix.unistd"
 json = require "JSON"
@@ -8,35 +7,32 @@ fmt = string.format
 
 
 class Breakpoint
-    new: (proxyAddr) =>
+    new: (proxyAddr, sockDir) =>
         @proxyAddr = proxyAddr
+        @sockAddr = sockDir .. "/client"
         @breaks = {}    -- {file -> {line -> id}}
         @maxSignId = 0
         @sock = -1
-        @sockDir = ""
 
     cleanup: =>
         if @sock != -1
             u.close(@sock)
-        if @sockDir != ""
-            os.remove(@sockDir .. "/socket")
-            os.remove(@sockDir)
+        os.remove @sockAddr
 
-    connect = (proxyAddr) ->
-        dir = libstd.mkdtemp('/tmp/nvimgdb-sock-XXXXXX')
+    connect = (sockAddr, proxyAddr) ->
         sock = s.socket(s.AF_UNIX, s.SOCK_DGRAM, 0)
         assert(sock != -1)
-        assert(s.bind(sock, {family: s.AF_UNIX, path: dir .. "/socket"}))
+        assert(s.bind(sock, {family: s.AF_UNIX, path: sockAddr}))
         assert(s.setsockopt(sock, s.SOL_SOCKET, s.SO_RCVTIMEO, 0, 500000))
         assert(s.connect(sock, {family: s.AF_UNIX, path: proxyAddr}))
-        sock, dir
+        sock
 
     doQuery: (fname) =>
         -- It takes time for the proxy to open a side channel.
         -- So we're connecting to the socket lazily during
         -- the first query.
         if @sock == -1
-            @sock, @sockDir = connect @proxyAddr
+            @sock = connect @sockAddr, @proxyAddr
         assert s.send(@sock, fmt("info-breakpoints %s\n", fname))
         data = s.recv(@sock, 65536)
         data
