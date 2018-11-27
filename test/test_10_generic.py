@@ -237,6 +237,7 @@ class TestGdb(unittest.TestCase):
                 e.Ty(spec["launch"], delay=1)
                 e.Ty(spec["tbreak_main"])
                 e.Ty('run\n', delay=1)
+                e.In('<esc>')
 
                 e.In('<f5>')
                 cur, breaks = e.GetSigns()
