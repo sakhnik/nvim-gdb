@@ -12,7 +12,7 @@ class Win
     jump: (file, line) =>
         window = V.get_current_win!
         V.jump_win @jumpWin
-        curBuf = V.cur_buf!
+        curBuf = V.get_current_buf!
         targetBuf = V.call("bufnr", {file, 1})
         if targetBuf == @client\getBuf!
             -- The terminal buffer may contain the name of the source file (in pdb, for

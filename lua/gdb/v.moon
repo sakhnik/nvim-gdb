@@ -7,7 +7,6 @@ for k, v in pairs(vim.api)
     else
         V[k] = v
 
-V.cur_buf = V.get_current_buf
 V.get_buf_option = V.buf_get_option
 V.exe = (c) -> V.command c
 V.call = (n, a) -> V.call_function(n, a)

@@ -13,7 +13,7 @@ class Client
                 V.call("nvimgdb#GetPluginDir", {}), proxyCmd, @proxyAddr, clientCmd)
         V.jump_win win
         V.exe "enew"
-        @clientBuf = V.cur_buf!
+        @clientBuf = V.get_current_buf!
 
     cleanup: =>
         if @proxyAddr != ''

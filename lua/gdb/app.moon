@@ -114,7 +114,7 @@ class App
             -- pause first
             @client\interrupt()
 
-        buf = V.cur_buf!
+        buf = V.get_current_buf!
         fileName = GetFullBufferPath(buf)
         fileBreaks = @breakpoint\getForFile(fileName)
         lineNr = '' .. V.call("line", {"."})    -- Must be string to query from the fileBreaks
@@ -151,7 +151,7 @@ class App
         @win\queryBreakpoints!
 
     onBufEnter: =>
-        if V.get_buf_option(V.cur_buf!, 'buftype') != 'terminal'
+        if V.get_buf_option(V.get_current_buf!, 'buftype') != 'terminal'
             -- Make sure the cursor stays visible at all times
             V.exe "if !&scrolloff | setlocal scrolloff=5 | endif"
             keymaps\dispatchSet!
@@ -159,7 +159,7 @@ class App
             @win\queryBreakpoints!
 
     onBufLeave: =>
-        if V.get_buf_option(V.cur_buf!, 'buftype') != 'terminal'
+        if V.get_buf_option(V.get_current_buf!, 'buftype') != 'terminal'
             keymaps\dispatchUnset!
 
 Init = (backendStr, proxyCmd, clientCmd) ->
