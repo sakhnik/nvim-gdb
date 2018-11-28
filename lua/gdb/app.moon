@@ -151,7 +151,7 @@ class App
         @win\queryBreakpoints!
 
     onBufEnter: =>
-        if V.get_buf_option(V.get_current_buf!, 'buftype') != 'terminal'
+        if V.buf_get_option(V.get_current_buf!, 'buftype') != 'terminal'
             -- Make sure the cursor stays visible at all times
             V.exe "if !&scrolloff | setlocal scrolloff=5 | endif"
             keymaps\dispatchSet!
@@ -159,7 +159,7 @@ class App
             @win\queryBreakpoints!
 
     onBufLeave: =>
-        if V.get_buf_option(V.get_current_buf!, 'buftype') != 'terminal'
+        if V.buf_get_option(V.get_current_buf!, 'buftype') != 'terminal'
             keymaps\dispatchUnset!
 
 Init = (backendStr, proxyCmd, clientCmd) ->
