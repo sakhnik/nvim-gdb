@@ -85,11 +85,11 @@ class App
         tls\clear!
 
         -- Close the windows and the tab
-        tabCount = #V.list_tabs!
+        tabCount = #V.list_tabpages!
         clientBuf = @client\getBuf!
         if V.buf_is_loaded(clientBuf)
             V.exe ("bd! " .. clientBuf)
-        if tabCount == #V.list_tabs!
+        if tabCount == #V.list_tabpages!
             V.exe "tabclose"
 
         @client\cleanup!
