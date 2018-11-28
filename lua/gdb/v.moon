@@ -7,8 +7,9 @@ for k, v in pairs(vim.api)
     else
         V[k] = v
 
-V.exe = (c) -> V.command c
-V.call = (n, a) -> V.call_function(n, a)
+-- Aliases for vim-like commands :exe and :call
+V.exe = V.command
+V.call = V.call_function
 
 -- Check whether buf is loaded.
 -- The API function is available since API level 5
