@@ -1,21 +1,26 @@
 cur_tab = vim.api.nvim_get_current_tabpage
 
-V =
-    cur_tab: cur_tab
-    list_wins: -> vim.api.nvim_tabpage_list_wins(cur_tab!)
-    list_tabs: vim.api.nvim_list_tabpages
-    win_get_nr: vim.api.nvim_win_get_number
-    win_get_buf: vim.api.nvim_win_get_buf
-    cur_winnr: -> vim.api.nvim_win_get_number(vim.api.nvim_get_current_win!)
-    cur_buf: vim.api.nvim_get_current_buf
-    get_var: vim.api.nvim_get_var
-    get_buf_option: vim.api.nvim_buf_get_option
-    exe: (c) -> vim.api.nvim_command(c)
-    call: (n, a) -> vim.api.nvim_call_function(n, a)
+V = {}
+
+-- Simplify access to the neovim API: "vim.api.nvim_<key>" -> "<key>"
+for k, v in pairs(vim.api)
+    if string.sub(k, 1, 5) == 'nvim_'
+        V[string.sub(k, 6)] = v
+    else
+        V[k] = v
+
+V.cur_tab = V.get_current_tabpage
+V.list_wins = -> V.tabpage_list_wins(V.cur_tab!)
+V.list_tabs = V.list_tabpages
+V.win_get_nr = V.win_get_number
+V.cur_winnr = -> V.win_get_number(V.get_current_win!)
+V.cur_buf = V.get_current_buf
+V.get_buf_option = V.buf_get_option
+V.exe = (c) -> V.command c
+V.call = (n, a) -> V.call_function(n, a)
 
 -- Check whether buf is loaded.
 -- The API function is available since API level 5
-V.buf_is_loaded = vim.api.nvim_buf_is_loaded
 if V.buf_is_loaded == nil
     -- Fall back to the Vim function
     V.buf_is_loaded = (b) -> V.call("bufexists", {b}) != 0
