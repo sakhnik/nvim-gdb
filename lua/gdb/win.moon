@@ -10,8 +10,8 @@ class Win
         @breakpoint = breakpoint
 
     jump: (file, line) =>
-        window = V.cur_winnr!
-        V.jump_win V.win_get_nr(@jumpWin)
+        window = V.get_current_win!
+        V.jump_win @jumpWin
         curBuf = V.cur_buf!
         targetBuf = V.call("bufnr", {file, 1})
         if targetBuf == @client\getBuf!
