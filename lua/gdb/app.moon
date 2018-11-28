@@ -10,10 +10,10 @@ fmt = string.format
 -- A table attached to a tabpage
 class TStorage
     new: => @data = {}
-    init: (v) => @data[V.cur_tab!] = v      -- Create a tabpage-specific table
-    get: => @data[V.cur_tab!]               -- Access the table for the current page
-    getTab: (t) => @data[t]                 -- Access the table for given page
-    clear: => @data[V.cur_tab!] = nil       -- Delete the tabpage-specific table
+    init: (v) => @data[V.get_current_tabpage!] = v      -- Create a tabpage-specific table
+    get: => @data[V.get_current_tabpage!]               -- Access the table for the current page
+    getTab: (t) => @data[t]                             -- Access the table for given page
+    clear: => @data[V.get_current_tabpage!] = nil       -- Delete the tabpage-specific table
 
 -- Tabpage local storage
 tls = TStorage()
@@ -35,7 +35,7 @@ class App
         V.exe "tabnew | sp"
 
         -- Enumerate the available windows
-        wins = V.list_wins!
+        wins = V.tabpage_list_wins V.get_current_tabpage!
         table.sort wins
         wcli, wjump = unpack(wins)
 
@@ -85,11 +85,11 @@ class App
         tls\clear!
 
         -- Close the windows and the tab
-        tabCount = #V.list_tabs!
+        tabCount = #V.list_tabpages!
         clientBuf = @client\getBuf!
         if V.buf_is_loaded(clientBuf)
             V.exe ("bd! " .. clientBuf)
-        if tabCount == #V.list_tabs!
+        if tabCount == #V.list_tabpages!
             V.exe "tabclose"
 
         @client\cleanup!
@@ -114,7 +114,7 @@ class App
             -- pause first
             @client\interrupt()
 
-        buf = V.cur_buf!
+        buf = V.get_current_buf!
         fileName = GetFullBufferPath(buf)
         fileBreaks = @breakpoint\getForFile(fileName)
         lineNr = '' .. V.call("line", {"."})    -- Must be string to query from the fileBreaks
@@ -151,7 +151,7 @@ class App
         @win\queryBreakpoints!
 
     onBufEnter: =>
-        if V.get_buf_option(V.cur_buf!, 'buftype') != 'terminal'
+        if V.buf_get_option(V.get_current_buf!, 'buftype') != 'terminal'
             -- Make sure the cursor stays visible at all times
             V.exe "if !&scrolloff | setlocal scrolloff=5 | endif"
             keymaps\dispatchSet!
@@ -159,7 +159,7 @@ class App
             @win\queryBreakpoints!
 
     onBufLeave: =>
-        if V.get_buf_option(V.cur_buf!, 'buftype') != 'terminal'
+        if V.buf_get_option(V.get_current_buf!, 'buftype') != 'terminal'
             keymaps\dispatchUnset!
 
 Init = (backendStr, proxyCmd, clientCmd) ->

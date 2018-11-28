@@ -10,9 +10,9 @@ class Win
         @breakpoint = breakpoint
 
     jump: (file, line) =>
-        window = V.cur_winnr!
-        V.jump_win V.win_get_nr(@jumpWin)
-        curBuf = V.cur_buf!
+        window = V.get_current_win!
+        V.jump_win @jumpWin
+        curBuf = V.get_current_buf!
         targetBuf = V.call("bufnr", {file, 1})
         if targetBuf == @client\getBuf!
             -- The terminal buffer may contain the name of the source file (in pdb, for
