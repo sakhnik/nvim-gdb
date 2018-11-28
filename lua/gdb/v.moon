@@ -7,7 +7,6 @@ for k, v in pairs(vim.api)
     else
         V[k] = v
 
-V.list_wins = -> V.tabpage_list_wins(V.get_current_tabpage!)
 V.list_tabs = V.list_tabpages
 V.win_get_nr = V.win_get_number
 V.cur_winnr = -> V.win_get_number(V.get_current_win!)

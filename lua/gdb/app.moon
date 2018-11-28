@@ -35,7 +35,7 @@ class App
         V.exe "tabnew | sp"
 
         -- Enumerate the available windows
-        wins = V.list_wins!
+        wins = V.tabpage_list_wins V.get_current_tabpage!
         table.sort wins
         wcli, wjump = unpack(wins)
 
