@@ -22,7 +22,7 @@ class Client
     start: =>
         -- Go to the yet-to-be terminal window
         V.jump_win V.win_get_nr(@win)
-        @clientId = V.call("nvimgdb#TermOpen", {@command, V.cur_tab!})
+        @clientId = V.call("nvimgdb#TermOpen", {@command, V.get_current_tabpage!})
 
     interrupt: =>
         V.call("jobsend", {@clientId, "\x03"})
