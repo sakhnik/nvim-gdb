@@ -27,8 +27,6 @@ Or type `<leader>dp` to start debugging a python program.
 
 [![nvim-gdb](https://asciinema.org/a/E8sKlS53Dm6UzK2MJjEolOyam.png)](https://asciinema.org/a/E8sKlS53Dm6UzK2MJjEolOyam?autoplay=1)
 
-[![nvim-gdb + llvm](https://asciinema.org/a/162697.png)](https://asciinema.org/a/162697)
-
 ## Installation
 
 Check the prerequisites in the script [test/prerequisites.sh](https://github.com/sakhnik/nvim-gdb/blob/master/test/prerequisites.sh).
@@ -103,3 +101,9 @@ debugging with syntax highlighting and source code navigation.
 
 * Porting to Moonscript: [2018-11-17](https://sakhnik.com/2018/11/17/nvimgdb-lua.html)
 * Overview to the first anniversary: [2018-08-10](https://sakhnik.com/2018/08/10/nvim-gdb-anni.html)
+
+## Showcase
+
+[![nvim-gdb + llvm](https://asciinema.org/a/162697.png)](https://asciinema.org/a/162697)
+
+[![clone + deploy + test](https://asciinema.org/a/213992.svg)](https://asciinema.org/a/213992)
