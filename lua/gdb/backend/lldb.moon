@@ -8,16 +8,18 @@ m = (r, line) -> r\match(line)  -- matching function
 --  lldb specifics
 
 class LldbScm extends BaseScm
-    new: (...) =>
-        super select(2, ...)
+    new: (_, cursor, win) =>
+        super!
 
-        @addTrans(@paused, r([[^Process \d+ resuming]]),      m, @continue)
-        @addTrans(@paused, r([[ at [\032]{2}([^:]+):(\d+)]]), m, @jump)
-        @addTrans(@paused, r([[(lldb)]]),                     m, @pause)
+        queryB = (...) -> win\queryBreakpoints!
 
-        @addTrans(@running, r([[^Breakpoint \d+:]]),          m, @pause)
-        @addTrans(@running, r([[^Process \d+ stopped]]),      m, @pause)
-        @addTrans(@running, r([[(lldb)]]),                    m, @pause)
+        @addTrans(@paused, @running, r([[^Process \d+ resuming]]),      m, (...) -> cursor\hide!)
+        @addTrans(@paused, @paused,  r([[ at [\032]{2}([^:]+):(\d+)]]), m, (f,l) -> win\jump(f,l))
+        @addTrans(@paused, @paused,  r([[(lldb)]]),                     m, queryB)
+
+        @addTrans(@running, @paused, r([[^Breakpoint \d+:]]),           m, queryB)
+        @addTrans(@running, @paused, r([[^Process \d+ stopped]]),       m, queryB)
+        @addTrans(@running, @paused, r([[(lldb)]]),                     m, queryB)
 
         @state = @running
 

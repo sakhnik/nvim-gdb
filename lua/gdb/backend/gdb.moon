@@ -8,16 +8,18 @@ m = (r, line) -> r\match(line)  -- matching function
 -- gdb specifics
 
 class GdbScm extends BaseScm
-    new: (...) =>
-        super select(2, ...)
+    new: (_, cursor, win) =>
+        super!
 
-        @addTrans(@paused, r([[Continuing\.]]),               m, @continue)
-        @addTrans(@paused, r([[[\032]{2}([^:]+):(\d+):\d+]]), m, @jump)
-        @addTrans(@paused, r([[^\(gdb\) ]]),                  m, @pause)
+        queryB = (...) -> win\queryBreakpoints!
 
-        @addTrans(@running, r([[^Breakpoint \d+]]),           m, @pause)
-        @addTrans(@running, r([[ hit Breakpoint \d+]]),       m, @pause)
-        @addTrans(@running, r([[^\(gdb\) ]]),                 m, @pause)
+        @addTrans(@paused, @running, r([[Continuing\.]]),               m, (...) -> cursor\hide!)
+        @addTrans(@paused, @paused,  r([[[\032]{2}([^:]+):(\d+):\d+]]), m, (f,l) -> win\jump(f,l))
+        @addTrans(@paused, @paused,  r([[^\(gdb\) ]]),                  m, queryB)
+
+        @addTrans(@running, @paused, r([[^Breakpoint \d+]]),            m, queryB)
+        @addTrans(@running, @paused, r([[ hit Breakpoint \d+]]),        m, queryB)
+        @addTrans(@running, @paused, r([[^\(gdb\) ]]),                  m, queryB)
 
         @state = @running
 
