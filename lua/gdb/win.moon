@@ -10,26 +10,31 @@ class Win
         @breakpoint = breakpoint
 
     jump: (file, line) =>
+        -- Make sure all the operations happen in the correct window
         window = V.get_current_win!
         V.jump_win @jumpWin
-        curBuf = V.get_current_buf!
+
+        -- Check whether the file is already loaded or load it
         targetBuf = V.call("bufnr", {file, 1})
+
+        -- The terminal buffer may contain the name of the source file (in pdb, for
+        -- instance)
         if targetBuf == @client\getBuf!
-            -- The terminal buffer may contain the name of the source file (in pdb, for
-            -- instance)
-            V.exe ("noswapfile view " .. file)
+            V.exe "noswapfile view " .. file
             targetBuf = V.call("bufnr", {file})
 
+        -- Switch to the new buffer if necessary
         if V.call("bufnr", {'%'}) != targetBuf
-            -- Switch to the new buffer
-            V.exe ('noswapfile buffer ' .. targetBuf)
-            curBuf = targetBuf
-            @breakpoint\refreshSigns(curBuf)
+            V.exe 'noswapfile buffer ' .. targetBuf
 
-        V.exe (':' .. line)
+        -- Goto the proper line and set the cursor on it
+        V.exe ':' .. line
         @cursor\set(targetBuf, line)
-        @cursor\show()
+        @cursor\show!
+
+        -- Return to the original window for the user
         V.jump_win window
+
 
     queryBreakpoints: =>
         -- Get the source code buffer number
