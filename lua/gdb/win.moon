@@ -48,7 +48,7 @@ class Win
         if fname != '' and fname\find(' ') == nil
             -- Query the breakpoints for the shown file
             @breakpoint\query(bufNum, fname)
-            -- If there were a cursor, make sure it stays above the breakpoints.
+            -- If there was a cursor, make sure it stays above the breakpoints.
             @cursor\reshow!
 
 Win
