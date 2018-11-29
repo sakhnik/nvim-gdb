@@ -8,7 +8,7 @@ m = (r, line) -> r\match(line)  -- matching function
 -- pdb specifics
 
 class PdbScm extends BaseScm
-    new: (_, cursor, win) =>
+    new: (cursor, win) =>
         super!
         queryB = (...) -> win\queryBreakpoints!
         @addTrans(@paused, @paused, r([[(?<!-)> ([^(]+)\((\d+)\)[^(]+\(\)]]), m, (f,l) -> win\jump(f,l))

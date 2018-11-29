@@ -8,7 +8,7 @@ m = (r, line) -> r\match(line)  -- matching function
 -- gdb specifics
 
 class GdbScm extends BaseScm
-    new: (_, cursor, win) =>
+    new: (cursor, win) =>
         super!
 
         queryB = (...) -> win\queryBreakpoints!

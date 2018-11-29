@@ -8,7 +8,7 @@ m = (r, line) -> r\match(line)  -- matching function
 --  lldb specifics
 
 class LldbScm extends BaseScm
-    new: (_, cursor, win) =>
+    new: (cursor, win) =>
         super!
 
         queryB = (...) -> win\queryBreakpoints!
