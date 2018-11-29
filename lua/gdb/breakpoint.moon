@@ -51,10 +51,6 @@ class Breakpoint
                 V.exe fmt('sign place %d name=GdbBreakpoint line=%d buffer=%d', signId, line, buf)
             @maxSignId = signId
 
-    refreshSigns: (buf) =>
-        @clearSigns!
-        @setSigns(buf)
-
     query: (bufNum, fname) =>
         @breaks[fname] = {}
         resp = @doQuery fname
@@ -65,7 +61,8 @@ class Breakpoint
                 V.exe ("echo \"Can't get breakpoints: \"" .. err)
             else
                 @breaks[fname] = br
-                @refreshSigns(bufNum)
+                @clearSigns!
+                @setSigns bufNum
         --else
             -- TODO: notify about error
 
