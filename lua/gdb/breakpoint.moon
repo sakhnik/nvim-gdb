@@ -1,4 +1,5 @@
 require "set_paths"
+V = require "gdb.v"
 s = require "posix.sys.socket"
 u = require "posix.unistd"
 json = require "JSON"

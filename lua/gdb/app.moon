@@ -1,3 +1,4 @@
+V = require "gdb.v"
 Client = require "gdb.client"
 Cursor = require "gdb.cursor"
 Breakpoint = require "gdb.breakpoint"
