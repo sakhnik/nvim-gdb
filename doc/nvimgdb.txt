@@ -9,9 +9,11 @@ CONTENTS                                                     *NvimgdbContents*
     2. Commands ............. |NvigdbCommands|
     3. Mappings ............. |NvimgdbMappings|
     4. Variables ............ |NvimgdbVariables|
-    5. Limitations .......... |NvimgdbLimitations|
-    6. Development .......... |NvimgdbDevelopment|
-    7. Trivia ............... |NvimgdbTrivia|
+    5. Backends ............. |NvimgdbBackends|
+       5.1 GDB .............. |NvimgdbGDB|
+    6. Limitations .......... |NvimgdbLimitations|
+    7. Development .......... |NvimgdbDevelopment|
+    8. Trivia ............... |NvimgdbTrivia|
 
 ==============================================================================
 Section 1: Usage                                                *NvimgdbUsage*
@@ -171,7 +173,28 @@ prefixed `g:nvimgdb_`. For example, `g:nvimgdb_key_next` overrides
 `g:nvimgdb_config["key_next"]` etc.
 
 ==============================================================================
-Section 5: Limitations                                    *NvimgdbLimitations*
+Section 5: Backends                                          *NvimgdbBackends*
+
+------------------------------------------------------------------------------
+Section 5.1 GDB                                                   *NvimgdbGDB*
+
+- GDB is run via a proxy pty application, which allows to execute concealed
+  service commands, like "info breakpoints" on each stop. Thus, the plugin
+  is able to very carefully display current set of breakpoints with the
+  temporal ones disappearing after hit. Technically, the proxy app is a python
+  program that launches gdb in a pseudo terminal, listens a unix socket for
+  commands, and processes the output of GDB to filter out service commands.
+
+- The compiler may embed relative paths to the source code files. Thus, the
+  plugin may struggle to find them on the file system when identifying
+  breakpoints. So consider working from within the same directory that was
+  used to compile. Or alternatively, configure GCC to embed full paths: >
+
+      gcc -fdebug-prefix-map=..=$(readlink -f ..)
+<
+
+==============================================================================
+Section 6: Limitations                                    *NvimgdbLimitations*
 
 - The plugin is sensitive to the debugger settings. If prompt or frame format
   is changed, random errors may occur.
@@ -182,20 +205,13 @@ Section 5: Limitations                                    *NvimgdbLimitations*
   `:GdbFrameUp` followed by `:GdbFrameDown`.
 
 ==============================================================================
-Section 6: Development                                    *NvimgdbDevelopment*
+Section 7: Development                                    *NvimgdbDevelopment*
 
 - The keymaps are defined buffer-local for every buffer when it's entered,
   and undefined when a buffer is left. This was done to ensure that users's
   aren't overridden in long term. However, a more general solution could be
   to ensure the original keymaps are preserved and restored after debugging
   session: https://vi.stackexchange.com/questions/7734/how-to-save-and-restore-a-mapping
-
-- GDB is run via a proxy pty application, which allows to execute concealed
-  service commands, like "info breakpoints" on each stop. Thus, the plugin
-  is able to very carefully display current set of breakpoints with the
-  temporal ones disappearing after hit. Technically, the proxy app is a python
-  program that launches gdb in a pseudo terminal, listens a unix socket for
-  commands, and processes the output of GDB to filter out service commands.
 
 - LLDB is run in a wrapper that initializes the interpreter, and sources a
   python script. The script opens a unix domain socket and receives side
@@ -211,7 +227,7 @@ Section 6: Development                                    *NvimgdbDevelopment*
   (see lua/gdb/breakpoint.moon).
 
 ==============================================================================
-Section 7: Trivia                                              *NvimgdbTrivia*
+Section 8: Trivia                                              *NvimgdbTrivia*
 
 License inherits from neovim's.
 
