@@ -128,6 +128,24 @@ class TestPdb(unittest.TestCase):
 
         e.Ty('ZZ')
 
+    def test_50_eval(self):
+        e.Ty(' dp')
+        e.Ty('\n', delay=0.3)
+        e.Ty('tbreak _main\n')
+        e.Ty('cont\n')
+        e.In('<esc>')
+        e.In('<c-w>w')
+        e.In('<f10>')
+
+        e.In('^<f9>')
+        self.assertEqual('print(_Foo)', e.Eval('luaeval("gdb.getLastCommand()")'))
+
+        e.In('viW')
+        e.Ty(':GdbEvalRange\n')
+        self.assertEqual('print(_Foo(i))', e.Eval('luaeval("gdb.getLastCommand()")'))
+
+        e.Ty('ZZ')
+
 
 if __name__ == "__main__":
     unittest.main()
