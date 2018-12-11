@@ -246,6 +246,26 @@ class TestGdb(unittest.TestCase):
 
                 e.Ty('ZZ')
 
+    def test_90_eval(self):
+        """=> Test eval <cword>."""
+        for backend, spec in subtests.items():
+            with self.subTest(backend=backend):
+                e.Ty(spec["launch"], delay=1)
+                e.Ty(spec["tbreak_main"])
+                e.Ty('run\n', delay=1)
+                e.In('<esc>')
+                e.In('<c-w>w')
+                e.In('<f10>')
+
+                e.In('^<f9>')
+                self.assertEqual('print Foo', e.Eval('luaeval("gdb.getLastCommand()")'))
+
+                e.Ty('/Lib::Baz\n')
+                e.Ty('vt(')
+                e.Ty(':GdbEvalRange\n')
+                self.assertEqual('print Lib::Baz', e.Eval('luaeval("gdb.getLastCommand()")'))
+
+                e.Ty('ZZ')
 
 if __name__ == "__main__":
     unittest.main()
