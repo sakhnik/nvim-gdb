@@ -27,6 +27,5 @@ backend =
     initScm: GdbScm
     delete_breakpoints: 'delete'
     breakpoint: 'break'
-    until: 'until'
 
 backend
