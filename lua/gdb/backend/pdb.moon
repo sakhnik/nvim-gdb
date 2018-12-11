@@ -20,6 +20,6 @@ backend =
     delete_breakpoints: 'clear'
     breakpoint: 'break'
     finish: 'return'
-    until: 'until'
+    'print %s': 'print(%s)'
 
 backend

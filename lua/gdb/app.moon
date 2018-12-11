@@ -105,8 +105,12 @@ class App
         for _, v in ipairs(d)
             @scm\feed(v)
 
-    send: (data) =>
-        @client\sendLine(@getCommand(data))
+    send: (cmd, ...) =>
+        command = fmt(@getCommand(cmd), ...)
+        @client\sendLine(command)
+        @lastCommand = command  -- Remember the command for testing
+
+    getLastCommand: => @lastCommand
 
     interrupt: => @client\interrupt!
 
