@@ -34,3 +34,6 @@ if [[ src/test.cpp -nt a.out || src/lib.hpp -nt a.out ]]; then
 else
     echo "(cached a.out)"
 fi
+
+# Compile all moon scripts
+find -name '*.moon' -exec moonc {} \;
