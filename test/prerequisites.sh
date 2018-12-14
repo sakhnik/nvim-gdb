@@ -5,6 +5,12 @@ echo -n "Check for neovim     " && which nvim
 echo -n "Check for python3    " && which python3
 echo -n "Check for lua5.1     " && which lua5.1
 
+export TREE=./rocks
+export PATH=$TREE/bin:`dirname ${BASH_SOURCE[0]}`/../lua/rocks/bin:$PATH
+
+luarocks install busted --tree=$TREE
+luarocks install nvim-client --tree=$TREE
+
 echo "debuggers = {">| config.py
 
 echo -n "Check for gdb        " && which gdb && echo "'gdb': True," >> config.py || true
