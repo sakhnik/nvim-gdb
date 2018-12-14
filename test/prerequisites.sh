@@ -11,11 +11,19 @@ export PATH=$TREE/bin:`dirname ${BASH_SOURCE[0]}`/../lua/rocks/bin:$PATH
 luarocks install busted --tree=$TREE
 luarocks install nvim-client --tree=$TREE
 
-echo "debuggers = {">| config.py
+echo "debuggers = {" >| config.py
+echo -n "return {" >| config.lua
 
-echo -n "Check for gdb        " && which gdb && echo "'gdb': True," >> config.py || true
-echo -n "Check for lldb       " && which lldb && echo "'lldb': True," >> config.py || true
+echo -n "Check for gdb        " && which gdb \
+    && ( echo "'gdb': True," >> config.py;
+         echo -n " ['gdb']=true," >> config.lua ) \
+    || true
+echo -n "Check for lldb       " && which lldb \
+    && ( echo "'lldb': True," >> config.py;
+         echo -n " ['lldb']=true," >> config.lua ) \
+    || true
 echo -e "'XXX': False\n}" >> config.py
+echo -e " ['XXX']=false }" >> config.lua
 
 CXX=g++
 [[ `uname` == Darwin ]] && CXX=clang++
