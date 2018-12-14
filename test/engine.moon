@@ -51,19 +51,20 @@ class Engine
     --                            out)]
     --    return cur, sorted(breaks)
 
-    in: (keys, delay=100) =>
+    input: (keys, delay=100) =>
         @session\request 'nvim_input', keys
         luv.sleep delay
 
-    ty: (keys, delay=100) =>
+    type: (keys, delay=100) =>
         @session\request 'nvim_feedkeys', keys
         luv.sleep delay
 
     eval: (expr) =>
-        @session\request 'nvim_eval', expr
+        status, ret = @session\request 'nvim_eval', expr
+        assert(status)
+        ret
 
     countBuffers: =>
-        bufs = @session\request 'nvim_list_bufs'
-        print(bufs)
+        @eval 'len(filter(range(bufnr("$") + 1), "buflisted(v:val)"))'
 
 Engine
