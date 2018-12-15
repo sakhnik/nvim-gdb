@@ -1,4 +1,10 @@
-this_dir=`dirname ${BASH_SOURCE[0]}`
-export TREE=$this_dir/../lua/rocks
-export PATH=$TREE/bin:$PATH
+if [[ -n "$ZSH_VERSION" ]]; then
+    this_dir=`dirname ${(%):-%N}`
+elif [[ -n "$ZSH_VERSION" ]]; then
+    this_dir=`dirname ${BASH_SOURCE[0]}`
+else
+    this_dir=`pwd`
+fi
+
+export LUAROCKS_TREE=$this_dir/../lua/rocks
 eval `luarocks path`

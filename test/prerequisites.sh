@@ -7,8 +7,8 @@ echo -n "Check for lua5.1     " && which lua5.1
 
 source `dirname ${BASH_SOURCE[0]}`/env.sh
 
-luarocks install busted --tree=$TREE
-luarocks install nvim-client --tree=$TREE
+luarocks install busted --tree=$LUAROCKS_TREE
+luarocks install nvim-client --tree=$LUAROCKS_TREE
 
 echo "debuggers = {" >| config.py
 echo -n "return {" >| config.lua
