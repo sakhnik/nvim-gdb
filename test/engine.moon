@@ -15,12 +15,18 @@ class Engine
         --if addr:
         --    self.nvim = attach('socket', path=addr)
         --else:
-        stream = ChildProcessStream.spawn {
+        @stream = ChildProcessStream.spawn {
             "/usr/bin/env", "nvim", "--embed", "--headless", "-n", "-u", "init.vim"
         }
 
-        @session = Session.new stream
+        @session = Session.new @stream
         @session\request 'vim_eval', '1'  -- wait for nvim to start
+
+    close: =>
+        @session\close!
+        @session = nil
+        @stream\close!
+        @stream = nil
 
     exe: (cmd, delay=100) =>
         @session\request 'vim_command', cmd

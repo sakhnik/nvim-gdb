@@ -10,7 +10,13 @@ if config["lldb"] != nil
                         'tbreak_main': 'breakpoint set -o true -n main\n'}
 
 describe "Generic", ->
-    eng = Engine()
+    eng = nil
+
+    setup ->
+        eng = Engine!
+    teardown ->
+        eng\close!
+
     describe "exit on window close", ->
         -- Use random backend, assuming all they behave the same way.
         backend, spec = next(subtests)
