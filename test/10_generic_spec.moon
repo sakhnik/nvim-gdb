@@ -17,7 +17,7 @@ describe "Generic", ->
     teardown ->
         eng\close!
 
-    describe "exit on window close", ->
+    describe "#quit", ->
         -- Use random backend, assuming all they behave the same way.
         backend, spec = next(subtests)
         numBufs = 0
@@ -105,3 +105,50 @@ describe "Generic", ->
 
                 eng\exe "GdbDebugStop"
                 assert.are.same {'', {}}, eng\getSigns!
+
+    it "multiview", ->
+        -- Test multiple views.
+        backends = [k for k,_ in pairs(subtests)]
+        backend1 = backends[1]
+        backend2 = #backends > 1 and backends[2] or backend1
+
+        -- Launch the first backend
+        eng\feed subtests[backend1].launch, 1000
+        eng\feed subtests[backend1].tbreak_main
+        eng\feed 'run\n', 1000
+        eng\feed '<esc>'
+        eng\feed '<c-w>w'
+        eng\feed ':11<cr>'
+        eng\feed '<f8>'
+        eng\feed '<f10>'
+        eng\feed '<f11>'
+
+        assert.are.same {'test.cpp:10', {11}}, eng\getSigns!
+
+        -- Then launch the second backend
+        eng\feed subtests[backend2].launch, 1000
+        eng\feed subtests[backend2].tbreak_main
+        eng\feed 'run\n', 1000
+        eng\feed '<esc>'
+        eng\feed '<c-w>w'
+        eng\feed ':5<cr>'
+        eng\feed '<f8>'
+        eng\feed ':12<cr>'
+        eng\feed '<f8>'
+        eng\feed '<f10>'
+
+        assert.are.same {'test.cpp:19', {5, 12}}, eng\getSigns!
+
+        -- Switch to the first backend
+        eng\feed '2gt'
+        assert.are.same {'test.cpp:10', {11}}, eng\getSigns!
+
+        -- Quit
+        eng\feed 'ZZ'
+
+        -- Switch back to the second backend
+        assert.are.same {'test.cpp:19', {5, 12}}, eng\getSigns!
+
+        -- Quit LLDB
+        eng\feed 'ZZ'
+        assert.are.same 1, eng\eval "tabpagenr('$')"
