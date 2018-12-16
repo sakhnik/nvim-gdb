@@ -24,24 +24,57 @@ describe "Generic", ->
 
         before_each ->
             numBufs = eng\countBuffers!
-            eng\input spec["launch"], 1000
-            eng\input "<esc>"
+            eng\feed spec["launch"], 1000
+            eng\feed "<esc>"
+
+        after_each ->
+            assert.are.equal(1, eng\eval "tabpagenr('$')")
+            -- Check that no new buffers have left
+            assert.are.equal(numBufs, eng\countBuffers!)
 
         it "GdbDebugStop", ->
-            eng\input ":GdbDebugStop<cr>"
-            assert.are.equal(1, eng\eval "tabpagenr('$')")
-            -- Check that no new buffers have left
-            assert.are.equal(numBufs, eng\countBuffers!)
+            eng\feed ":GdbDebugStop<cr>"
 
         it "terminal ZZ", ->
-            eng\input "ZZ"
-            assert.are.equal(1, eng\eval "tabpagenr('$')")
-            -- Check that no new buffers have left
-            assert.are.equal(numBufs, eng\countBuffers!)
+            eng\feed "ZZ"
 
         it "jump ZZ", ->
-            eng\input "<c-w>w"
-            eng\input "ZZ"
-            assert.are.equal(1, eng\eval "tabpagenr('$')")
-            -- Check that no new buffers have left
-            assert.are.equal(numBufs, eng\countBuffers!)
+            eng\feed "<c-w>w"
+            eng\feed "ZZ"
+
+    describe "#smoke", ->
+        for backend, spec in pairs(subtests)
+            it backend, ->
+                eng\feed spec["launch"], 1000
+                eng\feed spec["tbreak_main"]
+                eng\feed 'run\n', 1000
+                eng\feed '<esc>'
+                ----print(eng\eval "execute('history c')")
+
+                cur, breaks = eng\getSigns!
+                assert.are.equal 'test.cpp:17', cur
+                assert.are.same {}, breaks
+
+                eng\feed '<f10>'
+                cur, breaks = eng\getSigns!
+                assert.are.equal 'test.cpp:19', cur
+                assert.are.same {}, breaks
+
+                eng\feed '<f11>'
+                cur, breaks = eng\getSigns!
+                assert.are.equal 'test.cpp:10', cur
+                assert.are.same {}, breaks
+
+                eng\feed '<f12>'
+                cur, breaks = eng\getSigns!
+                -- different for different compilers
+                exp = {'test.cpp:17': true, 'test.cpp:19': true}
+                assert.are_not.equal nil, exp[cur]
+                assert.are.same {}, breaks
+
+                eng\feed '<f5>'
+                cur, breaks = eng\getSigns!
+                assert.is.falsy cur
+                assert.are.same {}, breaks
+
+                eng\exe 'GdbDebugStop'

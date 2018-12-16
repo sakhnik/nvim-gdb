@@ -1,9 +1,6 @@
---import os
---import time
---import re
---from neovim import attach
 Session = require "nvim.session"
 ChildProcessStream = require "nvim.child_process_stream"
+TcpStream = require "nvim.tcp_stream"
 luv = require "luv"
 
 
@@ -11,13 +8,14 @@ luv = require "luv"
 class Engine
 
     new: =>
-        --addr = os.environ.get('NVIM_LISTEN_ADDRESS')
-        --if addr:
-        --    self.nvim = attach('socket', path=addr)
-        --else:
-        @stream = ChildProcessStream.spawn {
-            "/usr/bin/env", "nvim", "--embed", "--headless", "-n", "-u", "init.vim"
-        }
+        addrPort = os.getenv 'NVIM_LISTEN_ADDRESS'
+        if addrPort != nil
+            addr, port = addrPort\match('^([^:]+):(%d+)')
+            @stream = TcpStream.open(addr, tonumber(port))
+        else
+            @stream = ChildProcessStream.spawn {
+                "/usr/bin/env", "nvim", "--embed", "--headless", "-n", "-u", "init.vim"
+            }
 
         @session = Session.new @stream
         @session\request 'vim_eval', '1'  -- wait for nvim to start
@@ -32,32 +30,28 @@ class Engine
         @session\request 'vim_command', cmd
         luv.sleep delay
 
-    --def GetSigns(self):
-    --    """Get pointer position and list of breakpoints."""
+    getSigns: =>
+        -- Get pointer position and list of breakpoints.
+        out = @eval 'execute("sign place")'
 
-    --    out = self.nvim.eval('execute("sign place")')
+        fname = nil     -- Filename where the current line sign is
+        cur = nil       -- The return value from the function in the form fname:line
+        for _, l in pairs({out\match (out\gsub("[^\n]*\n", "([^\n]*)\n"))})
+            m = l\match 'Signs for ([^:]+):'
+            if m != nil
+                fname = m\gsub "(.*/)(.*)", "%2"
+                continue
+            m = l\match('    line=(%d+)%s+id=%d+%s+name=GdbCurrentLine')
+            if m != nil
+                -- There can be only one current line sign
+                assert(cur == nil)
+                cur = fname .. ":" .. m
 
-    --    fname = ''     # Filename where the current line sign is
-    --    curline = -1   # The line where the current line sign is
-    --    cur = ''       # The return value from the function in the form fname:line
-    --    for l in out.splitlines():
-    --        m = re.match(r'Signs for ([^:]+):', l)
-    --        if m:
-    --            fname = os.path.basename(m.group(1))
-    --            continue
-    --        m = re.match(r'    line=(\d+)\s+id=\d+\s+name=GdbCurrentLine', l)
-    --        if m:
-    --            # There can be only one current line sign
-    --            assert(curline == -1)
-    --            curline = int(m.group(1))
-    --            cur = "%s:%d" % (fname, curline)
+        breaks = [tonumber(m) for m in out\gmatch('line=(%d+)%s+id=%d+%s+name=GdbBreakpoint')]
+        table.sort(breaks)
+        cur, breaks
 
-    --    breaks = [int(l) for l
-    --              in re.findall(r'line=(\d+)\s+id=\d+\s+name=GdbBreakpoint',
-    --                            out)]
-    --    return cur, sorted(breaks)
-
-    input: (keys, delay=100) =>
+    feed: (keys, delay=100) =>
         @session\request 'nvim_input', keys
         luv.sleep delay
 
