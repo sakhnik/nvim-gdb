@@ -1,13 +1,6 @@
 Engine = require "engine"
-config = require "config"
+backends = require "backends"
 
-subtests = {}
-if config.gdb != nil
-    subtests.gdb = {'launch': ' dd\n',
-                    'tbreak_main': 'tbreak main\n'}
-if config.lldb != nil
-    subtests.lldb = {'launch': ' dl\n',
-                     'tbreak_main': 'breakpoint set -o true -n main\n'}
 
 describe "Generic", ->
     eng = nil
@@ -17,33 +10,11 @@ describe "Generic", ->
     teardown ->
         eng\close!
 
-    describe "#quit", ->
-        -- Use random backend, assuming all they behave the same way.
-        backend, spec = next(subtests)
-        numBufs = 0
-
-        before_each ->
-            numBufs = eng\countBuffers!
-            eng\feed spec.launch, 1000
-            eng\feed "<esc>"
-
-        after_each ->
-            assert.are.equal(1, eng\eval "tabpagenr('$')")
-            -- Check that no new buffers have left
-            assert.are.equal(numBufs, eng\countBuffers!)
-
-        it "GdbDebugStop", ->
-            eng\feed ":GdbDebugStop<cr>"
-
-        it "terminal ZZ", ->
-            eng\feed "ZZ"
-
-        it "jump ZZ", ->
-            eng\feed "<c-w>w"
-            eng\feed "ZZ"
+    after_each ->
+        assert.are.equal(1, eng\eval "tabpagenr('$')")
 
     describe "#smoke", ->
-        for backend, spec in pairs(subtests)
+        for backend, spec in pairs(backends)
             it "#" .. backend, ->
                 eng\feed spec.launch, 1000
                 eng\feed spec.tbreak_main
@@ -73,7 +44,7 @@ describe "Generic", ->
 
     describe "#break", ->
         -- Test toggling breakpoints.
-        for backend, spec in pairs(subtests)
+        for backend, spec in pairs(backends)
             it "#" .. backend, ->
                 -- TODO: Investigate socket connection race when the delay is small
                 -- here, like 1ms
@@ -94,7 +65,7 @@ describe "Generic", ->
 
     describe '#break cleanup', ->
         -- Verify that breakpoints are cleaned up after session end.
-        for backend, spec in pairs(subtests)
+        for backend, spec in pairs(backends)
             it '#' .. backend, ->
                 eng\feed spec.launch, 1000
                 eng\feed '<esc><c-w>k'
@@ -108,13 +79,13 @@ describe "Generic", ->
 
     it "multiview", ->
         -- Test multiple views.
-        backends = [k for k,_ in pairs(subtests)]
-        backend1 = backends[1]
-        backend2 = #backends > 1 and backends[2] or backend1
+        names = [k for k,_ in pairs(backends)]
+        backend1 = names[1]
+        backend2 = #names > 1 and names[2] or backend1
 
         -- Launch the first backend
-        eng\feed subtests[backend1].launch, 1000
-        eng\feed subtests[backend1].tbreak_main
+        eng\feed backends[backend1].launch, 1000
+        eng\feed backends[backend1].tbreak_main
         eng\feed 'run\n', 1000
         eng\feed '<esc>'
         eng\feed '<c-w>w'
@@ -126,8 +97,8 @@ describe "Generic", ->
         assert.are.same {'test.cpp:10', {11}}, eng\getSigns!
 
         -- Then launch the second backend
-        eng\feed subtests[backend2].launch, 1000
-        eng\feed subtests[backend2].tbreak_main
+        eng\feed backends[backend2].launch, 1000
+        eng\feed backends[backend2].tbreak_main
         eng\feed 'run\n', 1000
         eng\feed '<esc>'
         eng\feed '<c-w>w'
@@ -155,7 +126,7 @@ describe "Generic", ->
 
     describe "interrupt", ->
         -- Test interrupt.
-        for backend, spec in pairs(subtests)
+        for backend, spec in pairs(backends)
             it '#'..backend, ->
                 eng\feed spec.launch, 1000
                 eng\feed 'run 4294967295\n', 1000
@@ -167,7 +138,7 @@ describe "Generic", ->
                 eng\feed 'ZZ'
 
     describe "until", ->
-        for backend, spec in pairs(subtests)
+        for backend, spec in pairs(backends)
             it '#'..backend, ->
                 eng\feed spec.launch, 1000
                 eng\feed spec.tbreak_main
@@ -184,7 +155,7 @@ describe "Generic", ->
 
     describe 'keymap', ->
         -- Test custom programmable keymaps.
-        for backend, spec in pairs(subtests)
+        for backend, spec in pairs(backends)
             it '#'..backend, ->
                 eng\feed spec.launch, 1000
                 eng\feed spec.tbreak_main
@@ -208,7 +179,7 @@ describe "Generic", ->
 
     describe 'program exit', ->
         -- Test the cursor is hidden after program end.
-        for backend, spec in pairs(subtests)
+        for backend, spec in pairs(backends)
             it '#'..backend, ->
                 eng\feed spec.launch, 1000
                 eng\feed spec.tbreak_main
@@ -222,7 +193,7 @@ describe "Generic", ->
 
     describe '#eval', ->
         -- Test eval <cword>.
-        for backend, spec in pairs(subtests)
+        for backend, spec in pairs(backends)
             it '#'..backend, ->
                 eng\feed spec.launch, 1000
                 eng\feed spec.tbreak_main
