@@ -2,12 +2,12 @@ Engine = require "engine"
 config = require "config"
 
 subtests = {}
-if config["gdb"] != nil
-    subtests['gdb'] = {'launch': ' dd\n',
-                       'tbreak_main': 'tbreak main\n'}
-if config["lldb"] != nil
-    subtests['lldb'] = {'launch': ' dl\n',
-                        'tbreak_main': 'breakpoint set -o true -n main\n'}
+if config.gdb != nil
+    subtests.gdb = {'launch': ' dd\n',
+                    'tbreak_main': 'tbreak main\n'}
+if config.lldb != nil
+    subtests.lldb = {'launch': ' dl\n',
+                     'tbreak_main': 'breakpoint set -o true -n main\n'}
 
 describe "Generic", ->
     eng = nil
@@ -24,7 +24,7 @@ describe "Generic", ->
 
         before_each ->
             numBufs = eng\countBuffers!
-            eng\feed spec["launch"], 1000
+            eng\feed spec.launch, 1000
             eng\feed "<esc>"
 
         after_each ->
@@ -44,9 +44,9 @@ describe "Generic", ->
 
     describe "#smoke", ->
         for backend, spec in pairs(subtests)
-            it backend, ->
-                eng\feed spec["launch"], 1000
-                eng\feed spec["tbreak_main"]
+            it "#" .. backend, ->
+                eng\feed spec.launch, 1000
+                eng\feed spec.tbreak_main
                 eng\feed 'run\n', 1000
                 eng\feed '<esc>'
                 ----print(eng\eval "execute('history c')")
@@ -75,6 +75,33 @@ describe "Generic", ->
                 eng\feed '<f5>'
                 cur, breaks = eng\getSigns!
                 assert.is.falsy cur
+                assert.are.same {}, breaks
+
+                eng\exe 'GdbDebugStop'
+
+    describe "#break", ->
+        -- Test toggling breakpoints.
+        for backend, spec in pairs(subtests)
+            it "#" .. backend, ->
+                -- TODO: Investigate socket connection race when the delay is small
+                -- here, like 1ms
+                eng\feed spec.launch, 1000
+                eng\feed '<esc><c-w>k'
+                eng\feed ":e src/test.cpp\n"
+                eng\feed ':5<cr>'
+                eng\feed '<f8>'
+                cur, breaks = eng\getSigns!
+                assert.is.falsy cur
+                assert.are.same {5}, breaks
+
+                eng\exe "GdbRun", 1000
+                cur, breaks = eng\getSigns!
+                assert.are.same 'test.cpp:5', cur
+                assert.are.same {5}, breaks
+
+                eng\feed '<f8>'
+                cur, breaks = eng\getSigns!
+                assert.are.same 'test.cpp:5', cur
                 assert.are.same {}, breaks
 
                 eng\exe 'GdbDebugStop'
