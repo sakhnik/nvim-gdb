@@ -48,11 +48,10 @@ describe "#break", ->
 
     describe 'navigate', ->
         -- Verify that breakpoints stay when source code is navigated.
-        break_bar = {"gdb": "break Bar\n", "lldb": "breakpoint set --fullname Bar\n"}
         for backend, spec in pairs(backends)
             it '#'..backend, ->
                 eng\feed spec.launch, 1000
-                eng\feed break_bar[backend]
+                eng\feed spec.break_bar
                 eng\feed "<esc>:wincmd k<cr>"
                 eng\feed ":e src/test.cpp\n"
                 eng\feed ":10<cr>"
@@ -71,26 +70,19 @@ describe "#break", ->
                 eng\feed ":e src/test.cpp\n"
                 assert.are.same {'', {5, 10}}, eng\getSigns!
 
-    --def test_40_clear_all(self):
-    --    """=> Verify that can clear all breakpoints."""
-    --    break_bar = {"gdb": "break Bar\n", "lldb": "breakpoint set --fullname Bar\n"}
-    --    for backend, spec in subtests.items():
-    --        with self.subTest(backend=backend):
-    --            e.Ty(spec['launch'], delay=1)
-    --            e.Ty(break_bar[backend])
-    --            e.Ty(spec['break_main'])
-    --            e.In("<esc>:wincmd k<cr>")
-    --            e.In(":e src/test.cpp\n")
-    --            e.In(":10<cr>")
-    --            e.In("<f8>")
+    describe 'clear all', ->
+        -- Verify that can clear all breakpoints.
+        for backend, spec in pairs(backends)
+            it '#'..backend, ->
+                eng\feed spec.launch, 1000
+                eng\feed spec.break_bar
+                eng\feed spec.break_main
+                eng\feed "<esc>:wincmd k<cr>"
+                eng\feed ":e src/test.cpp\n"
+                eng\feed ":10<cr>"
+                eng\feed "<f8>"
 
-    --            cur, breaks = e.GetSigns()
-    --            self.assertFalse(cur)
-    --            self.assertEqual([5, 10, 17], breaks)
+                assert.are.same {'', {5,10,17}}, eng\getSigns!
 
-    --            e.Ty(":GdbBreakpointClearAll\n", delay=1)
-    --            cur, breaks = e.GetSigns()
-    --            self.assertFalse(cur)
-    --            self.assertFalse(breaks)
-
-    --            e.In('ZZ')
+                eng\feed ":GdbBreakpointClearAll\n", 1000
+                assert.are.same {'', {}}, eng\getSigns!
