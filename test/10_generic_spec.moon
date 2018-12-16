@@ -219,3 +219,24 @@ describe "Generic", ->
                 assert.are.same {'', {}}, eng\getSigns!
 
                 eng\feed 'ZZ'
+
+    describe '#eval', ->
+        -- Test eval <cword>.
+        for backend, spec in pairs(subtests)
+            it '#'..backend, ->
+                eng\feed spec.launch, 1000
+                eng\feed spec.tbreak_main
+                eng\feed 'run\n', 1000
+                eng\feed '<esc>'
+                eng\feed '<c-w>w'
+                eng\feed '<f10>'
+
+                eng\feed '^<f9>'
+                assert.are.same 'print Foo', eng\eval 'luaeval("gdb.getLastCommand()")'
+
+                eng\feed '/Lib::Baz\n'
+                eng\feed 'vt('
+                eng\feed ':GdbEvalRange\n'
+                assert.are.equal 'print Lib::Baz', eng\eval 'luaeval("gdb.getLastCommand()")'
+
+                eng\feed 'ZZ'
