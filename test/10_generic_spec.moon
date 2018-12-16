@@ -105,3 +105,22 @@ describe "Generic", ->
                 assert.are.same {}, breaks
 
                 eng\exe 'GdbDebugStop'
+
+    describe '#break cleanup', ->
+        -- Verify that breakpoints are cleaned up after session end.
+        for backend, spec in pairs(subtests)
+            it '#' .. backend, ->
+                eng\feed spec.launch, 1000
+                eng\feed '<esc><c-w>k'
+                eng\feed ':e src/test.cpp\n'
+                eng\feed ':5<cr>'
+                eng\feed '<f8>'
+                cur, breaks = eng\getSigns!
+                assert.are.same nil, cur
+                assert.are.same {5}, breaks
+
+                eng\exe "GdbDebugStop"
+                cur, breaks = eng\getSigns!
+                assert.are.same nil, cur
+                assert.are.same {}, breaks
+
