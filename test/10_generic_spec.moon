@@ -11,7 +11,9 @@ describe "Generic", ->
         eng\close!
 
     after_each ->
+        eng\exe "GdbDebugStop"
         assert.are.equal(1, eng\eval "tabpagenr('$')")
+        assert.are.same {'', {}}, eng\getSigns!
 
     describe "#smoke", ->
         for backend, spec in pairs(backends)
@@ -20,7 +22,6 @@ describe "Generic", ->
                 eng\feed spec.tbreak_main
                 eng\feed 'run\n', 1000
                 eng\feed '<esc>'
-                ----print(eng\eval "execute('history c')")
 
                 assert.are.same {'test.cpp:17', {}}, eng\getSigns!
 
@@ -40,8 +41,6 @@ describe "Generic", ->
                 eng\feed '<f5>'
                 assert.are.same {'', {}}, eng\getSigns!
 
-                eng\exe 'GdbDebugStop'
-
     describe "#break", ->
         -- Test toggling breakpoints.
         for backend, spec in pairs(backends)
@@ -60,22 +59,6 @@ describe "Generic", ->
 
                 eng\feed '<f8>'
                 assert.are.same {'test.cpp:5', {}}, eng\getSigns!
-
-                eng\exe 'GdbDebugStop'
-
-    describe '#break cleanup', ->
-        -- Verify that breakpoints are cleaned up after session end.
-        for backend, spec in pairs(backends)
-            it '#' .. backend, ->
-                eng\feed spec.launch, 1000
-                eng\feed '<esc><c-w>k'
-                eng\feed ':e src/test.cpp\n'
-                eng\feed ':5<cr>'
-                eng\feed '<f8>'
-                assert.are.same {'', {5}}, eng\getSigns!
-
-                eng\exe "GdbDebugStop"
-                assert.are.same {'', {}}, eng\getSigns!
 
     it "multiview", ->
         -- Test multiple views.
@@ -120,9 +103,7 @@ describe "Generic", ->
         -- Switch back to the second backend
         assert.are.same {'test.cpp:19', {5, 12}}, eng\getSigns!
 
-        -- Quit LLDB
-        eng\feed 'ZZ'
-        assert.are.same 1, eng\eval "tabpagenr('$')"
+        -- The last debugger is quit in the after_each
 
     describe "interrupt", ->
         -- Test interrupt.
@@ -134,8 +115,6 @@ describe "Generic", ->
                 eng\feed ':GdbInterrupt\n', 300
 
                 assert.are.same {'test.cpp:22', {}}, eng\getSigns!
-
-                eng\feed 'ZZ'
 
     describe "until", ->
         for backend, spec in pairs(backends)
@@ -150,8 +129,6 @@ describe "Generic", ->
                 eng\feed '<f4>'
 
                 assert.are.same {'test.cpp:21', {}}, eng\getSigns!
-
-                eng\feed 'ZZ'
 
     describe 'keymap', ->
         -- Test custom programmable keymaps.
@@ -175,8 +152,6 @@ describe "Generic", ->
                 assert.are.same 1, eng\eval 'g:test_keymap'
                 eng\feed ':let g:test_keymap = 0<cr>'
 
-                eng\feed 'ZZ'
-
     describe 'program exit', ->
         -- Test the cursor is hidden after program end.
         for backend, spec in pairs(backends)
@@ -188,8 +163,6 @@ describe "Generic", ->
 
                 eng\feed '<f5>'
                 assert.are.same {'', {}}, eng\getSigns!
-
-                eng\feed 'ZZ'
 
     describe '#eval', ->
         -- Test eval <cword>.
@@ -209,5 +182,3 @@ describe "Generic", ->
                 eng\feed 'vt('
                 eng\feed ':GdbEvalRange\n'
                 assert.are.equal 'print Lib::Baz', eng\eval 'luaeval("gdb.getLastCommand()")'
-
-                eng\feed 'ZZ'
