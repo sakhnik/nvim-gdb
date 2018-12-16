@@ -205,3 +205,17 @@ describe "Generic", ->
                 eng\feed ':let g:test_keymap = 0<cr>'
 
                 eng\feed 'ZZ'
+
+    describe 'program exit', ->
+        -- Test the cursor is hidden after program end.
+        for backend, spec in pairs(subtests)
+            it '#'..backend, ->
+                eng\feed spec.launch, 1000
+                eng\feed spec.tbreak_main
+                eng\feed 'run\n', 1000
+                eng\feed '<esc>'
+
+                eng\feed '<f5>'
+                assert.are.same {'', {}}, eng\getSigns!
+
+                eng\feed 'ZZ'
