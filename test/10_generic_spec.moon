@@ -165,3 +165,19 @@ describe "Generic", ->
                 assert.are.same {'test.cpp:22', {}}, eng\getSigns!
 
                 eng\feed 'ZZ'
+
+    describe "until", ->
+        for backend, spec in pairs(subtests)
+            it '#'..backend, ->
+                eng\feed spec.launch, 1000
+                eng\feed spec.tbreak_main
+                eng\feed 'run\n', 1000
+                eng\feed '<esc>'
+
+                eng\feed '<c-w>w'
+                eng\feed ':21<cr>'
+                eng\feed '<f4>'
+
+                assert.are.same {'test.cpp:21', {}}, eng\getSigns!
+
+                eng\feed 'ZZ'
