@@ -152,3 +152,16 @@ describe "Generic", ->
         -- Quit LLDB
         eng\feed 'ZZ'
         assert.are.same 1, eng\eval "tabpagenr('$')"
+
+    describe "interrupt", ->
+        -- Test interrupt.
+        for backend, spec in pairs(subtests)
+            it '#'..backend, ->
+                eng\feed spec.launch, 1000
+                eng\feed 'run 4294967295\n', 1000
+                eng\feed '<esc>'
+                eng\feed ':GdbInterrupt\n', 300
+
+                assert.are.same {'test.cpp:22', {}}, eng\getSigns!
+
+                eng\feed 'ZZ'
