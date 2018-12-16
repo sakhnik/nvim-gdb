@@ -51,31 +51,23 @@ describe "Generic", ->
                 eng\feed '<esc>'
                 ----print(eng\eval "execute('history c')")
 
-                cur, breaks = eng\getSigns!
-                assert.are.equal 'test.cpp:17', cur
-                assert.are.same {}, breaks
+                assert.are.same {'test.cpp:17', {}}, eng\getSigns!
 
                 eng\feed '<f10>'
-                cur, breaks = eng\getSigns!
-                assert.are.equal 'test.cpp:19', cur
-                assert.are.same {}, breaks
+                assert.are.same {'test.cpp:19', {}}, eng\getSigns!
 
                 eng\feed '<f11>'
-                cur, breaks = eng\getSigns!
-                assert.are.equal 'test.cpp:10', cur
-                assert.are.same {}, breaks
+                assert.are.same {'test.cpp:10', {}}, eng\getSigns!
 
                 eng\feed '<f12>'
-                cur, breaks = eng\getSigns!
+                signs = eng\getSigns!
                 -- different for different compilers
                 exp = {'test.cpp:17': true, 'test.cpp:19': true}
-                assert.are_not.equal nil, exp[cur]
-                assert.are.same {}, breaks
+                assert.are_not.equal nil, signs[1]
+                assert.are.same {}, signs[2]
 
                 eng\feed '<f5>'
-                cur, breaks = eng\getSigns!
-                assert.is.falsy cur
-                assert.are.same {}, breaks
+                assert.are.same {'', {}}, eng\getSigns!
 
                 eng\exe 'GdbDebugStop'
 
@@ -90,19 +82,13 @@ describe "Generic", ->
                 eng\feed ":e src/test.cpp\n"
                 eng\feed ':5<cr>'
                 eng\feed '<f8>'
-                cur, breaks = eng\getSigns!
-                assert.is.falsy cur
-                assert.are.same {5}, breaks
+                assert.are.same {'', {5}}, eng\getSigns!
 
                 eng\exe "GdbRun", 1000
-                cur, breaks = eng\getSigns!
-                assert.are.same 'test.cpp:5', cur
-                assert.are.same {5}, breaks
+                assert.are.same {'test.cpp:5', {5}}, eng\getSigns!
 
                 eng\feed '<f8>'
-                cur, breaks = eng\getSigns!
-                assert.are.same 'test.cpp:5', cur
-                assert.are.same {}, breaks
+                assert.are.same {'test.cpp:5', {}}, eng\getSigns!
 
                 eng\exe 'GdbDebugStop'
 
@@ -115,12 +101,7 @@ describe "Generic", ->
                 eng\feed ':e src/test.cpp\n'
                 eng\feed ':5<cr>'
                 eng\feed '<f8>'
-                cur, breaks = eng\getSigns!
-                assert.are.same nil, cur
-                assert.are.same {5}, breaks
+                assert.are.same {'', {5}}, eng\getSigns!
 
                 eng\exe "GdbDebugStop"
-                cur, breaks = eng\getSigns!
-                assert.are.same nil, cur
-                assert.are.same {}, breaks
-
+                assert.are.same {'', {}}, eng\getSigns!
