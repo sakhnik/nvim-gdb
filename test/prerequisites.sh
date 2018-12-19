@@ -26,18 +26,14 @@ LUAROCKS_TREE=$this_dir/../lua/rocks
 luarocks install busted --tree=$LUAROCKS_TREE
 luarocks install nvim-client --tree=$LUAROCKS_TREE
 
-echo "debuggers = {" >| config.py
 echo -n "return {" >| config.lua
 
 echo -n "Check for gdb        " && which gdb \
-    && ( echo "'gdb': True," >> config.py;
-         echo -n " ['gdb']=true," >> config.lua ) \
+    && echo -n " ['gdb']=true," >> config.lua \
     || true
 echo -n "Check for lldb       " && which lldb \
-    && ( echo "'lldb': True," >> config.py;
-         echo -n " ['lldb']=true," >> config.lua ) \
+    && echo -n " ['lldb']=true," >> config.lua \
     || true
-echo -e "'XXX': False\n}" >> config.py
 echo -e " ['XXX']=false }" >> config.lua
 
 CXX=g++

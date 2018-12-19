@@ -60,13 +60,13 @@ describe '#pdb', ->
         assert.are.same {'main.py:1', {5}}, eng\getSigns!
 
         -- Go to another file
-        eng\feed ':e test_30_pdb.py\n'
-        eng\feed ':24\n'
+        eng\feed ':e lib.py\n'
+        eng\feed ':3\n'
         eng\feed '<f8>'
-        assert.are.same {'main.py:1', {24}}, eng\getSigns!
-        eng\feed ':25\n'
+        assert.are.same {'main.py:1', {3}}, eng\getSigns!
+        eng\feed ':5\n'
         eng\feed '<f8>'
-        assert.are.same {'main.py:1', {24,25}}, eng\getSigns!
+        assert.are.same {'main.py:1', {3,5}}, eng\getSigns!
 
         -- Return to the original file
         eng\feed ':e main.py\n'
