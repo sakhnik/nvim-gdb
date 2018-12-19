@@ -52,4 +52,4 @@ else
 fi
 
 # Compile all moon scripts
-find -name '*.moon' -exec moonc {} \;
+find -name '*.moon' -not -name '*_spec.moon' -exec moonc {} \;

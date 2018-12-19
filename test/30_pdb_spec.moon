@@ -1,10 +1,11 @@
+-- source: 30_pdb_spec.moon
 eng = require "engine"
 backends = require "backends"
 
 describe '#pdb', ->
     after_each ->
         eng\exe 'GdbDebugStop'
-        assert.are.equal(1, eng\eval "tabpagenr('$')")
+        assert.are.equal 1, eng\eval "tabpagenr('$')"
         assert.are.same {'', {}}, eng\getSigns!
 
     it '#smoke', ->

@@ -1,3 +1,4 @@
+-- source: 10_generic_spec.moon
 eng = require "engine"
 backends = require "backends"
 
@@ -5,7 +6,7 @@ backends = require "backends"
 describe "Generic", ->
     after_each ->
         eng\exe "GdbDebugStop"
-        assert.are.equal(1, eng\eval "tabpagenr('$')")
+        assert.are.equal 1, eng\eval "tabpagenr('$')"
         assert.are.same {'', {}}, eng\getSigns!
 
     describe "#smoke", ->

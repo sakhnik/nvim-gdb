@@ -1,9 +1,10 @@
+-- source: 05_quit_spec.moon
 eng = require "engine"
 backends = require "backends"
 
 
 describe "#quit", ->
-    backend, spec = next(backends)
+    backend, spec = next backends
     numBufs = 0
 
     before_each ->
@@ -12,8 +13,8 @@ describe "#quit", ->
         eng\feed "<esc>"
     after_each ->
         -- Check that no new buffers have left
-        assert.are.equal(numBufs, eng\countBuffers!)
-        assert.are.equal(1, eng\eval "tabpagenr('$')")
+        assert.are.equal numBufs, eng\countBuffers!
+        assert.are.equal 1, eng\eval "tabpagenr('$')"
 
     it "GdbDebugStop", ->
         eng\feed ":GdbDebugStop<cr>"
