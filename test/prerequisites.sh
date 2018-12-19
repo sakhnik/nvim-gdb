@@ -48,4 +48,4 @@ else
 fi
 
 # Compile all moon scripts
-find -name '*.moon' -not -name '*_spec.moon' -exec moonc {} \;
+moonc engine.moon backends.moon
