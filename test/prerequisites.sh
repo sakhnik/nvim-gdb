@@ -22,6 +22,7 @@ $this_dir/../lua/rocks/bin/luarocks path >> $this_dir/env.sh
 
 source $this_dir/env.sh
 
+LUAROCKS_TREE=$this_dir/../lua/rocks
 luarocks install busted --tree=$LUAROCKS_TREE
 luarocks install nvim-client --tree=$LUAROCKS_TREE
 
