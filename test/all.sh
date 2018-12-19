@@ -6,8 +6,9 @@ cd `dirname ${BASH_SOURCE[0]}`
 
 python3 ../lib/StreamFilter.py
 
-if [[ $# -gt 0 ]]; then
-    ./run-visual.sh -m unittest
-else
-    ./run-embed.sh -m unittest -v
-fi
+export PATH=../lua/rocks/bin:$PATH
+
+for i in *_spec.moon; do
+    echo "Running $i"
+    busted $i
+done
