@@ -67,4 +67,4 @@ class Engine
     countBuffers: =>
         @eval 'len(filter(range(bufnr("$") + 1), "buflisted(v:val)"))'
 
-Engine
+Engine!

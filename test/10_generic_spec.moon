@@ -1,15 +1,8 @@
-Engine = require "engine"
+eng = require "engine"
 backends = require "backends"
 
 
 describe "Generic", ->
-    eng = nil
-
-    setup ->
-        eng = Engine!
-    teardown ->
-        eng\close!
-
     after_each ->
         eng\exe "GdbDebugStop"
         assert.are.equal(1, eng\eval "tabpagenr('$')")

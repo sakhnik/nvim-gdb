@@ -1,16 +1,11 @@
-Engine = require "engine"
+eng = require "engine"
 backends = require "backends"
 
 
 describe "#quit", ->
-    eng = nil
     backend, spec = next(backends)
     numBufs = 0
 
-    setup ->
-        eng = Engine!
-    teardown ->
-        eng\close!
     before_each ->
         numBufs = eng\countBuffers!
         eng\feed spec.launch, 1000
