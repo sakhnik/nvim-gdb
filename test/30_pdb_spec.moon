@@ -1,11 +1,8 @@
 -- source: 30_pdb_spec.moon
 backends = require "backends"
 
-describe '#pdb', ->
-    eng = nil
-
-    setup ->
-        eng = require "engine"
+expose '#pdb', ->
+    eng = require "engine"
 
     after_each ->
         eng\exe 'GdbDebugStop'

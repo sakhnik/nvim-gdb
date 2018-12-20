@@ -2,11 +2,8 @@
 backends = require "backends"
 
 
-describe "Generic", ->
-    eng = nil
-
-    setup ->
-        eng = require "engine"
+expose "Generic", ->
+    eng = require "engine"
 
     after_each ->
         eng\exe "GdbDebugStop"

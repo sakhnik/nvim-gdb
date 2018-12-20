@@ -2,11 +2,8 @@
 backends = require "backends"
 unistd = require "posix.unistd"
 
-describe "#break", ->
-    eng = nil
-
-    setup ->
-        eng = require "engine"
+expose "#break", ->
+    eng = require "engine"
 
     after_each ->
         eng\exe 'GdbDebugStop'

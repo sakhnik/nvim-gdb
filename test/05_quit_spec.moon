@@ -2,13 +2,10 @@
 backends = require "backends"
 
 
-describe "#quit", ->
+expose "#quit", ->
     backend, spec = next backends
     numBufs = 0
-    eng = nil
-
-    setup ->
-        eng = require "engine"
+    eng = require "engine"
 
     before_each ->
         numBufs = eng\countBuffers!
