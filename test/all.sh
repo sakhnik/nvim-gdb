@@ -8,4 +8,8 @@ python3 ../lib/StreamFilter.py
 
 export PATH=../lua/rocks/bin:$PATH
 
-busted .
+if [[ $# -gt 0 ]]; then
+    ./run-visual.sh .
+else
+    busted .
+fi
