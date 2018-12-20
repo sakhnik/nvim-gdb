@@ -2,23 +2,18 @@
 
 cd `dirname ${BASH_SOURCE[0]}`
 
-cleanup_action="echo 'cleanup'"
 
-add_cleanup_action() {
-    cleanup_action="$cleanup_action; $@"
-}
-
-cleanup() {
-    eval "$cleanup_action"
-}
-
-trap cleanup EXIT
-
-export NVIM_LISTEN_ADDRESS=/tmp/nvimtest
-rm -rf $NVIM_LISTEN_ADDRESS
+export NVIM_LISTEN_ADDRESS=127.0.0.1:12345
 
 # Run the test suite with a visible neovim
-LANG=en_US.UTF-8 nvim --listen $NVIM_LISTEN_ADDRESS -n -u init.vim &
-add_cleanup_action "kill -KILL `jobs -p`; wait; reset"
+LANG=en_US.UTF-8 nvim -n -u init.vim --listen $NVIM_LISTEN_ADDRESS &
 
-python3 $@
+cleanup()
+{
+    kill -KILL `jobs -p`
+    wait
+    reset
+}
+trap cleanup EXIT
+
+busted $@ >visual.log 2>&1
