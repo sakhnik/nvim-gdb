@@ -1,9 +1,13 @@
 -- source: 20_breakpoint_spec.moon
-eng = require "engine"
 backends = require "backends"
 unistd = require "posix.unistd"
 
 describe "#break", ->
+    eng = nil
+
+    setup ->
+        eng = require "engine"
+
     after_each ->
         eng\exe 'GdbDebugStop'
         assert.are.equal 1, eng\eval "tabpagenr('$')"

@@ -1,11 +1,14 @@
 -- source: 05_quit_spec.moon
-eng = require "engine"
 backends = require "backends"
 
 
 describe "#quit", ->
     backend, spec = next backends
     numBufs = 0
+    eng = nil
+
+    setup ->
+        eng = require "engine"
 
     before_each ->
         numBufs = eng\countBuffers!
