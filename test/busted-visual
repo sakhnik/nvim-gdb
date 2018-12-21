@@ -19,4 +19,4 @@ cleanup()
 }
 trap cleanup EXIT
 
-busted $@ >visual.log 2>&1
+./busted $@ >visual.log 2>&1

@@ -7,20 +7,7 @@ echo -n "Check for lua5.1     " && which lua5.1
 
 this_dir=`dirname ${BASH_SOURCE[0]}`
 
-cat >|$this_dir/env.sh <<'END'
-if [[ -n "$ZSH_VERSION" ]]; then
-    this_dir=`dirname ${(%):-%N}`
-elif [[ -n "$ZSH_VERSION" ]]; then
-    this_dir=`dirname ${BASH_SOURCE[0]}`
-else
-    this_dir=`pwd`
-fi
-
-END
-
-$this_dir/../lua/rocks/bin/luarocks path >> $this_dir/env.sh
-
-source $this_dir/env.sh
+eval `$this_dir/../lua/rocks/bin/luarocks path`
 
 LUAROCKS_TREE=$this_dir/../lua/rocks
 luarocks install busted --tree=$LUAROCKS_TREE
