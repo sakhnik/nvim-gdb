@@ -11,5 +11,5 @@ export PATH=../lua/rocks/bin:$PATH
 if [[ $# -gt 0 ]]; then
     ./run-visual.sh .
 else
-    busted .
+    ./busted .
 fi
