@@ -7,13 +7,14 @@ class PdbScm extends BaseScm
     new: (cursor, win) =>
         super!
         @addTrans @paused, nil, (_,line) ->
-            for file, line in line\gmatch "> ([^(]+)%((%d+)%)[^(]+%(%)"
+            file, line = line\match "^> ([^(]+)%((%d+)%)[^(]+%(%)"
+            if file != nil
                 win\jump file, line
-                return @paused
+                @paused
         @addTrans @paused, nil, (_,line) ->
-            for _ in line\gmatch "%(Pdb%) $"
+            if nil != line\match "^%(Pdb%) $"
                 win\queryBreakpoints!
-                return @paused
+                @paused
         @state = @paused
 
 backend =
