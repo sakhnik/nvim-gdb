@@ -1,8 +1,5 @@
 require "set_paths"
-rex = require "rex_pcre"
 BaseScm = require "gdb.scm"
-
-r = rex.new                     -- construct a new matcher
 
 --  lldb specifics
 
@@ -16,7 +13,11 @@ class LldbScm extends BaseScm
                     action!
                     newState
 
-        @addTrans @paused, r([[^Process \d+ resuming]]),      check(@running, cursor\hide)
+        @addTrans @paused, nil, (_,l) ->
+            if nil != l\match "^Process %d+ resuming"
+                cursor\hide!
+                @running
+
         @addTrans @paused, nil, (_,l) ->
             file, line = l\match " at \x1a\x1a([^:]+):(%d+)"
             if file != nil
