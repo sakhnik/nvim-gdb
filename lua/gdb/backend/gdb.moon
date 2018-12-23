@@ -1,8 +1,5 @@
 require "set_paths"
-rex = require "rex_pcre"
 BaseScm = require "gdb.scm"
-
-r = rex.new                     -- construct a new matcher
 
 -- gdb specifics
 
@@ -10,23 +7,21 @@ class GdbScm extends BaseScm
     new: (cursor, win) =>
         super!
 
-        check = (newState, action) ->
-            (r, l) ->
-                if nil != r\match l
-                    action!
-                    newState
+        @addTrans @paused, nil, (_,l) ->
+            if nil != l\match "^Continuing%."
+                cursor\hide!
+                @running
 
-        @addTrans @paused, r([[Continuing\.]]), check(@running, cursor\hide)
         @addTrans @paused, nil, (_,l) ->
             file, line = l\match "^\x1a\x1a([^:]+):(%d+):%d+"
             if file != nil
                 win\jump file, line
-                return @paused
+                @paused
 
         queryB = (r,l) ->
             if nil != l\match r
                 win\queryBreakpoints!
-                return @paused
+                @paused
 
         @addTrans @paused,  "^%(gdb%) ",            queryB
         @addTrans @running, "^Breakpoint %d+",      queryB
