@@ -18,10 +18,10 @@ class LldbScm extends BaseScm
         queryB = check @paused, win\queryBreakpoints
 
         @addTrans @paused, r([[^Process \d+ resuming]]),      check(@running, cursor\hide)
-        @addTrans @paused, r([[ at [\032]{2}([^:]+):(\d+)]]), (r,l) ->
-            f, l = r\match l
-            if f != nil
-                win\jump f, l
+        @addTrans @paused, nil, (_,l) ->
+            file, line = l\match " at \x1a\x1a([^:]+):(%d+)"
+            if file != nil
+                win\jump file, line
                 @paused
 
         @addTrans @paused, r([[(lldb)]]),                 queryB
