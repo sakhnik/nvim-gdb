@@ -1,18 +1,19 @@
-require "set_paths"
-rex = require "rex_pcre"
 BaseScm = require "gdb.scm"
-
-r = rex.new                     -- construct a new matcher
-m = (r, line) -> r\match(line)  -- matching function
 
 -- pdb specifics
 
 class PdbScm extends BaseScm
     new: (cursor, win) =>
         super!
-        queryB = (...) -> win\queryBreakpoints!
-        @addTrans(@paused, @paused, r([[(?<!-)> ([^(]+)\((\d+)\)[^(]+\(\)]]), m, (f,l) -> win\jump(f,l))
-        @addTrans(@paused, @paused, r([[^\(Pdb\) ]]),                         m, queryB)
+        @addTrans @paused, nil, (_,line) ->
+            file, line = line\match "^> ([^(]+)%((%d+)%)[^(]+%(%)"
+            if file != nil
+                win\jump file, line
+                @paused
+        @addTrans @paused, nil, (_,line) ->
+            if nil != line\match "^%(Pdb%) $"
+                win\queryBreakpoints!
+                @paused
         @state = @paused
 
 backend =

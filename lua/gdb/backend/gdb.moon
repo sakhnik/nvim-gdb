@@ -1,9 +1,4 @@
-require "set_paths"
-rex = require "rex_pcre"
 BaseScm = require "gdb.scm"
-
-r = rex.new                     -- construct a new matcher
-m = (r, line) -> r\match(line)  -- matching function
 
 -- gdb specifics
 
@@ -11,15 +6,26 @@ class GdbScm extends BaseScm
     new: (cursor, win) =>
         super!
 
-        queryB = (...) -> win\queryBreakpoints!
+        @addTrans @paused, nil, (_,l) ->
+            if nil != l\match "^Continuing%."
+                cursor\hide!
+                @running
 
-        @addTrans(@paused, @running, r([[Continuing\.]]),               m, (...) -> cursor\hide!)
-        @addTrans(@paused, @paused,  r([[[\032]{2}([^:]+):(\d+):\d+]]), m, (f,l) -> win\jump(f,l))
-        @addTrans(@paused, @paused,  r([[^\(gdb\) ]]),                  m, queryB)
+        @addTrans @paused, nil, (_,l) ->
+            file, line = l\match "^\x1a\x1a([^:]+):(%d+):%d+"
+            if file != nil
+                win\jump file, line
+                @paused
 
-        @addTrans(@running, @paused, r([[^Breakpoint \d+]]),            m, queryB)
-        @addTrans(@running, @paused, r([[ hit Breakpoint \d+]]),        m, queryB)
-        @addTrans(@running, @paused, r([[^\(gdb\) ]]),                  m, queryB)
+        queryB = (r,l) ->
+            if nil != l\match r
+                win\queryBreakpoints!
+                @paused
+
+        @addTrans @paused,  "^%(gdb%) ",            queryB
+        @addTrans @running, "^Breakpoint %d+",      queryB
+        @addTrans @running, " hit Breakpoint %d+",  queryB
+        @addTrans @running, "^%(gdb%) ",            queryB
 
         @state = @running
 
