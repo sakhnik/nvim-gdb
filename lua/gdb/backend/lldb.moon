@@ -15,7 +15,6 @@ class LldbScm extends BaseScm
                 if nil != r\match l
                     action!
                     newState
-        queryB = check @paused, win\queryBreakpoints
 
         @addTrans @paused, r([[^Process \d+ resuming]]),      check(@running, cursor\hide)
         @addTrans @paused, nil, (_,l) ->
@@ -24,10 +23,15 @@ class LldbScm extends BaseScm
                 win\jump file, line
                 @paused
 
-        @addTrans @paused, r([[(lldb)]]),                 queryB
-        @addTrans @running, r([[^Breakpoint \d+:]]),      queryB
-        @addTrans @running, r([[^Process \d+ stopped]]),  queryB
-        @addTrans @running, r([[(lldb)]]),                queryB
+        queryB = (r,l) ->
+            if nil != l\match r
+                win\queryBreakpoints!
+                @paused
+
+        @addTrans @paused,  "%(lldb%) ",             queryB
+        @addTrans @running, "^Breakpoint %d+:",      queryB
+        @addTrans @running, "^Process %d+ stopped",  queryB
+        @addTrans @running, "%(lldb%) ",             queryB
 
         @state = @running
 
