@@ -15,10 +15,11 @@ class PdbScm extends BaseScm
                     action!
                     newState
         queryB = check @paused, win\queryBreakpoints
-        @addTrans @paused, r([[(?<!-)> ([^(]+)\((\d+)\)[^(]+\(\)]]), (r,l) ->
-            f, l = r\match l
-            if f != nil
-                win\jump f, l
+        @addTrans @paused, nil, (r,line) ->
+            it = line\gmatch "> ([^(]+)%((%d+)%)[^(]+%(%)"
+            file, line = it()
+            if file != nil
+                win\jump file, line
                 @paused
         @addTrans @paused, r([[^\(Pdb\) ]]), queryB
         @state = @paused
