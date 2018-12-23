@@ -15,7 +15,6 @@ class GdbScm extends BaseScm
                 if nil != r\match l
                     action!
                     newState
-        queryB = check @paused, win\queryBreakpoints
 
         @addTrans @paused, r([[Continuing\.]]), check(@running, cursor\hide)
         @addTrans @paused, nil, (_,l) ->
@@ -23,10 +22,15 @@ class GdbScm extends BaseScm
                 win\jump file, line
                 return @paused
 
-        @addTrans @paused, r([[^\(gdb\) ]]),             queryB
-        @addTrans @running, r([[^Breakpoint \d+]]),      queryB
-        @addTrans @running, r([[ hit Breakpoint \d+]]),  queryB
-        @addTrans @running, r([[^\(gdb\) ]]),            queryB
+        queryB = (r,l) ->
+            if nil != l\match r
+                win\queryBreakpoints!
+                return @paused
+
+        @addTrans @paused,  "^%(gdb%) ",            queryB
+        @addTrans @running, "^Breakpoint %d+",      queryB
+        @addTrans @running, " hit Breakpoint %d+",  queryB
+        @addTrans @running, "^%(gdb%) ",            queryB
 
         @state = @running
 
