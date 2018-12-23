@@ -8,8 +8,8 @@ class BaseScm
 
     -- Add a new transition for a given state using {matcher, matchingFunc}
     -- Call the handler when matched.
-    addTrans: (state, newState, matcher, func, handler) =>
-        state[#state + 1] = {matcher, func, newState, handler}
+    addTrans: (state, matcher, func) =>
+        state[#state + 1] = {matcher, func}
 
     isPaused: =>
         @state == @paused
@@ -21,10 +21,9 @@ class BaseScm
     feed: (line) =>
         -- If there is a matcher matching the line, call its handler.
         for _, v in ipairs(@state)
-            matcher, func, newState, handler = unpack(v)
-            m1, m2 = func(matcher, line)
-            if m1
-                handler(m1, m2)
+            matcher, func = unpack(v)
+            newState = func(matcher, line)
+            if newState != nil
                 @state = newState
                 break
 

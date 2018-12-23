@@ -3,16 +3,24 @@ rex = require "rex_pcre"
 BaseScm = require "gdb.scm"
 
 r = rex.new                     -- construct a new matcher
-m = (r, line) -> r\match(line)  -- matching function
 
 -- pdb specifics
 
 class PdbScm extends BaseScm
     new: (cursor, win) =>
         super!
-        queryB = (...) -> win\queryBreakpoints!
-        @addTrans(@paused, @paused, r([[(?<!-)> ([^(]+)\((\d+)\)[^(]+\(\)]]), m, (f,l) -> win\jump(f,l))
-        @addTrans(@paused, @paused, r([[^\(Pdb\) ]]),                         m, queryB)
+        check = (newState, action) ->
+            (r, l) ->
+                if nil != r\match l
+                    action!
+                    newState
+        queryB = check @paused, win\queryBreakpoints
+        @addTrans @paused, r([[(?<!-)> ([^(]+)\((\d+)\)[^(]+\(\)]]), (r,l) ->
+            f, l = r\match l
+            if f != nil
+                win\jump f, l
+                @paused
+        @addTrans @paused, r([[^\(Pdb\) ]]), queryB
         @state = @paused
 
 backend =

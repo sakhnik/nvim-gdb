@@ -3,7 +3,6 @@ rex = require "rex_pcre"
 BaseScm = require "gdb.scm"
 
 r = rex.new                     -- construct a new matcher
-m = (r, line) -> r\match(line)  -- matching function
 
 --  lldb specifics
 
@@ -11,15 +10,24 @@ class LldbScm extends BaseScm
     new: (cursor, win) =>
         super!
 
-        queryB = (...) -> win\queryBreakpoints!
+        check = (newState, action) ->
+            (r, l) ->
+                if nil != r\match l
+                    action!
+                    newState
+        queryB = check @paused, win\queryBreakpoints
 
-        @addTrans(@paused, @running, r([[^Process \d+ resuming]]),      m, (...) -> cursor\hide!)
-        @addTrans(@paused, @paused,  r([[ at [\032]{2}([^:]+):(\d+)]]), m, (f,l) -> win\jump(f,l))
-        @addTrans(@paused, @paused,  r([[(lldb)]]),                     m, queryB)
+        @addTrans @paused, r([[^Process \d+ resuming]]),      check(@running, cursor\hide)
+        @addTrans @paused, r([[ at [\032]{2}([^:]+):(\d+)]]), (r,l) ->
+            f, l = r\match l
+            if f != nil
+                win\jump f, l
+                @paused
 
-        @addTrans(@running, @paused, r([[^Breakpoint \d+:]]),           m, queryB)
-        @addTrans(@running, @paused, r([[^Process \d+ stopped]]),       m, queryB)
-        @addTrans(@running, @paused, r([[(lldb)]]),                     m, queryB)
+        @addTrans @paused, r([[(lldb)]]),                 queryB
+        @addTrans @running, r([[^Breakpoint \d+:]]),      queryB
+        @addTrans @running, r([[^Process \d+ stopped]]),  queryB
+        @addTrans @running, r([[(lldb)]]),                queryB
 
         @state = @running
 
