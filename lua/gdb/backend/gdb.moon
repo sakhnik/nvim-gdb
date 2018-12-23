@@ -18,11 +18,10 @@ class GdbScm extends BaseScm
         queryB = check @paused, win\queryBreakpoints
 
         @addTrans @paused, r([[Continuing\.]]), check(@running, cursor\hide)
-        @addTrans @paused, r([[[\032]{2}([^:]+):(\d+):\d+]]), (r,l) ->
-            f, l = r\match l
-            if f != nil
-                win\jump f, l
-                @paused
+        @addTrans @paused, nil, (_,l) ->
+            for file, line in l\gmatch "\x1a\x1a([^:]+):(%d+):%d+"
+                win\jump file, line
+                return @paused
 
         @addTrans @paused, r([[^\(gdb\) ]]),             queryB
         @addTrans @running, r([[^Breakpoint \d+]]),      queryB
