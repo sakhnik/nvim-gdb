@@ -18,7 +18,8 @@ class GdbScm extends BaseScm
 
         @addTrans @paused, r([[Continuing\.]]), check(@running, cursor\hide)
         @addTrans @paused, nil, (_,l) ->
-            for file, line in l\gmatch "\x1a\x1a([^:]+):(%d+):%d+"
+            file, line = l\match "^\x1a\x1a([^:]+):(%d+):%d+"
+            if file != nil
                 win\jump file, line
                 return @paused
 
