@@ -1,4 +1,3 @@
-require "set_paths"
 BaseScm = require "gdb.scm"
 
 --  lldb specifics
