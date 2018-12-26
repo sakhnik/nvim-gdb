@@ -13,7 +13,7 @@ expose "#keymap", ->
         eng\exe 'source keymap_cleanup.vim'
 
     launch = ->
-        eng\feed ":GdbStart ls\n", 10
+        eng\feed ":GdbStart gdb -q\n", 10
 
     it 'hooks', ->
         -- Test custom programmable keymaps.
@@ -33,3 +33,10 @@ expose "#keymap", ->
         eng\feed '~tn'
         assert.are.same 1, eng\eval 'g:test_keymap'
         eng\exe 'let g:test_keymap = 0'
+
+    it 'conflict', ->
+        eng\exe "let g:nvimgdb_config = {'key_next': '<f5>', 'key_prev': '<f5>'}"
+        launch!
+
+        count = eng\eval 'luaeval("(function() local c = 0; for _,_ in pairs(gdb.getKeymaps():getConfig()) do c = c + 1 end return c end)()")'
+        assert.are.same 1, count

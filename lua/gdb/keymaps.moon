@@ -142,4 +142,6 @@ class Keymaps
         -- Remember the resulting configuration
         @config = config
 
+    getConfig: => @config
+
 Keymaps
