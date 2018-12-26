@@ -1,8 +1,6 @@
 -- source: 40_keymap_spec.moon
-backends = require "backends"
 
 expose "#keymap", ->
-    backend, spec = next backends
     eng = require "engine"
 
     --before_each ->
@@ -15,7 +13,7 @@ expose "#keymap", ->
         eng\exe 'source keymap_cleanup.vim'
 
     launch = ->
-        eng\feed spec.launch, 1000
+        eng\feed ":GdbStart ls\n", 10
 
     it 'hooks', ->
         -- Test custom programmable keymaps.
