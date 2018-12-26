@@ -12,8 +12,7 @@ expose "#keymap", ->
         eng\exe "GdbDebugStop"
         assert.are.equal 1, eng\eval "tabpagenr('$')"
         assert.are.same {'', {}}, eng\getSigns!
-        eng\exe 'unlet! g:nvimgdb_config_override'
-        eng\exe 'unlet! g:nvimgdb_config'
+        eng\exe 'source keymap_cleanup.vim'
 
     launch = ->
         eng\feed spec.launch, 1000
