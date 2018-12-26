@@ -5,16 +5,23 @@ expose "#keymap", ->
     backend, spec = next backends
     eng = require "engine"
 
+    --before_each ->
+        --eng\exe 'let g:nvim_config_orig = g:nvim_config'
+
     after_each ->
         eng\exe "GdbDebugStop"
         assert.are.equal 1, eng\eval "tabpagenr('$')"
         assert.are.same {'', {}}, eng\getSigns!
+        eng\exe 'unlet! g:nvimgdb_config_override'
+        eng\exe 'unlet! g:nvimgdb_config'
+
+    launch = ->
+        eng\feed spec.launch, 1000
 
     it 'hooks', ->
         -- Test custom programmable keymaps.
-        eng\feed spec.launch, 1000
-        eng\feed spec.tbreak_main
-        eng\feed 'run\n', 1000
+        eng\exe "source keymap_hooks.vim"
+        launch!
 
         assert.are.same 0, eng\eval 'g:test_tkeymap'
         eng\feed '~tkm'
@@ -23,9 +30,9 @@ expose "#keymap", ->
         assert.are.same 0, eng\eval 'g:test_keymap'
         eng\feed '~tn'
         assert.are.same 1, eng\eval 'g:test_keymap'
-        eng\feed ':let g:test_tkeymap = 0 | let g:test_keymap = 0<cr>'
+        eng\exe 'let g:test_tkeymap = 0 | let g:test_keymap = 0'
         eng\feed '<c-w>w'
         assert.are.same 0, eng\eval 'g:test_keymap'
         eng\feed '~tn'
         assert.are.same 1, eng\eval 'g:test_keymap'
-        eng\feed ':let g:test_keymap = 0<cr>'
+        eng\exe 'let g:test_keymap = 0'
