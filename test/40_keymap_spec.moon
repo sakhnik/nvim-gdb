@@ -40,3 +40,7 @@ expose "#keymap", ->
 
         count = eng\eval 'luaeval("(function() local c = 0; for _,_ in pairs(gdb.getKeymaps():getConfig()) do c = c + 1 end return c end)()")'
         assert.are.same 1, count
+        -- Check that the coursor is moving freely without stucking
+        eng\feed [[<c-\><c-n>]]
+        eng\feed "<c-w>w"
+        eng\feed "<c-w>w"
