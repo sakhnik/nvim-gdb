@@ -1,4 +1,3 @@
-git hook to compile moonscript on checkout branch
 backtrace to quickfix
 breakpoints to quickfix
 use neovim as lua interpreter to soften prerequisites
