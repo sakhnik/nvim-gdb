@@ -48,7 +48,6 @@ expose "#keymap", ->
     it 'override', ->
         eng\exe "let g:nvimgdb_config_override = {'key_next': '<f2>'}"
         launch!
-
         key = eng\eval 'luaeval("gdb.getKeymaps():getConfig().key_next")'
         assert.are.same '<f2>', key
 
@@ -56,6 +55,12 @@ expose "#keymap", ->
         -- Check that a config override assumes priority in a conflict
         eng\exe "let g:nvimgdb_config_override = {'key_next': '<f8>'}"
         launch!
-
         res = eng\eval 'luaeval("gdb.getKeymaps():getConfig().key_breakpoint == nil")'
         assert.are.same true, res
+
+    it 'override one', ->
+        eng\exe "let g:nvimgdb_key_next = '<f3>'"
+        launch!
+        key = eng\eval 'luaeval("gdb.getKeymaps():getConfig().key_next")'
+        assert.are.same '<f3>', key
+

@@ -120,7 +120,7 @@ class Keymaps
 
 
         -- If there is config override defined, add it
-        if V.call("exists", {'g:nvimgdb_config_override'}) == 1
+        if V.call("exists", {'g:nvimgdb_config_override'}) != 0
             override = V.get_var('nvimgdb_config_override')
             if override != nil
                 for k,v in pairs(override)
@@ -130,9 +130,9 @@ class Keymaps
 
         -- See whether a global override for a specific configuration
         -- key exists. If so, update the config.
-        for key,_ in pairs(config)
+        for key,_ in pairs(defaultConfig)
             vname = 'nvimgdb_' .. key
-            if V.call("exists", {vname}) == 1
+            if V.call("exists", {'g:'..vname}) != 0
                 val = V.get_var(vname)
                 if val != nil
                     keyVal = filterFuncref(defaultConfig, key, val)
