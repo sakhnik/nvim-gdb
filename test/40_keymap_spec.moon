@@ -69,3 +69,14 @@ expose "#keymap", ->
         launch!
         res = eng\eval 'luaeval("gdb.getKeymaps():getConfig().key_breakpoint == nil")'
         assert.are.same true, res
+
+    it 'overall', ->
+        eng\exe "let g:nvimgdb_config_override = {'key_next': '<f5>'}"
+        eng\exe "let g:nvimgdb_key_step = '<f5>'"
+        launch!
+        res = eng\eval 'luaeval("gdb.getKeymaps():getConfig().key_continue == nil")'
+        assert.are.same true, res
+        res = eng\eval 'luaeval("gdb.getKeymaps():getConfig().key_next == nil")'
+        assert.are.same true, res
+        key = eng\eval 'luaeval("gdb.getKeymaps():getConfig().key_step")'
+        assert.are.same '<f5>', key
