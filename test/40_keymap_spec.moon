@@ -64,3 +64,8 @@ expose "#keymap", ->
         key = eng\eval 'luaeval("gdb.getKeymaps():getConfig().key_next")'
         assert.are.same '<f3>', key
 
+    it 'override one priority', ->
+        eng\exe "let g:nvimgdb_key_next = '<f8>'"
+        launch!
+        res = eng\eval 'luaeval("gdb.getKeymaps():getConfig().key_breakpoint == nil")'
+        assert.are.same true, res
