@@ -19,9 +19,6 @@ class TStorage
 -- Tabpage local storage
 tls = TStorage()
 
--- Prepare keymaps configuration
-keymaps = Keymaps!
-
 CheckTab = ->
     tls\get! != nil
 
@@ -67,8 +64,9 @@ class App
         tls\init @
 
         -- Set initial keymaps in the terminal window.
-        keymaps\dispatchSetT!
-        keymaps\dispatchSet!
+        @keymaps = Keymaps!
+        @keymaps\dispatchSetT!
+        @keymaps\dispatchSet!
 
         -- Start insert mode in the GDB window
         V.exe "normal i"
@@ -111,6 +109,7 @@ class App
         @lastCommand = command  -- Remember the command for testing
 
     getLastCommand: => @lastCommand
+    getKeymaps: => @keymaps
 
     interrupt: => @client\interrupt!
 
@@ -159,13 +158,13 @@ class App
         if V.buf_get_option(V.get_current_buf!, 'buftype') != 'terminal'
             -- Make sure the cursor stays visible at all times
             V.exe "if !&scrolloff | setlocal scrolloff=5 | endif"
-            keymaps\dispatchSet!
+            @keymaps\dispatchSet!
             -- Ensure breakpoints are shown if are queried dynamically
             @win\queryBreakpoints!
 
     onBufLeave: =>
         if V.buf_get_option(V.get_current_buf!, 'buftype') != 'terminal'
-            keymaps\dispatchUnset!
+            @keymaps\dispatchUnset!
 
 Init = (backendStr, proxyCmd, clientCmd) ->
     App backendStr, proxyCmd, clientCmd
@@ -189,7 +188,6 @@ ret =
     getFullBufferPath: GetFullBufferPath
     checkTab: CheckTab
     onStdout: OnStdout
-    keymaps: keymaps
 
 -- Allow calling object functions by dispatching
 -- to the tabpage local instance.

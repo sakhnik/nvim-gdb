@@ -20,13 +20,15 @@ class Keymaps
         for _, keymap in pairs(@defaultKeymaps)
             key = @config[keymap[2]]
             if key != nil
-                V.exe fmt([[%snoremap <buffer> <silent> %s %s<cr>]], keymap[1], key, keymap[3])
+                c = fmt([[%snoremap <buffer> <silent> %s %s<cr>]], keymap[1], key, keymap[3])
+                V.exe c
 
     unset: =>
         for _, keymap in pairs(@defaultKeymaps)
             key = @config[keymap[2]]
             if key != nil
-                V.exe fmt([[%sunmap <buffer> %s]], keymap[1], key)
+                c = fmt([[%sunmap <buffer> %s]], keymap[1], key)
+                V.exe c
 
     setT: =>
         -- Set term-local key maps
@@ -101,23 +103,45 @@ class Keymaps
         if config == nil
             config = {k,v for k,v in pairs defaultConfig}
 
+        -- Check for keymap configuration sanity
+        keyToFunc = {}
+        checkKeymapConflicts = (key, func, verbose) ->
+            if func\match('^key_.*')
+                prevFunc = keyToFunc[key]
+                if prevFunc != nil and prevFunc != func
+                    if verbose
+                        print fmt("Overriding conflicting keymap '%s' for %s (was %s)", key, func, prevFunc)
+                    keyToFunc[config[func]] = nil
+                    config[prevFunc] = nil
+                keyToFunc[key] = func
+
+        for func,key in pairs(config)
+            checkKeymapConflicts key, func, true
+
+
         -- If there is config override defined, add it
-        if V.call("exists", {'g:nvimgdb_config_override'}) == 1
+        if V.call("exists", {'g:nvimgdb_config_override'}) != 0
             override = V.get_var('nvimgdb_config_override')
             if override != nil
                 for k,v in pairs(override)
-                    config[k] = filterFuncref(defaultConfig, k, v)
+                    keyVal = filterFuncref(defaultConfig, k, v)
+                    checkKeymapConflicts keyVal, k, true
+                    config[k] = keyVal
 
         -- See whether a global override for a specific configuration
         -- key exists. If so, update the config.
-        for key,_ in pairs(config)
+        for key,_ in pairs(defaultConfig)
             vname = 'nvimgdb_' .. key
-            if V.call("exists", {vname}) == 1
+            if V.call("exists", {'g:'..vname}) != 0
                 val = V.get_var(vname)
                 if val != nil
-                    config[key] = filterFuncref(defaultConfig, key, val)
+                    keyVal = filterFuncref(defaultConfig, key, val)
+                    checkKeymapConflicts keyVal, key, false
+                    config[key] = keyVal
 
         -- Remember the resulting configuration
         @config = config
+
+    getConfig: => @config
 
 Keymaps

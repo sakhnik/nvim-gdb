@@ -125,28 +125,6 @@ expose "Generic", ->
 
                 assert.are.same {'test.cpp:21', {}}, eng\getSigns!
 
-    describe 'keymap', ->
-        -- Test custom programmable keymaps.
-        for backend, spec in pairs(backends)
-            it '#'..backend, ->
-                eng\feed spec.launch, 1000
-                eng\feed spec.tbreak_main
-                eng\feed 'run\n', 1000
-
-                assert.are.same 0, eng\eval 'g:test_tkeymap'
-                eng\feed '~tkm'
-                assert.are.same 1, eng\eval 'g:test_tkeymap'
-                eng\feed '<esc>'
-                assert.are.same 0, eng\eval 'g:test_keymap'
-                eng\feed '~tn'
-                assert.are.same 1, eng\eval 'g:test_keymap'
-                eng\feed ':let g:test_tkeymap = 0 | let g:test_keymap = 0<cr>'
-                eng\feed '<c-w>w'
-                assert.are.same 0, eng\eval 'g:test_keymap'
-                eng\feed '~tn'
-                assert.are.same 1, eng\eval 'g:test_keymap'
-                eng\feed ':let g:test_keymap = 0<cr>'
-
     describe 'program exit', ->
         -- Test the cursor is hidden after program end.
         for backend, spec in pairs(backends)
