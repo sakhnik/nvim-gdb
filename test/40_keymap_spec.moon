@@ -41,6 +41,13 @@ expose "#keymap", ->
         count = eng\eval 'luaeval("(function() local c = 0; for _,_ in pairs(gdb.getKeymaps():getConfig()) do c = c + 1 end return c end)()")'
         assert.are.same 1, count
         -- Check that the coursor is moving freely without stucking
-        eng\feed [[<c-\><c-n>]]
-        eng\feed "<c-w>w"
-        eng\feed "<c-w>w"
+        eng\feed '<esc>'
+        eng\feed '<c-w>w'
+        eng\feed '<c-w>w'
+
+    it 'override', ->
+        eng\exe "let g:nvimgdb_config_override = {'key_next': '<f2>'}"
+        launch!
+
+        key = eng\eval 'luaeval("gdb.getKeymaps():getConfig().key_next")'
+        assert.are.same '<f2>', key
