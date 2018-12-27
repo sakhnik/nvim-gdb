@@ -51,3 +51,11 @@ expose "#keymap", ->
 
         key = eng\eval 'luaeval("gdb.getKeymaps():getConfig().key_next")'
         assert.are.same '<f2>', key
+
+    it 'override priority', ->
+        -- Check that a config override assumes priority in a conflict
+        eng\exe "let g:nvimgdb_config_override = {'key_next': '<f8>'}"
+        launch!
+
+        res = eng\eval 'luaeval("gdb.getKeymaps():getConfig().key_breakpoint == nil")'
+        assert.are.same true, res
