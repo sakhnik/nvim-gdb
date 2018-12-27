@@ -106,4 +106,4 @@ debugging with syntax highlighting and source code navigation.
 
 [![nvim-gdb + llvm](https://asciinema.org/a/162697.png)](https://asciinema.org/a/162697)
 
-[![clone + deploy + test](https://asciinema.org/a/213992.svg)](https://asciinema.org/a/213992)
+[![clone + deploy + test](https://asciinema.org/a/218569.svg)](https://asciinema.org/a/218569)
