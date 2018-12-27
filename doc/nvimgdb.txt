@@ -169,8 +169,15 @@ first one can be used to define source window-specific keymaps and the latter
 to carefully cleanup them.  See `test/init.vim` for an example.
 
 Finally, every configuration key can be overridden with a global variable
-prefixed `g:nvimgdb_`. For example, `g:nvimgdb_key_next` overrides
+prefixed `g:nvimgdb_`.  For example, `g:nvimgdb_key_next` overrides
 `g:nvimgdb_config["key_next"]` etc.
+
+Any conflicting keymap in the user-supplied configuration will be ignored by
+the program.  The order in which the keymaps are examined is undefined.
+However, the configuration from `g:nvimgdb_config_override` assumes priority
+over default and `g:nvimgdb_config`.  And specific variables `g:nvimgdb_key_*`
+have even higher priority and will disable conflicting keymaps from the
+previous ones.  Please examine `:messages` to make sure nothing is rejected.
 
 ==============================================================================
 Section 5: Backends                                          *NvimgdbBackends*
