@@ -1,16 +1,13 @@
 -- source: 05_quit_spec.moon
-backends = require "backends"
-
 
 expose "#quit", ->
-    backend, spec = next backends
     numBufs = 0
     eng = require "engine"
 
     before_each ->
         numBufs = eng\countBuffers!
-        eng\feed spec.launch, 1000
-        eng\feed "<esc>"
+        eng\feed ":GdbStart ./dummy-gdb.sh<cr>"
+        eng\feed '<esc>'
     after_each ->
         -- Check that no new buffers have left
         assert.are.equal numBufs, eng\countBuffers!
