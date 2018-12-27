@@ -13,7 +13,7 @@ expose "#keymap", ->
         eng\exe 'source keymap_cleanup.vim'
 
     launch = ->
-        eng\feed ":GdbStart gdb -q\n", 10
+        eng\feed ":GdbStart dummy-gdb.sh\n"
 
     it 'hooks', ->
         -- Test custom programmable keymaps.
