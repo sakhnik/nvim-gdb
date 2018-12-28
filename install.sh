@@ -38,7 +38,8 @@ $luarocks install moonscript --tree="$rocks_tree"
 $luarocks install json-lua --tree="$rocks_tree"
 
 # Compile all moon scripts
-find lua/gdb -name '*.moon' -exec "$rocks_tree/bin/moonc" {} \;
+./recompile.sh
 
-# Install git hook to recompile moonscript on branch (not only) checkout
-ln -sf `pwd`/post-checkout .git/hooks/ || true
+# Install git hooks to recompile moonscript automatically
+ln -sf `pwd`/recompile.sh .git/hooks/post-checkout || true
+ln -sf `pwd`/recompile.sh .git/hooks/post-commit || true
