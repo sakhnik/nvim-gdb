@@ -23,8 +23,10 @@ def _GetBreaks(fname):
         for loc in breakpoint:
             lineentry = loc.GetAddress().GetLineEntry()
             filespec = lineentry.GetFileSpec()
-            path = os.path.join(filespec.GetDirectory(),
-                                filespec.GetFilename())
+            filename = filespec.GetFilename()
+            if not filename:
+                continue
+            path = os.path.join(filespec.GetDirectory(), filename)
 
             # See whether the breakpoint is in the file in question
             if fname == path:
