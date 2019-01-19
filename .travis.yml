@@ -1,10 +1,12 @@
-language: c++
+language: minimal
 sudo: required
 
 matrix:
   include:
     - os: linux
       dist: trusty
+      env:
+        - CFG=lua5.1
       addons:
         apt:
           sources: 
@@ -19,6 +21,8 @@ matrix:
 
     - os: linux
       dist: trusty
+      env:
+        - CFG=luajit
       addons:
         apt:
           sources: 
@@ -32,6 +36,8 @@ matrix:
             - libluajit-5.1-dev
 
     - os: osx
+      env:
+        - CFG=lua5.1
 
 notifications:
   email: false
