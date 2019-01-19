@@ -3,7 +3,9 @@
 # Check the prerequisites
 echo -n "Check for neovim     " && which nvim
 echo -n "Check for python3    " && which python3
+echo -n "Check for luajit     " && which luajit || {
 echo -n "Check for lua5.1     " && which lua5.1
+}
 
 this_dir=`dirname ${BASH_SOURCE[0]}`
 
