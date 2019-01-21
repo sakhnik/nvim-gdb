@@ -5,6 +5,14 @@ lua gdb = require("gdb.app")
 
 
 function! s:GdbKill()
+  " prevent "ghost" [noname] buffers when leaving debug when 'hidden' is on
+  if &hidden
+    set nohidden
+    let l:hidden = 1
+  else
+    let l:hidden = 0
+  endif
+
   " Cleanup commands, autocommands etc
   call nvimgdb#ui#Leave()
 
@@ -12,6 +20,11 @@ function! s:GdbKill()
 
   " TabEnter isn't fired automatically when a tab is closed
   lua gdb.tabEnter()
+
+  " sets hidden back to user default
+  if l:hidden
+    set hidden
+  endif
 endfunction
 
 
