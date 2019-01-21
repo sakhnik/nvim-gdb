@@ -3,34 +3,34 @@
 cd `dirname ${BASH_SOURCE[0]}`
 this_dir=`pwd -P`   # Unfortunately, readlink -f isn't available in macos
 rocks_tree="$this_dir/lua/rocks"
+luarocks="$rocks_tree/bin/luarocks"
 
-# Prefer luajit to lua51
-if which luajit >/dev/null 2>&1; then
-    lua_interp="--with-lua-interpreter=luajit"
-    lua_include="--with-lua-include=`pkg-config --cflags-only-I luajit | grep -Po '(?<=-I)[^\s]+'`"
-elif which lua51 >/dev/null 2>&1; then
-    lua_interp="--with-lua-interpreter=lua5.1"
-    lua_include="--with-lua-include=`pkg-config --cflags-only-I lua51 | grep -Po '(?<=-I)[^\s]+'`"
+if "$luarocks" --help >/dev/null 2>&1; then
+    echo -n
 else
-    echo "!!! No luajit or lua51 detected, trying default lua"
-fi
+    rm -rf "$rocks_tree"
+    cd /tmp
 
-#luarocks=/usr/bin/luarocks-5.1
-if [[ ! -x "$luarocks" ]]; then
-    luarocks="$rocks_tree/bin/luarocks"
-    if [[ ! -x "$luarocks" ]]; then
-        cd /tmp
-
-        vers=3.0.4
-        wget -c http://luarocks.github.io/luarocks/releases/luarocks-$vers.tar.gz
-        tar -xvf luarocks-$vers.tar.gz
-        cd luarocks-$vers
-        ./configure --prefix="$rocks_tree" --rocks-tree="$rocks_tree" --lua-version=5.1 $lua_interp $lua_include
-        make bootstrap
-
-        cd "$this_dir"
-        rm -rf /tmp/luarocks-$vers*
+    # Prefer luajit to lua51
+    if which luajit >/dev/null 2>&1; then
+        lua_interp="--with-lua-interpreter=luajit"
+        lua_include="--with-lua-include=`pkg-config --cflags-only-I luajit | grep -Po '(?<=-I)[^\s]+'`"
+    elif which lua51 >/dev/null 2>&1; then
+        lua_interp="--with-lua-interpreter=lua5.1"
+        lua_include="--with-lua-include=`pkg-config --cflags-only-I lua51 | grep -Po '(?<=-I)[^\s]+'`"
+    else
+        echo "!!! No luajit or lua51 detected, trying default lua"
     fi
+
+    vers=3.0.4
+    wget -c http://luarocks.github.io/luarocks/releases/luarocks-$vers.tar.gz
+    tar -xvf luarocks-$vers.tar.gz
+    cd luarocks-$vers
+    ./configure --prefix="$rocks_tree" --rocks-tree="$rocks_tree" --lua-version=5.1 $lua_interp $lua_include
+    make bootstrap
+
+    cd "$this_dir"
+    rm -rf /tmp/luarocks-$vers*
 fi
 
 $luarocks install luarocks --tree="$rocks_tree"
