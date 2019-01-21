@@ -5,6 +5,13 @@ lua gdb = require("gdb.app")
 
 
 function! s:GdbKill()
+  if &hidden
+    set nohidden
+    let l:hidden = 1
+  else
+    let l:hidden = 0
+  endif
+
   " Cleanup commands, autocommands etc
   call nvimgdb#ui#Leave()
 
@@ -12,6 +19,10 @@ function! s:GdbKill()
 
   " TabEnter isn't fired automatically when a tab is closed
   lua gdb.tabEnter()
+
+  if l:hidden
+    set hidden
+  endif
 endfunction
 
 
