@@ -13,30 +13,35 @@ class Breakpoint
         @sockAddr = sockDir .. "/client"
         @breaks = {}    -- {file -> {line -> id}}
         @maxSignId = 0
-        @sock = -1
+
+        @sock = s.socket(s.AF_UNIX, s.SOCK_DGRAM, 0)
+        assert(@sock != -1)
+        assert(s.bind(@sock, {family: s.AF_UNIX, path: @sockAddr}))
+        assert(s.setsockopt(@sock, s.SOL_SOCKET, s.SO_RCVTIMEO, 0, 500000))
+        -- Will connect to the socket later.
+        @connected = false
 
     cleanup: =>
         if @sock != -1
             u.close(@sock)
         os.remove @sockAddr
 
-    connect = (sockAddr, proxyAddr) ->
-        sock = s.socket(s.AF_UNIX, s.SOCK_DGRAM, 0)
-        assert(sock != -1)
-        assert(s.bind(sock, {family: s.AF_UNIX, path: sockAddr}))
-        assert(s.setsockopt(sock, s.SOL_SOCKET, s.SO_RCVTIMEO, 0, 500000))
-        assert(s.connect(sock, {family: s.AF_UNIX, path: proxyAddr}))
-        sock
+    ensureConnected: =>
+        if not @connected
+            ret, msg, err = s.connect(@sock, {family: s.AF_UNIX, path: @proxyAddr})
+            if msg
+                print "Breakpoint: not connected to the proxy: "..msg
+            @connected = ret == 0
+        @connected
 
     doQuery: (fname) =>
         -- It takes time for the proxy to open a side channel.
         -- So we're connecting to the socket lazily during
         -- the first query.
-        if @sock == -1
-            @sock = connect @sockAddr, @proxyAddr
-        assert s.send(@sock, fmt("info-breakpoints %s\n", fname))
-        data = s.recv(@sock, 65536)
-        data
+        if @ensureConnected!
+            assert s.send(@sock, fmt("info-breakpoints %s\n", fname))
+            data = s.recv(@sock, 65536)
+            data
 
     clearSigns: =>
         for i = 5000, @maxSignId
