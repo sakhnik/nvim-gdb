@@ -39,6 +39,7 @@ backend =
     initScm: LldbScm
     delete_breakpoints: 'breakpoint delete'
     breakpoint: 'b'
+    'print %s': 'frame var %s'
     'until %s': 'thread until %s'
 
 backend
