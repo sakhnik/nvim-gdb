@@ -26,6 +26,12 @@ expose "Generic", ->
                 eng\feed '<f11>'
                 assert.are.same {'test.cpp:10', {}}, eng\getSigns!
 
+                eng\feed '<c-p>'
+                assert.are.same {'test.cpp:19', {}}, eng\getSigns!
+
+                eng\feed '<c-n>'
+                assert.are.same {'test.cpp:10', {}}, eng\getSigns!
+
                 eng\feed '<f12>'
                 signs = eng\getSigns!
                 -- different for different compilers
