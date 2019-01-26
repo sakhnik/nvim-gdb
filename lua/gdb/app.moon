@@ -123,7 +123,7 @@ class App
         lineNr = V.call("line", {"."})
         breaks = @breakpoint\getForFile fileName, lineNr
 
-        if #breaks > 0
+        if breaks != nil and #breaks > 0
             -- There already is a breakpoint on this line: remove
             @client\sendLine(@getCommand('delete_breakpoints') .. ' ' .. breaks[#breaks])
         else

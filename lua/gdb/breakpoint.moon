@@ -11,7 +11,7 @@ class Breakpoint
     new: (proxyAddr, sockDir) =>
         @proxyAddr = proxyAddr
         @sockAddr = sockDir .. "/client"
-        @breaks = {}    -- {file -> [[line1, id1], [line2, id2], ...]}
+        @breaks = {}    -- {file -> {line -> [id]}}
         @maxSignId = 0
 
         @sock = s.socket(s.AF_UNIX, s.SOCK_DGRAM, 0)
@@ -53,8 +53,7 @@ class Breakpoint
         if buf != -1
             signId = 5000 - 1
             bpath = gdb.getFullBufferPath(buf)
-            for _,lineId in ipairs(@breaks[bpath] or {})
-                line = lineId[1]
+            for line,_ in pairs(@breaks[bpath] or {})
                 signId += 1
                 V.exe fmt('sign place %d name=GdbBreakpoint line=%d buffer=%d', signId, line, buf)
             @maxSignId = signId
@@ -64,8 +63,7 @@ class Breakpoint
         resp = @doQuery fname
         if resp
             -- We expect the proxies to send breakpoints for a given file
-            -- as an array of pairs (arrays of two elements), [line, breakpointId].
-            -- Where both the line and dthe breakpointId are numbers.
+            -- as a map of lines to array of breakpoint ids set in those lines.
             br = json\decode(resp)
             err = br._error
             if err
@@ -83,6 +81,6 @@ class Breakpoint
 
     getForFile: (fname, line) =>
         breaks = @breaks[fname] or {}
-        [lineId[2] for lineId in *breaks when lineId[1] == line]
+        breaks['' .. line]   -- make sure the line is a string
 
 Breakpoint
