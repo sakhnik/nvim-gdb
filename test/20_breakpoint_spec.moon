@@ -81,3 +81,24 @@ expose "#break", ->
 
                 eng\feed ":GdbBreakpointClearAll\n", 1000
                 assert.are.same {}, eng\getSigns!
+
+    describe 'duplicate', ->
+        -- Verify that duplicate breakpoints are displayed distinctively
+        for backend, spec in pairs(backends)
+            it '#'..backend, ->
+                eng\feed spec.launch, 1000
+                eng\feed spec.break_main
+                eng\feed 'run\n', 1000
+                assert.are.same {'cur': 'test.cpp:17', 'break': {17}}, eng\getSigns!
+                eng\feed spec.break_main
+                assert.are.same {'cur': 'test.cpp:17', 'breakM': {17}}, eng\getSigns!
+                eng\feed spec.break_main
+                assert.are.same {'cur': 'test.cpp:17', 'breakM': {17}}, eng\getSigns!
+                eng\feed "<esc>:wincmd w<cr>"
+                eng\feed ":17<cr>"
+                eng\feed "<f8>"
+                assert.are.same {'cur': 'test.cpp:17', 'breakM': {17}}, eng\getSigns!
+                eng\feed "<f8>"
+                assert.are.same {'cur': 'test.cpp:17', 'break': {17}}, eng\getSigns!
+                eng\feed "<f8>"
+                assert.are.same {'cur': 'test.cpp:17'}, eng\getSigns!

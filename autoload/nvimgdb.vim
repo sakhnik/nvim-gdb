@@ -1,6 +1,6 @@
 sign define GdbCurrentLine text=▶
 sign define GdbBreakpoint text=●
-sign define GdbBreakpointM text=■
+sign define GdbDBreakpoint text=■
 
 lua gdb = require("gdb.app")
 
