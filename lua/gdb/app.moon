@@ -120,7 +120,7 @@ class App
 
         buf = V.get_current_buf!
         fileName = GetFullBufferPath(buf)
-        lineNr = '' .. V.call("line", {"."})    -- Must be string to query from the fileBreaks
+        lineNr = V.call("line", {"."})
         breaks = @breakpoint\getForFile fileName, lineNr
 
         if #breaks > 0

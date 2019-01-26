@@ -31,7 +31,7 @@ class _PdbFeatures:
         # Num Type         Disp Enb   Where
         # 1   breakpoint   keep yes   at /tmp/nvim-gdb/test/main.py:8
 
-        breaks = {}
+        breaks = []
         for line in response.decode('utf-8').splitlines():
             try:
                 tokens = re.split(r'\s+', line)
@@ -42,7 +42,7 @@ class _PdbFeatures:
                     continue
                 src_line = re.split(r':', tokens[-1])
                 if self.last_src == src_line[0]:
-                    breaks[src_line[1]] = bid
+                    breaks.append([int(src_line[1]), bid])
             except Exception:
                 pass
 

@@ -67,8 +67,7 @@ class Breakpoint
             if err
                 V.exe ("echo \"Can't get breakpoints: \"" .. err)
             else
-                br2 = [{line,id} for line,id in pairs br]
-                @breaks[fname] = br2
+                @breaks[fname] = br
                 @clearSigns!
                 @setSigns bufNum
         --else

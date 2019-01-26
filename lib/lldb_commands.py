@@ -8,7 +8,7 @@ import lldb
 
 # Get list of enabled breakpoints for a given source file
 def _GetBreaks(fname):
-    breaks = {}
+    breaks = []
 
     # Ensure target is the actually selected one
     target = lldb.debugger.GetSelectedTarget()
@@ -30,7 +30,7 @@ def _GetBreaks(fname):
 
             # See whether the breakpoint is in the file in question
             if fname == path:
-                breaks[lineentry.GetLine()] = bid
+                breaks.append([lineentry.GetLine(), bid])
 
     # Return the filtered breakpoints
     return json.dumps(breaks)

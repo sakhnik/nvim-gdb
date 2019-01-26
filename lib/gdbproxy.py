@@ -27,14 +27,14 @@ class _GdbFeatures:
 
         # Select lines in the current file with enabled breakpoints.
         pattern = re.compile("([^:]+):(\d+)")
-        breaks = {}   # TODO: support more than one breakpoint per line
+        breaks = []
         for line in response.decode('utf-8').splitlines():
             try:
                 fields = re.split("\s+", line)
                 if fields[3] == 'y':    # Is enabled?
                     m = pattern.fullmatch(fields[-1])   # file.cpp:line
                     if (m and (self.last_src.endswith(m.group(1)) or self.last_src.endswith(os.path.realpath(m.group(1))))):
-                        breaks[int(m.group(2))] = int(fields[0])
+                        breaks.append([int(m.group(2)), int(fields[0])])
             except Exception as e:
                 pass
 
