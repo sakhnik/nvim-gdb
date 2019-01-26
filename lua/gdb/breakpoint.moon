@@ -11,14 +11,15 @@ class Breakpoint
     new: (proxyAddr, sockDir) =>
         @proxyAddr = proxyAddr
         @sockAddr = sockDir .. "/client"
-        @breaks = {}    -- {file -> [{line, id}}
+        @breaks = {}    -- {file -> [[line1, id1], [line2, id2], ...]}
         @maxSignId = 0
 
         @sock = s.socket(s.AF_UNIX, s.SOCK_DGRAM, 0)
         assert(@sock != -1)
         assert(s.bind(@sock, {family: s.AF_UNIX, path: @sockAddr}))
         assert(s.setsockopt(@sock, s.SOL_SOCKET, s.SO_RCVTIMEO, 0, 500000))
-        -- Will connect to the socket later.
+        -- Will connect to the socket later, when the first query is needed
+        -- to be issued.
         @connected = false
 
     cleanup: =>
@@ -62,6 +63,9 @@ class Breakpoint
         @breaks[fname] = {}
         resp = @doQuery fname
         if resp
+            -- We expect the proxies to send breakpoints for a given file
+            -- as an array of pairs (arrays of two elements), [line, breakpointId].
+            -- Where both the line and dthe breakpointId are numbers.
             br = json\decode(resp)
             err = br._error
             if err
