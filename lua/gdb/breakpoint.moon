@@ -11,7 +11,7 @@ class Breakpoint
     new: (proxyAddr, sockDir) =>
         @proxyAddr = proxyAddr
         @sockAddr = sockDir .. "/client"
-        @breaks = {}    -- {file -> {line -> id}}
+        @breaks = {}    -- {file -> [{line, id}}
         @maxSignId = 0
 
         @sock = s.socket(s.AF_UNIX, s.SOCK_DGRAM, 0)
@@ -52,7 +52,8 @@ class Breakpoint
         if buf != -1
             signId = 5000 - 1
             bpath = gdb.getFullBufferPath(buf)
-            for line, _ in pairs(@breaks[bpath] or {})
+            for _,lineId in ipairs(@breaks[bpath] or {})
+                line = lineId[1]
                 signId += 1
                 V.exe fmt('sign place %d name=GdbBreakpoint line=%d buffer=%d', signId, line, buf)
             @maxSignId = signId
@@ -66,7 +67,8 @@ class Breakpoint
             if err
                 V.exe ("echo \"Can't get breakpoints: \"" .. err)
             else
-                @breaks[fname] = br
+                br2 = [{line,id} for line,id in pairs br]
+                @breaks[fname] = br2
                 @clearSigns!
                 @setSigns bufNum
         --else
@@ -76,7 +78,8 @@ class Breakpoint
         @breaks = {}
         @clearSigns!
 
-    getForFile: (fname) =>
-        @breaks[fname] or {}
+    getForFile: (fname, line) =>
+        breaks = @breaks[fname] or {}
+        [lineId[2] for lineId in *breaks when lineId[1] == line]
 
 Breakpoint
