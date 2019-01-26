@@ -8,7 +8,7 @@ expose "Generic", ->
     after_each ->
         eng\exe "GdbDebugStop"
         assert.are.equal 1, eng\eval "tabpagenr('$')"
-        assert.are.same {''}, eng\getSigns!
+        assert.are.same {}, eng\getSigns!
 
     describe "#smoke", ->
         for backend, spec in pairs(backends)
@@ -18,23 +18,25 @@ expose "Generic", ->
                 eng\feed 'run\n', 1000
                 eng\feed '<esc>'
 
-                assert.are.same {'test.cpp:17'}, eng\getSigns!
+                assert.are.same {'cur': 'test.cpp:17'}, eng\getSigns!
 
                 eng\feed '<f10>'
-                assert.are.same {'test.cpp:19'}, eng\getSigns!
+                assert.are.same {'cur': 'test.cpp:19'}, eng\getSigns!
 
                 eng\feed '<f11>'
-                assert.are.same {'test.cpp:10'}, eng\getSigns!
+                assert.are.same {'cur': 'test.cpp:10'}, eng\getSigns!
 
                 eng\feed '<f12>'
                 signs = eng\getSigns!
                 -- different for different compilers
+                -- TODO: fixme
                 exp = {'test.cpp:17': true, 'test.cpp:19': true}
-                assert.are_not.equal nil, signs[1]
-                assert.are.same nil, signs[2]
+                assert.are_not.equal nil, signs['cur']
+                assert.are.same nil, signs['break']
+                assert.are.same nil, signs['breakM']
 
                 eng\feed '<f5>'
-                assert.are.same {''}, eng\getSigns!
+                assert.are.same {}, eng\getSigns!
 
     describe "#break", ->
         -- Test toggling breakpoints.
@@ -47,13 +49,13 @@ expose "Generic", ->
                 eng\feed ":e src/test.cpp\n"
                 eng\feed ':5<cr>'
                 eng\feed '<f8>'
-                assert.are.same {'', {5}}, eng\getSigns!
+                assert.are.same {'break': {5}}, eng\getSigns!
 
                 eng\exe "GdbRun", 1000
-                assert.are.same {'test.cpp:5', {5}}, eng\getSigns!
+                assert.are.same {'cur': 'test.cpp:5', 'break': {5}}, eng\getSigns!
 
                 eng\feed '<f8>'
-                assert.are.same {'test.cpp:5'}, eng\getSigns!
+                assert.are.same {'cur': 'test.cpp:5'}, eng\getSigns!
 
     it "multiview", ->
         -- Test multiple views.
@@ -72,7 +74,7 @@ expose "Generic", ->
         eng\feed '<f10>'
         eng\feed '<f11>'
 
-        assert.are.same {'test.cpp:10', {11}}, eng\getSigns!
+        assert.are.same {'cur': 'test.cpp:10', 'break': {11}}, eng\getSigns!
 
         -- Then launch the second backend
         eng\feed backends[backend2].launch, 1000
@@ -86,17 +88,17 @@ expose "Generic", ->
         eng\feed '<f8>'
         eng\feed '<f10>'
 
-        assert.are.same {'test.cpp:19', {5, 12}}, eng\getSigns!
+        assert.are.same {'cur': 'test.cpp:19', 'break': {5, 12}}, eng\getSigns!
 
         -- Switch to the first backend
         eng\feed '2gt'
-        assert.are.same {'test.cpp:10', {11}}, eng\getSigns!
+        assert.are.same {'cur': 'test.cpp:10', 'break': {11}}, eng\getSigns!
 
         -- Quit
         eng\feed 'ZZ'
 
         -- Switch back to the second backend
-        assert.are.same {'test.cpp:19', {5, 12}}, eng\getSigns!
+        assert.are.same {'cur': 'test.cpp:19', 'break': {5, 12}}, eng\getSigns!
 
         -- The last debugger is quit in the after_each
 
@@ -109,7 +111,7 @@ expose "Generic", ->
                 eng\feed '<esc>'
                 eng\feed ':GdbInterrupt\n', 300
 
-                assert.are.same {'test.cpp:22'}, eng\getSigns!
+                assert.are.same {'cur': 'test.cpp:22'}, eng\getSigns!
 
     describe "until", ->
         for backend, spec in pairs(backends)
@@ -123,7 +125,7 @@ expose "Generic", ->
                 eng\feed ':21<cr>'
                 eng\feed '<f4>'
 
-                assert.are.same {'test.cpp:21'}, eng\getSigns!
+                assert.are.same {'cur': 'test.cpp:21'}, eng\getSigns!
 
     describe 'program exit', ->
         -- Test the cursor is hidden after program end.
@@ -135,7 +137,7 @@ expose "Generic", ->
                 eng\feed '<esc>'
 
                 eng\feed '<f5>'
-                assert.are.same {''}, eng\getSigns!
+                assert.are.same {}, eng\getSigns!
 
     describe '#eval', ->
         -- Test eval <cword>.

@@ -9,7 +9,7 @@ expose "#keymap", ->
     after_each ->
         eng\exe "GdbDebugStop"
         assert.are.equal 1, eng\eval "tabpagenr('$')"
-        assert.are.same {''}, eng\getSigns!
+        assert.are.same {}, eng\getSigns!
         eng\exe 'source keymap_cleanup.vim'
 
     launch = ->
