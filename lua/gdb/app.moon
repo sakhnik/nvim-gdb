@@ -120,13 +120,12 @@ class App
 
         buf = V.get_current_buf!
         fileName = GetFullBufferPath(buf)
-        fileBreaks = @breakpoint\getForFile(fileName)
-        lineNr = '' .. V.call("line", {"."})    -- Must be string to query from the fileBreaks
+        lineNr = V.call("line", {"."})
+        breaks = @breakpoint\getForFile fileName, lineNr
 
-        breakId = fileBreaks[lineNr]
-        if breakId != nil
+        if breaks != nil and #breaks > 0
             -- There already is a breakpoint on this line: remove
-            @client\sendLine(@getCommand('delete_breakpoints') .. ' ' .. breakId)
+            @client\sendLine(@getCommand('delete_breakpoints') .. ' ' .. breaks[#breaks])
         else
             @client\sendLine(@getCommand('breakpoint') .. ' ' .. fileName .. ':' .. lineNr)
 

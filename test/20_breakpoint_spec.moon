@@ -8,7 +8,7 @@ expose "#break", ->
     after_each ->
         eng\exe 'GdbDebugStop'
         assert.are.equal 1, eng\eval "tabpagenr('$')"
-        assert.are.same {'', {}}, eng\getSigns!
+        assert.are.same {}, eng\getSigns!
 
     describe 'detect', ->
         -- Verify manual breakpoint is detected.
@@ -18,7 +18,7 @@ expose "#break", ->
                 eng\feed spec.break_main
                 eng\feed 'run\n', 1000
 
-                assert.are.same {'test.cpp:17', {17}}, eng\getSigns!
+                assert.are.same {'cur': 'test.cpp:17', 'break': {17}}, eng\getSigns!
 
     describe 'cd', ->
         -- Verify manual breakpoint is detected from a random directory.
@@ -39,7 +39,7 @@ expose "#break", ->
                 eng\feed spec.break_main
                 eng\feed 'run\n', 1000
 
-                assert.are.same {'test.cpp:17', {17}}, eng\getSigns!
+                assert.are.same {'cur': 'test.cpp:17', 'break': {17}}, eng\getSigns!
 
     describe 'navigate', ->
         -- Verify that breakpoints stay when source code is navigated.
@@ -52,18 +52,18 @@ expose "#break", ->
                 eng\feed ":10<cr>"
                 eng\feed "<f8>"
 
-                assert.are.same {'', {5, 10}}, eng\getSigns!
+                assert.are.same {'break': {5, 10}}, eng\getSigns!
 
                 -- Go to another file
                 eng\feed ":e src/lib.hpp\n"
-                assert.are.same {'', {}}, eng\getSigns!
+                assert.are.same {}, eng\getSigns!
                 eng\feed ":8\n"
                 eng\feed "<f8>"
-                assert.are.same {'', {8}}, eng\getSigns!
+                assert.are.same {'break': {8}}, eng\getSigns!
 
                 -- Return to the first file
                 eng\feed ":e src/test.cpp\n"
-                assert.are.same {'', {5, 10}}, eng\getSigns!
+                assert.are.same {'break': {5, 10}}, eng\getSigns!
 
     describe 'clear all', ->
         -- Verify that can clear all breakpoints.
@@ -77,7 +77,28 @@ expose "#break", ->
                 eng\feed ":10<cr>"
                 eng\feed "<f8>"
 
-                assert.are.same {'', {5,10,17}}, eng\getSigns!
+                assert.are.same {'break': {5,10,17}}, eng\getSigns!
 
                 eng\feed ":GdbBreakpointClearAll\n", 1000
-                assert.are.same {'', {}}, eng\getSigns!
+                assert.are.same {}, eng\getSigns!
+
+    describe 'duplicate', ->
+        -- Verify that duplicate breakpoints are displayed distinctively
+        for backend, spec in pairs(backends)
+            it '#'..backend, ->
+                eng\feed spec.launch, 1000
+                eng\feed spec.break_main
+                eng\feed 'run\n', 1000
+                assert.are.same {'cur': 'test.cpp:17', 'break': {17}}, eng\getSigns!
+                eng\feed spec.break_main
+                assert.are.same {'cur': 'test.cpp:17', 'breakM': {17}}, eng\getSigns!
+                eng\feed spec.break_main
+                assert.are.same {'cur': 'test.cpp:17', 'breakM': {17}}, eng\getSigns!
+                eng\feed "<esc>:wincmd w<cr>"
+                eng\feed ":17<cr>"
+                eng\feed "<f8>"
+                assert.are.same {'cur': 'test.cpp:17', 'breakM': {17}}, eng\getSigns!
+                eng\feed "<f8>"
+                assert.are.same {'cur': 'test.cpp:17', 'break': {17}}, eng\getSigns!
+                eng\feed "<f8>"
+                assert.are.same {'cur': 'test.cpp:17'}, eng\getSigns!

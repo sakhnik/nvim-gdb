@@ -30,7 +30,11 @@ def _GetBreaks(fname):
 
             # See whether the breakpoint is in the file in question
             if fname == path:
-                breaks[lineentry.GetLine()] = bid
+                line = lineentry.GetLine()
+                try:
+                    breaks[line].append(bid)
+                except KeyError:
+                    breaks[line] = [bid]
 
     # Return the filtered breakpoints
     return json.dumps(breaks)

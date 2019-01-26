@@ -35,7 +35,7 @@ class Engine
         out = @eval 'execute("sign place")'
 
         fname = nil     -- Filename where the current line sign is
-        cur = ''        -- The return value from the function in the form fname:line
+        cur = nil       -- The return value from the function in the form fname:line
         for _, l in pairs({out\match (out\gsub("[^\n]*\n", "([^\n]*)\n"))})
             m = l\match 'Signs for ([^:]+):'
             if m != nil
@@ -44,12 +44,15 @@ class Engine
             m = l\match('    line=(%d+)%s+id=%d+%s+name=GdbCurrentLine')
             if m != nil
                 -- There can be only one current line sign
-                assert(cur == '')
+                assert(cur == nil)
                 cur = fname .. ":" .. m
 
-        breaks = [tonumber(m) for m in out\gmatch('line=(%d+)%s+id=%d+%s+name=GdbBreakpoint')]
-        table.sort(breaks)
-        {cur, breaks}
+        collectSigns = (name) ->
+            signs = [tonumber(m) for m in out\gmatch('line=(%d+)%s+id=%d+%s+name=' .. name)]
+            if #signs > 0
+                table.sort(signs)
+                signs
+        {"cur": cur, "break": collectSigns('GdbBreakpoint'), "breakM": collectSigns('GdbDBreakpoint')}
 
     feed: (keys, delay=100) =>
         @session\request 'nvim_input', keys

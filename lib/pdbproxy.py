@@ -42,7 +42,10 @@ class _PdbFeatures:
                     continue
                 src_line = re.split(r':', tokens[-1])
                 if self.last_src == src_line[0]:
-                    breaks[src_line[1]] = bid
+                    try:
+                        breaks[src_line[1]].append(bid)
+                    except KeyError:
+                        breaks[src_line[1]] = [bid]
             except Exception:
                 pass
 

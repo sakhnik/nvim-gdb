@@ -11,14 +11,15 @@ class Breakpoint
     new: (proxyAddr, sockDir) =>
         @proxyAddr = proxyAddr
         @sockAddr = sockDir .. "/client"
-        @breaks = {}    -- {file -> {line -> id}}
+        @breaks = {}    -- {file -> {line -> [id]}}
         @maxSignId = 0
 
         @sock = s.socket(s.AF_UNIX, s.SOCK_DGRAM, 0)
         assert(@sock != -1)
         assert(s.bind(@sock, {family: s.AF_UNIX, path: @sockAddr}))
         assert(s.setsockopt(@sock, s.SOL_SOCKET, s.SO_RCVTIMEO, 0, 500000))
-        -- Will connect to the socket later.
+        -- Will connect to the socket later, when the first query is needed
+        -- to be issued.
         @connected = false
 
     cleanup: =>
@@ -52,15 +53,18 @@ class Breakpoint
         if buf != -1
             signId = 5000 - 1
             bpath = gdb.getFullBufferPath(buf)
-            for line, _ in pairs(@breaks[bpath] or {})
+            for line,ids in pairs(@breaks[bpath] or {})
                 signId += 1
-                V.exe fmt('sign place %d name=GdbBreakpoint line=%d buffer=%d', signId, line, buf)
+                V.exe fmt('sign place %d name=%s line=%d buffer=%d',
+                    signId, (#ids == 1 and "GdbBreakpoint" or "GdbDBreakpoint"), line, buf)
             @maxSignId = signId
 
     query: (bufNum, fname) =>
         @breaks[fname] = {}
         resp = @doQuery fname
         if resp
+            -- We expect the proxies to send breakpoints for a given file
+            -- as a map of lines to array of breakpoint ids set in those lines.
             br = json\decode(resp)
             err = br._error
             if err
@@ -76,7 +80,8 @@ class Breakpoint
         @breaks = {}
         @clearSigns!
 
-    getForFile: (fname) =>
-        @breaks[fname] or {}
+    getForFile: (fname, line) =>
+        breaks = @breaks[fname] or {}
+        breaks['' .. line]   -- make sure the line is a string
 
 Breakpoint
