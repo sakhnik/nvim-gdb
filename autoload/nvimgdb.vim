@@ -1,4 +1,4 @@
-sign define GdbCurrentLine text=⇒
+sign define GdbCurrentLine text=▶
 sign define GdbBreakpoint text=●
 sign define GdbBreakpointM text=■
 
