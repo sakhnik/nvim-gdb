@@ -8,7 +8,7 @@ expose "#break", ->
     after_each ->
         eng\exe 'GdbDebugStop'
         assert.are.equal 1, eng\eval "tabpagenr('$')"
-        assert.are.same {'', {}}, eng\getSigns!
+        assert.are.same {''}, eng\getSigns!
 
     describe 'detect', ->
         -- Verify manual breakpoint is detected.
@@ -56,7 +56,7 @@ expose "#break", ->
 
                 -- Go to another file
                 eng\feed ":e src/lib.hpp\n"
-                assert.are.same {'', {}}, eng\getSigns!
+                assert.are.same {''}, eng\getSigns!
                 eng\feed ":8\n"
                 eng\feed "<f8>"
                 assert.are.same {'', {8}}, eng\getSigns!
@@ -80,4 +80,4 @@ expose "#break", ->
                 assert.are.same {'', {5,10,17}}, eng\getSigns!
 
                 eng\feed ":GdbBreakpointClearAll\n", 1000
-                assert.are.same {'', {}}, eng\getSigns!
+                assert.are.same {''}, eng\getSigns!

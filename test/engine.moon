@@ -47,9 +47,12 @@ class Engine
                 assert(cur == '')
                 cur = fname .. ":" .. m
 
-        breaks = [tonumber(m) for m in out\gmatch('line=(%d+)%s+id=%d+%s+name=GdbBreakpoint')]
-        table.sort(breaks)
-        {cur, breaks}
+        collectSigns = (name) ->
+            signs = [tonumber(m) for m in out\gmatch('line=(%d+)%s+id=%d+%s+name=' .. name)]
+            if #signs > 0
+                table.sort(signs)
+                signs
+        {cur, collectSigns('GdbBreakpoint'), collectSigns('GdbBreakpointsM')}
 
     feed: (keys, delay=100) =>
         @session\request 'nvim_input', keys

@@ -7,7 +7,7 @@ expose '#pdb', ->
     after_each ->
         eng\exe 'GdbDebugStop'
         assert.are.equal 1, eng\eval "tabpagenr('$')"
-        assert.are.same {'', {}}, eng\getSigns!
+        assert.are.same {''}, eng\getSigns!
 
     it '#smoke', ->
         -- Test a generic use case.
@@ -17,25 +17,25 @@ expose '#pdb', ->
         eng\feed 'cont\n'
         eng\feed '<esc>'
 
-        assert.are.same {'main.py:15', {}}, eng\getSigns!
+        assert.are.same {'main.py:15'}, eng\getSigns!
 
         eng\feed '<f10>'
-        assert.are.same {'main.py:16', {}}, eng\getSigns!
+        assert.are.same {'main.py:16'}, eng\getSigns!
 
         eng\feed '<f11>'
-        assert.are.same {'main.py:8', {}}, eng\getSigns!
+        assert.are.same {'main.py:8'}, eng\getSigns!
 
         eng\feed '<c-p>'
-        assert.are.same {'main.py:16', {}}, eng\getSigns!
+        assert.are.same {'main.py:16'}, eng\getSigns!
 
         eng\feed '<c-n>'
-        assert.are.same {'main.py:8', {}}, eng\getSigns!
+        assert.are.same {'main.py:8'}, eng\getSigns!
 
         eng\feed '<f12>'
-        assert.are.same {'main.py:10', {}}, eng\getSigns!
+        assert.are.same {'main.py:10'}, eng\getSigns!
 
         eng\feed '<f5>', 1200
-        assert.are.same {'main.py:1', {}}, eng\getSigns!
+        assert.are.same {'main.py:1'}, eng\getSigns!
 
     it '#break', ->
         -- Test toggling breakpoints.
@@ -53,7 +53,7 @@ expose '#pdb', ->
         assert.are.same {'main.py:5', {5}}, eng\getSigns!
 
         eng\feed '<f8>', 300
-        assert.are.same {'main.py:5', {}}, eng\getSigns!
+        assert.are.same {'main.py:5'}, eng\getSigns!
 
     it 'navigation', ->
         -- Test toggling breakpoints while navigating.
@@ -96,7 +96,7 @@ expose '#pdb', ->
         -- Probably, because of different versions of Python interpreter.
         if os.getenv("TRAVIS_BUILD_ID") == nil
             assert.are.same 'main.py:18', signs[1]
-        assert.are.same {}, signs[2]
+        assert.are.same nil, signs[2]
 
     it '#eval', ->
         eng\feed ' dp'

@@ -8,7 +8,7 @@ expose "Generic", ->
     after_each ->
         eng\exe "GdbDebugStop"
         assert.are.equal 1, eng\eval "tabpagenr('$')"
-        assert.are.same {'', {}}, eng\getSigns!
+        assert.are.same {''}, eng\getSigns!
 
     describe "#smoke", ->
         for backend, spec in pairs(backends)
@@ -18,23 +18,23 @@ expose "Generic", ->
                 eng\feed 'run\n', 1000
                 eng\feed '<esc>'
 
-                assert.are.same {'test.cpp:17', {}}, eng\getSigns!
+                assert.are.same {'test.cpp:17'}, eng\getSigns!
 
                 eng\feed '<f10>'
-                assert.are.same {'test.cpp:19', {}}, eng\getSigns!
+                assert.are.same {'test.cpp:19'}, eng\getSigns!
 
                 eng\feed '<f11>'
-                assert.are.same {'test.cpp:10', {}}, eng\getSigns!
+                assert.are.same {'test.cpp:10'}, eng\getSigns!
 
                 eng\feed '<f12>'
                 signs = eng\getSigns!
                 -- different for different compilers
                 exp = {'test.cpp:17': true, 'test.cpp:19': true}
                 assert.are_not.equal nil, signs[1]
-                assert.are.same {}, signs[2]
+                assert.are.same nil, signs[2]
 
                 eng\feed '<f5>'
-                assert.are.same {'', {}}, eng\getSigns!
+                assert.are.same {''}, eng\getSigns!
 
     describe "#break", ->
         -- Test toggling breakpoints.
@@ -53,7 +53,7 @@ expose "Generic", ->
                 assert.are.same {'test.cpp:5', {5}}, eng\getSigns!
 
                 eng\feed '<f8>'
-                assert.are.same {'test.cpp:5', {}}, eng\getSigns!
+                assert.are.same {'test.cpp:5'}, eng\getSigns!
 
     it "multiview", ->
         -- Test multiple views.
@@ -109,7 +109,7 @@ expose "Generic", ->
                 eng\feed '<esc>'
                 eng\feed ':GdbInterrupt\n', 300
 
-                assert.are.same {'test.cpp:22', {}}, eng\getSigns!
+                assert.are.same {'test.cpp:22'}, eng\getSigns!
 
     describe "until", ->
         for backend, spec in pairs(backends)
@@ -123,7 +123,7 @@ expose "Generic", ->
                 eng\feed ':21<cr>'
                 eng\feed '<f4>'
 
-                assert.are.same {'test.cpp:21', {}}, eng\getSigns!
+                assert.are.same {'test.cpp:21'}, eng\getSigns!
 
     describe 'program exit', ->
         -- Test the cursor is hidden after program end.
@@ -135,7 +135,7 @@ expose "Generic", ->
                 eng\feed '<esc>'
 
                 eng\feed '<f5>'
-                assert.are.same {'', {}}, eng\getSigns!
+                assert.are.same {''}, eng\getSigns!
 
     describe '#eval', ->
         -- Test eval <cword>.
