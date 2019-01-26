@@ -35,11 +35,10 @@ expose "Generic", ->
                 eng\feed '<f12>'
                 signs = eng\getSigns!
                 -- different for different compilers
-                -- TODO: fixme
                 exp = {'test.cpp:17': true, 'test.cpp:19': true}
-                assert.are_not.equal nil, signs['cur']
-                assert.are.same nil, signs['break']
-                assert.are.same nil, signs['breakM']
+                assert.is_true exp[signs.cur]
+                assert.are.same nil, signs.break
+                assert.are.same nil, signs.breakM
 
                 eng\feed '<f5>'
                 assert.are.same {}, eng\getSigns!
