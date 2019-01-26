@@ -25,6 +25,12 @@ expose '#pdb', ->
         eng\feed '<f11>'
         assert.are.same {'main.py:8', {}}, eng\getSigns!
 
+        eng\feed '<c-p>'
+        assert.are.same {'main.py:16', {}}, eng\getSigns!
+
+        eng\feed '<c-n>'
+        assert.are.same {'main.py:8', {}}, eng\getSigns!
+
         eng\feed '<f12>'
         assert.are.same {'main.py:10', {}}, eng\getSigns!
 
