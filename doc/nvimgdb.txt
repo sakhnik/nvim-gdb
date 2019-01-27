@@ -153,11 +153,26 @@ allows overriding the given keys. For example, the default config is: >
       \ 'key_frameup':    '<c-p>',
       \ 'key_framedown':  '<c-n>',
       \ 'key_eval':       '<f9>',
-      \ 'set_tkeymaps':   'gdb.keymaps:setT',
-      \ 'set_keymaps':    'gdb.keymaps:set',
-      \ 'unset_keymaps':  'get.keymaps:unset',
+      \ 'set_tkeymaps':   function('luaeval', ['gdb.getKeymaps():setT()']),
+      \ 'set_keymaps':    function('luaeval', ['gdb.getKeymaps():set()']),
+      \ 'unset_keymaps':  function('luaeval', ['get.getKeymaps():unset()']),
+      \ 'sign_current_line': '▶',
+      \ 'sign_breakpoint': [ '●', '●²', '●³', '●⁴', '●⁵', '●⁶', '●⁷', '●⁸', '●⁹', '●ⁿ' ]
       \ }
 <
+The keys starting with `sign_` define how the signs for the currently executed
+line and breakpoints look like. The default values assume a modern terminal
+capable of rendering the Unicode superscript numbers, and fonts supporting
+those symbols. It's possible to use other symbols too: >
+
+    let g:nvimgdb_config_override = {
+      \ 'sign_current_line': '>',
+      \ 'sign_breakpoint': [ '*', '#' ],
+      \ }
+<
+In this case the currently executed line will be signed with `>`, whereas a
+single breakpoint with `*` and a duplicate breakpoint with `#`.
+
 The keys starting with `key_` define a key mapping for the respective command.
 The key `set_tkeymaps` allows specifying a hook function, which will be called
 when the terminal window has been created.  The function is specified as a

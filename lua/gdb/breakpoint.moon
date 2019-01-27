@@ -8,7 +8,8 @@ fmt = string.format
 
 
 class Breakpoint
-    new: (proxyAddr, sockDir) =>
+    new: (config, proxyAddr, sockDir) =>
+        @config = config
         @proxyAddr = proxyAddr
         @sockAddr = sockDir .. "/client"
         @breaks = {}    -- {file -> {line -> [id]}}
@@ -53,10 +54,14 @@ class Breakpoint
         if buf != -1
             signId = 5000 - 1
             bpath = gdb.getFullBufferPath(buf)
+            getSignName = (count) ->
+                maxCount = #@config.sign_breakpoint
+                idx = count <= maxCount and count or maxCount
+                "GdbBreakpoint" .. idx
             for line,ids in pairs(@breaks[bpath] or {})
                 signId += 1
                 V.exe fmt('sign place %d name=%s line=%d buffer=%d',
-                    signId, (#ids == 1 and "GdbBreakpoint" or "GdbDBreakpoint"), line, buf)
+                    signId, getSignName(#ids), line, buf)
             @maxSignId = signId
 
     query: (bufNum, fname) =>

@@ -54,10 +54,10 @@ expose "Generic", ->
                 eng\feed ":e src/test.cpp\n"
                 eng\feed ':5<cr>'
                 eng\feed '<f8>'
-                assert.are.same {'break': {5}}, eng\getSigns!
+                assert.are.same {'break': {[1]: {5}}}, eng\getSigns!
 
                 eng\exe "GdbRun", 1000
-                assert.are.same {'cur': 'test.cpp:5', 'break': {5}}, eng\getSigns!
+                assert.are.same {'cur': 'test.cpp:5', 'break': {[1]: {5}}}, eng\getSigns!
 
                 eng\feed '<f8>'
                 assert.are.same {'cur': 'test.cpp:5'}, eng\getSigns!
@@ -79,7 +79,7 @@ expose "Generic", ->
         eng\feed '<f10>'
         eng\feed '<f11>'
 
-        assert.are.same {'cur': 'test.cpp:10', 'break': {11}}, eng\getSigns!
+        assert.are.same {'cur': 'test.cpp:10', 'break': {[1]: {11}}}, eng\getSigns!
 
         -- Then launch the second backend
         eng\feed backends[backend2].launch, 1000
@@ -93,17 +93,17 @@ expose "Generic", ->
         eng\feed '<f8>'
         eng\feed '<f10>'
 
-        assert.are.same {'cur': 'test.cpp:19', 'break': {5, 12}}, eng\getSigns!
+        assert.are.same {'cur': 'test.cpp:19', 'break': {[1]: {5, 12}}}, eng\getSigns!
 
         -- Switch to the first backend
         eng\feed '2gt'
-        assert.are.same {'cur': 'test.cpp:10', 'break': {11}}, eng\getSigns!
+        assert.are.same {'cur': 'test.cpp:10', 'break': {[1]: {11}}}, eng\getSigns!
 
         -- Quit
         eng\feed 'ZZ'
 
         -- Switch back to the second backend
-        assert.are.same {'cur': 'test.cpp:19', 'break': {5, 12}}, eng\getSigns!
+        assert.are.same {'cur': 'test.cpp:19', 'break': {[1]: {5, 12}}}, eng\getSigns!
 
         -- The last debugger is quit in the after_each
 

@@ -52,7 +52,13 @@ class Engine
             if #signs > 0
                 table.sort(signs)
                 signs
-        {"cur": cur, "break": collectSigns('GdbBreakpoint'), "breakM": collectSigns('GdbDBreakpoint')}
+        ret = {"cur": cur}
+        br = {}
+        for n = 1,10
+            br[n] = collectSigns 'GdbBreakpoint'..n
+        if next(br) != nil
+            ret["break"] = br
+        ret
 
     feed: (keys, delay=100) =>
         @session\request 'nvim_input', keys

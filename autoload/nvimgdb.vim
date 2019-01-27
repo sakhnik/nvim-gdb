@@ -1,12 +1,8 @@
-sign define GdbCurrentLine text=▶
-sign define GdbBreakpoint text=●
-sign define GdbDBreakpoint text=■
-
 lua gdb = require("gdb.app")
 
 
 function! s:GdbKill()
-  " prevent "ghost" [noname] buffers when leaving debug when 'hidden' is on
+  " Prevent "ghost" [noname] buffers when leaving debug when 'hidden' is on
   if &hidden
     set nohidden
     let l:hidden = 1
