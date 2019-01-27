@@ -1,4 +1,5 @@
 V = require "gdb.v"
+Config = require "gdb.config"
 Client = require "gdb.client"
 Cursor = require "gdb.cursor"
 Breakpoint = require "gdb.breakpoint"
@@ -37,6 +38,9 @@ class App
         table.sort wins
         wcli, wjump = unpack(wins)
 
+        -- Prepare configuration: keymaps, hooks, parameters etc.
+        @config = Config!
+
         @backend = require "gdb.backend." .. backendStr
 
         -- Create a temporary unique directory for all the sockets.
@@ -64,7 +68,7 @@ class App
         tls\init @
 
         -- Set initial keymaps in the terminal window.
-        @keymaps = Keymaps!
+        @keymaps = Keymaps @config
         @keymaps\dispatchSetT!
         @keymaps\dispatchSet!
 
@@ -109,6 +113,7 @@ class App
         @lastCommand = command  -- Remember the command for testing
 
     getLastCommand: => @lastCommand
+    getConfig: => @config
     getKeymaps: => @keymaps
 
     interrupt: => @client\interrupt!
