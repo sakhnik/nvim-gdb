@@ -39,7 +39,7 @@ class App
         wcli, wjump = unpack(wins)
 
         -- Prepare configuration: keymaps, hooks, parameters etc.
-        @config = Config!
+        @config = Config!\get!
 
         @backend = require "gdb.backend." .. backendStr
 

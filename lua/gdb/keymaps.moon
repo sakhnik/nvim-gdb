@@ -4,7 +4,7 @@ fmt = string.format
 
 class Keymaps
     new: (config) =>
-        @config = config\get!
+        @config = config
 
     defaultKeymaps: {
         {'n', 'key_until',      ':GdbUntil'}
