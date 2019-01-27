@@ -27,6 +27,13 @@ GetFullBufferPath = (bufNr) ->
     -- Breakpoints need full path to the buffer (at least in lldb)
     V.call("expand", {fmt('#%d:p', bufNr)})
 
+defineSigns = (config) ->
+    -- Define the sign for current line the debugged program is executing.
+    V.exe "sign define GdbCurrentLine text=" .. config.sign_current_line
+    -- Define signs for the breakpoints.
+    for i,s in ipairs(config.sign_breakpoint)
+        V.exe 'sign define GdbBreakpoint' .. i .. ' text=' .. s
+
 
 class App
     new: (backendStr, proxyCmd, clientCmd) =>
@@ -40,6 +47,7 @@ class App
 
         -- Prepare configuration: keymaps, hooks, parameters etc.
         @config = Config!
+        defineSigns @config
 
         @backend = require "gdb.backend." .. backendStr
 

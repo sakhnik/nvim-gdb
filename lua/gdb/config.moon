@@ -88,12 +88,6 @@ getConfig = () ->
                 checkKeymapConflicts keyVal, key, false
                 config[key] = keyVal
 
-    -- Define the sign for current line the debugged program is executing.
-    V.exe "sign define GdbCurrentLine text=" .. config.sign_current_line
-    -- Define signs for the breakpoints.
-    for i,s in ipairs(config.sign_breakpoint)
-        V.exe 'sign define GdbBreakpoint' .. i .. ' text=' .. s
-
     -- Return the resulting configuration
     config
 
