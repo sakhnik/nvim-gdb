@@ -1,5 +1,7 @@
+" Define the sign for current line the debugged program is executing.
 sign define GdbCurrentLine text=▶
 
+" Define signs for the breakpoints.
 let s:breakpoint_signs = ['●', '●²', '●³', '●⁴', '●⁵', '●⁶', '●⁷', '●⁸', '●⁹', '●ⁿ']
 for i in range(len(s:breakpoint_signs))
   exe 'sign define GdbBreakpoint' . (i+1) . ' text=' . s:breakpoint_signs[i]
@@ -9,7 +11,7 @@ lua gdb = require("gdb.app")
 
 
 function! s:GdbKill()
-  " prevent "ghost" [noname] buffers when leaving debug when 'hidden' is on
+  " Prevent "ghost" [noname] buffers when leaving debug when 'hidden' is on
   if &hidden
     set nohidden
     let l:hidden = 1
