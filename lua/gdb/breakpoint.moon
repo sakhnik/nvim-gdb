@@ -53,10 +53,13 @@ class Breakpoint
         if buf != -1
             signId = 5000 - 1
             bpath = gdb.getFullBufferPath(buf)
+            getSignName = (count) ->
+                idx = count <= 10 and count or 10
+                "GdbBreakpoint" .. idx
             for line,ids in pairs(@breaks[bpath] or {})
                 signId += 1
                 V.exe fmt('sign place %d name=%s line=%d buffer=%d',
-                    signId, (#ids == 1 and "GdbBreakpoint" or "GdbDBreakpoint"), line, buf)
+                    signId, getSignName(#ids), line, buf)
             @maxSignId = signId
 
     query: (bufNum, fname) =>

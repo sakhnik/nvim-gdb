@@ -47,10 +47,10 @@ expose '#pdb', ->
         eng\feed ':e main.py\n'
         eng\feed ':5<cr>'
         eng\feed '<f8>'
-        assert.are.same {'cur': 'main.py:1', 'break': {5}}, eng\getSigns!
+        assert.are.same {'cur': 'main.py:1', 'break': {[1]: {5}}}, eng\getSigns!
 
         eng\exe 'GdbContinue'
-        assert.are.same {'cur': 'main.py:5', 'break': {5}}, eng\getSigns!
+        assert.are.same {'cur': 'main.py:5', 'break': {[1]: {5}}}, eng\getSigns!
 
         eng\feed '<f8>', 300
         assert.are.same {'cur': 'main.py:5'}, eng\getSigns!
@@ -64,20 +64,20 @@ expose '#pdb', ->
         eng\feed '<esc><c-w>k'
         eng\feed ':5<cr>'
         eng\feed '<f8>'
-        assert.are.same {'cur': 'main.py:1', 'break': {5}}, eng\getSigns!
+        assert.are.same {'cur': 'main.py:1', 'break': {[1]: {5}}}, eng\getSigns!
 
         -- Go to another file
         eng\feed ':e lib.py\n'
         eng\feed ':3\n'
         eng\feed '<f8>'
-        assert.are.same {'cur': 'main.py:1', 'break': {3}}, eng\getSigns!
+        assert.are.same {'cur': 'main.py:1', 'break': {[1]: {3}}}, eng\getSigns!
         eng\feed ':5\n'
         eng\feed '<f8>'
-        assert.are.same {'cur': 'main.py:1', 'break': {3,5}}, eng\getSigns!
+        assert.are.same {'cur': 'main.py:1', 'break': {[1]: {3,5}}}, eng\getSigns!
 
         -- Return to the original file
         eng\feed ':e main.py\n'
-        assert.are.same {'cur': 'main.py:1', 'break': {5}}, eng\getSigns!
+        assert.are.same {'cur': 'main.py:1', 'break': {[1]: {5}}}, eng\getSigns!
 
     it 'until', ->
         -- Test run until line.
