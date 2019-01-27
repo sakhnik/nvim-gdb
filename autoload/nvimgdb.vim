@@ -1,12 +1,3 @@
-" Define the sign for current line the debugged program is executing.
-sign define GdbCurrentLine text=▶
-
-" Define signs for the breakpoints.
-let s:breakpoint_signs = ['●', '●²', '●³', '●⁴', '●⁵', '●⁶', '●⁷', '●⁸', '●⁹', '●ⁿ']
-for i in range(len(s:breakpoint_signs))
-  exe 'sign define GdbBreakpoint' . (i+1) . ' text=' . s:breakpoint_signs[i]
-endfor
-
 lua gdb = require("gdb.app")
 
 

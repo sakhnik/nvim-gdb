@@ -38,7 +38,13 @@ expose "#keymap", ->
         eng\exe "let g:nvimgdb_config = {'key_next': '<f5>', 'key_prev': '<f5>'}"
         launch!
 
-        count = eng\eval 'luaeval("(function() local c = 0; for _,_ in pairs(gdb.getConfig()) do c = c + 1 end return c end)()")'
+        count = eng\eval 'luaeval("(function() ' ..
+            'local c = 0; ' ..
+            'for k,_ in pairs(gdb.getConfig()) do ' ..
+            '  if string.match(k, \'key_\') then ' ..
+            '    c = c + 1 ' ..
+            '  end ' ..
+            'end return c end)()")'
         assert.are.same 1, count
         -- Check that the coursor is moving freely without stucking
         eng\feed '<esc>'

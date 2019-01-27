@@ -53,7 +53,7 @@ class App
         @cursor = Cursor()
 
         -- Initialize breakpoint tracking
-        @breakpoint = Breakpoint(@client\getProxyAddr!, @sockDir\get!)
+        @breakpoint = Breakpoint(@config, @client\getProxyAddr!, @sockDir\get!)
 
         -- Initialize the windowing subsystem
         @win = Win(wjump, @client, @cursor, @breakpoint)

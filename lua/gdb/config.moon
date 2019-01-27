@@ -36,6 +36,8 @@ class Config
             'set_tkeymaps': () -> gdb.getKeymaps!\setT!
             'set_keymaps': () -> gdb.getKeymaps!\set!
             'unset_keymaps': () -> gdb.getKeymaps!\unset!
+            'sign_current_line': '▶'
+            'sign_breakpoint': { '●', '●²', '●³', '●⁴', '●⁵', '●⁶', '●⁷', '●⁸', '●⁹', '●ⁿ' }
 
         -- Make a copy of the supplied configuration if defined
         config = nil
@@ -43,6 +45,10 @@ class Config
             config = V.get_var('nvimgdb_config')
             for k,v in pairs(config)
                 config[k] = filterFuncref(defaultConfig, k, v)
+            -- Make sure the essential keys are present even if not supplied.
+            for _, mustHave in ipairs({'sign_current_line', 'sign_breakpoint'})
+                if config[mustHave] == nil
+                    config[mustHave] = defaultConfig[mustHave]
 
         if config == nil
             config = {k,v for k,v in pairs defaultConfig}
@@ -85,6 +91,12 @@ class Config
 
         -- Remember the resulting configuration
         @config = config
+
+        -- Define the sign for current line the debugged program is executing.
+        V.exe "sign define GdbCurrentLine text=" .. config.sign_current_line
+        -- Define signs for the breakpoints.
+        for i,s in ipairs(config.sign_breakpoint)
+            V.exe 'sign define GdbBreakpoint' .. i .. ' text=' .. s
 
     get: => @config
 
