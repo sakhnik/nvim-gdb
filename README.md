@@ -59,6 +59,12 @@ let g:loaded_nvimgdb = 1
 The behaviour of the plugin can be tuned by defining specific variables.
 For instance, you could overload some command keymaps:
 ```vim
+" We're going to define single-letter keymaps, so don't try to define them
+" in the terminal window.  The debugger CLI should continue accepting text commands.
+function! NvimGdbNoTKeymaps()
+  tnoremap <silent> <buffer> <esc> <c-\><c-n>
+endfunction
+
 let g:nvimgdb_config_override = {
   \ 'key_next': 'n',
   \ 'key_step': 's',
@@ -66,6 +72,7 @@ let g:nvimgdb_config_override = {
   \ 'key_continue': 'c',
   \ 'key_until': 'u',
   \ 'key_breakpoint': 'b',
+  \ 'set_tkeymaps': "NvimGdbNoTKeymaps",
   \ }
 ```
 
