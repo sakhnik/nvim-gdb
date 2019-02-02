@@ -20,7 +20,7 @@ class PdbProxy(BaseProxy):
         self.last_src = None
         self.alias_set = False  # Was alias defined?
 
-    def ProcessResponse(self, response):
+    def ProcessInfoBreakpoints(self, response):
         # Gdb invokes a custom gdb command implemented in Python.
         # It itself is responsible for sending the processed result
         # to the correct address.
@@ -56,7 +56,8 @@ class PdbProxy(BaseProxy):
         tokens = re.split(r'\s+', command.decode('utf-8'))
         if tokens[0] == 'info-breakpoints':
             command_begin = b"nvim-gdb-info-breakpoints  "
-            self.set_filter(StreamFilter.StreamFilter(command_begin, b"\n(Pdb) "))
+            self.set_filter(StreamFilter.StreamFilter(command_begin, b"\n(Pdb) "),
+                            self.ProcessInfoBreakpoints)
             self.last_src = tokens[1]
             cmd2 = b''
             if not self.alias_set:

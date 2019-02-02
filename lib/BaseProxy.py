@@ -48,7 +48,7 @@ class BaseProxy(object):
             self.sock = None
 
         # Create the filter
-        self.filter = [StreamFilter.Filter()]
+        self.filter = [(StreamFilter.Filter(), None)]
 
     def run(self):
         pid, self.master_fd = pty.fork()
@@ -81,13 +81,13 @@ class BaseProxy(object):
             except OSError:
                 pass
 
-    def set_filter(self, filter):
+    def set_filter(self, filter, handler):
         if len(self.filter) == 1:
             # Only one command at a time. Should be an assertion here,
             # but we wouldn't want to terminate the program.
             if self.filter:
                 self._timeout()
-            self.filter.append(filter)
+            self.filter.append((filter, handler))
 
     def _set_pty_size(self):
         """Set the window size of the child pty."""
@@ -137,17 +137,19 @@ class BaseProxy(object):
             data = data[n:]
 
     def _timeout(self):
-        data = self.filter[-1].Timeout()
+        filter, _ = self.filter[-1]
+        data = filter.Timeout()
         self._write(pty.STDOUT_FILENO, data)
 
     def write_stdout(self, data):
         """Write to stdout for the child process."""
-        data, filtered = self.filter[-1].Filter(data)
+        filter, handler = self.filter[-1]
+        data, filtered = filter.Filter(data)
         self._write(pty.STDOUT_FILENO, data)
         if filtered:
             try:
                 self.filter.pop()
-                res = self.ProcessResponse(filtered)
+                res = handler(filtered)
                 if res:
                     self.sock.sendto(res, 0, self.last_addr)
             except Exception as e:

@@ -19,7 +19,7 @@ class GdbProxy(BaseProxy):
         super().__init__("GDB")
         self.last_src = None
 
-    def ProcessResponse(self, response):
+    def ProcessInfoBreakpoints(self, response):
         # Gdb invokes a custom gdb command implemented in Python.
         # It itself is responsible for sending the processed result
         # to the correct address.
@@ -49,7 +49,8 @@ class GdbProxy(BaseProxy):
         tokens = re.split(r'\s+', command.decode('utf-8'))
         if tokens[0] == 'info-breakpoints':
             self.last_src = tokens[1]
-            self.set_filter(StreamFilter.StreamFilter(b"server nvim-gdb-", b"\n(gdb) "))
+            self.set_filter(StreamFilter.StreamFilter(b"server nvim-gdb-", b"\n(gdb) "),
+                            self.ProcessInfoBreakpoints)
             return b'server nvim-gdb-info-breakpoints\n'
         return command
 
