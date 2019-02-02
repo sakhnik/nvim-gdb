@@ -132,6 +132,9 @@ class App
 
     interrupt: => @client\interrupt!
 
+    customCommand: (cmd) =>
+        @proxy\query "handle-command " .. cmd
+
     toggleBreak: =>
         if @scm\isRunning()
             -- pause first

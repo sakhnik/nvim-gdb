@@ -54,11 +54,15 @@ def server(server_address):
                 breaks = _GetBreaks(fname)
                 sock.sendto(breaks.encode('utf-8'), 0, addr)
             elif command[0] == "handle-command":
-                command_to_handle = command[1:]
-                return_object = lldb.SBCommandReturnObject()
-                lldb.debugger.GetCommandInterpreter().HandleCommand(command_to_handle, return_object)
-                result = return_object.GetOutput()
-                sock.sendto(result.encode('utf-8'), 0, addr)
+                try:
+                    command_to_handle = " ".join(command[1:]).encode('ascii')
+                    return_object = lldb.SBCommandReturnObject()
+                    lldb.debugger.GetCommandInterpreter().HandleCommand(command_to_handle, return_object)
+                    result = return_object.GetOutput()
+                    result = '' if result is None else result.encode('utf-8')
+                    sock.sendto(result, 0, addr)
+                except Exception as e:
+                    sock.sendto(str(e).encode('utf-8'), 0, addr)
     finally:
         try:
             os.unlink(server_address)
