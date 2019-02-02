@@ -24,8 +24,6 @@ class GdbProxy(BaseProxy):
         # It itself is responsible for sending the processed result
         # to the correct address.
 
-        self.set_filter(StreamFilter.Filter())
-
         # Select lines in the current file with enabled breakpoints.
         pattern = re.compile("([^:]+):(\d+)")
         breaks = {}

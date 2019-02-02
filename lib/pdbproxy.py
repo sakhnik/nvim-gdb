@@ -27,8 +27,6 @@ class PdbProxy(BaseProxy):
         if not self.last_src:
             return
 
-        self.set_filter(StreamFilter.Filter())
-
         # Num Type         Disp Enb   Where
         # 1   breakpoint   keep yes   at /tmp/nvim-gdb/test/main.py:8
 
