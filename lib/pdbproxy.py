@@ -11,13 +11,12 @@ import re
 import json
 
 from BaseProxy import BaseProxy
+import StreamFilter
 
 
-class _PdbFeatures:
+class PdbProxy(BaseProxy):
     def __init__(self):
-        self.app_name = "PDB"
-        self.command_begin = b"nvim-gdb-info-breakpoints  "
-        self.command_end = b"\n(Pdb) "
+        super().__init__("PDB")
         self.last_src = None
         self.alias_set = False  # Was alias defined?
 
@@ -27,6 +26,8 @@ class _PdbFeatures:
         # to the correct address.
         if not self.last_src:
             return
+
+        self.set_filter(StreamFilter.Filter())
 
         # Num Type         Disp Enb   Where
         # 1   breakpoint   keep yes   at /tmp/nvim-gdb/test/main.py:8
@@ -56,15 +57,17 @@ class _PdbFeatures:
         # Map GDB commands to Pdb commands.
         tokens = re.split(r'\s+', command.decode('utf-8'))
         if tokens[0] == 'info-breakpoints':
+            command_begin = b"nvim-gdb-info-breakpoints  "
+            self.set_filter(StreamFilter.StreamFilter(command_begin, b"\n(Pdb) "))
             self.last_src = tokens[1]
             cmd2 = b''
             if not self.alias_set:
                 cmd2 = b'alias nvim-gdb-info-breakpoints break\n'
                 self.alias_set = True
-            return cmd2 + self.command_begin + b'\n'
+            return cmd2 + command_begin + b'\n'
         # Just pass the original command to highlight it isn't implemented.
         return command
 
 
 if __name__ == '__main__':
-    BaseProxy.Create(_PdbFeatures())
+    PdbProxy().run()

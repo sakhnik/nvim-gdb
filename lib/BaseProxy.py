@@ -23,26 +23,37 @@ import StreamFilter
 class BaseProxy(object):
     """This class does the actual work of the pseudo terminal."""
 
-    def __init__(self, features, server_address, argv):
+    def __init__(self, app_name):
         """Create a spawned process."""
 
-        self.features = features
+        parser = argparse.ArgumentParser(
+                description="Run %s through a filtering proxy."
+                % app_name)
+        parser.add_argument('cmd', metavar='ARGS', nargs='+',
+                            help='%s command with arguments'
+                            % app_name)
+        parser.add_argument('-a', '--address', metavar='ADDR',
+                            help='Local socket to receive commands.')
+        args = parser.parse_args()
 
-        if server_address:
+        self.server_address = args.address
+        self.argv = args.cmd
+
+        if self.server_address:
             # Create a UDS socket
             self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-            self.sock.bind(server_address)
+            self.sock.bind(self.server_address)
             self.sock.settimeout(0.5)
         else:
             self.sock = None
 
         # Create the filter
-        self.filter = StreamFilter.StreamFilter(self.features.command_begin,
-                                                self.features.command_end)
+        self.filter = StreamFilter.Filter()
 
+    def run(self):
         pid, self.master_fd = pty.fork()
         if pid == pty.CHILD:
-            os.execlp(argv[0], *argv)
+            os.execlp(self.argv[0], *self.argv)
 
         old_handler = signal.signal(signal.SIGWINCH,
                                     lambda signum, frame: self._set_pty_size())
@@ -63,12 +74,17 @@ class BaseProxy(object):
         self.master_fd = None
         signal.signal(signal.SIGWINCH, old_handler)
 
-        if server_address:
+        if self.server_address:
             # Make sure the socket does not already exist
             try:
-                os.unlink(server_address)
+                os.unlink(self.server_address)
             except OSError:
                 pass
+
+    def set_filter(self, filter):
+        if self.filter:
+            self._timeout()
+        self.filter = filter
 
     def _set_pty_size(self):
         """Set the window size of the child pty."""
@@ -104,7 +120,11 @@ class BaseProxy(object):
                     self.stdin_read(data)
                 if self.sock in rfds:
                     data, self.last_addr = self.sock.recvfrom(65536)
-                    command = self.features.FilterCommand(data)
+                    try:
+                        command = self.FilterCommand(data)
+                    except Exception as e:
+                        print(str(e))
+                        raise
                     self.write_master(command)
 
     def _write(self, fd, data):
@@ -122,9 +142,13 @@ class BaseProxy(object):
         data, filtered = self.filter.Filter(data)
         self._write(pty.STDOUT_FILENO, data)
         if filtered:
-            res = self.features.ProcessResponse(filtered)
-            if res:
-                self.sock.sendto(res, 0, self.last_addr)
+            try:
+                res = self.ProcessResponse(filtered)
+                if res:
+                    self.sock.sendto(res, 0, self.last_addr)
+            except Exception as e:
+                print(str(e))
+                raise
 
     def write_master(self, data):
         """Write to the child process from its controlling terminal."""
@@ -137,17 +161,3 @@ class BaseProxy(object):
     def stdin_read(self, data):
         """Handle data from the controlling terminal."""
         self.write_master(data)
-
-    @staticmethod
-    def Create(features):
-        parser = argparse.ArgumentParser(
-                description="Run %s through a filtering proxy."
-                % features.app_name)
-        parser.add_argument('cmd', metavar='ARGS', nargs='+',
-                            help='%s command with arguments'
-                            % features.app_name)
-        parser.add_argument('-a', '--address', metavar='ADDR',
-                            help='Local socket to receive commands.')
-        args = parser.parse_args()
-
-        return BaseProxy(features, args.address, args.cmd)

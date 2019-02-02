@@ -12,18 +12,19 @@ import json
 import os
 
 from BaseProxy import BaseProxy
+import StreamFilter
 
-class _GdbFeatures:
+class GdbProxy(BaseProxy):
     def __init__(self):
-        self.app_name = "GDB"
-        self.command_begin = b"server nvim-gdb-"
-        self.command_end = b"\n(gdb) "
+        super().__init__("GDB")
         self.last_src = None
 
     def ProcessResponse(self, response):
         # Gdb invokes a custom gdb command implemented in Python.
         # It itself is responsible for sending the processed result
         # to the correct address.
+
+        self.set_filter(StreamFilter.Filter())
 
         # Select lines in the current file with enabled breakpoints.
         pattern = re.compile("([^:]+):(\d+)")
@@ -50,9 +51,10 @@ class _GdbFeatures:
         tokens = re.split(r'\s+', command.decode('utf-8'))
         if tokens[0] == 'info-breakpoints':
             self.last_src = tokens[1]
+            self.set_filter(StreamFilter.StreamFilter(b"server nvim-gdb-", b"\n(gdb) "))
             return b'server nvim-gdb-info-breakpoints\n'
         return command
 
 
 if __name__ == '__main__':
-    BaseProxy.Create(_GdbFeatures())
+    GdbProxy().run()
