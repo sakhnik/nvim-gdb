@@ -172,9 +172,6 @@ class App
         @cursor\hide()
         @breakpoint\clearSigns!
 
-    queryBreakpoints: =>
-        @win\queryBreakpoints!
-
     onBufEnter: =>
         if V.buf_get_option(V.get_current_buf!, 'buftype') != 'terminal'
             -- Make sure the cursor stays visible at all times
