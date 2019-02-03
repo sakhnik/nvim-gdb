@@ -50,6 +50,10 @@ class PdbProxy(BaseProxy):
 
         return json.dumps(breaks).encode('utf-8')
 
+    def ProcessHandleCommand(self, cmd, response):
+        self.log("Process handle command %d bytes" % len(response))
+        return response[(len(cmd) + 1):-len(PdbProxy.PROMPT)]
+
     def FilterCommand(self, command):
         # Map GDB commands to Pdb commands.
         tokens = re.split(r'\s+', command.decode('utf-8'))
@@ -58,6 +62,11 @@ class PdbProxy(BaseProxy):
             cmd = b'break  '
             res = self.set_filter(StreamFilter(cmd, PdbProxy.PROMPT),
                     lambda d: self.ProcessInfoBreakpoints(last_src, d))
+            return cmd if res else b''
+        elif tokens[0] == 'handle-command':
+            cmd = command[len('handle-command '):]
+            res = self.set_filter(StreamFilter(cmd, PdbProxy.PROMPT),
+                    lambda d: self.ProcessHandleCommand(cmd, d))
             return cmd if res else b''
         # Just pass the original command to highlight it isn't implemented.
         return command
