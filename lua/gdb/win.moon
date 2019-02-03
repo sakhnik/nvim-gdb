@@ -52,4 +52,7 @@ class Win
             -- If there was a cursor, make sure it stays above the breakpoints.
             @cursor\reshow!
 
+        -- Execute the rest of custom commands
+        V.exe "doautocmd User NvimGdbQuery"
+
 Win
