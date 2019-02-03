@@ -240,8 +240,7 @@ Section 7: Development                                    *NvimgdbDevelopment*
   commands from it in a background thread.
 
 - PDB is like GDB run via a proxy application. Although, PDB doesn't have
-  stock distinctive prefix to bypass the history. So an alias is created
-  for that nvim-gdb-info-breakpoints.
+  stock distinctive prefix to bypass the history.
 
 - Breakpoints are queried from GDB, LLDB and PDB on every pause using the
   established side channels: the pty proxy for GDB and PDB, and Python script
