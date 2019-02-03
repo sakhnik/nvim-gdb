@@ -54,7 +54,7 @@ class GdbProxy(BaseProxy):
         tokens = re.split(r'\s+', command.decode('utf-8'))
         if tokens[0] == 'info-breakpoints':
             last_src = tokens[1]
-            cmd = b'server nvim-gdb-info-breakpoints'
+            cmd = b'server info breakpoints'
             res = self.set_filter(StreamFilter(cmd, GdbProxy.PROMPT),
                     lambda d: self.ProcessInfoBreakpoints(last_src, d))
             return cmd if res else b''
