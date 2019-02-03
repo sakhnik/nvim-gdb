@@ -21,3 +21,15 @@ expose "Command", ->
                 eng\feed '<f10>'
                 assert.are.same '$1 = 0', eng\eval "luaeval('gdb.customCommand(\"print i\")')"
                 assert.are.same 'i = 0', eng\eval "luaeval('gdb.customCommand(\"info locals\")')"
+
+    describe "#lldb", ->
+        back = backends.lldb
+        if back != nil
+            it "info", ->
+                eng\feed back.launch, 1000
+                eng\feed back.tbreak_main
+                eng\feed 'run\n', 1000
+                eng\feed '<esc>'
+                assert.are.same "(int) argc = 1", eng\eval "luaeval('gdb.customCommand(\"frame var argc\")')"
+                eng\feed '<f10>'
+                assert.are.same "(int) i = 0", eng\eval "luaeval('gdb.customCommand(\"frame var i\")')"
