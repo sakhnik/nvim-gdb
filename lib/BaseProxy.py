@@ -38,6 +38,8 @@ class BaseProxy(object):
 
         self.server_address = args.address
         self.argv = args.cmd
+        #self.logfile = open("/tmp/log.txt", "w")
+        self.logfile = None
 
         if self.server_address:
             # Create a UDS socket
@@ -49,6 +51,16 @@ class BaseProxy(object):
 
         # Create the filter
         self.filter = [(StreamFilter.Filter(), None)]
+
+    def log(self, msg):
+        try:
+            if not self.logfile is None:
+                self.logfile.write(msg)
+                self.logfile.write("\n")
+                self.logfile.flush()
+        except Exception as e:
+            print(e)
+            raise
 
     def run(self):
         pid, self.master_fd = pty.fork()
@@ -82,12 +94,18 @@ class BaseProxy(object):
                 pass
 
     def set_filter(self, filter, handler):
+        self.log("set_filter %s %s" % (str(filter), str(handler)))
         if len(self.filter) == 1:
+            self.log("filter accepted")
             # Only one command at a time. Should be an assertion here,
             # but we wouldn't want to terminate the program.
             if self.filter:
                 self._timeout()
             self.filter.append((filter, handler))
+            return True
+        else:
+            self.log("filter rejected")
+            return False
 
     def _set_pty_size(self):
         """Set the window size of the child pty."""
@@ -123,12 +141,18 @@ class BaseProxy(object):
                     self.stdin_read(data)
                 if self.sock in rfds:
                     data, self.last_addr = self.sock.recvfrom(65536)
+                    if data[-1] == b'\n':
+                        self.log("WARNING: the command ending with <nl>. The StreamProxy filter known to fail.")
                     try:
+                        self.log("Got command '%s'" % data.decode('utf-8'))
                         command = self.FilterCommand(data)
+                        self.log("Translated command '%s'" % command.decode('utf-8'))
                     except Exception as e:
-                        print(str(e))
+                        self.log("Exception %s" % str(e))
                         raise
-                    self.write_master(command)
+                    if command:
+                        self.write_master(command)
+                        self.write_master(b'\n')
 
     def _write(self, fd, data):
         """Write the data to the file."""
@@ -147,13 +171,14 @@ class BaseProxy(object):
         data, filtered = filter.Filter(data)
         self._write(pty.STDOUT_FILENO, data)
         if filtered:
+            self.log("Filter matched %d bytes" % len(filtered))
             try:
                 self.filter.pop()
                 res = handler(filtered)
                 if res:
                     self.sock.sendto(res, 0, self.last_addr)
             except Exception as e:
-                print(str(e))
+                self.log("Exception: %s" % str(e))
                 raise
 
     def write_master(self, data):
