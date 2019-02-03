@@ -1,6 +1,7 @@
 V = require "gdb.v"
 Config = require "gdb.config"
 Client = require "gdb.client"
+Proxy = require "gdb.proxy"
 Cursor = require "gdb.cursor"
 Breakpoint = require "gdb.breakpoint"
 Win = require "gdb.win"
@@ -55,13 +56,16 @@ class App
         @sockDir = SockDir!
 
         -- go to the other window and spawn gdb client
-        @client = Client(wcli, proxyCmd, clientCmd, @sockDir\get!)
+        @client = Client wcli, proxyCmd, clientCmd, @sockDir\get!
 
         -- Initialize current line tracking
-        @cursor = Cursor()
+        @cursor = Cursor!
+
+        -- Initialize connection to the side channel
+        @proxy = Proxy @client\getProxyAddr!, @sockDir\get!
 
         -- Initialize breakpoint tracking
-        @breakpoint = Breakpoint(@config, @client\getProxyAddr!, @sockDir\get!)
+        @breakpoint = Breakpoint @config, @proxy
 
         -- Initialize the windowing subsystem
         @win = Win(wjump, @client, @cursor, @breakpoint)
@@ -87,10 +91,12 @@ class App
     cleanup: =>
         -- Clean up the breakpoint signs
         @breakpoint\resetSigns!
-        @breakpoint\cleanup!
 
         -- Clean up the current line sign
         @cursor\hide!
+
+        -- Close connection to the side channel
+        @proxy\cleanup!
 
         -- Free the tabpage local storage for the current tabpage.
         tls\clear!
@@ -125,6 +131,9 @@ class App
     getKeymaps: => @keymaps
 
     interrupt: => @client\interrupt!
+
+    customCommand: (cmd) =>
+        @proxy\query "handle-command " .. cmd
 
     toggleBreak: =>
         if @scm\isRunning()
@@ -162,9 +171,6 @@ class App
         -- Hide the signs
         @cursor\hide()
         @breakpoint\clearSigns!
-
-    queryBreakpoints: =>
-        @win\queryBreakpoints!
 
     onBufEnter: =>
         if V.buf_get_option(V.get_current_buf!, 'buftype') != 'terminal'

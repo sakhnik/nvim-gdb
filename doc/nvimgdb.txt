@@ -9,11 +9,13 @@ CONTENTS                                                     *NvimgdbContents*
     2. Commands ............. |NvigdbCommands|
     3. Mappings ............. |NvimgdbMappings|
     4. Variables ............ |NvimgdbVariables|
-    5. Backends ............. |NvimgdbBackends|
-       5.1 GDB .............. |NvimgdbGDB|
-    6. Limitations .......... |NvimgdbLimitations|
-    7. Development .......... |NvimgdbDevelopment|
-    8. Trivia ............... |NvimgdbTrivia|
+    5. Events ............... |NvimgdbEvents|
+    6. Functions ............ |NvimgdbFunctions|
+    7. Backends ............. |NvimgdbBackends|
+       7.1 GDB .............. |NvimgdbGDB|
+    8. Limitations .......... |NvimgdbLimitations|
+    9. Development .......... |NvimgdbDevelopment|
+   10. Trivia ............... |NvimgdbTrivia|
 
 ==============================================================================
 Section 1: Usage                                                *NvimgdbUsage*
@@ -195,10 +197,39 @@ have even higher priority and will disable conflicting keymaps from the
 previous ones.  Please examine `:messages` to make sure nothing is rejected.
 
 ==============================================================================
-Section 5: Backends                                          *NvimgdbBackends*
+Section 5: Events                                              *NvimgdbEvents*
+
+The plugins fires `User` events allowing users to customize their workflows.
+For instance, it's possible to execute commands automatically with `autocmd`.
+
+                                                                *NvimGdbQuery*
+NvimGdbQuery            Fired whenever the plugin queried for breakpoints.
+                        This can be used to execute additional queries
+                        with `NvimGdb-customCommand()`
+
+==============================================================================
+Section 6: Functions                                        *NvimgdbFunctions*
+
+The plugin is implemented in Lua/Moonscript. So some supported functions
+should be called via `:lua` and `luaeval()`.
+
+                                                     *NvimGdb-customCommand()*
+gdb.customCommand("expr")       Execute debugger command and return the output
+                                of the command. This can be combined with
+                                `NvimgdbEvents` to implement watch
+                                expressions. For instance, the following could
+                                echo local variables on every GDB stop: >
+    :autocmd User NvimGdbQuery lua print(gdb.customCommand('info locals'))
+<
+or if LLDB is used: >
+    :autocmd User NvimGdbQuery lua print(gdb.customCommand('frame var'))
+<
+
+==============================================================================
+Section 7: Backends                                          *NvimgdbBackends*
 
 ------------------------------------------------------------------------------
-Section 5.1 GDB                                                   *NvimgdbGDB*
+Section 7.1 GDB                                                   *NvimgdbGDB*
 
 - GDB is run via a proxy pty application, which allows to execute concealed
   service commands, like "info breakpoints" on each stop. Thus, the plugin
@@ -216,7 +247,7 @@ Section 5.1 GDB                                                   *NvimgdbGDB*
 <
 
 ==============================================================================
-Section 6: Limitations                                    *NvimgdbLimitations*
+Section 8: Limitations                                    *NvimgdbLimitations*
 
 - The plugin is sensitive to the debugger settings. If prompt or frame format
   is changed, random errors may occur.
@@ -227,7 +258,7 @@ Section 6: Limitations                                    *NvimgdbLimitations*
   `:GdbFrameUp` followed by `:GdbFrameDown`.
 
 ==============================================================================
-Section 7: Development                                    *NvimgdbDevelopment*
+Section 9: Development                                    *NvimgdbDevelopment*
 
 - The keymaps are defined buffer-local for every buffer when it's entered,
   and undefined when a buffer is left. This was done to ensure that users's
@@ -240,8 +271,7 @@ Section 7: Development                                    *NvimgdbDevelopment*
   commands from it in a background thread.
 
 - PDB is like GDB run via a proxy application. Although, PDB doesn't have
-  stock distinctive prefix to bypass the history. So an alias is created
-  for that nvim-gdb-info-breakpoints.
+  stock distinctive prefix to bypass the history.
 
 - Breakpoints are queried from GDB, LLDB and PDB on every pause using the
   established side channels: the pty proxy for GDB and PDB, and Python script
@@ -249,7 +279,7 @@ Section 7: Development                                    *NvimgdbDevelopment*
   (see lua/gdb/breakpoint.moon).
 
 ==============================================================================
-Section 8: Trivia                                              *NvimgdbTrivia*
+Section 10: Trivia                                             *NvimgdbTrivia*
 
 License inherits from neovim's.
 

@@ -23,7 +23,18 @@ class _StringMatcher:
         self.idx = 0
 
 
-class StreamFilter:
+class Filter:
+    """Pass-through filter."""
+    def Filter(self, input):
+        """Process input, filter between tokens, return the output."""
+        return input, None
+
+    def Timeout(self):
+        """Process timeout, return whatever was kept in the buffer."""
+        return b''
+
+
+class StreamFilter(Filter):
     """Stream filter class."""
 
     def __init__(self, start, finish):

@@ -1,6 +1,11 @@
 lua gdb = require("gdb.app")
 
 
+augroup NvimGdbInternal
+  au!
+  au User NvimGdbQuery ""
+augroup END
+
 function! s:GdbKill()
   " Prevent "ghost" [noname] buffers when leaving debug when 'hidden' is on
   if &hidden

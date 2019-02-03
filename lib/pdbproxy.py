@@ -11,21 +11,20 @@ import re
 import json
 
 from BaseProxy import BaseProxy
+from StreamFilter import StreamFilter
 
 
-class _PdbFeatures:
+class PdbProxy(BaseProxy):
+    PROMPT = b"\n(Pdb) "
+
     def __init__(self):
-        self.app_name = "PDB"
-        self.command_begin = b"nvim-gdb-info-breakpoints  "
-        self.command_end = b"\n(Pdb) "
-        self.last_src = None
-        self.alias_set = False  # Was alias defined?
+        super().__init__("PDB")
 
-    def ProcessResponse(self, response):
+    def ProcessInfoBreakpoints(self, last_src, response):
         # Gdb invokes a custom gdb command implemented in Python.
         # It itself is responsible for sending the processed result
         # to the correct address.
-        if not self.last_src:
+        if not last_src:
             return
 
         # Num Type         Disp Enb   Where
@@ -41,7 +40,7 @@ class _PdbFeatures:
                 if tokens[3] != 'yes':
                     continue
                 src_line = re.split(r':', tokens[-1])
-                if self.last_src == src_line[0]:
+                if last_src == src_line[0]:
                     try:
                         breaks[src_line[1]].append(bid)
                     except KeyError:
@@ -49,22 +48,29 @@ class _PdbFeatures:
             except Exception:
                 pass
 
-        self.last_src = None
         return json.dumps(breaks).encode('utf-8')
+
+    def ProcessHandleCommand(self, cmd, response):
+        self.log("Process handle command %d bytes" % len(response))
+        return response[(len(cmd) + 1):-len(PdbProxy.PROMPT)].strip()
 
     def FilterCommand(self, command):
         # Map GDB commands to Pdb commands.
         tokens = re.split(r'\s+', command.decode('utf-8'))
         if tokens[0] == 'info-breakpoints':
-            self.last_src = tokens[1]
-            cmd2 = b''
-            if not self.alias_set:
-                cmd2 = b'alias nvim-gdb-info-breakpoints break\n'
-                self.alias_set = True
-            return cmd2 + self.command_begin + b'\n'
+            last_src = tokens[1]
+            cmd = b'break  '
+            res = self.set_filter(StreamFilter(cmd, PdbProxy.PROMPT),
+                    lambda d: self.ProcessInfoBreakpoints(last_src, d))
+            return cmd if res else b''
+        elif tokens[0] == 'handle-command':
+            cmd = command[len('handle-command '):]
+            res = self.set_filter(StreamFilter(cmd, PdbProxy.PROMPT),
+                    lambda d: self.ProcessHandleCommand(cmd, d))
+            return cmd if res else b''
         # Just pass the original command to highlight it isn't implemented.
         return command
 
 
 if __name__ == '__main__':
-    BaseProxy.Create(_PdbFeatures())
+    PdbProxy().run()

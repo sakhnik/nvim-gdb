@@ -1,49 +1,16 @@
 require "set_paths"
 V = require "gdb.v"
-s = require "posix.sys.socket"
-u = require "posix.unistd"
 json = require "JSON"
 
 fmt = string.format
 
 
 class Breakpoint
-    new: (config, proxyAddr, sockDir) =>
+    new: (config, proxy) =>
         @config = config
-        @proxyAddr = proxyAddr
-        @sockAddr = sockDir .. "/client"
+        @proxy = proxy
         @breaks = {}    -- {file -> {line -> [id]}}
         @maxSignId = 0
-
-        @sock = s.socket(s.AF_UNIX, s.SOCK_DGRAM, 0)
-        assert(@sock != -1)
-        assert(s.bind(@sock, {family: s.AF_UNIX, path: @sockAddr}))
-        assert(s.setsockopt(@sock, s.SOL_SOCKET, s.SO_RCVTIMEO, 0, 500000))
-        -- Will connect to the socket later, when the first query is needed
-        -- to be issued.
-        @connected = false
-
-    cleanup: =>
-        if @sock != -1
-            u.close(@sock)
-        os.remove @sockAddr
-
-    ensureConnected: =>
-        if not @connected
-            ret, msg, err = s.connect(@sock, {family: s.AF_UNIX, path: @proxyAddr})
-            if msg
-                print "Breakpoint: not connected to the proxy: "..msg
-            @connected = ret == 0
-        @connected
-
-    doQuery: (fname) =>
-        -- It takes time for the proxy to open a side channel.
-        -- So we're connecting to the socket lazily during
-        -- the first query.
-        if @ensureConnected!
-            assert s.send(@sock, fmt("info-breakpoints %s\n", fname))
-            data = s.recv(@sock, 65536)
-            data
 
     clearSigns: =>
         for i = 5000, @maxSignId
@@ -66,7 +33,7 @@ class Breakpoint
 
     query: (bufNum, fname) =>
         @breaks[fname] = {}
-        resp = @doQuery fname
+        resp = @proxy\query fmt("info-breakpoints %s\n", fname)
         if resp
             -- We expect the proxies to send breakpoints for a given file
             -- as a map of lines to array of breakpoint ids set in those lines.
