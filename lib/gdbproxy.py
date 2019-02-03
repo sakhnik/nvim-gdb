@@ -48,7 +48,7 @@ class GdbProxy(BaseProxy):
 
     def ProcessHandleCommand(self, cmd, response):
         self.log("Process handle command %d bytes" % len(response))
-        return response[(len(cmd) + 1):-len(GdbProxy.PROMPT)]
+        return response[(len(cmd) + 1):-len(GdbProxy.PROMPT)].strip()
 
     def FilterCommand(self, command):
         tokens = re.split(r'\s+', command.decode('utf-8'))
