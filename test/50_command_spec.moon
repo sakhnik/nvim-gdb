@@ -33,3 +33,13 @@ expose "Command", ->
                 assert.are.same "(int) argc = 1", eng\eval "luaeval('gdb.customCommand(\"frame var argc\")')"
                 eng\feed '<f10>'
                 assert.are.same "(int) i = 0", eng\eval "luaeval('gdb.customCommand(\"frame var i\")')"
+
+    describe '#pdb', ->
+        it "info", ->
+            eng\feed ' dp'
+            eng\feed '\n', 300
+            eng\feed 'b _Foo\n'
+            eng\feed 'cont\n'
+            assert.are.same "0", eng\eval "luaeval('gdb.customCommand(\"print(n)\")')"
+            eng\feed 'cont\n'
+            assert.are.same "1", eng\eval "luaeval('gdb.customCommand(\"print(n)\")')"

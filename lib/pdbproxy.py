@@ -52,7 +52,7 @@ class PdbProxy(BaseProxy):
 
     def ProcessHandleCommand(self, cmd, response):
         self.log("Process handle command %d bytes" % len(response))
-        return response[(len(cmd) + 1):-len(PdbProxy.PROMPT)]
+        return response[(len(cmd) + 1):-len(PdbProxy.PROMPT)].strip()
 
     def FilterCommand(self, command):
         # Map GDB commands to Pdb commands.
