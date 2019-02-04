@@ -22,10 +22,10 @@ class GdbScm extends BaseScm
                 win\queryBreakpoints!
                 @paused
 
-        @addTrans @paused,  "^%(gdb%) ",            queryB
+        @addTrans @paused,  "^%(gdb%) $",           queryB
         @addTrans @running, "^Breakpoint %d+",      queryB
         @addTrans @running, " hit Breakpoint %d+",  queryB
-        @addTrans @running, "^%(gdb%) ",            queryB
+        @addTrans @running, "^%(gdb%) $",           queryB
 
         @state = @running
 

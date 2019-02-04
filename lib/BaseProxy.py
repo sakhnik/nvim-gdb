@@ -38,8 +38,8 @@ class BaseProxy(object):
 
         self.server_address = args.address
         self.argv = args.cmd
-        #self.logfile = open("/tmp/log.txt", "w")
         self.logfile = None
+        #self.logfile = open("/tmp/log.txt", "w")
 
         if self.server_address:
             # Create a UDS socket
