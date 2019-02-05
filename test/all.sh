@@ -3,6 +3,7 @@
 cd `dirname ${BASH_SOURCE[0]}`
 
 ./prerequisites.sh
+nvim -u init.vim +UpdateRemotePlugins +qa
 
 python3 ../lib/StreamFilter.py
 
