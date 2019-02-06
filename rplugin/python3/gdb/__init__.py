@@ -45,8 +45,8 @@ class Gdb(object):
     #    self.vim.current.line = (
     #        'Autocmd: Called %s times, file: %s' % (self.calls, filename))
 
-    @pynvim.function('GdbPy')
-    def gdb_py(self, args):
+    @pynvim.function('GdbPyAsync')
+    def gdb_py_async(self, args):
         tab = args[0]
         if args[1] == 'init':
             self.tstorage.init(tab, App(self.vim, *args[2:]))
@@ -56,9 +56,12 @@ class Gdb(object):
             app = self.tstorage.getTab(tab)
             app.dispatch(args[2:])
 
-    @pynvim.function('GdbPyCall', sync=True)
-    def gdb_py_call(self, args):
+    @pynvim.function('GdbPy', sync=True)
+    def gdb_py(self, args):
         tab = args[0]
         if args[1] == 'getCommand':
             app = self.tstorage.getTab(tab)
             return app.getCommand(args[2])
+        elif args[1] == 'dispatch':
+            app = self.tstorage.getTab(tab)
+            return app.dispatch(args[2:])

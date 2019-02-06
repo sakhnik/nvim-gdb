@@ -21,18 +21,17 @@ if V.buf_is_loaded == nil
 V.jump_win = (win) ->
     V.exe (V.win_get_number(win) .. 'wincmd w')
 
-V.gdb_py = (args) ->
+gdb_py = (func, args) ->
     tab = V.get_current_tabpage!
     v = {tab}
     for b in *args
         v[#v + 1] = b
-    V.call "GdbPy", v
+    V.call func, v
 
-V.gdb_py_call = (args) ->
-    tab = V.get_current_tabpage!
-    v = {tab}
-    for b in *args
-        v[#v + 1] = b
-    V.call "GdbPyCall", v
+V.gdb_py_async = (args) ->
+    gdb_py "GdbPyAsync", args
+
+V.gdb_py = (args) ->
+    gdb_py "GdbPy", args
 
 V

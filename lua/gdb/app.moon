@@ -49,7 +49,7 @@ class App
         @config = Config!
         defineSigns @config
 
-        V.gdb_py {"init", backendStr}
+        V.gdb_py_async {"init", backendStr}
 
         -- Create a temporary unique directory for all the sockets.
         @sockDir = SockDir!
@@ -91,7 +91,7 @@ class App
         -- Close connection to the side channel
         @proxy\cleanup!
 
-        V.gdb_py {"cleanup"}
+        V.gdb_py_async {"cleanup"}
 
         -- Free the tabpage local storage for the current tabpage.
         tls\clear!
@@ -109,12 +109,12 @@ class App
 
 
     getCommand: (cmd) =>
-        V.gdb_py_call {"getCommand", cmd}
+        V.gdb_py {"getCommand", cmd}
 
     onStdout: (j,d,e) =>
         -- TODO make sure the data is handled in the correct tabpage
         for _, v in ipairs(d)
-            V.gdb_py {"dispatch", "scm", "feed", v}
+            V.gdb_py_async {"dispatch", "scm", "feed", v}
 
     send: (cmd, ...) =>
         command = fmt(@getCommand(cmd), ...)
