@@ -19,7 +19,7 @@ class Cursor
         -- sign after marking the new one
         old_sign_id = @sign_id
         @sign_id = 4999 + (old_sign_id != -1 and 4998 - old_sign_id or 0)
-        if @line != -1 and buf != -1
+        if @line != -1 and @buf != -1
             V.exe fmt('sign place %d name=GdbCurrentLine line=%d buffer=%d',
                 @sign_id, @line, @buf)
         if old_sign_id != -1
