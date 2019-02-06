@@ -28,4 +28,11 @@ V.gdb_py = (args) ->
         v[#v + 1] = b
     V.call "GdbPy", v
 
+V.gdb_py_call = (args) ->
+    tab = V.get_current_tabpage!
+    v = {tab}
+    for b in *args
+        v[#v + 1] = b
+    V.call "GdbPyCall", v
+
 V

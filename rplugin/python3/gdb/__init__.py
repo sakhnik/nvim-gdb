@@ -1,5 +1,5 @@
 import pynvim
-from gdb.cursor import Cursor
+from gdb.app import App
 
 class TStorage:
     def __init__(self, vim):
@@ -21,22 +21,6 @@ class TStorage:
     # Delete the tabpage-specific table
     def clear(self, tab):
         del(self.data[tab])
-
-
-class App:
-    def __init__(self, vim):
-        # Initialize current line tracking
-        self.cursor = Cursor(vim)
-
-    def dispatch(self, params):
-        #f = open("/tmp/log.txt", "w")
-        #def log(msg):
-        #    f.write("%s\n" % msg)
-        #    f.flush()
-        obj = getattr(self, params[0])
-        method = getattr(obj, params[1])
-        params = params[2:]
-        method(*params)
 
 
 @pynvim.plugin
@@ -65,9 +49,16 @@ class Gdb(object):
     def gdb_py(self, args):
         tab = args[0]
         if args[1] == 'init':
-            self.tstorage.init(tab, App(self.vim))
+            self.tstorage.init(tab, App(self.vim, *args[2:]))
         elif args[1] == 'cleanup':
             self.tstorage.clear(tab)
         elif args[1] == 'dispatch':
             app = self.tstorage.getTab(tab)
             app.dispatch(args[2:])
+
+    @pynvim.function('GdbPyCall', sync=True)
+    def gdb_py_call(self, args):
+        tab = args[0]
+        if args[1] == 'getCommand':
+            app = self.tstorage.getTab(tab)
+            return app.getCommand(args[2])

@@ -49,9 +49,7 @@ class App
         @config = Config!
         defineSigns @config
 
-        V.gdb_py {"init"}
-
-        @backend = require "gdb.backend." .. backendStr
+        V.gdb_py {"init", backendStr}
 
         -- Create a temporary unique directory for all the sockets.
         @sockDir = SockDir!
@@ -67,9 +65,6 @@ class App
 
         -- Initialize the windowing subsystem
         @win = Win(wjump, @client, @breakpoint)
-
-        -- Initialize the SCM
-        @scm = @backend.initScm(@win)
 
         -- The SCM should be ready by now, spawn the debugger!
         @client\start!
@@ -114,12 +109,12 @@ class App
 
 
     getCommand: (cmd) =>
-        c = @backend[cmd]
-        c and c or cmd
+        V.gdb_py_call {"getCommand", cmd}
 
     onStdout: (j,d,e) =>
+        -- TODO make sure the data is handled in the correct tabpage
         for _, v in ipairs(d)
-            @scm\feed(v)
+            V.gdb_py {"dispatch", "scm", "feed", v}
 
     send: (cmd, ...) =>
         command = fmt(@getCommand(cmd), ...)
@@ -129,6 +124,7 @@ class App
     getLastCommand: => @lastCommand
     getConfig: => @config
     getKeymaps: => @keymaps
+    getWin: => @win
 
     interrupt: => @client\interrupt!
 
@@ -136,7 +132,7 @@ class App
         @proxy\query "handle-command " .. cmd
 
     toggleBreak: =>
-        if @scm\isRunning()
+        if V.gdb_py {"dispatch", "scm", "isRunning"}
             -- pause first
             @client\interrupt()
 
@@ -152,7 +148,7 @@ class App
             @client\sendLine(@getCommand('breakpoint') .. ' ' .. fileName .. ':' .. lineNr)
 
     clearBreaks: =>
-        if @scm\isRunning()
+        if V.gdb_py {"dispatch", "scm", "isRunning"}
             -- pause first
             @client\interrupt()
 
@@ -161,7 +157,7 @@ class App
 
     tabEnter: =>
         -- Restore the signs as they may have been spoiled
-        if @scm\isPaused!
+        if V.gdb_py {"dispatch", "scm", "isPaused"}
             V.gdb_py {"dispatch", "cursor", "show"}
 
         -- Ensure breakpoints are shown if are queried dynamically
