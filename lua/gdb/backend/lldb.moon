@@ -6,12 +6,6 @@ class LldbScm extends BaseScm
     new: (cursor, win) =>
         super!
 
-        check = (newState, action) ->
-            (r, l) ->
-                if nil != r\match l
-                    action!
-                    newState
-
         @addTrans @paused, nil, (_,l) ->
             if nil != l\match "^Process %d+ resuming"
                 cursor\hide!
