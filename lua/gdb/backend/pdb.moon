@@ -1,10 +1,9 @@
-V = require "gdb.v"
 BaseScm = require "gdb.scm"
 
 -- pdb specifics
 
 class PdbScm extends BaseScm
-    new: (win) =>
+    new: (cursor, win) =>
         super!
         @addTrans @paused, nil, (_,line) ->
             file, line = line\match "^> ([^(]+)%((%d+)%)[^(]+%(%)"

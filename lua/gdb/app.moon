@@ -2,6 +2,7 @@ V = require "gdb.v"
 Config = require "gdb.config"
 Client = require "gdb.client"
 Proxy = require "gdb.proxy"
+Cursor = require "gdb.cursor"
 Breakpoint = require "gdb.breakpoint"
 Win = require "gdb.win"
 Keymaps = require "gdb.keymaps"
@@ -49,8 +50,6 @@ class App
         @config = Config!
         defineSigns @config
 
-        V.gdb_py {"init"}
-
         @backend = require "gdb.backend." .. backendStr
 
         -- Create a temporary unique directory for all the sockets.
@@ -59,6 +58,9 @@ class App
         -- go to the other window and spawn gdb client
         @client = Client wcli, proxyCmd, clientCmd, @sockDir\get!
 
+        -- Initialize current line tracking
+        @cursor = Cursor!
+
         -- Initialize connection to the side channel
         @proxy = Proxy @client\getProxyAddr!, @sockDir\get!
 
@@ -66,10 +68,10 @@ class App
         @breakpoint = Breakpoint @config, @proxy
 
         -- Initialize the windowing subsystem
-        @win = Win(wjump, @client, @breakpoint)
+        @win = Win(wjump, @client, @cursor, @breakpoint)
 
         -- Initialize the SCM
-        @scm = @backend.initScm(@win)
+        @scm = @backend.initScm(@cursor, @win)
 
         -- The SCM should be ready by now, spawn the debugger!
         @client\start!
@@ -91,12 +93,10 @@ class App
         @breakpoint\resetSigns!
 
         -- Clean up the current line sign
-        V.gdb_py {"dispatch", "cursor", "hide"}
+        @cursor\hide!
 
         -- Close connection to the side channel
         @proxy\cleanup!
-
-        V.gdb_py {"cleanup"}
 
         -- Free the tabpage local storage for the current tabpage.
         tls\clear!
@@ -162,14 +162,14 @@ class App
     tabEnter: =>
         -- Restore the signs as they may have been spoiled
         if @scm\isPaused!
-            V.gdb_py {"dispatch", "cursor", "show"}
+            @cursor\show!
 
         -- Ensure breakpoints are shown if are queried dynamically
         @win\queryBreakpoints!
 
     tabLeave: =>
         -- Hide the signs
-        V.gdb_py {"dispatch", "cursor", "hide"}
+        @cursor\hide()
         @breakpoint\clearSigns!
 
     onBufEnter: =>

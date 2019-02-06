@@ -1,15 +1,14 @@
-V = require "gdb.v"
 BaseScm = require "gdb.scm"
 
 -- gdb specifics
 
 class GdbScm extends BaseScm
-    new: (win) =>
+    new: (cursor, win) =>
         super!
 
         @addTrans @paused, nil, (_,l) ->
             if nil != l\match "^Continuing%."
-                V.gdb_py {"dispatch", "cursor", "hide"}
+                cursor\hide!
                 @running
 
         @addTrans @paused, nil, (_,l) ->

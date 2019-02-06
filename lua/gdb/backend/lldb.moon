@@ -1,10 +1,9 @@
-V = require "gdb.v"
 BaseScm = require "gdb.scm"
 
 --  lldb specifics
 
 class LldbScm extends BaseScm
-    new: (win) =>
+    new: (cursor, win) =>
         super!
 
         check = (newState, action) ->
@@ -15,7 +14,7 @@ class LldbScm extends BaseScm
 
         @addTrans @paused, nil, (_,l) ->
             if nil != l\match "^Process %d+ resuming"
-                V.gdb_py {"dispatch", "cursor", "hide"}
+                cursor\hide!
                 @running
 
         @addTrans @paused, nil, (_,l) ->

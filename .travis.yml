@@ -18,8 +18,6 @@ matrix:
             - lldb-5.0
             - lua5.1
             - liblua5.1-0-dev
-            - python3-dev
-            - python3-pip
 
     - os: linux
       dist: trusty
@@ -36,8 +34,6 @@ matrix:
             - lldb-5.0
             - luajit
             - libluajit-5.1-dev
-            - python3-dev
-            - python3-pip
 
     - os: osx
       env:
@@ -49,7 +45,6 @@ notifications:
 before_install:
   - ./.travis-`uname`.sh
   - ./install.sh
-  - pip3 install --user pynvim
 
 script:
   - ./test/all.sh

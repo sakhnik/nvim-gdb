@@ -3,10 +3,11 @@ V = require "gdb.v"
 fmt = string.format
 
 class Win
-    new: (win, client, breakpoint) =>
+    new: (win, client, cursor, breakpoint) =>
         -- window number that will be displaying the current file
         @jumpWin = win
         @client = client
+        @cursor = cursor
         @breakpoint = breakpoint
 
     jump: (file, line) =>
@@ -29,8 +30,8 @@ class Win
 
         -- Goto the proper line and set the cursor on it
         V.exe ':' .. line
-        V.gdb_py {"dispatch", "cursor", "set", targetBuf, line}
-        V.gdb_py {"dispatch", "cursor", "show"}
+        @cursor\set(targetBuf, line)
+        @cursor\show!
 
         -- Return to the original window for the user
         V.jump_win window
@@ -49,7 +50,7 @@ class Win
             -- Query the breakpoints for the shown file
             @breakpoint\query(bufNum, fname)
             -- If there was a cursor, make sure it stays above the breakpoints.
-            V.gdb_py {"dispatch", "cursor", "reshow"}
+            @cursor\reshow!
 
         -- Execute the rest of custom commands
         V.exe "doautocmd User NvimGdbQuery"
