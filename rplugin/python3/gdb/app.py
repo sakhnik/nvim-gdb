@@ -1,4 +1,5 @@
 from gdb.cursor import Cursor
+from gdb.sockdir import SockDir
 import importlib
 
 
@@ -20,11 +21,17 @@ class App:
         # Import the desired backend module
         self.backend = importlib.import_module("gdb.backend." + backendStr).init()
 
+        # Create a temporary unique directory for all the sockets.
+        self.sockDir = SockDir()
+
         # Initialize current line tracking
         self.cursor = Cursor(vim)
 
         # Initialize the SCM
         self.scm = self.backend["initScm"](vim, self.cursor)
+
+    def cleanup(self):
+        self.sockDir.cleanup()
 
     def getCommand(self, cmd):
         return self.backend.get(cmd, cmd)

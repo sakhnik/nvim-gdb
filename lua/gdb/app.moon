@@ -5,7 +5,6 @@ Proxy = require "gdb.proxy"
 Breakpoint = require "gdb.breakpoint"
 Win = require "gdb.win"
 Keymaps = require "gdb.keymaps"
-SockDir = require "gdb.sockdir"
 
 fmt = string.format
 
@@ -51,14 +50,13 @@ class App
 
         V.gdb_py_async {"init", backendStr}
 
-        -- Create a temporary unique directory for all the sockets.
-        @sockDir = SockDir!
+        sockDir = V.gdb_py {"dispatch", "sockDir", "get"}
 
         -- go to the other window and spawn gdb client
-        @client = Client wcli, proxyCmd, clientCmd, @sockDir\get!
+        @client = Client wcli, proxyCmd, clientCmd, sockDir
 
         -- Initialize connection to the side channel
-        @proxy = Proxy @client\getProxyAddr!, @sockDir\get!
+        @proxy = Proxy @client\getProxyAddr!, sockDir
 
         -- Initialize breakpoint tracking
         @breakpoint = Breakpoint @config, @proxy
@@ -105,7 +103,6 @@ class App
             V.exe "tabclose"
 
         @client\cleanup!
-        @sockDir\cleanup!
 
 
     getCommand: (cmd) =>

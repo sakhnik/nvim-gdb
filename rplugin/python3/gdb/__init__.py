@@ -51,6 +51,8 @@ class Gdb(object):
         if args[1] == 'init':
             self.tstorage.init(tab, App(self.vim, *args[2:]))
         elif args[1] == 'cleanup':
+            app = self.tstorage.getTab(tab)
+            app.cleanup()
             self.tstorage.clear(tab)
         elif args[1] == 'dispatch':
             app = self.tstorage.getTab(tab)
