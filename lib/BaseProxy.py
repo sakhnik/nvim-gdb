@@ -117,12 +117,15 @@ class BaseProxy(object):
 
     def _process(self):
         """Run the main loop."""
-        sockets = [self.master_fd, pty.STDIN_FILENO]
-        if self.sock:
-            sockets.append(self.sock)
 
         while True:
             try:
+                sockets = [self.master_fd]
+                if self.sock:
+                    sockets.append(self.sock)
+                # Don't handle user input while a side command is running.
+                if len(self.filter) == 1:
+                    sockets.append(pty.STDIN_FILENO)
                 rfds, wfds, xfds = select.select(sockets, [], [], 0.25)
             except select.error as e:
                 if e[0] == errno.EAGAIN:   # Interrupted system call.
@@ -133,13 +136,15 @@ class BaseProxy(object):
             if not rfds:
                 self._timeout()
             else:
+                # Handle one packet at a time to mitigate the side channel
+                # breaking into user input.
                 if self.master_fd in rfds:
                     data = os.read(self.master_fd, 1024)
                     self.master_read(data)
-                if pty.STDIN_FILENO in rfds:
+                elif pty.STDIN_FILENO in rfds:
                     data = os.read(pty.STDIN_FILENO, 1024)
                     self.stdin_read(data)
-                if self.sock in rfds:
+                elif self.sock in rfds:
                     data, self.last_addr = self.sock.recvfrom(65536)
                     if data[-1] == b'\n':
                         self.log("WARNING: the command ending with <nl>. The StreamProxy filter known to fail.")
