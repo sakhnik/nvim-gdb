@@ -1,5 +1,11 @@
 import os
 
+def getPluginDir():
+    path = os.path.realpath(__file__)
+    for i in range(4):
+        path = os.path.dirname(path)
+    return path
+
 class Client:
     def __init__(self, vim, win, proxyCmd, clientCmd, sockDir):
         self.vim = vim
@@ -9,10 +15,8 @@ class Client:
         self.command = clientCmd
         if proxyCmd:
             self.proxyAddr = sockDir.get() + '/server'
-            self.command = "%s/lib/%s -a %s -- %s" %
-                (vim.call("nvimgdb#GetPluginDir"), proxyCmd, self.proxyAddr, clientCmd)
-        # TODO: work with the Window class
-        vim.command("%dwincmd w" % vim.call("nvim_win_get_number", win))
+            self.command = "%s/lib/%s -a %s -- %s" % (getPluginDir(), proxyCmd, self.proxyAddr, clientCmd)
+        vim.command("%dwincmd w" % win.number)
         vim.command("enew")
         self.clientBuf = vim.current.buffer
 
@@ -22,8 +26,8 @@ class Client:
 
     def start(self):
         # Go to the yet-to-be terminal window
-        self.vim.command("%dwincmd w" % self.vim.call("nvim_win_get_number", self.win))
-        self.clientId = V.call("nvimgdb#TermOpen", self.command, self.vim.current.tabpage)
+        self.vim.command("%dwincmd w" % self.win.number)
+        self.clientId = self.vim.call("nvimgdb#TermOpen", self.command, self.vim.current.tabpage)
 
     def interrupt(self):
         self.vim.call("jobsend", self.clientId, "\x03")

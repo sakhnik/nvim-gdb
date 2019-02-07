@@ -1,5 +1,3 @@
-lua gdb = require("gdb.app")
-
 
 augroup NvimGdbInternal
   au!
@@ -44,7 +42,7 @@ endfunction
 
 
 function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
-  call luaeval("gdb.init(_A[1], _A[2], _A[3])", [a:backend, a:proxy_cmd, a:client_cmd])
+  call GdbInit(a:backend, a:proxy_cmd, a:client_cmd)
 
   " Initialize the UI commands, autocommands etc
   call nvimgdb#ui#Enter()

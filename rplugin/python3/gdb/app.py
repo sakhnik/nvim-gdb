@@ -1,5 +1,6 @@
 from gdb.cursor import Cursor
 from gdb.sockdir import SockDir
+from gdb.client import Client
 import importlib
 
 
@@ -14,9 +15,129 @@ import importlib
 #            self.f.write("%s\n" % msg)
 #            self.f.flush()
 
+#CheckTab = ->
+#    tls\get! != nil
+#
+#GetFullBufferPath = (bufNr) ->
+#    -- Breakpoints need full path to the buffer (at least in lldb)
+#    V.call("expand", {fmt('#%d:p', bufNr)})
+#
+#defineSigns = (config) ->
+#    -- Define the sign for current line the debugged program is executing.
+#    V.exe "sign define GdbCurrentLine text=" .. config.sign_current_line
+#    -- Define signs for the breakpoints.
+#    for i,s in ipairs(config.sign_breakpoint)
+#        V.exe 'sign define GdbBreakpoint' .. i .. ' text=' .. s
+
+
+#class App
+#
+#    cleanup: =>
+#
+#
+#    getCommand: (cmd) =>
+#        V.gdb_py {"getCommand", cmd}
+#
+#    send: (cmd, ...) =>
+#        command = fmt(@getCommand(cmd), ...)
+#        @client\sendLine(command)
+#        @lastCommand = command  -- Remember the command for testing
+#
+#    getLastCommand: => @lastCommand
+#    getConfig: => @config
+#    getKeymaps: => @keymaps
+#    getWin: => @win
+#
+#    interrupt: => @client\interrupt!
+#
+#    customCommand: (cmd) =>
+#        @proxy\query "handle-command " .. cmd
+#
+#    toggleBreak: =>
+#        if V.gdb_py {"dispatch", "scm", "isRunning"}
+#            -- pause first
+#            @client\interrupt()
+#
+#        buf = V.get_current_buf!
+#        fileName = GetFullBufferPath(buf)
+#        lineNr = V.call("line", {"."})
+#        breaks = @breakpoint\getForFile fileName, lineNr
+#
+#        if breaks != nil and #breaks > 0
+#            -- There already is a breakpoint on this line: remove
+#            @client\sendLine(@getCommand('delete_breakpoints') .. ' ' .. breaks[#breaks])
+#        else
+#            @client\sendLine(@getCommand('breakpoint') .. ' ' .. fileName .. ':' .. lineNr)
+#
+#    clearBreaks: =>
+#        if V.gdb_py {"dispatch", "scm", "isRunning"}
+#            -- pause first
+#            @client\interrupt()
+#
+#        -- The breakpoint signs will be requeried later automatically
+#        @send('delete_breakpoints')
+#
+#    tabEnter: =>
+#        -- Restore the signs as they may have been spoiled
+#        if V.gdb_py {"dispatch", "scm", "isPaused"}
+#            V.gdb_py {"dispatch", "cursor", "show"}
+#
+#        -- Ensure breakpoints are shown if are queried dynamically
+#        @win\queryBreakpoints!
+#
+#    tabLeave: =>
+#        -- Hide the signs
+#        V.gdb_py {"dispatch", "cursor", "hide"}
+#        @breakpoint\clearSigns!
+#
+#    onBufEnter: =>
+#        if V.buf_get_option(V.get_current_buf!, 'buftype') != 'terminal'
+#            -- Make sure the cursor stays visible at all times
+#            V.exe "if !&scrolloff | setlocal scrolloff=5 | endif"
+#            @keymaps\dispatchSet!
+#            -- Ensure breakpoints are shown if are queried dynamically
+#            @win\queryBreakpoints!
+#
+#    onBufLeave: =>
+#        if V.buf_get_option(V.get_current_buf!, 'buftype') != 'terminal'
+#            @keymaps\dispatchUnset!
+#
+#Init = (backendStr, proxyCmd, clientCmd) ->
+#    App backendStr, proxyCmd, clientCmd
+#    0  -- return a POD value to make Vim happy
+#
+#
+#-- Dispatch a call to the current tabpage-specific
+#-- instance of the application.
+#Dispatch = (name, ...) ->
+#    app = tls\get!
+#    if app
+#        App.__base[name](app, ...)
+#
+#ret =
+#    init: Init
+#    getFullBufferPath: GetFullBufferPath
+#    checkTab: CheckTab
+#
+#-- Allow calling object functions by dispatching
+#-- to the tabpage local instance.
+#for k, v in pairs(App.__base)
+#    if type(v) == "function" and ret[k] == nil
+#        ret[k] = (...) -> Dispatch(k, ...)
+
 class App:
-    def __init__(self, vim, backendStr):
-        #self.ctxt = Context(vim)
+    def __init__(self, vim, backendStr, proxyCmd, clientCmd):
+
+        # Create new tab for the debugging view and split horizontally
+        vim.command("tabnew | sp")
+
+        # Enumerate the available windows
+        wins = vim.current.tabpage.windows
+        wcli, wjump = wins[1], wins[0]
+
+        ##-- Prepare configuration: keymaps, hooks, parameters etc.
+        ##@config = Config!
+        ##defineSigns @config
 
         # Import the desired backend module
         self.backend = importlib.import_module("gdb.backend." + backendStr).init()
@@ -30,7 +151,54 @@ class App:
         # Initialize the SCM
         self.scm = self.backend["initScm"](vim, self.cursor)
 
+        # Go to the other window and spawn gdb client
+        self.client = Client(vim, wcli, proxyCmd, clientCmd, self.sockDir)
+
+        #-- Initialize connection to the side channel
+        #@proxy = Proxy @client\getProxyAddr!, sockDir
+
+        #-- Initialize breakpoint tracking
+        #@breakpoint = Breakpoint @config, @proxy
+
+        #-- Initialize the windowing subsystem
+        #@win = Win(wjump, @client, @breakpoint)
+
+        #-- Set initial keymaps in the terminal window.
+        #@keymaps = Keymaps @config
+        #@keymaps\dispatchSetT!
+        #@keymaps\dispatchSet!
+
+        #-- Start insert mode in the GDB window
+        #V.exe "normal i"
+
+    def start(self):
+        # The SCM should be ready by now, spawn the debugger!
+        self.client.start()
+
     def cleanup(self):
+#        -- Clean up the breakpoint signs
+#        @breakpoint\resetSigns!
+#
+#        -- Clean up the current line sign
+#        V.gdb_py {"dispatch", "cursor", "hide"}
+#
+#        -- Close connection to the side channel
+#        @proxy\cleanup!
+#
+#        V.gdb_py_async {"cleanup"}
+#
+#        -- Free the tabpage local storage for the current tabpage.
+#        tls\clear!
+#
+        # Close the windows and the tab
+        #tabCount = #V.list_tabpages!
+        #clientBuf = @client\getBuf!
+        #if V.buf_is_loaded(clientBuf)
+        #    V.exe ("bd! " .. clientBuf)
+        #if tabCount == #V.list_tabpages!
+        #    V.exe "tabclose"
+
+#        @client\cleanup!
         self.sockDir.cleanup()
 
     def getCommand(self, cmd):

@@ -7,12 +7,12 @@ class TStorage:
         self.data = {}
 
     # Create a tabpage-specific table
-    def init(self, tab, val):
-        self.data[tab] = val
+    def init(self, val):
+        self.data[self.vim.current.tabpage.number] = val
 
     # Access the table for the current page
     def get(self):
-        return self.data[self.vim.current.tabpage]
+        return self.data[self.vim.current.tabpage.number]
 
     # Access the table for given page
     def getTab(self, tab):
@@ -45,12 +45,16 @@ class Gdb(object):
     #    self.vim.current.line = (
     #        'Autocmd: Called %s times, file: %s' % (self.calls, filename))
 
+    @pynvim.function('GdbInit', sync=True)
+    def gdb_init(self, args):
+        app = App(self.vim, *args)
+        self.tstorage.init(app)
+        app.start()
+
     @pynvim.function('GdbPyAsync')
     def gdb_py_async(self, args):
         tab = args[0]
-        if args[1] == 'init':
-            self.tstorage.init(tab, App(self.vim, *args[2:]))
-        elif args[1] == 'cleanup':
+        if args[1] == 'cleanup':
             app = self.tstorage.getTab(tab)
             app.cleanup()
             self.tstorage.clear(tab)
