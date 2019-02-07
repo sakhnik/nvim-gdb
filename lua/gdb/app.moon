@@ -108,11 +108,6 @@ class App
     getCommand: (cmd) =>
         V.gdb_py {"getCommand", cmd}
 
-    onStdout: (j,d,e) =>
-        -- TODO make sure the data is handled in the correct tabpage
-        for _, v in ipairs(d)
-            V.gdb_py_async {"dispatch", "scm", "feed", v}
-
     send: (cmd, ...) =>
         command = fmt(@getCommand(cmd), ...)
         @client\sendLine(command)
@@ -189,16 +184,10 @@ Dispatch = (name, ...) ->
     if app
         App.__base[name](app, ...)
 
--- Dispatch client stdout output to it's tabpage's SCM
-OnStdout = (tab, j, d, e) ->
-    app = tls\getTab tab
-    app\onStdout(j, d, e)
-
 ret =
     init: Init
     getFullBufferPath: GetFullBufferPath
     checkTab: CheckTab
-    onStdout: OnStdout
 
 -- Allow calling object functions by dispatching
 -- to the tabpage local instance.

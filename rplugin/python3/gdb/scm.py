@@ -37,10 +37,11 @@ class BaseScm:
             return self.paused
 
     # Process a line of the debugger output through the SCM.
-    def feed(self, line):
-        # If there is a matcher matching the line, call its handler.
-        for matcher, func in self.state:
-            newState = func(matcher, line)
-            if newState:
-                self.state = newState
-                break
+    def feed(self, lines):
+        for line in lines:
+            # If there is a matcher matching the line, call its handler.
+            for matcher, func in self.state:
+                newState = func(matcher, line)
+                if newState:
+                    self.state = newState
+                    break

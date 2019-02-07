@@ -64,6 +64,6 @@ endfunction
 
 function! nvimgdb#TermOpen(command, tab)
   return termopen(a:command,
-    \ {'on_stdout': {j,d,e -> luaeval("gdb.onStdout(_A[1], _A[2], _A[3], _A[4])", [a:tab,j,d,e])}
+    \ {'on_stdout': {j,d,e -> GdbPyAsync(a:tab, "dispatch", "scm", "feed", d)}
     \ })
 endfunction
