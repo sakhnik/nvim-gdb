@@ -35,72 +35,6 @@ import importlib
 #    cleanup: =>
 #
 #
-#    getCommand: (cmd) =>
-#        V.gdb_py {"getCommand", cmd}
-#
-#    send: (cmd, ...) =>
-#        command = fmt(@getCommand(cmd), ...)
-#        @client\sendLine(command)
-#        @lastCommand = command  -- Remember the command for testing
-#
-#    getLastCommand: => @lastCommand
-#    getConfig: => @config
-#    getKeymaps: => @keymaps
-#    getWin: => @win
-#
-#    interrupt: => @client\interrupt!
-#
-#    customCommand: (cmd) =>
-#        @proxy\query "handle-command " .. cmd
-#
-#    toggleBreak: =>
-#        if V.gdb_py {"dispatch", "scm", "isRunning"}
-#            -- pause first
-#            @client\interrupt()
-#
-#        buf = V.get_current_buf!
-#        fileName = GetFullBufferPath(buf)
-#        lineNr = V.call("line", {"."})
-#        breaks = @breakpoint\getForFile fileName, lineNr
-#
-#        if breaks != nil and #breaks > 0
-#            -- There already is a breakpoint on this line: remove
-#            @client\sendLine(@getCommand('delete_breakpoints') .. ' ' .. breaks[#breaks])
-#        else
-#            @client\sendLine(@getCommand('breakpoint') .. ' ' .. fileName .. ':' .. lineNr)
-#
-#    clearBreaks: =>
-#        if V.gdb_py {"dispatch", "scm", "isRunning"}
-#            -- pause first
-#            @client\interrupt()
-#
-#        -- The breakpoint signs will be requeried later automatically
-#        @send('delete_breakpoints')
-#
-#    tabEnter: =>
-#        -- Restore the signs as they may have been spoiled
-#        if V.gdb_py {"dispatch", "scm", "isPaused"}
-#            V.gdb_py {"dispatch", "cursor", "show"}
-#
-#        -- Ensure breakpoints are shown if are queried dynamically
-#        @win\queryBreakpoints!
-#
-#    tabLeave: =>
-#        -- Hide the signs
-#        V.gdb_py {"dispatch", "cursor", "hide"}
-#        @breakpoint\clearSigns!
-#
-#    onBufEnter: =>
-#        if V.buf_get_option(V.get_current_buf!, 'buftype') != 'terminal'
-#            -- Make sure the cursor stays visible at all times
-#            V.exe "if !&scrolloff | setlocal scrolloff=5 | endif"
-#            @keymaps\dispatchSet!
-#            -- Ensure breakpoints are shown if are queried dynamically
-#            @win\queryBreakpoints!
-#
-#    onBufLeave: =>
-#        if V.buf_get_option(V.get_current_buf!, 'buftype') != 'terminal'
-#            @keymaps\dispatchUnset!
 #
 #Init = (backendStr, proxyCmd, clientCmd) ->
 #    App backendStr, proxyCmd, clientCmd
@@ -117,7 +51,6 @@ import importlib
 #ret =
 #    init: Init
 #    getFullBufferPath: GetFullBufferPath
-#    checkTab: CheckTab
 #
 #-- Allow calling object functions by dispatching
 #-- to the tabpage local instance.
@@ -179,16 +112,11 @@ class App:
 #        -- Clean up the breakpoint signs
 #        @breakpoint\resetSigns!
 #
-#        -- Clean up the current line sign
-#        V.gdb_py {"dispatch", "cursor", "hide"}
+        # Clean up the current line sign
+        self.cursor.hide()
 #
 #        -- Close connection to the side channel
 #        @proxy\cleanup!
-#
-#        V.gdb_py_async {"cleanup"}
-#
-#        -- Free the tabpage local storage for the current tabpage.
-#        tls\clear!
 #
         # Close the windows and the tab
         #tabCount = #V.list_tabpages!
@@ -198,12 +126,75 @@ class App:
         #if tabCount == #V.list_tabpages!
         #    V.exe "tabclose"
 
-#        @client\cleanup!
+        self.client.cleanup()
         self.sockDir.cleanup()
 
     def getCommand(self, cmd):
         return self.backend.get(cmd, cmd)
 
+#    send: (cmd, ...) =>
+#        command = fmt(@getCommand(cmd), ...)
+#        @client\sendLine(command)
+#        @lastCommand = command  -- Remember the command for testing
+#
+#    getLastCommand: => @lastCommand
+#    getConfig: => @config
+#    getKeymaps: => @keymaps
+#    getWin: => @win
+#
+#    interrupt: => @client\interrupt!
+#
+#    customCommand: (cmd) =>
+#        @proxy\query "handle-command " .. cmd
+#
+#    toggleBreak: =>
+#        if V.gdb_py {"dispatch", "scm", "isRunning"}
+#            -- pause first
+#            @client\interrupt()
+#
+#        buf = V.get_current_buf!
+#        fileName = GetFullBufferPath(buf)
+#        lineNr = V.call("line", {"."})
+#        breaks = @breakpoint\getForFile fileName, lineNr
+#
+#        if breaks != nil and #breaks > 0
+#            -- There already is a breakpoint on this line: remove
+#            @client\sendLine(@getCommand('delete_breakpoints') .. ' ' .. breaks[#breaks])
+#        else
+#            @client\sendLine(@getCommand('breakpoint') .. ' ' .. fileName .. ':' .. lineNr)
+#
+#    clearBreaks: =>
+#        if V.gdb_py {"dispatch", "scm", "isRunning"}
+#            -- pause first
+#            @client\interrupt()
+#
+#        -- The breakpoint signs will be requeried later automatically
+#        @send('delete_breakpoints')
+
+    def tabEnter(self):
+        # Restore the signs as they may have been spoiled
+        if self.scm.isPaused():
+            self.cursor.show()
+
+        ## Ensure breakpoints are shown if are queried dynamically
+        #@win\queryBreakpoints!
+
+    def tabLeave(self):
+        # Hide the signs
+        self.cursor.hide()
+        self.breakpoint.clearSigns()
+
+#    onBufEnter: =>
+#        if V.buf_get_option(V.get_current_buf!, 'buftype') != 'terminal'
+#            -- Make sure the cursor stays visible at all times
+#            V.exe "if !&scrolloff | setlocal scrolloff=5 | endif"
+#            @keymaps\dispatchSet!
+#            -- Ensure breakpoints are shown if are queried dynamically
+#            @win\queryBreakpoints!
+#
+#    onBufLeave: =>
+#        if V.buf_get_option(V.get_current_buf!, 'buftype') != 'terminal'
+#            @keymaps\dispatchUnset!
     def dispatch(self, params):
         obj = getattr(self, params[0])
         method = getattr(obj, params[1])

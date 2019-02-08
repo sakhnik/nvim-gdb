@@ -1,34 +1,12 @@
 import pynvim
 from gdb.app import App
 
-class TStorage:
-    def __init__(self, vim):
-        self.vim = vim
-        self.data = {}
-
-    # Create a tabpage-specific table
-    def init(self, val):
-        self.data[self.vim.current.tabpage.number] = val
-
-    # Access the table for the current page
-    def get(self):
-        return self.data[self.vim.current.tabpage.number]
-
-    # Access the table for given page
-    def getTab(self, tab):
-        return self.data[tab]
-
-    # Delete the tabpage-specific table
-    def clear(self, tab):
-        del(self.data[tab])
-
 
 @pynvim.plugin
 class Gdb(object):
     def __init__(self, vim):
         self.vim = vim
-        self.tstorage = TStorage(vim)
-        self.calls = 0
+        self.apps = {}
 
     #@pynvim.command('Cmd', range='', nargs='*', sync=True)
     #def command_handler(self, args, range):
@@ -45,29 +23,50 @@ class Gdb(object):
     #    self.vim.current.line = (
     #        'Autocmd: Called %s times, file: %s' % (self.calls, filename))
 
+    def _get_app(self):
+        return self.apps[self.vim.current.tabpage.number]
+
     @pynvim.function('GdbInit', sync=True)
     def gdb_init(self, args):
         app = App(self.vim, *args)
-        self.tstorage.init(app)
+        self.apps[self.vim.current.tabpage.number] = app
         app.start()
+
+
+    @pynvim.function('GdbCleanup', sync=True)
+    def gdb_cleanup(self, args):
+        tab = self.vim.current.tabpage.number
+        app = self.apps[tab]
+        app.cleanup()
+        del(self.apps[tab])
+
+    # TODO: Decrease usage of this function TOCTOU
+    @pynvim.function('GdbCheckTab', sync=True)
+    def gdb_check_tab(self, args):
+        return self.vim.current.tabpage.number in self.apps
+
+    @pynvim.function('GdbTabEnter')
+    def gdb_tab_enter(self, args):
+        app = self._get_app()
+        app.tabEnter()
 
     @pynvim.function('GdbPyAsync')
     def gdb_py_async(self, args):
         tab = args[0]
         if args[1] == 'cleanup':
-            app = self.tstorage.getTab(tab)
+            app = self.apps[tab]
             app.cleanup()
-            self.tstorage.clear(tab)
+            del(self.apps[tab])
         elif args[1] == 'dispatch':
-            app = self.tstorage.getTab(tab)
+            app = self.apps[tab]
             app.dispatch(args[2:])
 
     @pynvim.function('GdbPy', sync=True)
     def gdb_py(self, args):
         tab = args[0]
         if args[1] == 'getCommand':
-            app = self.tstorage.getTab(tab)
+            app = self.apps[tab]
             return app.getCommand(args[2])
         elif args[1] == 'dispatch':
-            app = self.tstorage.getTab(tab)
+            app = self.apps[tab]
             return app.dispatch(args[2:])

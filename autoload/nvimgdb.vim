@@ -16,10 +16,10 @@ function! s:GdbKill()
   " Cleanup commands, autocommands etc
   call nvimgdb#ui#Leave()
 
-  lua gdb.cleanup()
+  call GdbCleanup()
 
   " TabEnter isn't fired automatically when a tab is closed
-  lua gdb.tabEnter()
+  call GdbTabEnter()
 
   " sets hidden back to user default
   if l:hidden
@@ -31,7 +31,7 @@ endfunction
 " The checks to be executed when navigating the windows
 function! nvimgdb#CheckWindowClosed(...)
   " If this isn't a debugging session, nothing to do
-  if !luaeval("gdb.checkTab()") | return | endif
+  if !GdbCheckTab() | return | endif
 
   " The tabpage should contain at least two windows, finish debugging
   " otherwise.
@@ -50,7 +50,7 @@ endfunction
 
 
 function! nvimgdb#Kill()
-  if !luaeval("gdb.checkTab()") | return | endif
+  if !GdbCheckTab() | return | endif
   call s:GdbKill()
 endfunction
 
