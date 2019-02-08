@@ -168,16 +168,16 @@ class App:
 
     def onBufEnter(self):
         pass
-        #if V.buf_get_option(V.get_current_buf!, 'buftype') != 'terminal'
-        #    # Make sure the cursor stays visible at all times
-        #    V.exe "if !&scrolloff | setlocal scrolloff=5 | endif"
-        #    @keymaps\dispatchSet!
-        #    # Ensure breakpoints are shown if are queried dynamically
-        #    @win\queryBreakpoints!
+        if self.vim.current.buffer.options['buftype'] != 'terminal':
+            # Make sure the cursor stay visible at all times
+            self.vim.command("if !&scrolloff | setlocal scrolloff=5 | endif")
+            #@keymaps\dispatchSet!
+            # Ensure breakpoints are shown if are queried dynamically
+            self.win.queryBreakpoints()
 
     def onBufLeave(self):
-        pass
-        #if V.buf_get_option(V.get_current_buf!, 'buftype') != 'terminal'
+        if self.vim.current.buffer.options['buftype'] != 'terminal':
+            pass
         #    @keymaps\dispatchUnset!
 
     def dispatch(self, params):
