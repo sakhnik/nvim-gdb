@@ -1,9 +1,10 @@
 
 # Common SCM implementation for the integrated backends
 class BaseScm:
-    def __init__(self, vim, cursor):
+    def __init__(self, vim, cursor, win):
         self.vim = vim
         self.cursor = cursor
+        self.win = win
         self.running = []  # The running state [(matcher, matchingFunc)]
         self.paused = []   # The paused state [(matcher, matchingFunc)]
         self.state = None  # Current state (either self.running or self.paused)
@@ -28,12 +29,12 @@ class BaseScm:
     def pausedJump(self, matcher, line):
         m = matcher.search(line)
         if m:
-            self.vim.exec_lua("gdb.getWin():jump(...)", m[1], m[2], async_=True)
+            self.win.jump(m[1], int(m[2]))
             return self.paused
 
     def queryB(self, matcher, line):
         if matcher.search(line):
-            self.vim.exec_lua("gdb.getWin():queryBreakpoints()", async_=True)
+            self.win.queryBreakpoints()
             return self.paused
 
     # Process a line of the debugger output through the SCM.

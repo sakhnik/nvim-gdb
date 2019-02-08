@@ -1,6 +1,8 @@
+from gdb.config import getConfig
 from gdb.cursor import Cursor
 from gdb.sockdir import SockDir
 from gdb.client import Client
+from gdb.win import Win
 import importlib
 
 
@@ -15,19 +17,9 @@ import importlib
 #            self.f.write("%s\n" % msg)
 #            self.f.flush()
 
-#CheckTab = ->
-#    tls\get! != nil
-#
 #GetFullBufferPath = (bufNr) ->
 #    -- Breakpoints need full path to the buffer (at least in lldb)
 #    V.call("expand", {fmt('#%d:p', bufNr)})
-#
-#defineSigns = (config) ->
-#    -- Define the sign for current line the debugged program is executing.
-#    V.exe "sign define GdbCurrentLine text=" .. config.sign_current_line
-#    -- Define signs for the breakpoints.
-#    for i,s in ipairs(config.sign_breakpoint)
-#        V.exe 'sign define GdbBreakpoint' .. i .. ' text=' .. s
 
 
 #ret =
@@ -51,9 +43,9 @@ class App:
         wins = vim.current.tabpage.windows
         wcli, wjump = wins[1], wins[0]
 
-        ##-- Prepare configuration: keymaps, hooks, parameters etc.
-        ##@config = Config!
-        ##defineSigns @config
+        # Prepare configuration: keymaps, hooks, parameters etc.
+        self.config = getConfig()
+        self.defineSigns(self.config)
 
         # Import the desired backend module
         self.backend = importlib.import_module("gdb.backend." + backendStr).init()
@@ -64,9 +56,6 @@ class App:
         # Initialize current line tracking
         self.cursor = Cursor(vim)
 
-        # Initialize the SCM
-        self.scm = self.backend["initScm"](vim, self.cursor)
-
         # Go to the other window and spawn gdb client
         self.client = Client(vim, wcli, proxyCmd, clientCmd, self.sockDir)
 
@@ -75,17 +64,21 @@ class App:
 
         #-- Initialize breakpoint tracking
         #@breakpoint = Breakpoint @config, @proxy
+        self.breakpoint = None
 
-        #-- Initialize the windowing subsystem
-        #@win = Win(wjump, @client, @breakpoint)
+        # Initialize the windowing subsystem
+        self.win = Win(vim, wjump, self.cursor, self.client, self.breakpoint)
+
+        # Initialize the SCM
+        self.scm = self.backend["initScm"](vim, self.cursor, self.win)
 
         #-- Set initial keymaps in the terminal window.
         #@keymaps = Keymaps @config
         #@keymaps\dispatchSetT!
         #@keymaps\dispatchSet!
 
-        #-- Start insert mode in the GDB window
-        #V.exe "normal i"
+        # Start insert mode in the GDB window
+        vim.command("normal i")
 
     def start(self):
         # The SCM should be ready by now, spawn the debugger!
@@ -109,6 +102,14 @@ class App:
 
         self.client.cleanup()
         self.sockDir.cleanup()
+
+    def defineSigns(self, config):
+        # Define the sign for current line the debugged program is executing.
+        self.vim.command("sign define GdbCurrentLine text=" + config["sign_current_line"])
+        # Define signs for the breakpoints.
+        breaks = config["sign_breakpoint"]
+        for i in range(len(breaks)):
+            self.vim.command('sign define GdbBreakpoint%d text=%s' % ((i+1), breaks[i]))
 
     def getCommand(self, cmd):
         return self.backend.get(cmd, cmd)
@@ -157,8 +158,8 @@ class App:
         if self.scm.isPaused():
             self.cursor.show()
 
-        ## Ensure breakpoints are shown if are queried dynamically
-        #@win\queryBreakpoints!
+        # Ensure breakpoints are shown if are queried dynamically
+        self.win.queryBreakpoints()
 
     def onTabLeave(self):
         # Hide the signs
