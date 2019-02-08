@@ -30,24 +30,6 @@ import importlib
 #        V.exe 'sign define GdbBreakpoint' .. i .. ' text=' .. s
 
 
-#class App
-#
-#    cleanup: =>
-#
-#
-#
-#Init = (backendStr, proxyCmd, clientCmd) ->
-#    App backendStr, proxyCmd, clientCmd
-#    0  -- return a POD value to make Vim happy
-#
-#
-#-- Dispatch a call to the current tabpage-specific
-#-- instance of the application.
-#Dispatch = (name, ...) ->
-#    app = tls\get!
-#    if app
-#        App.__base[name](app, ...)
-#
 #ret =
 #    init: Init
 #    getFullBufferPath: GetFullBufferPath
@@ -60,6 +42,7 @@ import importlib
 
 class App:
     def __init__(self, vim, backendStr, proxyCmd, clientCmd):
+        self.vim = vim
 
         # Create new tab for the debugging view and split horizontally
         vim.command("tabnew | sp")
@@ -119,12 +102,10 @@ class App:
 #        @proxy\cleanup!
 #
         # Close the windows and the tab
-        #tabCount = #V.list_tabpages!
-        #clientBuf = @client\getBuf!
-        #if V.buf_is_loaded(clientBuf)
-        #    V.exe ("bd! " .. clientBuf)
-        #if tabCount == #V.list_tabpages!
-        #    V.exe "tabclose"
+        tabCount = len(self.vim.tabpages)
+        self.client.delBuffer()
+        if tabCount == len(self.vim.tabpages):
+            self.vim.command("tabclose")
 
         self.client.cleanup()
         self.sockDir.cleanup()
@@ -171,7 +152,7 @@ class App:
 #        -- The breakpoint signs will be requeried later automatically
 #        @send('delete_breakpoints')
 
-    def tabEnter(self):
+    def onTabEnter(self):
         # Restore the signs as they may have been spoiled
         if self.scm.isPaused():
             self.cursor.show()
@@ -179,22 +160,25 @@ class App:
         ## Ensure breakpoints are shown if are queried dynamically
         #@win\queryBreakpoints!
 
-    def tabLeave(self):
+    def onTabLeave(self):
         # Hide the signs
         self.cursor.hide()
-        self.breakpoint.clearSigns()
+        #self.breakpoint.clearSigns()
 
-#    onBufEnter: =>
-#        if V.buf_get_option(V.get_current_buf!, 'buftype') != 'terminal'
-#            -- Make sure the cursor stays visible at all times
-#            V.exe "if !&scrolloff | setlocal scrolloff=5 | endif"
-#            @keymaps\dispatchSet!
-#            -- Ensure breakpoints are shown if are queried dynamically
-#            @win\queryBreakpoints!
-#
-#    onBufLeave: =>
-#        if V.buf_get_option(V.get_current_buf!, 'buftype') != 'terminal'
-#            @keymaps\dispatchUnset!
+    def onBufEnter(self):
+        pass
+        #if V.buf_get_option(V.get_current_buf!, 'buftype') != 'terminal'
+        #    # Make sure the cursor stays visible at all times
+        #    V.exe "if !&scrolloff | setlocal scrolloff=5 | endif"
+        #    @keymaps\dispatchSet!
+        #    # Ensure breakpoints are shown if are queried dynamically
+        #    @win\queryBreakpoints!
+
+    def onBufLeave(self):
+        pass
+        #if V.buf_get_option(V.get_current_buf!, 'buftype') != 'terminal'
+        #    @keymaps\dispatchUnset!
+
     def dispatch(self, params):
         obj = getattr(self, params[0])
         method = getattr(obj, params[1])

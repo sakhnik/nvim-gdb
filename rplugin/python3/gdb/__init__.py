@@ -24,18 +24,18 @@ class Gdb(object):
     #        'Autocmd: Called %s times, file: %s' % (self.calls, filename))
 
     def _get_app(self):
-        return self.apps[self.vim.current.tabpage.number]
+        return self.apps[self.vim.current.tabpage.handle]
 
     @pynvim.function('GdbInit', sync=True)
     def gdb_init(self, args):
         app = App(self.vim, *args)
-        self.apps[self.vim.current.tabpage.number] = app
+        self.apps[self.vim.current.tabpage.handle] = app
         app.start()
 
 
     @pynvim.function('GdbCleanup', sync=True)
     def gdb_cleanup(self, args):
-        tab = self.vim.current.tabpage.number
+        tab = self.vim.current.tabpage.handle
         app = self.apps[tab]
         app.cleanup()
         del(self.apps[tab])
@@ -43,12 +43,16 @@ class Gdb(object):
     # TODO: Decrease usage of this function TOCTOU
     @pynvim.function('GdbCheckTab', sync=True)
     def gdb_check_tab(self, args):
-        return self.vim.current.tabpage.number in self.apps
+        return self.vim.current.tabpage.handle in self.apps
 
-    @pynvim.function('GdbTabEnter')
-    def gdb_tab_enter(self, args):
-        app = self._get_app()
-        app.tabEnter()
+    @pynvim.function('GdbHandleEvent', sync=True)
+    def gdb_handle_event(self, args):
+        try:
+            app = self._get_app()
+            handler = getattr(app, args[0])
+            handler()
+        except:
+            pass
 
     @pynvim.function('GdbPyAsync')
     def gdb_py_async(self, args):

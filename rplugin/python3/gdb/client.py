@@ -20,6 +20,10 @@ class Client:
         vim.command("enew")
         self.clientBuf = vim.current.buffer
 
+    def delBuffer(self):
+        if self.vim.call("bufexists", self.clientBuf.handle):
+            self.vim.command("bd! %d" % self.clientBuf.handle)
+
     def cleanup(self):
         if self.proxyAddr:
             os.remove(self.proxyAddr)
@@ -27,7 +31,7 @@ class Client:
     def start(self):
         # Go to the yet-to-be terminal window
         self.vim.command("%dwincmd w" % self.win.number)
-        self.clientId = self.vim.call("nvimgdb#TermOpen", self.command, self.vim.current.tabpage)
+        self.clientId = self.vim.call("nvimgdb#TermOpen", self.command, self.vim.current.tabpage.handle)
 
     def interrupt(self):
         self.vim.call("jobsend", self.clientId, "\x03")

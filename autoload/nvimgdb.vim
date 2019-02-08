@@ -19,7 +19,7 @@ function! s:GdbKill()
   call GdbCleanup()
 
   " TabEnter isn't fired automatically when a tab is closed
-  call GdbTabEnter()
+  call GdbHandleEvent("onTabEnter")
 
   " sets hidden back to user default
   if l:hidden
