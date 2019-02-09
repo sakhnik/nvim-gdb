@@ -52,4 +52,4 @@ class Breakpoint:
 
     def getForFile(self, fname, line):
         breaks = self.breaks.get(fname, {})
-        return breaks["%d" % line]   # make sure the line is a string
+        return breaks.get("%d" % line, {})   # make sure the line is a string

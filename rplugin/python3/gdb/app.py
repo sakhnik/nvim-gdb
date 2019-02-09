@@ -9,27 +9,6 @@ from gdb.breakpoint import Breakpoint
 import importlib
 
 
-#class Context:
-#    def __init__(self, vim):
-#        self.vim = vim
-#        self.f = None
-#        self.f = open("/tmp/nvimgdb.log", "w")
-#
-#    def log(self, msg):
-#        if self.f:
-#            self.f.write("%s\n" % msg)
-#            self.f.flush()
-
-
-#ret =
-#    init: Init
-#
-#-- Allow calling object functions by dispatching
-#-- to the tabpage local instance.
-#for k, v in pairs(App.__base)
-#    if type(v) == "function" and ret[k] == nil
-#        ret[k] = (...) -> Dispatch(k, ...)
-
 class App:
     def __init__(self, vim, backendStr, proxyCmd, clientCmd):
         self.vim = vim
@@ -127,29 +106,30 @@ class App:
     def customCommand(self, cmd):
         return self.proxy.query("handle-command " + cmd)
 
-#    toggleBreak: =>
-#        if V.gdb_py {"dispatch", "scm", "isRunning"}
-#            -- pause first
-#            @client\interrupt()
-#
-#        buf = V.get_current_buf!
-#        fileName = self.vim.call("expand", '#%d:p' % buf)
-#        lineNr = V.call("line", {"."})
-#        breaks = @breakpoint\getForFile fileName, lineNr
-#
-#        if breaks != nil and #breaks > 0
-#            -- There already is a breakpoint on this line: remove
-#            @client\sendLine(@getCommand('delete_breakpoints') .. ' ' .. breaks[#breaks])
-#        else
-#            @client\sendLine(@getCommand('breakpoint') .. ' ' .. fileName .. ':' .. lineNr)
-#
-#    clearBreaks: =>
-#        if V.gdb_py {"dispatch", "scm", "isRunning"}
-#            -- pause first
-#            @client\interrupt()
-#
-#        -- The breakpoint signs will be requeried later automatically
-#        @send('delete_breakpoints')
+    def breakpointToggle(self):
+        if self.scm.isRunning():
+            # pause first
+            self.client.interrupt()
+
+        buf = self.vim.current.buffer
+        fileName = self.vim.call("expand", '#%d:p' % buf.handle)
+        lineNr = self.vim.call("line", ".")
+        breaks = self.breakpoint.getForFile(fileName, lineNr)
+
+        if breaks:
+            # There already is a breakpoint on this line: remove
+            # TODO: Refactor to use self.client.command()
+            self.client.sendLine("%s %d" % (self.getCommand('delete_breakpoints'), breaks[-1]))
+        else:
+            self.client.sendLine("%s %s:%s" % (self.getCommand('breakpoint'), fileName, lineNr))
+
+    def breakpointClearAll(self):
+        if self.scm.isRunning():
+            # pause first
+            self.client.interrupt()
+
+        # The breakpoint signs will be requeried later automatically
+        self.send('delete_breakpoints')
 
     def onTabEnter(self):
         # Restore the signs as they may have been spoiled

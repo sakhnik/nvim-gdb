@@ -32,8 +32,8 @@ endfunction
 
 function! s:DefineCommands()
   command! GdbDebugStop call nvimgdb#Kill()
-  command! GdbBreakpointToggle lua gdb.toggleBreak()
-  command! GdbBreakpointClearAll lua gdb.clearBreaks()
+  command! GdbBreakpointToggle call GdbBreakpointToggle()
+  command! GdbBreakpointClearAll call GdbBreakpointClearAll()
   command! GdbRun call GdbSend('run')
   command! GdbUntil call GdbSend('until %s', line('.'))
   command! GdbContinue call GdbSend('c')

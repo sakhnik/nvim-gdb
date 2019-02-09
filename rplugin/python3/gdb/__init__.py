@@ -63,6 +63,23 @@ class Gdb(object):
         except:
             pass
 
+    @pynvim.function('GdbBreakpointToggle', sync=True)
+    def gdb_breakpoint_toggle(self, args):
+        try:
+            app = self.apps[self.vim.current.tabpage.handle]
+            app.breakpointToggle()
+        except:
+            pass
+            raise
+
+    @pynvim.function('GdbBreakpointClearAll', sync=True)
+    def gdb_breakpoint_clear_all(self, args):
+        try:
+            app = self.apps[self.vim.current.tabpage.handle]
+            app.breakpointClearAll()
+        except:
+            pass
+
     @pynvim.function('GdbPyAsync')
     def gdb_py_async(self, args):
         tab = args[0]
