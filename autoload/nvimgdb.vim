@@ -62,6 +62,6 @@ endfunction
 
 function! nvimgdb#TermOpen(command, tab)
   return termopen(a:command,
-    \ {'on_stdout': {j,d,e -> GdbPyAsync(a:tab, "dispatch", "scm", "feed", d)}
+    \ {'on_stdout': {j,d,e -> GdbScmFeed(a:tab, d)}
     \ })
 endfunction

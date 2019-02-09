@@ -70,7 +70,6 @@ class Gdb(object):
             app.breakpointToggle()
         except:
             pass
-            raise
 
     @pynvim.function('GdbBreakpointClearAll', sync=True)
     def gdb_breakpoint_clear_all(self, args):
@@ -80,23 +79,11 @@ class Gdb(object):
         except:
             pass
 
-    @pynvim.function('GdbPyAsync')
-    def gdb_py_async(self, args):
-        tab = args[0]
-        if args[1] == 'cleanup':
+    @pynvim.function('GdbScmFeed')
+    def gdb_scm_feed(self, args):
+        try:
+            tab = args[0]
             app = self.apps[tab]
-            app.cleanup()
-            del(self.apps[tab])
-        elif args[1] == 'dispatch':
-            app = self.apps[tab]
-            app.dispatch(args[2:])
-
-    @pynvim.function('GdbPy', sync=True)
-    def gdb_py(self, args):
-        tab = args[0]
-        if args[1] == 'getCommand':
-            app = self.apps[tab]
-            return app.getCommand(args[2])
-        elif args[1] == 'dispatch':
-            app = self.apps[tab]
-            return app.dispatch(args[2:])
+            app.scm.feed(args[1])
+        except:
+            pass

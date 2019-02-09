@@ -110,7 +110,6 @@ class App:
         if self.scm.isRunning():
             # pause first
             self.client.interrupt()
-
         buf = self.vim.current.buffer
         fileName = self.vim.call("expand", '#%d:p' % buf.handle)
         lineNr = self.vim.call("line", ".")
@@ -127,7 +126,6 @@ class App:
         if self.scm.isRunning():
             # pause first
             self.client.interrupt()
-
         # The breakpoint signs will be requeried later automatically
         self.send('delete_breakpoints')
 
@@ -135,7 +133,6 @@ class App:
         # Restore the signs as they may have been spoiled
         if self.scm.isPaused():
             self.cursor.show()
-
         # Ensure breakpoints are shown if are queried dynamically
         self.win.queryBreakpoints()
 
@@ -154,12 +151,4 @@ class App:
 
     def onBufLeave(self):
         if self.vim.current.buffer.options['buftype'] != 'terminal':
-            pass
-        #    @keymaps\dispatchUnset!
-
-    def dispatch(self, params):
-        obj = getattr(self, params[0])
-        method = getattr(obj, params[1])
-        params = params[2:]
-        return method(*params)
-
+            self.keymaps.dispatchUnset()
