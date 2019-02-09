@@ -21,4 +21,4 @@ def init():
     return { 'initScm': LldbScm,
              'delete_breakpoints': 'breakpoint delete',
              'breakpoint': 'b',
-             'until %s': 'thread until %s' }
+             'until {}': 'thread until {}' }

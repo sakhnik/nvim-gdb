@@ -92,7 +92,7 @@ class App:
 
     def send(self, *args):
         if args:
-            command = self.backend.get(args[0], args[0]).format(args[1:])
+            command = self.backend.get(args[0], args[0]).format(*args[1:])
             self.client.sendLine(command)
             self.lastCommand = command  # Remember the command for testing
         else:

@@ -15,4 +15,4 @@ def init():
              'delete_breakpoints': 'clear',
              'breakpoint': 'break',
              'finish': 'return',
-             'print %s': 'print(%s)' }
+             'print {}': 'print({})' }
