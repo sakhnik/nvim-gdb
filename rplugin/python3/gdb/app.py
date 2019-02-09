@@ -4,6 +4,7 @@ from gdb.sockdir import SockDir
 from gdb.client import Client
 from gdb.win import Win
 from gdb.keymaps import Keymaps
+from gdb.proxy import Proxy
 import importlib
 
 
@@ -60,8 +61,8 @@ class App:
         # Go to the other window and spawn gdb client
         self.client = Client(vim, wcli, proxyCmd, clientCmd, self.sockDir)
 
-        #-- Initialize connection to the side channel
-        #@proxy = Proxy @client\getProxyAddr!, sockDir
+        # Initialize connection to the side channel
+        self.proxy = Proxy(vim, self.client.getProxyAddr(), self.sockDir)
 
         #-- Initialize breakpoint tracking
         #@breakpoint = Breakpoint @config, @proxy
@@ -91,10 +92,10 @@ class App:
 #
         # Clean up the current line sign
         self.cursor.hide()
-#
-#        -- Close connection to the side channel
-#        @proxy\cleanup!
-#
+
+        # Close connection to the side channel
+        self.proxy.cleanup()
+
         # Close the windows and the tab
         tabCount = len(self.vim.tabpages)
         self.client.delBuffer()
@@ -127,10 +128,10 @@ class App:
 #    getConfig: => @config
 #    getKeymaps: => @keymaps
 #    getWin: => @win
-#
-#    customCommand: (cmd) =>
-#        @proxy\query "handle-command " .. cmd
-#
+
+    def customCommand(self, cmd):
+        return self.proxy.query("handle-command " + cmd)
+
 #    toggleBreak: =>
 #        if V.gdb_py {"dispatch", "scm", "isRunning"}
 #            -- pause first
