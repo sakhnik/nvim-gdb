@@ -22,10 +22,11 @@ class Breakpoint:
                 maxCount = len(self.config['sign_breakpoint'])
                 idx = count if count < maxCount else maxCount - 1
                 return "GdbBreakpoint%d" % idx
-            for line, ids in self.breaks.get(bpath, []):
+            for line, ids in self.breaks.get(bpath, {}).items():
                 signId += 1
-                self.vim.command('sign place %d name=%s line=%s buffer=%d' %
-                    (signId, getSignName(len(ids)), line, buf))
+                cmd = 'sign place %d name=%s line=%s buffer=%d' % \
+                    (signId, getSignName(len(ids)), line, buf)
+                self.vim.command(cmd)
             self.maxSignId = signId
 
     def query(self, bufNum, fname):
