@@ -1,3 +1,4 @@
+from gdb.keymaps import Keymaps
 import copy
 
 # Calculate current configuration from the defaults, Vim variables overrides and overloads.
@@ -30,9 +31,9 @@ def getConfig():
         'key_frameup': '<c-p>',
         'key_framedown': '<c-n>',
         'key_eval': '<f9>',
-        'set_tkeymaps': None, #() -> gdb.getKeymaps!\setT!,
-        'set_keymaps': None, #() -> gdb.getKeymaps!\set!,
-        'unset_keymaps': None, #() -> gdb.getKeymaps!\unset!,
+        'set_tkeymaps': Keymaps.setT,
+        'set_keymaps': Keymaps.set,
+        'unset_keymaps': Keymaps.unset,
         'sign_current_line': '▶',
         'sign_breakpoint': [ '●', '●²', '●³', '●⁴', '●⁵', '●⁶', '●⁷', '●⁸', '●⁹', '●ⁿ' ],
         }

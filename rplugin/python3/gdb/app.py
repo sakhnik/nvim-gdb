@@ -3,6 +3,7 @@ from gdb.cursor import Cursor
 from gdb.sockdir import SockDir
 from gdb.client import Client
 from gdb.win import Win
+from gdb.keymaps import Keymaps
 import importlib
 
 
@@ -72,10 +73,10 @@ class App:
         # Initialize the SCM
         self.scm = self.backend["initScm"](vim, self.cursor, self.win)
 
-        #-- Set initial keymaps in the terminal window.
-        #@keymaps = Keymaps @config
-        #@keymaps\dispatchSetT!
-        #@keymaps\dispatchSet!
+        # Set initial keymaps in the terminal window.
+        self.keymaps = Keymaps(vim, self.config)
+        self.keymaps.dispatchSetT()
+        self.keymaps.dispatchSet()
 
         # Start insert mode in the GDB window
         vim.feedkeys("i")
