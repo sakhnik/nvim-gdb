@@ -87,3 +87,12 @@ class Gdb(object):
             app.scm.feed(args[1])
         except:
             pass
+
+    # Testing
+    @pynvim.function('GdbGetLastCommand', sync=True)
+    def gdb_get_last_command(self, args):
+        try:
+            app = self.apps[self.vim.current.tabpage.handle]
+            return app.lastCommand
+        except:
+            return None

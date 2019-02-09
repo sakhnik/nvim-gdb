@@ -98,7 +98,6 @@ class App:
         else:
             self.client.interrupt()
 
-#    getLastCommand: => @lastCommand
 #    getConfig: => @config
 #    getKeymaps: => @keymaps
 #    getWin: => @win
