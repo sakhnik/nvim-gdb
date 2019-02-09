@@ -78,7 +78,7 @@ class App:
         #@keymaps\dispatchSet!
 
         # Start insert mode in the GDB window
-        vim.command("normal i")
+        vim.feedkeys("i")
 
     def start(self):
         # The SCM should be ready by now, spawn the debugger!

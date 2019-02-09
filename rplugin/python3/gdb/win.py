@@ -10,6 +10,7 @@ class Win:
     def jump(self, file, line):
         # Make sure all the operations happen in the correct window
         window = self.vim.current.window
+        mode = self.vim.api.get_mode()
         self.vim.command("%dwincmd w" % self.jumpWin.number)
 
         # Check whether the file is already loaded or load it
@@ -32,6 +33,9 @@ class Win:
 
         # Return to the original window for the user
         self.vim.command("%dwincmd w" % window.number)
+        # Restore the original mode.
+        if mode['mode'] in 'ti':
+            self.vim.feedkeys('a')
 
 
     def queryBreakpoints(self):
