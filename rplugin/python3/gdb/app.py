@@ -90,9 +90,9 @@ class App:
     def getCommand(self, cmd):
         return self.backend.get(cmd, cmd)
 
-    def send(self, cmd, *args):
-        if cmd:
-            command = self.backend.get(cmd, cmd).format(args)
+    def send(self, *args):
+        if args:
+            command = self.backend.get(args[0], args[0]).format(args[1:])
             self.client.sendLine(command)
             self.lastCommand = command  # Remember the command for testing
         else:
