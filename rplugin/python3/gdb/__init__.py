@@ -54,6 +54,14 @@ class Gdb(object):
         except:
             pass
 
+    @pynvim.function('GdbSend')
+    def gdb_send(self, args):
+        try:
+            app = self.apps[self.vim.current.tabpage.handle]
+            app.send(*args)
+        except:
+            pass
+
     @pynvim.function('GdbPyAsync')
     def gdb_py_async(self, args):
         tab = args[0]

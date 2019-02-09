@@ -115,17 +115,18 @@ class App:
     def getCommand(self, cmd):
         return self.backend.get(cmd, cmd)
 
-#    send: (cmd, ...) =>
-#        command = fmt(@getCommand(cmd), ...)
-#        @client\sendLine(command)
-#        @lastCommand = command  -- Remember the command for testing
-#
+    def send(self, cmd, *args):
+        if cmd:
+            command = self.backend.get(cmd, cmd).format(args)
+            self.client.sendLine(command)
+            self.lastCommand = command  # Remember the command for testing
+        else:
+            self.client.interrupt()
+
 #    getLastCommand: => @lastCommand
 #    getConfig: => @config
 #    getKeymaps: => @keymaps
 #    getWin: => @win
-#
-#    interrupt: => @client\interrupt!
 #
 #    customCommand: (cmd) =>
 #        @proxy\query "handle-command " .. cmd
