@@ -1,59 +1,54 @@
-require "set_paths"
-V = require "gdb.v"
-json = require "JSON"
+import json
 
-fmt = string.format
+class Breakpoint:
+    def __init__(self, vim, config, proxy):
+        self.vim = vim
+        self.config = config
+        self.proxy = proxy
+        self.breaks = {}    # {file -> {line -> [id]}}
+        self.maxSignId = 0
 
+    def clearSigns(self):
+        for i in range(5000, self.maxSignId + 1):
+            self.vim.command('sign unplace %d' % i)
+        self.maxSignId = 0
 
-class Breakpoint
-    new: (config, proxy) =>
-        @config = config
-        @proxy = proxy
-        @breaks = {}    -- {file -> {line -> [id]}}
-        @maxSignId = 0
-
-    clearSigns: =>
-        for i = 5000, @maxSignId
-            V.exe ('sign unplace ' .. i)
-        @maxSignId = 0
-
-    setSigns: (buf) =>
-        if buf != -1
+    def setSigns(self, buf):
+        if buf != -1:
             signId = 5000 - 1
-            bpath = gdb.getFullBufferPath(buf)
-            getSignName = (count) ->
-                maxCount = #@config.sign_breakpoint
-                idx = count <= maxCount and count or maxCount
-                "GdbBreakpoint" .. idx
-            for line,ids in pairs(@breaks[bpath] or {})
+            # Breakpoints need full path to the buffer (at least in lldb)
+            bpath = self.vim.call("expand", '#%d:p' % buf)
+            def getSignName(count):
+                maxCount = len(self.config['sign_breakpoint'])
+                idx = count if count < maxCount else maxCount - 1
+                return "GdbBreakpoint%d" % idx
+            for line, ids in self.breaks.get(bpath, []):
                 signId += 1
-                V.exe fmt('sign place %d name=%s line=%d buffer=%d',
-                    signId, getSignName(#ids), line, buf)
-            @maxSignId = signId
+                self.vim.command('sign place %d name=%s line=%s buffer=%d' %
+                    (signId, getSignName(len(ids)), line, buf))
+            self.maxSignId = signId
 
-    query: (bufNum, fname) =>
-        @breaks[fname] = {}
-        resp = @proxy\query fmt("info-breakpoints %s\n", fname)
-        if resp
-            -- We expect the proxies to send breakpoints for a given file
-            -- as a map of lines to array of breakpoint ids set in those lines.
-            br = json\decode(resp)
-            err = br._error
-            if err
-                V.exe ("echo \"Can't get breakpoints: \"" .. err)
-            else
-                @breaks[fname] = br
-                @clearSigns!
-                @setSigns bufNum
-        --else
-            -- TODO: notify about error
+    def query(self, bufNum, fname):
+        self.breaks[fname] = {}
+        resp = self.proxy.query("info-breakpoints %s\n" % fname)
+        if resp:
+            # We expect the proxies to send breakpoints for a given file
+            # as a map of lines to array of breakpoint ids set in those lines.
+            br = json.loads(resp)
+            err = br.get('_error', None)
+            if err:
+                self.vim.command("echo \"Can't get breakpoints: %s\"" % err)
+            else:
+                self.breaks[fname] = br
+                self.clearSigns()
+                self.setSigns(bufNum)
+        #else
+            # TODO: notify about error
 
-    resetSigns: =>
-        @breaks = {}
-        @clearSigns!
+    def resetSigns(self):
+        self.breaks = {}
+        self.clearSigns()
 
-    getForFile: (fname, line) =>
-        breaks = @breaks[fname] or {}
-        breaks['' .. line]   -- make sure the line is a string
-
-Breakpoint
+    def getForFile(self, fname, line):
+        breaks = self.breaks.get(fname, {})
+        return breaks["%d" % line]   # make sure the line is a string

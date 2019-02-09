@@ -34,6 +34,6 @@ class Proxy:
         # So we're connecting to the socket lazily during
         # the first query.
         if self.ensureConnected():
-            self.sock.send(request)
-            return self.sock.recv(65536)
-        return b''
+            self.sock.send(request.encode('utf-8'))
+            return self.sock.recv(65536).decode('utf-8')
+        return ''

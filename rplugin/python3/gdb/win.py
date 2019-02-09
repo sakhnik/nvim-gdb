@@ -39,20 +39,19 @@ class Win:
 
 
     def queryBreakpoints(self):
-        pass
-        ## Get the source code buffer number
-        #bufNum = self.jumpWin.buffer
+        # Get the source code buffer number
+        bufNum = self.jumpWin.buffer.handle
 
-        ## Get the source code file name
-        #fname = gdb.getFullBufferPath(bufNum)
+        # Get the source code file name
+        fname = self.vim.call("expand", '#%d:p' % bufNum)
 
-        #-- If no file name or a weird name with spaces, ignore it (to avoid
-        #-- misinterpretation)
-        #if fname != '' and fname\find(' ') == nil
-        #    -- Query the breakpoints for the shown file
-        #    @breakpoint\query(bufNum, fname)
-        #    -- If there was a cursor, make sure it stays above the breakpoints.
-        #    V.gdb_py {"dispatch", "cursor", "reshow"}
+        # If no file name or a weird name with spaces, ignore it (to avoid
+        # misinterpretation)
+        if fname and fname.find(' ') == -1:
+            # Query the breakpoints for the shown file
+            self.breakpoint.query(bufNum, fname)
+            # If there was a cursor, make sure it stays above the breakpoints.
+            self.cursor.reshow()
 
-        #-- Execute the rest of custom commands
-        #V.exe "doautocmd User NvimGdbQuery"
+        # Execute the rest of custom commands
+        self.vim.command("doautocmd User NvimGdbQuery")

@@ -5,6 +5,7 @@ from gdb.client import Client
 from gdb.win import Win
 from gdb.keymaps import Keymaps
 from gdb.proxy import Proxy
+from gdb.breakpoint import Breakpoint
 import importlib
 
 
@@ -19,14 +20,9 @@ import importlib
 #            self.f.write("%s\n" % msg)
 #            self.f.flush()
 
-#GetFullBufferPath = (bufNr) ->
-#    -- Breakpoints need full path to the buffer (at least in lldb)
-#    V.call("expand", {fmt('#%d:p', bufNr)})
-
 
 #ret =
 #    init: Init
-#    getFullBufferPath: GetFullBufferPath
 #
 #-- Allow calling object functions by dispatching
 #-- to the tabpage local instance.
@@ -64,9 +60,8 @@ class App:
         # Initialize connection to the side channel
         self.proxy = Proxy(vim, self.client.getProxyAddr(), self.sockDir)
 
-        #-- Initialize breakpoint tracking
-        #@breakpoint = Breakpoint @config, @proxy
-        self.breakpoint = None
+        # Initialize breakpoint tracking
+        self.breakpoint = Breakpoint(vim, self.config, self.proxy)
 
         # Initialize the windowing subsystem
         self.win = Win(vim, wjump, self.cursor, self.client, self.breakpoint)
@@ -87,9 +82,9 @@ class App:
         self.client.start()
 
     def cleanup(self):
-#        -- Clean up the breakpoint signs
-#        @breakpoint\resetSigns!
-#
+        # Clean up the breakpoint signs
+        self.breakpoint.resetSigns()
+
         # Clean up the current line sign
         self.cursor.hide()
 
@@ -138,7 +133,7 @@ class App:
 #            @client\interrupt()
 #
 #        buf = V.get_current_buf!
-#        fileName = GetFullBufferPath(buf)
+#        fileName = self.vim.call("expand", '#%d:p' % buf)
 #        lineNr = V.call("line", {"."})
 #        breaks = @breakpoint\getForFile fileName, lineNr
 #
@@ -167,14 +162,13 @@ class App:
     def onTabLeave(self):
         # Hide the signs
         self.cursor.hide()
-        #self.breakpoint.clearSigns()
+        self.breakpoint.clearSigns()
 
     def onBufEnter(self):
-        pass
         if self.vim.current.buffer.options['buftype'] != 'terminal':
             # Make sure the cursor stay visible at all times
             self.vim.command("if !&scrolloff | setlocal scrolloff=5 | endif")
-            #@keymaps\dispatchSet!
+            self.keymaps.dispatchSet()
             # Ensure breakpoints are shown if are queried dynamically
             self.win.queryBreakpoints()
 
@@ -188,3 +182,4 @@ class App:
         method = getattr(obj, params[1])
         params = params[2:]
         return method(*params)
+
