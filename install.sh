@@ -39,18 +39,5 @@ $luarocks install luarocks --tree="$rocks_tree"
 # is used. So let's comment it out in the LUA_INIT.
 sed -i -e "s|;\\([^-][^;]*\"luarocks.loader\"[^']*'\\)|;--[[\\1]]|" $luarocks
 
-cat >lua/set_paths.lua <<EOF
-package.path = '`$luarocks path --lr-path`;' .. package.path
-package.cpath = '`$luarocks path --lr-cpath`;' .. package.cpath
-EOF
-
 $luarocks install luaposix --tree="$rocks_tree"
 $luarocks install moonscript --tree="$rocks_tree"
-$luarocks install json-lua --tree="$rocks_tree"
-
-# Compile all moon scripts
-./recompile.sh
-
-# Install git hooks to recompile moonscript automatically
-ln -sf `pwd`/recompile.sh .git/hooks/post-checkout || true
-ln -sf `pwd`/recompile.sh .git/hooks/post-commit || true
