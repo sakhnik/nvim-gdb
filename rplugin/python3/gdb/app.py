@@ -98,8 +98,6 @@ class App:
         else:
             self.client.interrupt()
 
-#    getKeymaps: => @keymaps
-
     def customCommand(self, cmd):
         return self.proxy.query("handle-command " + cmd)
 

@@ -3,18 +3,18 @@ let g:test_tkeymap = 0
 let g:test_keymap = 0
 
 function! MySetTKeymaps()
-  lua gdb.getKeymaps():setT()
+  call GdbCallAsync("keymaps.setT")
   tnoremap <buffer> <silent> ~tkm <c-\><c-n>:let g:test_tkeymap = 1<cr>i
 endfunction
 
 function! MySetKeymaps()
-  lua gdb.getKeymaps():set()
+  call GdbCallAsync("keymaps.set")
   " One custom programmable keymap needed in some tests
   nnoremap <buffer> <silent> ~tn :let g:test_keymap = 1<cr>
 endfunction
 
 function! MyUnsetKeymaps()
-  lua gdb.getKeymaps():unset()
+  call GdbCallAsync("keymaps.unset")
   " Unset the custom programmable keymap
   nunmap <buffer> ~tn
 endfunction

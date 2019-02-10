@@ -58,7 +58,7 @@ class Gdb(object):
     @pynvim.function('GdbSend', sync=True)
     def gdb_send(self, args):
         try:
-            app = self.apps[self.vim.current.tabpage.handle]
+            app = self._get_app()
             app.send(*args)
         except:
             pass
@@ -66,7 +66,7 @@ class Gdb(object):
     @pynvim.function('GdbBreakpointToggle', sync=True)
     def gdb_breakpoint_toggle(self, args):
         try:
-            app = self.apps[self.vim.current.tabpage.handle]
+            app = self._get_app()
             app.breakpointToggle()
         except:
             pass
@@ -74,7 +74,7 @@ class Gdb(object):
     @pynvim.function('GdbBreakpointClearAll', sync=True)
     def gdb_breakpoint_clear_all(self, args):
         try:
-            app = self.apps[self.vim.current.tabpage.handle]
+            app = self._get_app()
             app.breakpointClearAll()
         except:
             pass
@@ -88,11 +88,20 @@ class Gdb(object):
         except:
             pass
 
+    @pynvim.function('GdbCallAsync')
+    def gdb_handle_keymaps(self, args):
+        try:
+            obj = self._get_app()
+            for a in args[0].split('.'):
+                obj = getattr(obj, a)
+            obj(*args[1:])
+        except:
+            pass
+
     @pynvim.function('GdbTestPeek', sync=True)
     def gdb_test_peek(self, args):
         try:
-            app = self.apps[self.vim.current.tabpage.handle]
-            obj = app
+            obj = self._get_app()
             for a in args:
                 obj = getattr(obj, a)
             return obj
@@ -102,7 +111,7 @@ class Gdb(object):
     @pynvim.function('GdbTestPeekConfig', sync=True)
     def gdb_test_peek_config(self, args):
         try:
-            app = self.apps[self.vim.current.tabpage.handle]
+            app = self._get_app()
             config = {k:v for k,v in app.config.items()}
             for k, v in config.items():
                 if callable(v):
