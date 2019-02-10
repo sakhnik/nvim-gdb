@@ -89,7 +89,7 @@ class Gdb(object):
             pass
 
     @pynvim.function('GdbCallAsync')
-    def gdb_handle_keymaps(self, args):
+    def gdb_call_async(self, args):
         try:
             obj = self._get_app()
             for a in args[0].split('.'):
@@ -97,6 +97,17 @@ class Gdb(object):
             obj(*args[1:])
         except:
             pass
+
+    @pynvim.function('GdbCall', sync=True)
+    def gdb_call(self, args):
+        try:
+            obj = self._get_app()
+            for a in args[0].split('.'):
+                obj = getattr(obj, a)
+            return obj(*args[1:])
+        except:
+            pass
+        return None
 
     @pynvim.function('GdbTestPeek', sync=True)
     def gdb_test_peek(self, args):
