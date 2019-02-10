@@ -19,8 +19,8 @@ expose "Command", ->
                 eng\feed 'run\n', 1000
                 eng\feed '<esc>'
                 eng\feed '<f10>'
-                assert.are.same '$1 = 0', eng\eval "GdbCall('customCommand', 'print i')"
-                assert.are.same 'i = 0', eng\eval "GdbCall('customCommand', 'info locals')"
+                assert.are.same '$1 = 0', eng\eval "GdbCustomCommand('print i')"
+                assert.are.same 'i = 0', eng\eval "GdbCustomCommand('info locals')"
 
     describe "#lldb", ->
         back = backends.lldb
@@ -30,9 +30,9 @@ expose "Command", ->
                 eng\feed back.tbreak_main
                 eng\feed 'run\n', 1000
                 eng\feed '<esc>'
-                assert.are.same "(int) argc = 1", eng\eval "GdbCall('customCommand', 'frame var argc')"
+                assert.are.same "(int) argc = 1", eng\eval "GdbCustomCommand('frame var argc')"
                 eng\feed '<f10>'
-                assert.are.same "(int) i = 0", eng\eval "GdbCall('customCommand', 'frame var i')"
+                assert.are.same "(int) i = 0", eng\eval "GdbCustomCommand('frame var i')"
 
     describe '#pdb', ->
         it "info", ->
@@ -40,6 +40,6 @@ expose "Command", ->
             eng\feed '\n', 300
             eng\feed 'b _Foo\n'
             eng\feed 'cont\n'
-            assert.are.same "0", eng\eval "GdbCall('customCommand', 'print(n)')"
+            assert.are.same "0", eng\eval "GdbCustomCommand('print(n)')"
             eng\feed 'cont\n'
-            assert.are.same "1", eng\eval "GdbCall('customCommand', 'print(n)')"
+            assert.are.same "1", eng\eval "GdbCustomCommand('print(n)')"

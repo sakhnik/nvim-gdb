@@ -109,6 +109,10 @@ class Gdb(object):
             pass
         return None
 
+    @pynvim.function('GdbCustomCommand', sync=True)
+    def gdb_custom_command(self, args):
+        return self.gdb_call(["customCommand"] + args)
+
     @pynvim.function('GdbTestPeek', sync=True)
     def gdb_test_peek(self, args):
         try:

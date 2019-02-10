@@ -212,16 +212,17 @@ Section 6: Functions                                        *NvimgdbFunctions*
 
 The plugin is implemented Python using the remote plugin API.
 
-                                                     *NvimGdb-customCommand()*
-GdbCall("customCommand", "cmd")
-              Execute debugger command and return the output of the command.
-              This can be combined with `NvimgdbEvents` to implement watch
-              expressions. For instance, the following could echo local
-              variables on every GDB stop: >
-    :autocmd User NvimGdbQuery echo GdbCall('customCommand', 'info locals')
+                                                          *GdbCustomCommand()*
+GdbCustomCommand("cmd")
+                        Execute debugger command and return the output of the
+                        command.  This can be combined with `NvimgdbEvents` to
+                        implement watch expressions. For instance, the
+                        following could echo local variables on every GDB
+                        stop: >
+    :autocmd User NvimGdbQuery echo GdbCustomCommand('info locals')
 <
 or if LLDB is used: >
-    :autocmd User NvimGdbQuery echo GdbCall('customCommand', 'frame var')
+    :autocmd User NvimGdbQuery echo GdbCustomCommand('frame var')
 <
 
 ==============================================================================
