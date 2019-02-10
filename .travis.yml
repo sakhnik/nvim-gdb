@@ -52,4 +52,4 @@ before_install:
   - pip3 install --user pynvim
 
 script:
-  - ./test/all.sh
+  - ./test/all.sh -v
