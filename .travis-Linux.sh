@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-curl -LO https://github.com/neovim/neovim/releases/download/v0.3.1/nvim.appimage
+curl -LO https://github.com/neovim/neovim/releases/download/v0.3.4/nvim.appimage
 chmod +x nvim.appimage
 ./nvim.appimage --appimage-extract
 
