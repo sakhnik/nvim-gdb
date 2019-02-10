@@ -21,8 +21,8 @@ class Client:
         self.clientBuf = vim.current.buffer
 
     def delBuffer(self):
-        if self.clientBuf.api.is_loaded():
-        #if self.vim.call("bufexists", self.clientBuf.handle):
+        #if self.clientBuf.api.is_loaded():
+        if self.vim.call("bufexists", self.clientBuf.handle):
             self.vim.command("bd! %d" % self.clientBuf.handle)
 
     def cleanup(self):

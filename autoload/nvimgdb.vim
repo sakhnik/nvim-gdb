@@ -16,11 +16,9 @@ function! s:GdbKill()
   " Cleanup commands, autocommands etc
   call nvimgdb#ui#Leave()
 
-  echo "Call GdbCleanup()"
   call GdbCleanup()
 
   " TabEnter isn't fired automatically when a tab is closed
-  echo "Handle entering new tab"
   call GdbHandleEvent("onTabEnter")
 
   " sets hidden back to user default
