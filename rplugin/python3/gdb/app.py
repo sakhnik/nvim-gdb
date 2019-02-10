@@ -21,7 +21,7 @@ class App:
         wcli, wjump = wins[1], wins[0]
 
         # Prepare configuration: keymaps, hooks, parameters etc.
-        self.config = getConfig()
+        self.config = getConfig(vim)
         self.defineSigns(self.config)
 
         # Import the desired backend module
@@ -98,9 +98,7 @@ class App:
         else:
             self.client.interrupt()
 
-#    getConfig: => @config
 #    getKeymaps: => @keymaps
-#    getWin: => @win
 
     def customCommand(self, cmd):
         return self.proxy.query("handle-command " + cmd)

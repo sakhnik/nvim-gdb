@@ -109,8 +109,8 @@ expose '#pdb', ->
         eng\feed '<f10>'
 
         eng\feed '^<f9>'
-        assert.are.same 'print(_Foo)', eng\eval 'GdbGetLastCommand()'
+        assert.are.same 'print(_Foo)', eng\eval 'GdbTestPeek("lastCommand")'
 
         eng\feed 'viW'
         eng\feed ':GdbEvalRange\n'
-        assert.are.same 'print(_Foo(i))', eng\eval 'GdbGetLastCommand()'
+        assert.are.same 'print(_Foo(i))', eng\eval 'GdbTestPeek("lastCommand")'

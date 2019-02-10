@@ -88,11 +88,25 @@ class Gdb(object):
         except:
             pass
 
-    # Testing
-    @pynvim.function('GdbGetLastCommand', sync=True)
-    def gdb_get_last_command(self, args):
+    @pynvim.function('GdbTestPeek', sync=True)
+    def gdb_test_peek(self, args):
         try:
             app = self.apps[self.vim.current.tabpage.handle]
-            return app.lastCommand
+            obj = app
+            for a in args:
+                obj = getattr(obj, a)
+            return obj
+        except:
+            return None
+
+    @pynvim.function('GdbTestPeekConfig', sync=True)
+    def gdb_test_peek_config(self, args):
+        try:
+            app = self.apps[self.vim.current.tabpage.handle]
+            config = {k:v for k,v in app.config.items()}
+            for k, v in config.items():
+                if callable(v):
+                    config[k] = str(v)
+            return config
         except:
             return None

@@ -38,15 +38,9 @@ expose "#keymap", ->
         eng\exe "let g:nvimgdb_config = {'key_next': '<f5>', 'key_prev': '<f5>'}"
         launch!
 
-        count = eng\eval 'luaeval("(function() ' ..
-            'local c = 0; ' ..
-            'for k,_ in pairs(gdb.getConfig()) do ' ..
-            '  if string.match(k, \'key_\') then ' ..
-            '    c = c + 1 ' ..
-            '  end ' ..
-            'end return c end)()")'
+        count = eng\eval 'len(filter(GdbTestPeekConfig(), {k,v -> k =~ "^key_.*"}))'
         assert.are.same 1, count
-        -- Check that the coursor is moving freely without stucking
+        -- Check that the cursor is moving freely without stucking
         eng\feed '<esc>'
         eng\feed '<c-w>w'
         eng\feed '<c-w>w'
@@ -54,35 +48,35 @@ expose "#keymap", ->
     it 'override', ->
         eng\exe "let g:nvimgdb_config_override = {'key_next': '<f2>'}"
         launch!
-        key = eng\eval 'luaeval("gdb.getConfig().key_next")'
+        key = eng\eval 'get(GdbTestPeekConfig(), "key_next", 0)'
         assert.are.same '<f2>', key
 
     it 'override priority', ->
         -- Check that a config override assumes priority in a conflict
         eng\exe "let g:nvimgdb_config_override = {'key_next': '<f8>'}"
         launch!
-        res = eng\eval 'luaeval("gdb.getConfig().key_breakpoint == nil")'
-        assert.are.same true, res
+        res = eng\eval 'get(GdbTestPeekConfig(), "key_breakpoint", 0)'
+        assert.are.same 0, res
 
     it 'override one', ->
         eng\exe "let g:nvimgdb_key_next = '<f3>'"
         launch!
-        key = eng\eval 'luaeval("gdb.getConfig().key_next")'
+        key = eng\eval 'get(GdbTestPeekConfig(), "key_next", 0)'
         assert.are.same '<f3>', key
 
     it 'override one priority', ->
         eng\exe "let g:nvimgdb_key_next = '<f8>'"
         launch!
-        res = eng\eval 'luaeval("gdb.getConfig().key_breakpoint == nil")'
-        assert.are.same true, res
+        res = eng\eval 'get(GdbTestPeekConfig(), "key_breakpoint", 0)'
+        assert.are.same 0, res
 
     it 'overall', ->
         eng\exe "let g:nvimgdb_config_override = {'key_next': '<f5>'}"
         eng\exe "let g:nvimgdb_key_step = '<f5>'"
         launch!
-        res = eng\eval 'luaeval("gdb.getConfig().key_continue == nil")'
-        assert.are.same true, res
-        res = eng\eval 'luaeval("gdb.getConfig().key_next == nil")'
-        assert.are.same true, res
-        key = eng\eval 'luaeval("gdb.getConfig().key_step")'
+        res = eng\eval 'get(GdbTestPeekConfig(), "key_continue", 0)'
+        assert.are.same 0, res
+        res = eng\eval 'get(GdbTestPeekConfig(), "key_next", 0)'
+        assert.are.same 0, res
+        key = eng\eval 'get(GdbTestPeekConfig(), "key_step", 0)'
         assert.are.same '<f5>', key

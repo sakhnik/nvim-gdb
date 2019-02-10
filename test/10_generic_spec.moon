@@ -156,9 +156,9 @@ expose "Generic", ->
                 eng\feed '<f10>'
 
                 eng\feed '^<f9>'
-                assert.are.same 'print Foo', eng\eval 'GdbGetLastCommand()'
+                assert.are.same 'print Foo', eng\eval 'GdbTestPeek("lastCommand")'
 
                 eng\feed '/Lib::Baz\n'
                 eng\feed 'vt('
                 eng\feed ':GdbEvalRange\n'
-                assert.are.equal 'print Lib::Baz', eng\eval 'GdbGetLastCommand()'
+                assert.are.equal 'print Lib::Baz', eng\eval 'GdbTestPeek("lastCommand")'
