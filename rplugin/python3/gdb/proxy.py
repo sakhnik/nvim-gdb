@@ -18,7 +18,10 @@ class Proxy:
     def cleanup(self):
         if self.sock:
             self.sock.close()
-        os.remove(self.sockAddr)
+        try:
+            os.remove(self.sockAddr)
+        except FileNotFoundError:
+            pass
 
     def ensureConnected(self):
         if not self.connected:

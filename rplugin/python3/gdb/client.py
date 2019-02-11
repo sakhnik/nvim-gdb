@@ -27,7 +27,10 @@ class Client:
 
     def cleanup(self):
         if self.proxyAddr:
-            os.remove(self.proxyAddr)
+            try:
+                os.remove(self.proxyAddr)
+            except FileNotFoundError:
+                pass
 
     def start(self):
         # Go to the yet-to-be terminal window
