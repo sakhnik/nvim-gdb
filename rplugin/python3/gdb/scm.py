@@ -29,7 +29,7 @@ class BaseScm:
     def pausedJump(self, matcher, line):
         m = matcher.search(line)
         if m:
-            self.win.jump(m[1], int(m[2]))
+            self.win.jump(m.group(1), int(m.group(2)))
             return self.paused
 
     def queryB(self, matcher, line):
