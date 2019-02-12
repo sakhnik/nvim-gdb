@@ -36,5 +36,7 @@ else
     echo "(cached a.out)"
 fi
 
+nvim -u init.vim +UpdateRemotePlugins +qa
+
 # Compile all moon scripts
 moonc engine.moon backends.moon
