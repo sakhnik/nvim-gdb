@@ -150,11 +150,9 @@ class TestGeneric(unittest.TestCase):
         eng.feed(spec['tbreak_main'])
         eng.feed('run\n', 1000)
         eng.feed('<esc>')
-
         eng.feed('<c-w>w')
         eng.feed(':21<cr>')
         eng.feed('<f4>')
-
         self.assertEqual({'cur': 'test.cpp:21'}, eng.getSigns())
 
     @unittest.skipUnless('gdb' in backs, 'No GDB')
@@ -165,18 +163,24 @@ class TestGeneric(unittest.TestCase):
     def test_until_lldb(self):
         self.until('lldb')
 
-#    describe 'program exit', ->
-#        -- Test the cursor is hidden after program end.
-#        for backend, spec in pairs(backends)
-#            it '#'..backend, ->
-#                eng\feed spec.launch, 1000
-#                eng\feed spec.tbreak_main
-#                eng\feed 'run\n', 1000
-#                eng\feed '<esc>'
-#
-#                eng\feed '<f5>'
-#                assert.are.same {}, eng\getSigns!
-#
+    def program_exit(self, back):
+        # Test the cursor is hidden after program end.
+        spec = backs[back]
+        eng.feed(spec['launch'], 1000)
+        eng.feed(spec['tbreak_main'])
+        eng.feed('run\n', 1000)
+        eng.feed('<esc>')
+        eng.feed('<f5>')
+        self.assertEqual({}, eng.getSigns())
+
+    @unittest.skipUnless('gdb' in backs, 'No GDB')
+    def test_program_exit_gdb(self):
+        self.program_exit('gdb')
+
+    @unittest.skipUnless('lldb' in backs, 'No LLDB')
+    def test_program_exit_lldb(self):
+        self.program_exit('lldb')
+
 #    describe '#eval', ->
 #        -- Test eval <cword>.
 #        for backend, spec in pairs(backends)
