@@ -50,10 +50,14 @@ class Engine:
         ret = {}
         if cur:
             ret["cur"] = cur
+        br = {}
         for n in range(1, 11):
-            br = re.findall(r'line=(\d+)\s+id=\d+\s+name=GdbBreakpoint' + str(n), out).sort()
-            if br:
-                ret[n] = br
+            lines = re.findall(r'line=(\d+)\s+id=\d+\s+name=GdbBreakpoint' + str(n), out)
+            lines = sorted([int(l) for l in lines])
+            if lines:
+                br[n] = lines
+        if br:
+            ret['break'] = br
         return ret
 
     def feed(self, keys, delay=100):

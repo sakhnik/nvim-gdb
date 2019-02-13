@@ -37,9 +37,11 @@ class Gdb(object):
     @pynvim.function('GdbCleanup', sync=True)
     def gdb_cleanup(self, args):
         tab = self.vim.current.tabpage.handle
-        app = self.apps[tab]
-        app.cleanup()
-        del(self.apps[tab])
+        try:
+            app = self.apps[tab]
+            app.cleanup()
+        finally:
+            del(self.apps[tab])
 
     # TODO: Decrease usage of this function TOCTOU
     @pynvim.function('GdbCheckTab', sync=True)

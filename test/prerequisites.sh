@@ -16,14 +16,18 @@ luarocks install busted --tree=$LUAROCKS_TREE
 luarocks install nvim-client --tree=$LUAROCKS_TREE
 
 echo -n "return {" >| config.lua
+echo -n "config = ['XXX'" >| config.py
 
 echo -n "Check for gdb        " && which gdb \
-    && echo -n " ['gdb']=true," >> config.lua \
+    && { echo -n " ['gdb']=true," >> config.lua;
+         echo -n ", 'gdb'" >> config.py; } \
     || true
 echo -n "Check for lldb       " && which lldb \
-    && echo -n " ['lldb']=true," >> config.lua \
+    && { echo -n " ['lldb']=true," >> config.lua;
+         echo -n ", 'lldb'" >> config.py; } \
     || true
 echo -e " ['XXX']=false }" >> config.lua
+echo ']' >> config.py
 
 CXX=g++
 [[ `uname` == Darwin ]] && CXX=clang++
