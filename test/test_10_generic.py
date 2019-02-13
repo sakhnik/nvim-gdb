@@ -181,24 +181,31 @@ class TestGeneric(unittest.TestCase):
     def test_program_exit_lldb(self):
         self.program_exit('lldb')
 
-#    describe '#eval', ->
-#        -- Test eval <cword>.
-#        for backend, spec in pairs(backends)
-#            it '#'..backend, ->
-#                eng\feed spec.launch, 1000
-#                eng\feed spec.tbreak_main
-#                eng\feed 'run\n', 1000
-#                eng\feed '<esc>'
-#                eng\feed '<c-w>w'
-#                eng\feed '<f10>'
-#
-#                eng\feed '^<f9>'
-#                assert.are.same 'print Foo', eng\eval 'GdbTestPeek("lastCommand")'
-#
-#                eng\feed '/Lib::Baz\n'
-#                eng\feed 'vt('
-#                eng\feed ':GdbEvalRange\n'
-#                assert.are.equal 'print Lib::Baz', eng\eval 'GdbTestPeek("lastCommand")'
+    def eval(self, back):
+        # Test eval <cword>.
+        spec = backs[back]
+        eng.feed(spec['launch'], 1000)
+        eng.feed(spec['tbreak_main'])
+        eng.feed('run\n', 1000)
+        eng.feed('<esc>')
+        eng.feed('<c-w>w')
+        eng.feed('<f10>')
+
+        eng.feed('^<f9>')
+        self.assertEqual('print Foo', eng.eval('GdbTestPeek("lastCommand")'))
+
+        eng.feed('/Lib::Baz\n')
+        eng.feed('vt(')
+        eng.feed(':GdbEvalRange\n')
+        self.assertEqual('print Lib::Baz', eng.eval('GdbTestPeek("lastCommand")'))
+
+    @unittest.skipUnless('gdb' in backs, 'No GDB')
+    def test_eval_gdb(self):
+        self.eval('gdb')
+
+    @unittest.skipUnless('lldb' in backs, 'No LLDB')
+    def test_eval_lldb(self):
+        self.eval('lldb')
 
 
 if __name__ == "__main__":
