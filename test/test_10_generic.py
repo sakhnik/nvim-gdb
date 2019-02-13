@@ -144,20 +144,27 @@ class TestGeneric(unittest.TestCase):
     def test_interrupt_lldb(self):
         self.interrupt('lldb')
 
-#    describe "until", ->
-#        for backend, spec in pairs(backends)
-#            it '#'..backend, ->
-#                eng\feed spec.launch, 1000
-#                eng\feed spec.tbreak_main
-#                eng\feed 'run\n', 1000
-#                eng\feed '<esc>'
-#
-#                eng\feed '<c-w>w'
-#                eng\feed ':21<cr>'
-#                eng\feed '<f4>'
-#
-#                assert.are.same {'cur': 'test.cpp:21'}, eng\getSigns!
-#
+    def until(self, back):
+        spec = backs[back]
+        eng.feed(spec['launch'], 1000)
+        eng.feed(spec['tbreak_main'])
+        eng.feed('run\n', 1000)
+        eng.feed('<esc>')
+
+        eng.feed('<c-w>w')
+        eng.feed(':21<cr>')
+        eng.feed('<f4>')
+
+        self.assertEqual({'cur': 'test.cpp:21'}, eng.getSigns())
+
+    @unittest.skipUnless('gdb' in backs, 'No GDB')
+    def test_until_gdb(self):
+        self.until('gdb')
+
+    @unittest.skipUnless('lldb' in backs, 'No LLDB')
+    def test_until_lldb(self):
+        self.until('lldb')
+
 #    describe 'program exit', ->
 #        -- Test the cursor is hidden after program end.
 #        for backend, spec in pairs(backends)
