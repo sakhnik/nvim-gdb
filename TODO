@@ -1,4 +1,4 @@
+use pytest for testing
 backtrace to quickfix
 breakpoints to quickfix
-use neovim as lua interpreter to soften prerequisites
 investigate buffer jumps (avoid excessive keymaps remappings)
