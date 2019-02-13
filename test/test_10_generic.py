@@ -46,15 +46,15 @@ class TestGeneric(unittest.TestCase):
         eng.feed('<f5>')
         self.assertEqual({}, eng.getSigns())
 
-    @unittest.skipUnless('gdb' in backs.keys(), 'Only for GDB')
+    @unittest.skipUnless('gdb' in backs.keys(), 'No GDB')
     def test_smoke_gdb(self):
         self.smoke('gdb')
 
-    @unittest.skipUnless('lldb' in backs.keys(), 'Only for LLDB')
+    @unittest.skipUnless('lldb' in backs.keys(), 'No LLDB')
     def test_smoke_lldb(self):
         self.smoke('lldb')
 
-    @unittest.skipUnless(backs, 'A backend must be available')
+    @unittest.skipUnless(backs, 'No backend')
     def breaks(self, back):
         # Test toggling breakpoints.
         spec = backs[back]
@@ -73,15 +73,15 @@ class TestGeneric(unittest.TestCase):
         eng.feed('<f8>')
         self.assertEqual({'cur': 'test.cpp:5'}, eng.getSigns())
 
-    @unittest.skipUnless('gdb' in backs.keys(), 'Only for GDB')
+    @unittest.skipUnless('gdb' in backs.keys(), 'No GDB')
     def test_breaks_gdb(self):
         self.breaks('gdb')
 
-    @unittest.skipUnless('lldb' in backs.keys(), 'Only for LLDB')
+    @unittest.skipUnless('lldb' in backs.keys(), 'No LLDB')
     def test_breaks_lldb(self):
         self.breaks('lldb')
 
-    @unittest.skipUnless(backs, 'Only if backends are available')
+    @unittest.skipUnless(backs, 'No backend')
     def test_multiview(self):
         # Test multiple views.
         names = [n for n in backs.keys()]
@@ -127,17 +127,23 @@ class TestGeneric(unittest.TestCase):
 
         # The last debugger is quit in the after_each
 
-#    describe "interrupt", ->
-#        -- Test interrupt.
-#        for backend, spec in pairs(backends)
-#            it '#'..backend, ->
-#                eng\feed spec.launch, 1000
-#                eng\feed 'run 4294967295\n', 1000
-#                eng\feed '<esc>'
-#                eng\feed ':GdbInterrupt\n', 300
-#
-#                assert.are.same {'cur': 'test.cpp:22'}, eng\getSigns!
-#
+    def interrupt(self, back):
+        # Test interrupt.
+        spec = backs[back]
+        eng.feed(spec['launch'], 1000)
+        eng.feed('run 4294967295\n', 1000)
+        eng.feed('<esc>')
+        eng.feed(':GdbInterrupt\n', 300)
+        self.assertEqual({'cur': 'test.cpp:22'}, eng.getSigns())
+
+    @unittest.skipUnless('gdb' in backs, 'No GDB')
+    def test_interrupt_gdb(self):
+        self.interrupt('gdb')
+
+    @unittest.skipUnless('lldb' in backs, 'No LLDB')
+    def test_interrupt_lldb(self):
+        self.interrupt('lldb')
+
 #    describe "until", ->
 #        for backend, spec in pairs(backends)
 #            it '#'..backend, ->
