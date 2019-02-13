@@ -54,6 +54,7 @@ class TestGeneric(unittest.TestCase):
     def test_smoke_lldb(self):
         self.smoke('lldb')
 
+    @unittest.skipUnless(backs, 'A backend must be available')
     def breaks(self, back):
         # Test toggling breakpoints.
         spec = backs[back]
@@ -80,51 +81,52 @@ class TestGeneric(unittest.TestCase):
     def test_breaks_lldb(self):
         self.breaks('lldb')
 
-#    it "multiview", ->
-#        -- Test multiple views.
-#        names = [k for k,_ in pairs(backends)]
-#        backend1 = names[1]
-#        backend2 = #names > 1 and names[2] or backend1
-#
-#        -- Launch the first backend
-#        eng\feed backends[backend1].launch, 1000
-#        eng\feed backends[backend1].tbreak_main
-#        eng\feed 'run\n', 1000
-#        eng\feed '<esc>'
-#        eng\feed '<c-w>w'
-#        eng\feed ':11<cr>'
-#        eng\feed '<f8>'
-#        eng\feed '<f10>'
-#        eng\feed '<f11>'
-#
-#        assert.are.same {'cur': 'test.cpp:10', 'break': {[1]: {11}}}, eng\getSigns!
-#
-#        -- Then launch the second backend
-#        eng\feed backends[backend2].launch, 1000
-#        eng\feed backends[backend2].tbreak_main
-#        eng\feed 'run\n', 1000
-#        eng\feed '<esc>'
-#        eng\feed '<c-w>w'
-#        eng\feed ':5<cr>'
-#        eng\feed '<f8>'
-#        eng\feed ':12<cr>'
-#        eng\feed '<f8>'
-#        eng\feed '<f10>'
-#
-#        assert.are.same {'cur': 'test.cpp:19', 'break': {[1]: {5, 12}}}, eng\getSigns!
-#
-#        -- Switch to the first backend
-#        eng\feed '2gt'
-#        assert.are.same {'cur': 'test.cpp:10', 'break': {[1]: {11}}}, eng\getSigns!
-#
-#        -- Quit
-#        eng\feed 'ZZ'
-#
-#        -- Switch back to the second backend
-#        assert.are.same {'cur': 'test.cpp:19', 'break': {[1]: {5, 12}}}, eng\getSigns!
-#
-#        -- The last debugger is quit in the after_each
-#
+    @unittest.skipUnless(backs, 'Only if backends are available')
+    def test_multiview(self):
+        # Test multiple views.
+        names = [n for n in backs.keys()]
+        backend1 = names[0]
+        backend2 = names[0] if len(backs) == 1 else names[1]
+
+        # Launch the first backend
+        eng.feed(backs[backend1]['launch'], 1000)
+        eng.feed(backs[backend1]['tbreak_main'])
+        eng.feed('run\n', 1000)
+        eng.feed('<esc>')
+        eng.feed('<c-w>w')
+        eng.feed(':11<cr>')
+        eng.feed('<f8>')
+        eng.feed('<f10>')
+        eng.feed('<f11>')
+
+        self.assertEqual({'cur': 'test.cpp:10', 'break': {1: [11]}}, eng.getSigns())
+
+        # Then launch the second backend
+        eng.feed(backs[backend2]['launch'], 1000)
+        eng.feed(backs[backend2]['tbreak_main'])
+        eng.feed('run\n', 1000)
+        eng.feed('<esc>')
+        eng.feed('<c-w>w')
+        eng.feed(':5<cr>')
+        eng.feed('<f8>')
+        eng.feed(':12<cr>')
+        eng.feed('<f8>')
+        eng.feed('<f10>')
+
+        self.assertEqual({'cur': 'test.cpp:19', 'break': {1: [5, 12]}}, eng.getSigns())
+
+        # Switch to the first backend
+        eng.feed('2gt')
+        self.assertEqual({'cur': 'test.cpp:10', 'break': {1: [11]}}, eng.getSigns())
+
+        # Quit
+        eng.feed('ZZ')
+
+        # Switch back to the second backend
+        self.assertEqual({'cur': 'test.cpp:19', 'break': {1: [5, 12]}}, eng.getSigns())
+
+        # The last debugger is quit in the after_each
+
 #    describe "interrupt", ->
 #        -- Test interrupt.
 #        for backend, spec in pairs(backends)
