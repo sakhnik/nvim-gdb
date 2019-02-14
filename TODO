@@ -1,4 +1,3 @@
-use pytest for testing
 backtrace to quickfix
 breakpoints to quickfix
 investigate buffer jumps (avoid excessive keymaps remappings)

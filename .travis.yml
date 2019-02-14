@@ -50,6 +50,7 @@ before_install:
   - ./.travis-`uname`.sh
   - ./install.sh
   - pip3 install --user pynvim
+  - pip3 install --user pytest
 
 script:
   - ./test/all.sh

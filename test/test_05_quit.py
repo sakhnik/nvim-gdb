@@ -1,35 +1,23 @@
-#!/usr/bin/env python
-
-import unittest
-import engine
+import pytest
 
 
-eng = engine.Engine()
+@pytest.fixture(scope='function')
+def setup(eng):
+    numBufs = eng.countBuffers()
+    eng.feed(":GdbStart ./dummy-gdb.sh<cr>")
+    eng.feed('<esc>')
+    yield
+    # Check that no new buffers have left
+    assert numBufs == eng.countBuffers()
+    assert 1 == eng.eval("tabpagenr('$')")
 
 
-class TestQuit(unittest.TestCase):
-    """Test class."""
+def test_gdb_debug_stop(setup, eng):
+    eng.feed(":GdbDebugStop<cr>")
 
-    def setUp(self):
-        self.numBufs = eng.countBuffers()
-        eng.feed(":GdbStart ./dummy-gdb.sh<cr>")
-        eng.feed('<esc>')
+def test_terminal_ZZ(setup, eng):
+    eng.feed("ZZ")
 
-    def tearDown(self):
-        # Check that no new buffers have left
-        self.assertEqual(self.numBufs, eng.countBuffers())
-        self.assertEqual(1, eng.eval("tabpagenr('$')"))
-
-    def test_gdb_debug_stop(self):
-        eng.feed(":GdbDebugStop<cr>")
-
-    def test_terminal_ZZ(self):
-        eng.feed("ZZ")
-
-    def test_jump_ZZ(self):
-        eng.feed("<c-w>w")
-        eng.feed("ZZ")
-
-
-if __name__ == "__main__":
-    unittest.main()
+def test_jump_ZZ(setup, eng):
+    eng.feed("<c-w>w")
+    eng.feed("ZZ")
