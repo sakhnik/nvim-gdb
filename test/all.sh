@@ -8,8 +8,6 @@ python3 ../lib/StreamFilter.py
 
 if [[ $# -gt 0 ]]; then
     ./run-visual
-    ./busted-visual .
 else
     ./run
-    ./busted .
 fi
