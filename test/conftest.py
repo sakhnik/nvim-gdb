@@ -9,34 +9,40 @@ def eng():
     yield eng
     eng.close()
 
-backends = []
+backends = {}
 if "gdb" in config.config:
-    backends.append({
+    backends['gdb'] = {
+        'name': 'gdb',
         'launch': ' dd\n',
         'tbreak_main': 'tbreak main\n',
         'break_main': 'break main\n',
-        'break_bar': 'break Bar\n'
-    })
+        'break_bar': 'break Bar\n',
+        'launchF': ':GdbStart gdb -q {}\n',
+    }
 if "lldb" in config.config:
-    backends.append({
+    backends['lldb'] = {
+        'name': 'lldb',
         'launch': ' dl\n',
         'tbreak_main': 'breakpoint set -o true -n main\n',
         'break_main': 'breakpoint set -n main\n',
-        'break_bar': 'breakpoint set --fullname Bar\n'
-    })
-
-@pytest.fixture(scope="function", params=backends)
-def backend(eng, request):
-    yield request.param
-    eng.exe("GdbDebugStop")
-    assert 1 == eng.eval("tabpagenr('$')")
-    assert {} == eng.getSigns()
+        'break_bar': 'breakpoint set --fullname Bar\n',
+        'launchF': ':GdbStartLLDB lldb {}\n',
+    }
 
 @pytest.fixture(scope="function")
-def two_backends(eng):
-    b1 = backends[0]
-    b2 = backends[0 if len(backends) == 1 else 1]
-    yield b1, b2
+def post(eng):
+    yield
     eng.exe("GdbDebugStop")
     assert 1 == eng.eval("tabpagenr('$')")
     assert {} == eng.getSigns()
+
+@pytest.fixture(scope="function", params=backends.values())
+def backend(post, request):
+    yield request.param
+
+@pytest.fixture(scope="function")
+def two_backends(post):
+    it = iter(backends.values())
+    b1 = next(it)
+    b2 = next(it, b1)
+    yield b1, b2
