@@ -85,11 +85,11 @@ def test_until(eng, post):
     signs = eng.getSigns()
     # While the check works fine locally, doesn't work in Travis.
     # Probably, because of different versions of Python interpreter.
+    assert len(signs) == 1
     if not os.getenv("TRAVIS_BUILD_ID"):
-        assert len(signs) == 1
         assert 'main.py:18' == signs['cur']
     else:
-        assert not signs
+        assert signs['cur']
 
 def test_eval(eng, post):
     eng.feed(' dp')
