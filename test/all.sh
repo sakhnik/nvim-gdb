@@ -7,7 +7,7 @@ cd `dirname ${BASH_SOURCE[0]}`
 python3 ../lib/StreamFilter.py
 
 if [[ $# -gt 0 ]]; then
-    ./run-visual
+    ./run-visual -vv
 else
-    ./run
+    ./run -vv
 fi
