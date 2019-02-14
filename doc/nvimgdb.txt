@@ -178,7 +178,7 @@ single breakpoint with `*` and a duplicate breakpoint with `#`.
 The keys starting with `key_` define a key mapping for the respective command.
 The key `set_tkeymaps` allows specifying a hook function, which will be called
 when the terminal window has been created.  The function is specified as a
-string value.  It should correspond to either a Lua function or a Vim function.
+string value.  It should correspond to either a Vim function.
 You can call the default handler from within the hook and/or define your own
 very specific terminal keymaps.  The keys `set_keymaps` and `unset_keymaps`
 are called every time when the source code windows is entered and left.  The
@@ -276,7 +276,7 @@ Section 9: Development                                    *NvimgdbDevelopment*
 - Breakpoints are queried from GDB, LLDB and PDB on every pause using the
   established side channels: the pty proxy for GDB and PDB, and Python script
   running inside the LLDB. The communication is done via unix domain sockets
-  (see lua/gdb/breakpoint.moon).
+  (see rplugin/python3/gdb/breakpoint.py).
 
 ==============================================================================
 Section 10: Trivia                                             *NvimgdbTrivia*
