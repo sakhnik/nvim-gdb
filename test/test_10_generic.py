@@ -15,7 +15,8 @@ def test_smoke(eng, backend):
     assert {'cur': 'test.cpp:10'} == eng.getSigns()
 
     eng.feed('<c-p>')
-    assert {'cur': 'test.cpp:19'} == eng.getSigns()
+    failed = eng.waitEqual(eng.getSigns, {'cur': 'test.cpp:19'}, 200)
+    assert not failed
 
     eng.feed('<c-n>')
     assert {'cur': 'test.cpp:10'} == eng.getSigns()
