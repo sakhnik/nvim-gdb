@@ -7,7 +7,7 @@ cd `dirname ${BASH_SOURCE[0]}`
 python3 ../lib/StreamFilter.py
 
 if [[ $# -gt 0 ]]; then
-    ./run-visual -vv test_40_keymap.py::test_conflict
+    ./run-visual -vv
 else
     ./run -vv
 fi
