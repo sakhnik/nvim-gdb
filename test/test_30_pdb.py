@@ -25,8 +25,9 @@ def test_smoke(eng, post):
     eng.feed('<f12>')
     assert {'cur': 'main.py:10'} == eng.getSigns()
 
-    eng.feed('<f5>', 1200)
-    assert {'cur': 'main.py:1'} == eng.getSigns()
+    eng.feed('<f5>')
+    failed = eng.waitEqual(eng.getSigns, {'cur': 'main.py:1'}, 1200)
+    assert failed is None
 
 def test_break(eng, post):
     # Test toggling breakpoints.
@@ -43,8 +44,9 @@ def test_break(eng, post):
     eng.exe('GdbContinue')
     assert {'cur': 'main.py:5', 'break': {1: [5]}} == eng.getSigns()
 
-    eng.feed('<f8>', 300)
-    assert {'cur': 'main.py:5'} == eng.getSigns()
+    eng.feed('<f8>')
+    failed = eng.waitEqual(eng.getSigns, {'cur': 'main.py:5'}, 300)
+    assert failed is None
 
 def test_navigation(eng, post):
     # Test toggling breakpoints while navigating.

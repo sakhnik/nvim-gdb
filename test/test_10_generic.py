@@ -40,8 +40,9 @@ def test_breaks(eng, backend):
     eng.feed('<f8>', 100)
     assert {'break': {1: [5]}} == eng.getSigns()
 
-    eng.exe("GdbRun", 1000)
-    assert {'cur': 'test.cpp:5', 'break': {1: [5]}} == eng.getSigns()
+    eng.exe("GdbRun")
+    failed = eng.waitEqual(eng.getSigns, {'cur': 'test.cpp:5', 'break': {1: [5]}}, 1000)
+    assert failed is None
 
     eng.feed('<f8>')
     assert {'cur': 'test.cpp:5'} == eng.getSigns()
@@ -51,8 +52,9 @@ def test_interrupt(eng, backend):
     eng.feed(backend['launch'], 1000)
     eng.feed('run 4294967295\n', 1000)
     eng.feed('<esc>')
-    eng.feed(':GdbInterrupt\n', 300)
-    assert {'cur': 'test.cpp:22'} == eng.getSigns()
+    eng.feed(':GdbInterrupt\n')
+    failed = eng.waitEqual(eng.getSigns, {'cur': 'test.cpp:22'}, 300)
+    assert failed is None
 
 def test_until(eng, backend):
     eng.feed(backend['launch'], 1000)
