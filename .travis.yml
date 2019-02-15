@@ -29,4 +29,4 @@ before_install:
   - pip3 install --user pytest
 
 script:
-  - ./test/all.sh
+  - ./test/all.sh -v
