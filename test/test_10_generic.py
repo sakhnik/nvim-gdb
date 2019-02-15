@@ -2,10 +2,11 @@
 def test_smoke(eng, backend):
     eng.feed(backend['launch'], 1000)
     eng.feed(backend['tbreak_main'])
-    eng.feed('run\n', 2000)
+    eng.feed('run\n')
     eng.feed('<esc>')
 
-    assert {'cur': 'test.cpp:17'} == eng.getSigns()
+    failed = eng.waitEqual(eng.getSigns, {'cur': 'test.cpp:17'}, 2000)
+    assert failed is None
 
     eng.feed('<f10>')
     assert {'cur': 'test.cpp:19'} == eng.getSigns()
