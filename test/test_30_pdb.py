@@ -26,7 +26,7 @@ def test_smoke(eng, post):
     assert {'cur': 'main.py:10'} == eng.getSigns()
 
     eng.feed('<f5>')
-    failed = eng.waitEqual(eng.getSigns, {'cur': 'main.py:1'}, 1200)
+    failed = eng.waitEqual(eng.getSigns, {'cur': 'main.py:1'}, 1500)
     assert failed is None
 
 def test_break(eng, post):
