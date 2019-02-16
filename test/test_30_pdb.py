@@ -1,4 +1,5 @@
 import os
+import sys
 
 def test_smoke(eng, post):
     # Test a generic use case.
@@ -85,10 +86,9 @@ def test_until(eng, post):
     eng.feed('<f4>')
 
     signs = eng.getSigns()
-    # While the check works fine locally, doesn't work in Travis.
-    # Probably, because of different versions of Python interpreter.
+    # Python started supporting 'until line' since some version.
     assert len(signs) == 1
-    if not os.getenv("TRAVIS_BUILD_ID"):
+    if sys.version_info >= (3, 5):
         assert 'main.py:18' == signs['cur']
     else:
         assert signs['cur']
