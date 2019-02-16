@@ -159,7 +159,8 @@ allows overriding the given keys. For example, the default config is: >
       \ 'set_keymaps':    'function("GdbCallAsync", "keymaps.set")',
       \ 'unset_keymaps':  'function("GdbCallAsync", "keymaps.unset")',
       \ 'sign_current_line': '▶',
-      \ 'sign_breakpoint': [ '●', '●²', '●³', '●⁴', '●⁵', '●⁶', '●⁷', '●⁸', '●⁹', '●ⁿ' ]
+      \ 'sign_breakpoint': [ '●', '●²', '●³', '●⁴', '●⁵', '●⁶', '●⁷', '●⁸', '●⁹', '●ⁿ' ],
+      \ 'split_orientation': 'horizontal'
       \ }
 <
 The keys starting with `sign_` define how the signs for the currently executed

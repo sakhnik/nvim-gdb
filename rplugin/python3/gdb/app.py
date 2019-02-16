@@ -14,16 +14,21 @@ class App:
     def __init__(self, vim, backendStr, proxyCmd, clientCmd):
         self.vim = vim
 
+        # Prepare configuration: keymaps, hooks, parameters etc.
+        self.config = getConfig(vim)
+        self.defineSigns(self.config)
+
         # Create new tab for the debugging view and split horizontally
-        vim.command("tabnew | sp")
+        cmd = "tabnew | setlocal nowinfixwidth | setlocal nowinfixheight | exe \"normal \<c-w>o\" | "
+        if self.config["split_orientation"] == 'vertical':
+            cmd += "vs"
+        else:
+            cmd += "split"
+        vim.command(cmd)
 
         # Enumerate the available windows
         wins = vim.current.tabpage.windows
         wcli, wjump = wins[1], wins[0]
-
-        # Prepare configuration: keymaps, hooks, parameters etc.
-        self.config = getConfig(vim)
-        self.defineSigns(self.config)
 
         # Import the desired backend module
         self.backend = importlib.import_module("gdb.backend." + backendStr).init()

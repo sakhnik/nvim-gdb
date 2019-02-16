@@ -31,6 +31,7 @@ def getConfig(vim):
         'unset_keymaps': Keymaps.unset,
         'sign_current_line': '▶',
         'sign_breakpoint': [ '●', '●²', '●³', '●⁴', '●⁵', '●⁶', '●⁷', '●⁸', '●⁹', '●ⁿ' ],
+        'split_orientation': 'horizontal'
         }
 
     # Make a copy of the supplied configuration if defined
