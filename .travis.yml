@@ -5,8 +5,6 @@ matrix:
   include:
     - os: linux
       dist: trusty
-      env:
-        - CFG=lua5.1
       addons:
         apt:
           sources: 
@@ -16,28 +14,10 @@ matrix:
             - g++
             - gdb
             - lldb-5.0
-            - lua5.1
-            - liblua5.1-0-dev
-
-    - os: linux
-      dist: trusty
-      env:
-        - CFG=luajit
-      addons:
-        apt:
-          sources: 
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-trusty-5.0
-          packages:
-            - g++
-            - gdb
-            - lldb-5.0
-            - luajit
-            - libluajit-5.1-dev
+            - python3-dev
+            - python3-pip
 
     - os: osx
-      env:
-        - CFG=lua5.1
 
 notifications:
   email: false
@@ -45,6 +25,8 @@ notifications:
 before_install:
   - ./.travis-`uname`.sh
   - ./install.sh
+  - pip3 install --user pynvim
+  - pip3 install --user pytest
 
 script:
   - ./test/all.sh

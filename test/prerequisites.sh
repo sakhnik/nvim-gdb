@@ -3,27 +3,18 @@
 # Check the prerequisites
 echo -n "Check for neovim     " && which nvim
 echo -n "Check for python3    " && which python3
-echo -n "Check for luajit     " && which luajit || {
-echo -n "Check for lua5.1     " && which lua5.1
-}
 
 this_dir=`dirname ${BASH_SOURCE[0]}`
 
-eval `$this_dir/../lua/rocks/bin/luarocks path`
-
-LUAROCKS_TREE=$this_dir/../lua/rocks
-luarocks install busted --tree=$LUAROCKS_TREE
-luarocks install nvim-client --tree=$LUAROCKS_TREE
-
-echo -n "return {" >| config.lua
+echo -n "config = ['XXX'" >| config.py
 
 echo -n "Check for gdb        " && which gdb \
-    && echo -n " ['gdb']=true," >> config.lua \
+    && { echo -n ", 'gdb'" >> config.py; } \
     || true
 echo -n "Check for lldb       " && which lldb \
-    && echo -n " ['lldb']=true," >> config.lua \
+    && { echo -n ", 'lldb'" >> config.py; } \
     || true
-echo -e " ['XXX']=false }" >> config.lua
+echo ']' >> config.py
 
 CXX=g++
 [[ `uname` == Darwin ]] && CXX=clang++
@@ -36,5 +27,4 @@ else
     echo "(cached a.out)"
 fi
 
-# Compile all moon scripts
-moonc engine.moon backends.moon
+nvim --headless -u init.vim +UpdateRemotePlugins +qa

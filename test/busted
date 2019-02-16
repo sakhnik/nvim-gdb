@@ -1,4 +1,0 @@
-#!/bin/bash -e
-
-eval `../lua/rocks/bin/luarocks path`
-LANG=en_US.UTF-8 busted $@

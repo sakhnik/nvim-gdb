@@ -19,7 +19,9 @@ gdb="$1"
 rest="${@:2}"
 
 # Prepare gdb initialization commands
-this_dir=$(readlink -f `dirname ${BASH_SOURCE[0]}`)
+# Beware that readlink -f doesn't work in some systems
+readlinkf(){ perl -MCwd -e 'print Cwd::abs_path shift' "$1";}
+this_dir=$(readlinkf `dirname ${BASH_SOURCE[0]}`)
 
 gdb_init=`mktemp /tmp/gdb_init.XXXXXX`
 cat >$gdb_init <<EOF

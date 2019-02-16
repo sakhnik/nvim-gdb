@@ -2,8 +2,8 @@
 
 cd `dirname ${BASH_SOURCE[0]}`
 
-
-export NVIM_LISTEN_ADDRESS=127.0.0.1:12345
+temp_dir=`mktemp -d nvim-gdb-test.XXXXXX`
+export NVIM_LISTEN_ADDRESS=$temp_dir/sock
 
 >visual.log
 
@@ -16,7 +16,13 @@ cleanup()
     wait
     reset
     cat visual.log
+    rm -rf $temp_dir
 }
 trap cleanup EXIT
 
-./busted $@ >visual.log 2>&1
+for i in `seq 0 10`; do
+    test -S $NVIM_LISTEN_ADDRESS && break
+    sleep 0.1
+done
+
+./run $@ >visual.log 2>&1

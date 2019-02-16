@@ -2,7 +2,9 @@
 
 mkdir -p $HOME/bin
 
-curl -LO https://github.com/neovim/neovim/releases/download/v0.3.1/nvim-macos.tar.gz
+pip install --user six
+
+curl -LO https://github.com/neovim/neovim/releases/download/v0.3.4/nvim-macos.tar.gz
 tar -xf nvim-macos.tar.gz
 cat >$HOME/bin/nvim <<EOF
 #!/bin/bash
@@ -15,5 +17,3 @@ cat >$HOME/bin/lldb <<'EOF'
 PATH=/usr/bin /usr/bin/lldb "$@"
 EOF
 chmod +x $HOME/bin/lldb
-
-brew install lua@5.1

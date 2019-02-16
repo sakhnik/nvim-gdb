@@ -3,5 +3,3 @@ a.out
 .ropeproject/
 __pycache__/
 test/config.py
-lua/rocks/
-*.lua

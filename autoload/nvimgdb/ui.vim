@@ -32,19 +32,19 @@ endfunction
 
 function! s:DefineCommands()
   command! GdbDebugStop call nvimgdb#Kill()
-  command! GdbBreakpointToggle lua gdb.toggleBreak()
-  command! GdbBreakpointClearAll lua gdb.clearBreaks()
-  command! GdbRun lua gdb.send('run')
-  command! GdbUntil call luaeval("gdb.send('until %s', _A)", line('.'))
-  command! GdbContinue lua gdb.send('c')
-  command! GdbNext lua gdb.send('n')
-  command! GdbStep lua gdb.send('s')
-  command! GdbFinish lua gdb.send('finish')
-  command! GdbFrameUp lua gdb.send('up')
-  command! GdbFrameDown lua gdb.send('down')
-  command! GdbInterrupt lua gdb.interrupt()
-  command! GdbEvalWord call luaeval("gdb.send('print %s', _A)", expand('<cword>'))
-  command! -range GdbEvalRange call luaeval("gdb.send('print %s', _A)", s:GetExpression(<f-args>))
+  command! GdbBreakpointToggle call GdbBreakpointToggle()
+  command! GdbBreakpointClearAll call GdbBreakpointClearAll()
+  command! GdbRun call GdbSend('run')
+  command! GdbUntil call GdbSend('until {}', line('.'))
+  command! GdbContinue call GdbSend('c')
+  command! GdbNext call GdbSend('n')
+  command! GdbStep call GdbSend('s')
+  command! GdbFinish call GdbSend('finish')
+  command! GdbFrameUp call GdbSend('up')
+  command! GdbFrameDown call GdbSend('down')
+  command! GdbInterrupt call GdbSend()
+  command! GdbEvalWord call GdbSend('print {}', expand('<cword>'))
+  command! -range GdbEvalRange call GdbSend('print {}', s:GetExpression(<f-args>))
 endfunction
 
 
@@ -75,10 +75,10 @@ function! nvimgdb#ui#Enter()
       "   window. We start a timer expecting it to expire after the window
       "   has been closed. It's a race.
       au BufWinLeave * call timer_start(100, "nvimgdb#CheckWindowClosed")
-      au TabEnter * lua gdb.tabEnter()
-      au TabLeave * lua gdb.tabLeave()
-      au BufEnter * lua gdb.onBufEnter()
-      au BufLeave * lua gdb.onBufLeave()
+      au TabEnter * call GdbHandleEvent("onTabEnter")
+      au TabLeave * call GdbHandleEvent("onTabLeave")
+      au BufEnter * call GdbHandleEvent("onBufEnter")
+      au BufLeave * call GdbHandleEvent("onBufLeave")
     augroup END
   endif
   let g:nvimgdb_count += 1
