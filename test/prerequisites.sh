@@ -27,4 +27,4 @@ else
     echo "(cached a.out)"
 fi
 
-nvim -u init.vim +UpdateRemotePlugins +qa
+nvim --headless -u init.vim +UpdateRemotePlugins +qa
