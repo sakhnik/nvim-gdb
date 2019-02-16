@@ -13,7 +13,6 @@ def filterFuncref(vim, defConf, k, v):
         return v
     # Finally, turn the value into a Vim function call.
     return lambda _: vim.call(v)
-    # TODO consider check whether there is such function and interpreting a Vim expression.
 
 def getConfig(vim):
     # Default configuration

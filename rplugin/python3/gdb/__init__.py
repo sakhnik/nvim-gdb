@@ -28,11 +28,9 @@ class Gdb(object):
 
     @pynvim.function('GdbInit', sync=True)
     def gdb_init(self, args):
-        # TODO: handle start failure
         app = App(self.vim, *args)
         self.apps[self.vim.current.tabpage.handle] = app
         app.start()
-
 
     @pynvim.function('GdbCleanup', sync=True)
     def gdb_cleanup(self, args):
