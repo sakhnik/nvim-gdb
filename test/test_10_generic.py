@@ -1,12 +1,13 @@
 
 def test_smoke(eng, backend):
-    eng.feed(backend['launch'], 1000)
+    eng.feed(backend['launch'])
+    assert not eng.waitClientReady(1000)
     eng.feed(backend['tbreak_main'])
     eng.feed('run\n')
     eng.feed('<esc>')
 
-    failed = eng.waitEqual(eng.getSigns, {'cur': 'test.cpp:17'}, 2000)
-    assert failed is None
+    err = eng.waitEqual(eng.getSigns, {'cur': 'test.cpp:17'}, 2000)
+    assert err is None
 
     eng.feed('<f10>')
     assert {'cur': 'test.cpp:19'} == eng.getSigns()
@@ -15,8 +16,8 @@ def test_smoke(eng, backend):
     assert {'cur': 'test.cpp:10'} == eng.getSigns()
 
     eng.feed('<c-p>')
-    failed = eng.waitEqual(eng.getSigns, {'cur': 'test.cpp:19'}, 200)
-    assert not failed
+    err = eng.waitEqual(eng.getSigns, {'cur': 'test.cpp:19'}, 200)
+    assert not err
 
     eng.feed('<c-n>')
     assert {'cur': 'test.cpp:10'} == eng.getSigns()
@@ -34,7 +35,8 @@ def test_breaks(eng, backend):
     # Test toggling breakpoints.
     # TODO: Investigate socket connection race when the delay is small
     # here, like 1ms
-    eng.feed(backend['launch'], 1000)
+    eng.feed(backend['launch'])
+    assert not eng.waitClientReady(1000)
     eng.feed('<esc><c-w>k')
     eng.feed(":e src/test.cpp\n")
     eng.feed(':5<cr>')
@@ -42,23 +44,25 @@ def test_breaks(eng, backend):
     assert {'break': {1: [5]}} == eng.getSigns()
 
     eng.exe("GdbRun")
-    failed = eng.waitEqual(eng.getSigns, {'cur': 'test.cpp:5', 'break': {1: [5]}}, 1000)
-    assert failed is None
+    err = eng.waitEqual(eng.getSigns, {'cur': 'test.cpp:5', 'break': {1: [5]}}, 1000)
+    assert err is None
 
     eng.feed('<f8>')
     assert {'cur': 'test.cpp:5'} == eng.getSigns()
 
 def test_interrupt(eng, backend):
     # Test interrupt.
-    eng.feed(backend['launch'], 1000)
+    eng.feed(backend['launch'])
+    assert not eng.waitClientReady(1000)
     eng.feed('run 4294967295\n', 1000)
     eng.feed('<esc>')
     eng.feed(':GdbInterrupt\n')
-    failed = eng.waitEqual(eng.getSigns, {'cur': 'test.cpp:22'}, 300)
-    assert failed is None
+    err = eng.waitEqual(eng.getSigns, {'cur': 'test.cpp:22'}, 300)
+    assert err is None
 
 def test_until(eng, backend):
-    eng.feed(backend['launch'], 1000)
+    eng.feed(backend['launch'])
+    assert not eng.waitClientReady(1000)
     eng.feed(backend['tbreak_main'])
     eng.feed('run\n', 1000)
     eng.feed('<esc>')
@@ -69,7 +73,8 @@ def test_until(eng, backend):
 
 def test_program_exit(eng, backend):
     # Test the cursor is hidden after program end.
-    eng.feed(backend['launch'], 1000)
+    eng.feed(backend['launch'])
+    assert not eng.waitClientReady(1000)
     eng.feed(backend['tbreak_main'])
     eng.feed('run\n', 1000)
     eng.feed('<esc>')
@@ -78,7 +83,8 @@ def test_program_exit(eng, backend):
 
 def test_eval(eng, backend):
     # Test eval <cword>.
-    eng.feed(backend['launch'], 1000)
+    eng.feed(backend['launch'])
+    assert not eng.waitClientReady(1000)
     eng.feed(backend['tbreak_main'])
     eng.feed('run\n', 1000)
     eng.feed('<esc>')

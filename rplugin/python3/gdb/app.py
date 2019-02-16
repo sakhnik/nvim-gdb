@@ -7,6 +7,7 @@ from gdb.keymaps import Keymaps
 from gdb.proxy import Proxy
 from gdb.breakpoint import Breakpoint
 import importlib
+import os
 
 
 class App:

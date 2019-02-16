@@ -116,8 +116,10 @@ class Gdb(object):
     def gdb_test_peek(self, args):
         try:
             obj = self._get_app()
-            for a in args:
-                obj = getattr(obj, a)
+            for i in range(len(args)):
+                obj = getattr(obj, args[i])
+                if callable(obj):
+                    return obj(*args[i+1:])
             return obj
         except:
             return None

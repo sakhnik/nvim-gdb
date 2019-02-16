@@ -83,3 +83,6 @@ class Engine:
                 return None
             time.sleep(0.1)
         return result
+
+    def waitClientReady(self, deadline=1000):
+        return self.waitEqual(lambda: self.eval("GdbTestPeek('client', 'isReady')"), True, deadline)

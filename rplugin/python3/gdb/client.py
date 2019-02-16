@@ -48,3 +48,6 @@ class Client:
 
     def getProxyAddr(self):
         return self.proxyAddr
+
+    def isReady(self):
+        return os.path.exists(self.proxyAddr)
