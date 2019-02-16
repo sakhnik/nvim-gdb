@@ -16,8 +16,8 @@ def test_smoke(eng, backend):
     assert {'cur': 'test.cpp:10'} == eng.getSigns()
 
     eng.feed('<c-p>')
-    err = eng.waitEqual(eng.getSigns, {'cur': 'test.cpp:19'}, 200)
-    assert not err
+    err = eng.waitEqual(eng.getSigns, {'cur': 'test.cpp:19'}, 1000)
+    assert err is None
 
     eng.feed('<c-n>')
     assert {'cur': 'test.cpp:10'} == eng.getSigns()
@@ -57,7 +57,7 @@ def test_interrupt(eng, backend):
     eng.feed('run 4294967295\n', 1000)
     eng.feed('<esc>')
     eng.feed(':GdbInterrupt\n')
-    err = eng.waitEqual(eng.getSigns, {'cur': 'test.cpp:22'}, 300)
+    err = eng.waitEqual(eng.getSigns, {'cur': 'test.cpp:22'}, 1000)
     assert err is None
 
 def test_until(eng, backend):
