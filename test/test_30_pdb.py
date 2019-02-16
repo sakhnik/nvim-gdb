@@ -55,7 +55,7 @@ def test_navigation(eng, post):
     eng.feed('\n', 300)
     eng.feed('<esc>')
 
-    eng.feed('<esc><c-w>k')
+    eng.feed('<esc><c-w>w')
     eng.feed(':5<cr>')
     eng.feed('<f8>')
     assert {'cur': 'main.py:1', 'break': {1: [5]}} == eng.getSigns()
