@@ -88,7 +88,7 @@ def test_until(eng, post):
     signs = eng.getSigns()
     # Python started supporting 'until line' since some version.
     assert len(signs) == 1
-    if sys.version_info >= (3, 5):
+    if sys.version_info >= (3, 6):
         assert 'main.py:18' == signs['cur']
     else:
         assert signs['cur']
