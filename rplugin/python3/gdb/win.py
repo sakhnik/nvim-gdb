@@ -9,9 +9,11 @@ class Win:
 
     def jump(self, file, line):
         # Make sure all the operations happen in the correct window
+        # TODO: Use api instead of Vim commands.
         window = self.vim.current.window
         mode = self.vim.api.get_mode()
-        self.vim.command("%dwincmd w" % self.jumpWin.number)
+        if self.jumpWin != window:
+            self.vim.command("%dwincmd w" % self.jumpWin.number)
 
         # Check whether the file is already loaded or load it
         targetBuf = self.vim.call("bufnr", file, 1)
@@ -27,12 +29,13 @@ class Win:
             self.vim.command('noswapfile buffer %d' % targetBuf)
 
         # Goto the proper line and set the cursor on it
-        self.vim.command(':%d' % line)
+        self.jumpWin.cursor = (line, 0)
         self.cursor.set(targetBuf, line)
         self.cursor.show()
 
         # Return to the original window for the user
-        self.vim.command("%dwincmd w" % window.number)
+        if self.jumpWin != window:
+            self.vim.command("%dwincmd w" % window.number)
         # Restore the original mode.
         if mode['mode'] in 'ti':
             self.vim.feedkeys('a')

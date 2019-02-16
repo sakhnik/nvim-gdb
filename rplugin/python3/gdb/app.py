@@ -112,7 +112,6 @@ class App:
 
         if breaks:
             # There already is a breakpoint on this line: remove
-            # TODO: Refactor to use self.client.command()
             self.client.sendLine("%s %d" % (self.getCommand('delete_breakpoints'), breaks[-1]))
         else:
             self.client.sendLine("%s %s:%s" % (self.getCommand('breakpoint'), fileName, lineNr))

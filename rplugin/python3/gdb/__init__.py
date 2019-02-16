@@ -43,7 +43,6 @@ class Gdb(object):
         finally:
             del(self.apps[tab])
 
-    # TODO: Decrease usage of this function TOCTOU
     @pynvim.function('GdbCheckTab', sync=True)
     def gdb_check_tab(self, args):
         return self.vim.current.tabpage.handle in self.apps

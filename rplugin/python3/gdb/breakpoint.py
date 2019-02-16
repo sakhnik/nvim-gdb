@@ -43,8 +43,6 @@ class Breakpoint:
                 self.breaks[fname] = br
                 self.clearSigns()
                 self.setSigns(bufNum)
-        #else
-            # TODO: notify about error
 
     def resetSigns(self):
         self.breaks = {}
