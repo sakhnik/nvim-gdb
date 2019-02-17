@@ -1,7 +1,7 @@
 
 def test_smoke(eng, backend):
     eng.feed(backend['launch'])
-    assert not eng.waitPaused(1000)
+    assert eng.waitPaused(1000) is None
     eng.feed(backend['tbreak_main'])
     eng.feed('run\n')
     eng.feed('<esc>')
@@ -36,7 +36,7 @@ def test_breaks(eng, backend):
     # TODO: Investigate socket connection race when the delay is small
     # here, like 1ms
     eng.feed(backend['launch'])
-    assert not eng.waitPaused(1000)
+    assert eng.waitPaused(1000) is None
     eng.feed('<esc><c-w>k')
     eng.feed(":e src/test.cpp\n")
     eng.feed(':5<cr>')
@@ -53,7 +53,7 @@ def test_breaks(eng, backend):
 def test_interrupt(eng, backend):
     # Test interrupt.
     eng.feed(backend['launch'])
-    assert not eng.waitPaused(1000)
+    assert eng.waitPaused(1000) is None
     eng.feed('run 4294967295\n', 1000)
     eng.feed('<esc>')
     eng.feed(':GdbInterrupt\n')
@@ -62,7 +62,7 @@ def test_interrupt(eng, backend):
 
 def test_until(eng, backend):
     eng.feed(backend['launch'])
-    assert not eng.waitPaused(1000)
+    assert eng.waitPaused(1000) is None
     eng.feed(backend['tbreak_main'])
     eng.feed('run\n', 1000)
     eng.feed('<esc>')
@@ -74,7 +74,7 @@ def test_until(eng, backend):
 def test_program_exit(eng, backend):
     # Test the cursor is hidden after program end.
     eng.feed(backend['launch'])
-    assert not eng.waitPaused(1000)
+    assert eng.waitPaused(1000) is None
     eng.feed(backend['tbreak_main'])
     eng.feed('run\n', 1000)
     eng.feed('<esc>')
@@ -84,7 +84,7 @@ def test_program_exit(eng, backend):
 def test_eval(eng, backend):
     # Test eval <cword>.
     eng.feed(backend['launch'])
-    assert not eng.waitPaused(1000)
+    assert eng.waitPaused(1000) is None
     eng.feed(backend['tbreak_main'])
     eng.feed('run\n', 1000)
     eng.feed('<esc>')
