@@ -8,7 +8,7 @@ class Gdb(object):
     def __init__(self, vim):
         self.vim = vim
         self.apps = {}
-        self.logger = Logger("/tmp/nvim-gdb.log", {'app', 'scm'})
+        self.logger = Logger("/tmp/nvim-gdb.log", {'app'})
         self.log = lambda msg: self.logger.log('app', msg)
 
     #@pynvim.command('Cmd', range='', nargs='*', sync=True)
