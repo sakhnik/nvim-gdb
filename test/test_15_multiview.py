@@ -5,7 +5,7 @@ def test_multiview(eng, two_backends):
 
     # Launch the first backend
     eng.feed(b1['launch'])
-    assert eng.waitPaused(1000) is None
+    assert eng.waitPaused() is None
     eng.feed(b1['tbreak_main'])
     eng.feed('run\n', 1000)
     eng.feed('<esc>')
@@ -19,7 +19,7 @@ def test_multiview(eng, two_backends):
 
     # Then launch the second backend
     eng.feed(b2['launch'])
-    assert eng.waitPaused(1000) is None
+    assert eng.waitPaused() is None
     eng.feed(b2['tbreak_main'])
     eng.feed('run\n', 1000)
     eng.feed('<esc>')

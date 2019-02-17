@@ -9,7 +9,7 @@ tests = {
 
 def test_backend(eng, backend):
     eng.feed(backend['launch'])
-    assert eng.waitPaused(1000) is None
+    assert eng.waitPaused() is None
     eng.feed(backend['tbreak_main'])
     eng.feed('run\n', 1000)
     eng.feed('<esc>')
