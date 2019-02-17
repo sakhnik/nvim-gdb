@@ -27,7 +27,7 @@ def test_smoke(eng, backend):
     assert signs["cur"] in {'test.cpp:17', 'test.cpp:19'}
 
     eng.feed('<f5>')
-    assert {} == eng.getSigns()
+    assert eng.waitSigns({}) is None
 
 def test_breaks(eng, backend):
     # Test toggling breakpoints.
