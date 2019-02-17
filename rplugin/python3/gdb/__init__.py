@@ -103,7 +103,10 @@ class Gdb(object):
             obj = self._get_app()
             for a in args[0].split('.'):
                 obj = getattr(obj, a)
-            return obj(*args[1:])
+            if callable(obj):
+                return obj(*args[1:])
+            else:
+                return obj
         except:
             pass
         return None
