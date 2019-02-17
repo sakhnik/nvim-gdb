@@ -9,6 +9,7 @@ class BaseScm:
         self.running = []  # The running state [(matcher, matchingFunc)]
         self.paused = []   # The paused state [(matcher, matchingFunc)]
         self.state = None  # Current state (either self.running or self.paused)
+        self.prevLine = ''
 
     # Add a new transition for a given state using {matcher, matchingFunc}
     # Call the handler when matched.
@@ -24,28 +25,42 @@ class BaseScm:
 
     def pausedContinue(self, matcher, line):
         if matcher.search(line):
+            self.log("pausedContinue")
             self.cursor.hide()
             return self.running
 
     def pausedJump(self, matcher, line):
         m = matcher.search(line)
         if m:
-            self.win.jump(m.group(1), int(m.group(2)))
+            fname = m.group(1)
+            ln = m.group(2)
+            self.log("pausedJump {}:{}".format(fname, ln))
+            self.win.jump(fname, int(ln))
             return self.paused
 
     def queryB(self, matcher, line):
         if matcher.search(line):
+            self.log('queryB')
             self.win.queryBreakpoints()
             return self.paused
+
+    def _matchLine(self, line):
+        # If there is a matcher matching the line, call its handler.
+        for matcher, func in self.state:
+            newState = func(matcher, line)
+            if newState:
+                self.state = newState
+                self.log("new state: {}".format(str(newState)))
+                return True
+        return False
 
     # Process a line of the debugger output through the SCM.
     def feed(self, lines):
         for line in lines:
             self.log(line)
-            # If there is a matcher matching the line, call its handler.
-            for matcher, func in self.state:
-                newState = func(matcher, line)
-                if newState:
-                    self.state = newState
-                    self.log("new state: {}".format(str(newState)))
-                    break
+            if self._matchLine(line):
+                self.prevLine = line
+                continue
+            # If the line didn't match, try concatenating with the previous line.
+            self._matchLine(self.prevLine + line)
+            self.prevLine = line
