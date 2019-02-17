@@ -9,10 +9,10 @@ class LldbScm(BaseScm):
 
         self.addTrans(self.paused,  re.compile(r'^Process \d+ resuming'),     self.pausedContinue)
         self.addTrans(self.paused,  re.compile(r' at ([^:]+):(\d+)'),     self.pausedJump)
-        self.addTrans(self.paused,  re.compile(r'\(lldb\) '),                 self.queryB)
+        self.addTrans(self.paused,  re.compile(r'^\(lldb\) $'),               self.queryB)
         self.addTrans(self.running, re.compile(r'^Breakpoint \d+:'),          self.queryB)
         self.addTrans(self.running, re.compile(r'^Process \d+ stopped'),      self.queryB)
-        self.addTrans(self.running, re.compile(r'\(lldb\) '),                 self.queryB)
+        self.addTrans(self.running, re.compile(r'^\(lldb\) $'),               self.queryB)
 
         self.state = self.running
 
