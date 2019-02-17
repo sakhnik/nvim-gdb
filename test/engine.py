@@ -84,8 +84,5 @@ class Engine:
             time.sleep(0.1)
         return result
 
-    def waitClientReady(self, deadline=1000):
-        return self.waitEqual(lambda: self.eval("GdbCall('client.isReady')"), True, deadline)
-
     def waitPaused(self, deadline=1000):
         return self.waitEqual(lambda: self.eval("GdbCall('scm.isPaused')"), True, deadline)
