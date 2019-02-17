@@ -8,8 +8,7 @@ def test_detect(eng, backend):
     assert eng.waitPaused(1000) is None
     eng.feed(backend['break_main'])
     eng.feed('run\n')
-    err = eng.waitEqual(eng.getSigns, {'cur': 'test.cpp:17', 'break': {1: [17]}}, 1000)
-    assert err is None
+    assert eng.waitSigns({'cur': 'test.cpp:17', 'break': {1: [17]}}) is None
 
 @pytest.fixture(scope='function')
 def cd_tmp():
@@ -24,8 +23,7 @@ def test_cd(eng, backend, cd_tmp):
     assert eng.waitPaused(1000) is None
     eng.feed(backend['break_main'])
     eng.feed('run\n')
-    err = eng.waitEqual(eng.getSigns, {'cur': 'test.cpp:17', 'break': {1: [17]}}, 1000)
-    assert err is None
+    assert eng.waitSigns({'cur': 'test.cpp:17', 'break': {1: [17]}}) is None
 
 def test_navigate(eng, backend):
     # Verify that breakpoints stay when source code is navigated.
@@ -64,8 +62,7 @@ def test_clear_all(eng, backend):
     assert {'break': {1: [5,10,17]}} == eng.getSigns()
 
     eng.feed(":GdbBreakpointClearAll\n")
-    err = eng.waitEqual(eng.getSigns, {}, 1000)
-    assert err is None
+    assert eng.waitSigns({}) is None
 
 def test_duplicate(eng, backend):
     # Verify that duplicate breakpoints are displayed distinctively
@@ -73,8 +70,7 @@ def test_duplicate(eng, backend):
     assert eng.waitPaused(1000) is None
     eng.feed(backend['break_main'])
     eng.feed('run\n')
-    err = eng.waitEqual(eng.getSigns, {'cur': 'test.cpp:17', 'break': {1: [17]}}, 1000)
-    assert err is None
+    assert eng.waitSigns({'cur': 'test.cpp:17', 'break': {1: [17]}}) is None
     eng.feed(backend['break_main'])
     assert {'cur': 'test.cpp:17', 'break': {2: [17]}} == eng.getSigns()
     eng.feed(backend['break_main'])
