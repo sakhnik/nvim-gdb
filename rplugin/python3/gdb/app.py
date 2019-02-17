@@ -11,8 +11,9 @@ import os
 
 
 class App:
-    def __init__(self, vim, backendStr, proxyCmd, clientCmd):
+    def __init__(self, vim, logger, backendStr, proxyCmd, clientCmd):
         self.vim = vim
+        self.log = lambda msg: logger.log('app', msg)
 
         # Create new tab for the debugging view and split horizontally
         vim.command("tabnew | sp")
@@ -47,7 +48,7 @@ class App:
         self.win = Win(vim, wjump, self.cursor, self.client, self.breakpoint)
 
         # Initialize the SCM
-        self.scm = self.backend["initScm"](vim, self.cursor, self.win)
+        self.scm = self.backend["initScm"](vim, logger, self.cursor, self.win)
 
         # Set initial keymaps in the terminal window.
         self.keymaps = Keymaps(vim, self.config)

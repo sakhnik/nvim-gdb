@@ -1,8 +1,9 @@
 
 # Common SCM implementation for the integrated backends
 class BaseScm:
-    def __init__(self, vim, cursor, win):
+    def __init__(self, vim, logger, cursor, win):
         self.vim = vim
+        self.log = lambda msg: logger.log('scm', msg)
         self.cursor = cursor
         self.win = win
         self.running = []  # The running state [(matcher, matchingFunc)]
@@ -40,9 +41,11 @@ class BaseScm:
     # Process a line of the debugger output through the SCM.
     def feed(self, lines):
         for line in lines:
+            self.log(line)
             # If there is a matcher matching the line, call its handler.
             for matcher, func in self.state:
                 newState = func(matcher, line)
                 if newState:
                     self.state = newState
+                    self.log("new state: {}".format(str(newState)))
                     break

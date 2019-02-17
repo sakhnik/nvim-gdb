@@ -4,8 +4,8 @@ import re
 #  lldb specifics
 
 class LldbScm(BaseScm):
-    def __init__(self, vim, cursor, win):
-        super().__init__(vim, cursor, win)
+    def __init__(self, vim, logger, cursor, win):
+        super().__init__(vim, logger, cursor, win)
 
         self.addTrans(self.paused,  re.compile(r'^Process \d+ resuming'),     self.pausedContinue)
         self.addTrans(self.paused,  re.compile(r' at ([^:]+):(\d+)'),     self.pausedJump)
