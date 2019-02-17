@@ -31,6 +31,8 @@ if "lldb" in config.config:
 
 @pytest.fixture(scope="function")
 def post(eng):
+    while eng.eval("tabpagenr('$')") > 1:
+        eng.exe('tabclose $')
     yield
     eng.exe("GdbDebugStop")
     assert 1 == eng.eval("tabpagenr('$')")

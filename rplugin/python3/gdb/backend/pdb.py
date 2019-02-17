@@ -4,8 +4,8 @@ import re
 # pdb specifics
 
 class PdbScm(BaseScm):
-    def __init__(self, vim, cursor, backend):
-        super().__init__(vim, cursor, backend)
+    def __init__(self, vim, logger, cursor, backend):
+        super().__init__(vim, logger, cursor, backend)
         self.addTrans(self.paused, re.compile(r'^> ([^(]+)\((\d+)\)[^(]+\(\)'), self.pausedJump)
         self.addTrans(self.paused, re.compile(r'^\(Pdb\) $'),                   self.queryB)
         self.state = self.paused

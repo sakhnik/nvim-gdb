@@ -5,8 +5,8 @@ import re
 
 class GdbScm(BaseScm):
 
-    def __init__(self, vim, cursor, win):
-        super().__init__(vim, cursor, win)
+    def __init__(self, vim, logger, cursor, win):
+        super().__init__(vim, logger, cursor, win)
 
         re_jump = re.compile(r'^\x1a\x1a([^:]+):(\d+):\d+')
         self.addTrans(self.paused,  re.compile(r'^Continuing\.'),       self.pausedContinue)
