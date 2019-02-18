@@ -260,6 +260,14 @@ Section 8: Limitations                                    *NvimgdbLimitations*
 ==============================================================================
 Section 9: Development                                    *NvimgdbDevelopment*
 
+                                                              *NvimgdbLogging*
+                                                             *NVIMGDB_LOGFILE*
+                                                             *NVIMGDB_LOGKEYS*
+- To enable logging, define the following environment variables:
+  - `NVIMGDB_LOGFILE` the file to write the logs to
+  - `NVIMGDB_LOGKEYS` a comma-separated list of log keys, e.g.: scm,app
+  The list of available keys can be obtained from the source code.
+
 - The keymaps are defined buffer-local for every buffer when it's entered,
   and undefined when a buffer is left. This was done to ensure that users's
   aren't overridden in long term. However, a more general solution could be

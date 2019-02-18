@@ -8,7 +8,7 @@ class Gdb(object):
     def __init__(self, vim):
         self.vim = vim
         self.apps = {}
-        self.logger = Logger("/tmp/nvim-gdb.log", {'app', 'scm'})
+        self.logger = Logger()
         self.log = lambda msg: self.logger.log('app', msg)
 
     #@pynvim.command('Cmd', range='', nargs='*', sync=True)
@@ -46,7 +46,10 @@ class Gdb(object):
 
     @pynvim.function('GdbCheckTab', sync=True)
     def gdb_check_tab(self, args):
-        return self.vim.current.tabpage.handle in self.apps
+        try:
+            return self.vim.current.tabpage.handle in self.apps
+        except Exception as e:
+            self.log("GdbCheckTab: " + str(e))
 
     @pynvim.function('GdbHandleEvent', sync=True)
     def gdb_handle_event(self, args):
