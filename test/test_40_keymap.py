@@ -35,7 +35,7 @@ def test_conflict(eng, keymap):
     count = eng.eval('len(filter(GdbTestPeekConfig(), {k,v -> k =~ "^key_.*"}))')
     assert 1 == count
     # Check that the cursor is moving freely without stucking
-    eng.feed('<esc>')
+    eng.feed('<c-\\><c-n>')
     eng.feed('<c-w>w')
     eng.feed('<c-w>w')
 
