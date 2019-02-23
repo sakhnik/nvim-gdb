@@ -65,7 +65,7 @@ def test_until(eng, backend):
     eng.feed('<c-w>w')
     eng.feed(':21<cr>')
     eng.feed('<f4>')
-    assert {'cur': 'test.cpp:21'} == eng.getSigns()
+    assert eng.waitSigns({'cur': 'test.cpp:21'}) is None
 
 def test_program_exit(eng, backend):
     # Test the cursor is hidden after program end.
