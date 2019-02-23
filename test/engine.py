@@ -62,6 +62,7 @@ class Engine:
 
     def feed(self, keys, delay=100):
         """Send a Vim keystroke to NeoVim."""
+        time.sleep(0.01)
         self.nvim.input(keys)
         time.sleep(delay * 0.001)
 
