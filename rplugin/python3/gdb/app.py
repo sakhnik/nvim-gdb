@@ -15,16 +15,19 @@ class App:
         self.vim = vim
         self.log = lambda msg: logger.log('app', msg)
 
+        # Prepare configuration: keymaps, hooks, parameters etc.
+        self.config = getConfig(vim)
+        self.defineSigns(self.config)
+
         # Create new tab for the debugging view and split horizontally
-        vim.command("tabnew | sp")
+        vim.command('tabnew | setlocal nowinfixwidth | setlocal nowinfixheight | exe "normal \<c-w>o"')
+        vim.command(self.config["split_command"])
+        if len(vim.current.tabpage.windows) != 2:
+            raise Exception("The split_command should result in exactly two windows")
 
         # Enumerate the available windows
         wins = vim.current.tabpage.windows
         wcli, wjump = wins[1], wins[0]
-
-        # Prepare configuration: keymaps, hooks, parameters etc.
-        self.config = getConfig(vim)
-        self.defineSigns(self.config)
 
         # Import the desired backend module
         self.backend = importlib.import_module("gdb.backend." + backendStr).init()

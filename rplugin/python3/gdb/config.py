@@ -31,6 +31,7 @@ def getConfig(vim):
         'unset_keymaps': Keymaps.unset,
         'sign_current_line': '▶',
         'sign_breakpoint': [ '●', '●²', '●³', '●⁴', '●⁵', '●⁶', '●⁷', '●⁸', '●⁹', '●ⁿ' ],
+        'split_command': 'split',
         }
 
     # Make a copy of the supplied configuration if defined
@@ -43,7 +44,7 @@ def getConfig(vim):
             except:
                 pass
         # Make sure the essential keys are present even if not supplied.
-        for mustHave in ('sign_current_line', 'sign_breakpoint'):
+        for mustHave in ('sign_current_line', 'sign_breakpoint', 'split_command'):
             if not mustHave in config:
                 config[mustHave] = defaultConfig[mustHave]
 

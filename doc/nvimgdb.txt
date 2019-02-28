@@ -159,9 +159,14 @@ allows overriding the given keys. For example, the default config is: >
       \ 'set_keymaps':    'function("GdbCallAsync", "keymaps.set")',
       \ 'unset_keymaps':  'function("GdbCallAsync", "keymaps.unset")',
       \ 'sign_current_line': '▶',
-      \ 'sign_breakpoint': [ '●', '●²', '●³', '●⁴', '●⁵', '●⁶', '●⁷', '●⁸', '●⁹', '●ⁿ' ]
+      \ 'sign_breakpoint': [ '●', '●²', '●³', '●⁴', '●⁵', '●⁶', '●⁷', '●⁸', '●⁹', '●ⁿ' ],
+      \ 'split_command': 'split'
       \ }
 <
+The key `split_command` defines a Vim command to create the layout of debugger
+windows. It should produce exactly two windows: one for the debugger terminal,
+the other one for the code display.
+
 The keys starting with `sign_` define how the signs for the currently executed
 line and breakpoints look like. The default values assume a modern terminal
 capable of rendering the Unicode superscript numbers, and fonts supporting
