@@ -42,4 +42,6 @@ cleanup()
 trap cleanup EXIT
 
 # Execute lldb finally with our custom initialization script
-"$lldb" -S $lldb_init $rest
+# Use dumb terminal to suppress prompt coloring, which is filtered by
+# neovim anyway.
+TERM=dumb "$lldb" -S $lldb_init $rest
