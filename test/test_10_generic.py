@@ -35,7 +35,7 @@ def test_breaks(eng, backend):
     # here, like 1ms
     eng.feed(backend['launch'])
     assert eng.waitPaused() is None
-    eng.feed('<esc><c-w>k')
+    eng.feed('<esc><c-w>w')
     eng.feed(":e src/test.cpp\n")
     eng.feed(':5<cr>')
     eng.feed('<f8>', 100)

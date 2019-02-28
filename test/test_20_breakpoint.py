@@ -30,7 +30,7 @@ def test_navigate(eng, backend):
     eng.feed(backend['launch'])
     assert eng.waitPaused() is None
     eng.feed(backend['break_bar'])
-    eng.feed("<esc>:wincmd k<cr>")
+    eng.feed("<esc>:wincmd w<cr>")
     eng.feed(":e src/test.cpp\n")
     eng.feed(":10<cr>")
     eng.feed("<f8>")
@@ -54,7 +54,7 @@ def test_clear_all(eng, backend):
     assert eng.waitPaused() is None
     eng.feed(backend['break_bar'])
     eng.feed(backend['break_main'])
-    eng.feed("<esc>:wincmd k<cr>")
+    eng.feed("<esc>:wincmd w<cr>")
     eng.feed(":e src/test.cpp\n")
     eng.feed(":10<cr>")
     eng.feed("<f8>")
