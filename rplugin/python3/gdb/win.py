@@ -1,11 +1,12 @@
 class Win:
-    def __init__(self, vim, win, cursor, client, breakpoint):
+    def __init__(self, vim, win, cursor, client, breakpoint, keymaps):
         self.vim = vim
         # window number that will be displaying the current file
         self.jumpWin = win
         self.cursor = cursor
         self.client = client
         self.breakpoint = breakpoint
+        self.keymaps = keymaps
 
     def jump(self, file, line):
         # Make sure all the operations happen in the correct window
@@ -13,6 +14,9 @@ class Win:
         window = self.vim.current.window
         mode = self.vim.api.get_mode()
         if self.jumpWin != window:
+            # We're going to jump to another window and return.
+            # There is no need to change keymaps forth and back.
+            self.keymaps.setDispatchActive(False)
             self.vim.command("%dwincmd w" % self.jumpWin.number)
 
         # Check whether the file is already loaded or load it
@@ -36,6 +40,7 @@ class Win:
         # Return to the original window for the user
         if self.jumpWin != window:
             self.vim.command("%dwincmd w" % window.number)
+            self.keymaps.setDispatchActive(True)
         # Restore the original mode.
         if mode['mode'] in 'ti':
             self.vim.feedkeys('a')
