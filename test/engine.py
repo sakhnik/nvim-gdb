@@ -21,6 +21,9 @@ class Engine:
             # See in neovim bd8d43c6fef868 (startup: wait for embedder before executing)
             self.eval("0")
 
+        # Trusty builds on Travis seem to be more prone to races.
+        self.feedDelay = 0.02 if not os.environ.get('TRAVIS') else 0.1
+
     def close(self):
         self.nvim.close()
 
@@ -62,7 +65,7 @@ class Engine:
 
     def feed(self, keys, delay=100):
         """Send a Vim keystroke to NeoVim."""
-        time.sleep(0.01)
+        time.sleep(self.feedDelay)
         self.nvim.input(keys)
         time.sleep(delay * 0.001)
 
