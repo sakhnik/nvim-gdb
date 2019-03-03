@@ -2,6 +2,7 @@ class Keymaps:
     def __init__(self, vim, config):
         self.vim = vim
         self.config = config
+        self.dispatchActive = True
 
     default = {
         ('n', 'key_until',      ':GdbUntil'),
@@ -53,7 +54,8 @@ class Keymaps:
 
     def _dispatch(self, key):
         try:
-            self.config[key](self)
+            if self.dispatchActive:
+                self.config[key](self)
         except:
             pass
 
@@ -65,3 +67,6 @@ class Keymaps:
 
     def dispatchSetT(self):
         self._dispatch('set_tkeymaps')
+
+    def setDispatchActive(self, state):
+        self.dispatchActive = state

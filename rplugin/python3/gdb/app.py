@@ -47,14 +47,16 @@ class App:
         # Initialize breakpoint tracking
         self.breakpoint = Breakpoint(vim, self.config, self.proxy)
 
+        # Initialize the keymaps subsystem
+        self.keymaps = Keymaps(vim, self.config)
+
         # Initialize the windowing subsystem
-        self.win = Win(vim, wjump, self.cursor, self.client, self.breakpoint)
+        self.win = Win(vim, wjump, self.cursor, self.client, self.breakpoint, self.keymaps)
 
         # Initialize the SCM
         self.scm = self.backend["initScm"](vim, logger, self.cursor, self.win)
 
         # Set initial keymaps in the terminal window.
-        self.keymaps = Keymaps(vim, self.config)
         self.keymaps.dispatchSetT()
         self.keymaps.dispatchSet()
 
