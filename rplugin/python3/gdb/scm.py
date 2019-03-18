@@ -1,3 +1,4 @@
+import re
 
 # Common SCM implementation for the integrated backends
 class BaseScm:
@@ -49,6 +50,9 @@ class BaseScm:
     def _search(self):
         # If there is a matcher matching the line, call its handler.
         for matcher, func in self.state:
+            # Filter ANSI Escape Sequence
+            reg = r'(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]'
+            self.buffer = re.sub(reg, '', self.buffer)
             m = matcher.search(self.buffer)
             if m:
                 self.buffer = self.buffer[m.end():]
