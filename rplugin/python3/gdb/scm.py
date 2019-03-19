@@ -48,11 +48,11 @@ class BaseScm:
         return self.paused
 
     def _search(self):
+        # Filter ANSI Escape Sequence
+        regex = r'(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]'
+        self.buffer = re.sub(regex, '', self.buffer)
         # If there is a matcher matching the line, call its handler.
         for matcher, func in self.state:
-            # Filter ANSI Escape Sequence
-            reg = r'(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]'
-            self.buffer = re.sub(reg, '', self.buffer)
             m = matcher.search(self.buffer)
             if m:
                 self.buffer = self.buffer[m.end():]
