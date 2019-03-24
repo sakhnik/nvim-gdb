@@ -43,13 +43,17 @@ class StreamFilter(Filter):
                                       self._StartHold,
                                       self._StartMatch,
                                       self._StartFail)
+        self.UpdateFinish(finish)
+        self.state = self.passing
+        self.buffer = bytearray()
+        self.filtered = None
+
+    # Allow changing the termination sequence on the fly
+    def UpdateFinish(self, finish):
         self.rejecting = _StringMatcher(finish,
                                         self._Nop,
                                         self._FinishMatch,
                                         self._Nop)
-        self.state = self.passing
-        self.buffer = bytearray()
-        self.filtered = None
 
     def _Nop(self, ch):
         self.buffer.append(ch)
