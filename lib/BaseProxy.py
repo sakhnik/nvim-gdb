@@ -169,6 +169,9 @@ class BaseProxy(object):
         filter, _ = self.filter[-1]
         data = filter.Timeout()
         self._write(pty.STDOUT_FILENO, data)
+        # Get back to the passthrough filter on timeout
+        if len(self.filter) > 1:
+            self.filter.pop()
 
     def write_stdout(self, data):
         """Write to stdout for the child process."""
