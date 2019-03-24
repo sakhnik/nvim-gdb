@@ -26,5 +26,5 @@ def test_update_finish():
     f = StreamFilter(b"  server nvim-gdb-", b"\nXXXX ")
     assert (b"", None) == f.Filter(b"  server nvim-gdb-breakpoint")
     assert (b"", None) == f.Filter(b"foo-bar")
-    f.UpdateFinish(b"\n(gdb) ")
+    f.UpdateFinishMatcher(b"\n(gdb) ")
     assert (b"", b'  server nvim-gdb-breakpointfoo-bar\n(gdb)') == f.Filter(b"\n(gdb) ")
