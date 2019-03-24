@@ -35,59 +35,35 @@ class Filter:
 
 
 class StreamFilter(Filter):
-    """Stream filter class."""
+    """Stream filter class: conceal output from now to the finish matcher."""
 
-    def __init__(self, start, finish):
+    def __init__(self, finish):
         """Initialize the filter with start and finish tokens."""
-        self.passing = _StringMatcher(start,
-                                      self._StartHold,
-                                      self._StartMatch,
-                                      self._StartFail)
-        self.state = self.passing
         self.buffer = bytearray()
         self.filtered = None
         self.UpdateFinishMatcher(finish)
 
     # Allow changing the termination sequence on the fly
     def UpdateFinishMatcher(self, finish):
-        self.rejecting = _StringMatcher(finish,
-                                        self._Nop,
-                                        self._FinishMatch,
-                                        self._Nop)
-        # Make sure the new rejecting matcher is updated if the previous
-        # one was active.
-        if self.state != self.passing:
-            self.state = self.rejecting
+        self.matcher = _StringMatcher(finish,
+                                      self._Nop,
+                                      self._FinishMatch,
+                                      self._Nop)
 
     def _Nop(self, ch):
         self.buffer.append(ch)
         return False
 
-    def _StartHold(self, ch):
-        self.buffer.append(ch)
-        return False
-
-    def _StartFail(self, ch):
-        self.buffer.append(ch)
-        # Send the buffer out
-        return True
-
-    def _StartMatch(self, ch):
-        self.buffer.append(ch)
-        self.state = self.rejecting
-        return False
-
     def _FinishMatch(self, ch):
         self.filtered = self.buffer
         self.buffer = bytearray()
-        self.state = self.passing
         return False
 
     def Filter(self, input):
         """Process input, filter between tokens, return the output."""
         output = bytearray()
         for ch in input:
-            action = self.state.match(ch)
+            action = self.matcher.match(ch)
             if action(ch):
                 output.extend(self.buffer)
                 self.buffer = bytearray()
@@ -99,8 +75,7 @@ class StreamFilter(Filter):
 
     def Timeout(self):
         """Process timeout, return whatever was kept in the buffer."""
-        self.state.reset()
-        self.state = self.passing
+        self.matcher.reset()
         output = self.buffer
         self.buffer = bytearray()
         return bytes(output)
