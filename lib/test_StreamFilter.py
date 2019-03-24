@@ -21,3 +21,10 @@ def test_timeout():
     assert (b"", None) == f.Filter(b"xyz")
     assert b"asdfxyz" == f.Timeout()
     assert (b"qwer", None) == f.Filter(b"qwer")
+
+def test_update_finish():
+    f = StreamFilter(b"  server nvim-gdb-", b"\nXXXX ")
+    assert (b"", None) == f.Filter(b"  server nvim-gdb-breakpoint")
+    assert (b"", None) == f.Filter(b"foo-bar")
+    f.UpdateFinish(b"\n(gdb) ")
+    assert (b"", b'  server nvim-gdb-breakpointfoo-bar\n(gdb)') == f.Filter(b"\n(gdb) ")

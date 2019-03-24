@@ -43,10 +43,10 @@ class StreamFilter(Filter):
                                       self._StartHold,
                                       self._StartMatch,
                                       self._StartFail)
-        self.UpdateFinish(finish)
         self.state = self.passing
         self.buffer = bytearray()
         self.filtered = None
+        self.UpdateFinish(finish)
 
     # Allow changing the termination sequence on the fly
     def UpdateFinish(self, finish):
@@ -54,6 +54,10 @@ class StreamFilter(Filter):
                                         self._Nop,
                                         self._FinishMatch,
                                         self._Nop)
+        # Make sure the new rejecting matcher is updated if the previous
+        # one was active.
+        if self.state != self.passing:
+            self.state = self.rejecting
 
     def _Nop(self, ch):
         self.buffer.append(ch)
