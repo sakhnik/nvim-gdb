@@ -20,7 +20,7 @@ class App:
         self.defineSigns(self.config)
 
         # Create new tab for the debugging view and split horizontally
-        vim.command('tabnew | setlocal nowinfixwidth | setlocal nowinfixheight | exe "normal \<c-w>o"')
+        vim.command('tabnew | setlocal nowinfixwidth | setlocal nowinfixheight | silent wincmd o')
         vim.command(self.config["split_command"])
         if len(vim.current.tabpage.windows) != 2:
             raise Exception("The split_command should result in exactly two windows")
