@@ -96,36 +96,3 @@ class StreamFilter(Filter):
         output = self.buffer
         self.buffer = bytearray()
         return bytes(output)
-
-
-if __name__ == "__main__":
-    import unittest
-
-    class TestFilter(unittest.TestCase):
-        """Test class."""
-
-        def test_10_first(self):
-            """Test a generic scenario."""
-            f = StreamFilter(b"  server nvim-gdb-", b"\n(gdb) ")
-            self.assertEqual((b"hello", None), f.Filter(b"hello"))
-            self.assertEqual((b" world", None), f.Filter(b" world"))
-            self.assertEqual((b"", None), f.Filter(b"  "))
-            self.assertEqual((b"  again", None), f.Filter(b"again"))
-            self.assertEqual((b"", None),
-                             f.Filter(b"  server nvim-gdb-breakpoint"))
-            self.assertEqual((b"", None), f.Filter(b"foo-bar"))
-            self.assertEqual((b"",
-                              b'  server nvim-gdb-breakpointfoo-bar\n(gdb)'),
-                             f.Filter(b"\n(gdb) "))
-            self.assertEqual((b"asdf", None), f.Filter(b"asdf"))
-
-        def test_20_timeout(self):
-            """Test timeout."""
-            f = StreamFilter(b"asdf", b"qwer")
-            self.assertEqual((b"zxcv", None), f.Filter(b"zxcv"))
-            self.assertEqual((b"", None), f.Filter(b"asdf"))
-            self.assertEqual((b"", None), f.Filter(b"xyz"))
-            self.assertEqual(b"asdfxyz", f.Timeout())
-            self.assertEqual((b"qwer", None), f.Filter(b"qwer"))
-
-    unittest.main()
