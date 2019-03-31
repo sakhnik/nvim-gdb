@@ -1,3 +1,7 @@
-#!/bin/bash
+#!/bin/bash -e
 
-python3 -m pytest .. $@
+if [[ $# -ne 0 ]]; then
+    python3 -m pytest $@
+else
+    python3 -m pytest ..
+fi
