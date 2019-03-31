@@ -60,12 +60,12 @@ class PdbProxy(BaseProxy):
         if tokens[0] == 'info-breakpoints':
             last_src = tokens[1]
             cmd = b'break  '
-            res = self.set_filter(StreamFilter(cmd, PdbProxy.PROMPT),
+            res = self.set_filter(StreamFilter(PdbProxy.PROMPT),
                     lambda d: self.ProcessInfoBreakpoints(last_src, d))
             return cmd if res else b''
         elif tokens[0] == 'handle-command':
             cmd = command[len('handle-command '):]
-            res = self.set_filter(StreamFilter(cmd, PdbProxy.PROMPT),
+            res = self.set_filter(StreamFilter(PdbProxy.PROMPT),
                     lambda d: self.ProcessHandleCommand(cmd, d))
             return cmd if res else b''
         # Just pass the original command to highlight it isn't implemented.

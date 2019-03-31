@@ -2,11 +2,8 @@
 
 
 class _StringMatcher:
-    def __init__(self, s, hold, succeed, fail):
+    def __init__(self, s):
         self.s = s
-        self.hold = hold
-        self.succeed = succeed
-        self.fail = fail
         self.idx = 0
 
     def match(self, ch):
@@ -14,10 +11,10 @@ class _StringMatcher:
             self.idx += 1
             if self.idx == len(self.s):
                 self.idx = 0
-                return self.succeed
-            return self.hold
+                return True   # succeed
+            return False      # hold
         self.idx = 0
-        return self.fail
+        return False          # fail
 
     def reset(self):
         self.idx = 0
@@ -35,64 +32,46 @@ class Filter:
 
 
 class StreamFilter(Filter):
-    """Stream filter class."""
+    """Stream filter class: conceal output from now to the finish matcher."""
 
-    def __init__(self, start, finish):
+    def __init__(self, finish):
         """Initialize the filter with start and finish tokens."""
-        self.passing = _StringMatcher(start,
-                                      self._StartHold,
-                                      self._StartMatch,
-                                      self._StartFail)
-        self.rejecting = _StringMatcher(finish,
-                                        self._Nop,
-                                        self._FinishMatch,
-                                        self._Nop)
-        self.state = self.passing
         self.buffer = bytearray()
-        self.filtered = None
+        self.UpdateFinishMatcher(finish)
 
-    def _Nop(self, ch):
-        self.buffer.append(ch)
-        return False
+    # Allow changing the termination sequence on the fly
+    def UpdateFinishMatcher(self, finish):
+        self.matcher = _StringMatcher(finish)
 
-    def _StartHold(self, ch):
-        self.buffer.append(ch)
-        return False
-
-    def _StartFail(self, ch):
-        self.buffer.append(ch)
-        # Send the buffer out
-        return True
-
-    def _StartMatch(self, ch):
-        self.buffer.append(ch)
-        self.state = self.rejecting
-        return False
-
-    def _FinishMatch(self, ch):
-        self.filtered = self.buffer
-        self.buffer = bytearray()
-        self.state = self.passing
-        return False
-
-    def Filter(self, input):
-        """Process input, filter between tokens, return the output."""
-        output = bytearray()
-        for ch in input:
-            action = self.state.match(ch)
-            if action(ch):
-                output.extend(self.buffer)
-                self.buffer = bytearray()
+    # Accept the input: either append it to the buffer until
+    # the final matcher has been met, or output the whole filtered buffer.
+    # Returns a tuple (bytes to show, bytes suppressed until and including the finish matcher).
+    def Filter(self, input, buffer_callback=lambda _: None):
+        """Process input, filter until the finish match, return the output."""
         filtered = None
-        if self.filtered:
-            filtered = bytes(self.filtered)
-            self.filtered = None
-        return bytes(output), filtered
+        for ch in input:
+            if self.matcher:
+                if self.matcher.match(ch):
+                    self.matcher = None
+                    filtered = bytes(self.buffer)
+                    self.buffer = bytearray()
+                else:
+                    self.buffer.append(ch)
+                    buffer_callback(self.buffer)
+            else:
+                self.buffer.append(ch)
+        if not self.matcher:
+            output = bytes(self.buffer)
+            self.buffer = bytearray()
+            return output, filtered
+        return b'', None
 
     def Timeout(self):
         """Process timeout, return whatever was kept in the buffer."""
-        self.state.reset()
-        self.state = self.passing
-        output = self.buffer
-        self.buffer = bytearray()
-        return bytes(output)
+        if self.matcher:
+            self.matcher.reset()
+            output = self.buffer
+            self.buffer = bytearray()
+            return bytes(output)
+        else:
+            return b''
