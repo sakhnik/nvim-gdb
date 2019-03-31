@@ -15,7 +15,7 @@ from BaseProxy import BaseProxy
 from StreamFilter import StreamFilter
 
 class GdbProxy(BaseProxy):
-    PROMPT = b"\n(gdb) "
+    PROMPT = b"\x1a\x1a\x1a"
 
     def __init__(self):
         super().__init__("GDB")
@@ -48,7 +48,8 @@ class GdbProxy(BaseProxy):
 
     def ProcessHandleCommand(self, cmd, response):
         self.log("Process handle command %d bytes" % len(response))
-        return response[(len(cmd) + 1):-len(GdbProxy.PROMPT)].strip()
+        # XXX: Assuming the prompt occupies the last line
+        return response[(len(cmd) + 1):response.rfind(b'\n')].strip()
 
     def FilterCommand(self, command):
         tokens = re.split(r'\s+', command.decode('utf-8'))
