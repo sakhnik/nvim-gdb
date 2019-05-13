@@ -16,6 +16,7 @@ from StreamFilter import StreamFilter
 
 class GdbProxy(BaseProxy):
     PROMPT = b"\x1a\x1a\x1a"
+    CSEQ = re.compile(b'\[[^m]*m')
 
     def __init__(self):
         super().__init__("GDB")
@@ -25,6 +26,10 @@ class GdbProxy(BaseProxy):
         # It itself is responsible for sending the processed result
         # to the correct address.
         self.log("Process info breakpoints %d bytes" % len(response))
+        self.log(str(response))
+
+        # Filter out the escape sequences used by GDB8
+        response = GdbProxy.CSEQ.sub(b'', response)
 
         # Select lines in the current file with enabled breakpoints.
         pattern = re.compile("([^:]+):(\d+)")
@@ -49,7 +54,9 @@ class GdbProxy(BaseProxy):
     def ProcessHandleCommand(self, cmd, response):
         self.log("Process handle command %d bytes" % len(response))
         # XXX: Assuming the prompt occupies the last line
-        return response[(len(cmd) + 1):response.rfind(b'\n')].strip()
+        result = response[(len(cmd) + 1):response.rfind(b'\n')].strip()
+        # Get rid of control sequences
+        return GdbProxy.CSEQ.sub(b'', result)
 
     def FilterCommand(self, command):
         tokens = re.split(r'\s+', command.decode('utf-8'))
