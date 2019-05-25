@@ -145,7 +145,9 @@ class App:
     def onBufEnter(self):
         if self.vim.current.buffer.options['buftype'] != 'terminal':
             # Make sure the cursor stay visible at all times
-            self.vim.command("if !&scrolloff | setlocal scrolloff=5 | endif")
+
+            if "set_scroll_off" in self.config:
+                self.vim.command("if !&scrolloff | setlocal scrolloff=%s | endif" % str(self.config['set_scroll_off']))
             self.keymaps.dispatchSet()
             # Ensure breakpoints are shown if are queried dynamically
             self.win.queryBreakpoints()

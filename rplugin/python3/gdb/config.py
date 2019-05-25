@@ -32,6 +32,7 @@ def getConfig(vim):
         'sign_current_line': '▶',
         'sign_breakpoint': [ '●', '●²', '●³', '●⁴', '●⁵', '●⁶', '●⁷', '●⁸', '●⁹', '●ⁿ' ],
         'split_command': 'split',
+        'set_scroll_off': 5
         }
 
     # Make a copy of the supplied configuration if defined
@@ -44,7 +45,7 @@ def getConfig(vim):
             except:
                 pass
         # Make sure the essential keys are present even if not supplied.
-        for mustHave in ('sign_current_line', 'sign_breakpoint', 'split_command'):
+        for mustHave in ('sign_current_line', 'sign_breakpoint', 'split_command', 'set_scroll_off'):
             if not mustHave in config:
                 config[mustHave] = defaultConfig[mustHave]
 
