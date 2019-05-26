@@ -12,16 +12,16 @@ class Win:
     def jump(self, file, line):
         # Check whether the file is already loaded or load it
         targetBuf = self.vim.call("bufnr", file, 1)
-
-        # This file being opened having a .swp file causes this function to throw
-        try:
-            self.vim.call("nvim_win_set_buf", self.jumpWin.handle, targetBuf)
-        except NvimError as e:
-            pass
-        # TODO: figure out if other autocommands need ran here.
-        # e.g. BufReadPost is required for syntax highlighting
-        self.vim.command("doautoa BufReadPost")
-        self.vim.command("doautoa BufEnter")
+        if self.jumpWin.buffer.handle != targetBuf:
+            try:
+                # This file being opened having a .swp file causes this function to throw
+                self.vim.call("nvim_win_set_buf", self.jumpWin.handle, targetBuf)
+            except NvimError as e:
+                pass
+            # TODO: figure out if other autocommands need ran here.
+            # e.g. BufReadPost is required for syntax highlighting
+            self.vim.command("doautoa BufReadPost")
+            self.vim.command("doautoa BufEnter")
 
         # Goto the proper line and set the cursor on it
         self.jumpWin.cursor = (line, 0)
