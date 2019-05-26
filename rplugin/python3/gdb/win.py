@@ -27,6 +27,7 @@ class Win:
         self.jumpWin.cursor = (line, 0)
         self.cursor.set(targetBuf, line)
         self.cursor.show()
+        self.vim.command("redraw")
 
     def queryBreakpoints(self):
         # Get the source code buffer number
