@@ -1,3 +1,4 @@
+from pynvim import NvimError
 class Win:
     def __init__(self, vim, win, cursor, client, breakpoint, keymaps):
         self.vim = vim
@@ -9,42 +10,24 @@ class Win:
         self.keymaps = keymaps
 
     def jump(self, file, line):
-        # Make sure all the operations happen in the correct window
-        # TODO: Use api instead of Vim commands.
-        window = self.vim.current.window
-        mode = self.vim.api.get_mode()
-        if self.jumpWin != window:
-            # We're going to jump to another window and return.
-            # There is no need to change keymaps forth and back.
-            self.keymaps.setDispatchActive(False)
-            self.vim.command("%dwincmd w" % self.jumpWin.number)
-
         # Check whether the file is already loaded or load it
         targetBuf = self.vim.call("bufnr", file, 1)
 
-        # The terminal buffer may contain the name of the source file (in pdb, for
-        # instance)
-        if targetBuf == self.client.getBuf().handle:
-            self.vim.command("noswapfile view " + file)
-            targetBuf = self.vim.call("bufnr", file)
-
-        # Switch to the new buffer if necessary
-        if self.vim.call("bufnr", '%') != targetBuf:
-            self.vim.command('noswapfile buffer %d' % targetBuf)
+        # This file being opened having a .swp file causes this function to throw
+        try:
+            self.vim.call("nvim_win_set_buf", self.jumpWin.handle, targetBuf)
+        except NvimError as e:
+            pass
+        # TODO: figure out if other autocommands need ran here.
+        # e.g. BufReadPost is required for syntax highlighting
+        self.vim.command("doautoa BufReadPost")
+        self.vim.command("doautoa BufEnter")
 
         # Goto the proper line and set the cursor on it
         self.jumpWin.cursor = (line, 0)
         self.cursor.set(targetBuf, line)
         self.cursor.show()
-
-        # Return to the original window for the user
-        if self.jumpWin != window:
-            self.vim.command("%dwincmd w" % window.number)
-            self.keymaps.setDispatchActive(True)
-        # Restore the original mode.
-        if mode['mode'] in 'ti':
-            self.vim.feedkeys('a')
-
+        self.vim.command("redraw")
 
     def queryBreakpoints(self):
         # Get the source code buffer number
