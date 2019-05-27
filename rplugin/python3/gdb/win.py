@@ -13,16 +13,18 @@ class Win:
         # Check whether the file is already loaded or load it
         targetBuf = self.vim.call("bufnr", file, 1)
         if self.jumpWin.buffer.handle != targetBuf:
-            try:
-                # This file being opened having a .swp file causes this function to throw
-                self.vim.call("nvim_win_set_buf", self.jumpWin.handle, targetBuf)
-            except NvimError as e:
-                pass
+            mode = self.vim.api.get_mode()
+            prevWindow = None
+            if self.jumpWin != self.vim.current.window:
+                prevWindow = self.vim.current.window
+                self.vim.current.window = self.jumpWin
+            self.vim.command("e %s" % file)
             # TODO: figure out if other autocommands need ran here.
             # e.g. BufReadPost is required for syntax highlighting
-            self.vim.command("doautoa BufReadPost")
-            self.vim.command("doautoa BufEnter")
-
+            if prevWindow is not None:
+                self.vim.current.window = prevWindow
+            if mode['mode'] in "ti":
+                self.vim.command("startinsert")
         # Goto the proper line and set the cursor on it
         self.jumpWin.cursor = (line, 0)
         self.cursor.set(targetBuf, line)
