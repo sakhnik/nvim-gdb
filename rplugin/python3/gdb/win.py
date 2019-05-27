@@ -1,6 +1,5 @@
 '''.'''
 
-from pynvim import NvimError  # type: ignore
 from gdb.common import Common
 
 
@@ -41,18 +40,18 @@ class Win(Common):
                 self.keymaps.set_dispatch_active(True)
 
         if self.jump_win.buffer.handle != target_buf:
-            try:
-                # This file being opened having a .swp file causes this
-                # function to throw
-                self.vim.call("nvim_win_set_buf", self.jump_win.handle,
-                              target_buf)
-            except NvimError as ex:
-                self.log(f'Exception: {str(ex)}')
-            # TODO: figure out if other autocommands need ran here.
-            # e.g. BufReadPost is required for syntax highlighting
-            self.vim.command("doautoa BufReadPost")
+            mode = self.vim.api.get_mode()
+            prev_window = None
+            if self.jump_win != self.vim.current.window:
+                prev_window = self.vim.current.window
+                self.vim.current.window = self.jump_win
+            self.vim.command("noswap e %s" % file)
             self.query_breakpoints()
 
+            if prev_window is not None:
+                self.vim.current.window = prev_window
+            if mode['mode'] in "ti":
+                self.vim.command("startinsert")
         # Goto the proper line and set the cursor on it
         self.jump_win.cursor = (line, 0)
         self.cursor.set(target_buf, line)
