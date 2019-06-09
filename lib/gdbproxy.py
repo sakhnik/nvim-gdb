@@ -62,10 +62,9 @@ class GdbProxy(BaseProxy):
         tokens = re.split(r'\s+', command.decode('utf-8'))
         if tokens[0] == 'info-breakpoints':
             last_src = tokens[1]
-            cmd = b'server info breakpoints'
             res = self.set_filter(StreamFilter(GdbProxy.PROMPT),
                     lambda d: self.ProcessInfoBreakpoints(last_src, d))
-            return cmd if res else b''
+            return b'server info breakpoints' if res else b''
         elif tokens[0] == 'handle-command':
             cmd = b'server ' + command[len('handle-command '):]
             res = self.set_filter(StreamFilter(GdbProxy.PROMPT),

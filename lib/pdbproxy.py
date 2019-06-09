@@ -60,10 +60,9 @@ class PdbProxy(BaseProxy):
         tokens = re.split(r'\s+', command.decode('utf-8'))
         if tokens[0] == 'info-breakpoints':
             last_src = tokens[1]
-            cmd = b'break  '
             res = self.set_filter(StreamFilter(PdbProxy.PROMPT),
                     lambda d: self.ProcessInfoBreakpoints(last_src, d))
-            return cmd if res else b''
+            return b'break' if res else b''
         elif tokens[0] == 'handle-command':
             cmd = command[len('handle-command '):]
             res = self.set_filter(StreamFilter(PdbProxy.PROMPT),
