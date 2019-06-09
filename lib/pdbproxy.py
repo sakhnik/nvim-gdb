@@ -12,10 +12,11 @@ import json
 
 from BaseProxy import BaseProxy
 from StreamFilter import StreamFilter
+import re
 
 
 class PdbProxy(BaseProxy):
-    PROMPT = b"\n(Pdb) "
+    PROMPT = re.compile(b"\n\(Pdb\) ")
 
     def __init__(self):
         super().__init__("PDB")
@@ -51,8 +52,8 @@ class PdbProxy(BaseProxy):
         return json.dumps(breaks).encode('utf-8')
 
     def ProcessHandleCommand(self, cmd, response):
-        self.log("Process handle command %d bytes" % len(response))
-        return response[(len(cmd) + 1):-len(PdbProxy.PROMPT)].strip()
+        self.log("Process handle command %d bytes: %s" % (len(response), response))
+        return response[(len(cmd) + 1):response.rfind(b'\n')].strip()
 
     def FilterCommand(self, command):
         # Map GDB commands to Pdb commands.

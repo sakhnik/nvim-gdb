@@ -15,7 +15,7 @@ from BaseProxy import BaseProxy
 from StreamFilter import StreamFilter
 
 class GdbProxy(BaseProxy):
-    PROMPT = b"\x1a\x1a\x1a"
+    PROMPT = re.compile(b"\x1a\x1a\x1a")
     CSEQ = re.compile(b'\[[^m]*m')
 
     def __init__(self):

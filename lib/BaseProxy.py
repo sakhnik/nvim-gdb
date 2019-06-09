@@ -14,9 +14,10 @@ import pty
 import select
 import signal
 import socket
+import sys
 import termios
-import tty
 import traceback
+import tty
 
 import StreamFilter
 
@@ -79,7 +80,9 @@ class BaseProxy(object):
         try:
             self._process()
         except Exception:
-            pass
+            ex = "".join(traceback.format_exception(*sys.exc_info()))
+            print(ex)
+            self.log(ex)
 
         tty.tcsetattr(pty.STDIN_FILENO, tty.TCSAFLUSH, mode)
 
@@ -134,31 +137,27 @@ class BaseProxy(object):
                 else:
                     raise
 
-            try:
-                if not rfds:
-                    self._timeout()
-                else:
-                    # Handle one packet at a time to mitigate the side channel
-                    # breaking into user input.
-                    if self.master_fd in rfds:
-                        data = os.read(self.master_fd, 1024)
-                        self.master_read(data)
-                    elif pty.STDIN_FILENO in rfds:
-                        data = os.read(pty.STDIN_FILENO, 1024)
-                        self.stdin_read(data)
-                    elif self.sock in rfds:
-                        data, self.last_addr = self.sock.recvfrom(65536)
-                        if data[-1] == b'\n':
-                            self.log("WARNING: the command ending with <nl>. The StreamProxy filter known to fail.")
-                        self.log("Got command '%s'" % data.decode('utf-8'))
-                        command = self.FilterCommand(data)
-                        self.log("Translated command '%s'" % command.decode('utf-8'))
-                        if command:
-                            self.write_master(command)
-                            self.write_master(b'\n')
-            except Exception as e:
-                self.log(traceback.format_exception())
-                raise
+            if not rfds:
+                self._timeout()
+            else:
+                # Handle one packet at a time to mitigate the side channel
+                # breaking into user input.
+                if self.master_fd in rfds:
+                    data = os.read(self.master_fd, 1024)
+                    self.master_read(data)
+                elif pty.STDIN_FILENO in rfds:
+                    data = os.read(pty.STDIN_FILENO, 1024)
+                    self.stdin_read(data)
+                elif self.sock in rfds:
+                    data, self.last_addr = self.sock.recvfrom(65536)
+                    if data[-1] == b'\n':
+                        self.log("WARNING: the command ending with <nl>. The StreamProxy filter known to fail.")
+                    self.log("Got command '%s'" % data.decode('utf-8'))
+                    command = self.FilterCommand(data)
+                    self.log("Translated command '%s'" % command.decode('utf-8'))
+                    if command:
+                        self.write_master(command)
+                        self.write_master(b'\n')
 
     def _write(self, fd, data):
         """Write the data to the file."""
