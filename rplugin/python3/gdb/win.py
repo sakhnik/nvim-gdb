@@ -43,6 +43,7 @@ class Win:
             self.breakpoint.query(bufNum, fname)
             # If there was a cursor, make sure it stays above the breakpoints.
             self.cursor.reshow()
+            self.vim.command("redraw")
 
         # Execute the rest of custom commands
         self.vim.command("doautocmd User NvimGdbQuery")
