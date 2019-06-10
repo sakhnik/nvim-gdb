@@ -9,6 +9,10 @@ class Win:
         self.breakpoint = breakpoint
         self.keymaps = keymaps
 
+    # Check whether the current buffer is displayed in the jump window
+    def isJumpWindowActive(self):
+        return self.vim.current.buffer == self.jumpWin.buffer
+
     def jump(self, file, line):
         # Check whether the file is already loaded or load it
         targetBuf = self.vim.call("bufnr", file, 1)
@@ -21,7 +25,7 @@ class Win:
             # TODO: figure out if other autocommands need ran here.
             # e.g. BufReadPost is required for syntax highlighting
             self.vim.command("doautoa BufReadPost")
-            self.vim.command("doautoa BufEnter")
+            self.queryBreakpoints()
 
         # Goto the proper line and set the cursor on it
         self.jumpWin.cursor = (line, 0)
