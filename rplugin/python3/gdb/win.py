@@ -25,7 +25,7 @@ class Win:
             # TODO: figure out if other autocommands need ran here.
             # e.g. BufReadPost is required for syntax highlighting
             self.vim.command("doautoa BufReadPost")
-            self.vim.command("doautoa BufEnter")
+            self.queryBreakpoints()
 
         # Goto the proper line and set the cursor on it
         self.jumpWin.cursor = (line, 0)
