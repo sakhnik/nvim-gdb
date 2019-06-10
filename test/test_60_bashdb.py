@@ -27,11 +27,11 @@ def test_smoke(eng, post):
     eng.feed('<f11>')
     assert {'cur': 'main.sh:7'} == eng.getSigns()
 
-    #eng.feed('<c-p>')
-    #assert {'cur': 'main.sh:18'} == eng.getSigns()
+    eng.feed('<c-p>', 200)
+    assert {'cur': 'main.sh:18'} == eng.getSigns()
 
-    #eng.feed('<c-n>')
-    #assert {'cur': 'main.sh:7'} == eng.getSigns()
+    eng.feed('<c-n>')
+    assert {'cur': 'main.sh:7'} == eng.getSigns()
 
     eng.feed('<f12>', 200)
     assert {'cur': 'main.sh:17'} == eng.getSigns()

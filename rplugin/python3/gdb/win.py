@@ -12,6 +12,11 @@ class Win:
     def jump(self, file, line):
         # Check whether the file is already loaded or load it
         targetBuf = self.vim.call("bufnr", file, 1)
+        # The terminal buffer may contain the name of the source file (in pdb, for
+        # instance)
+        if targetBuf == self.client.getBuf().handle:
+            self.vim.command("noswapfile view " + file)
+            targetBuf = self.vim.call("bufnr", file)
         if self.jumpWin.buffer.handle != targetBuf:
             try:
                 # This file being opened having a .swp file causes this function to throw
