@@ -36,5 +36,5 @@ def test_smoke(eng, post):
     eng.feed('<f12>', 200)
     assert {'cur': 'main.sh:17'} == eng.getSigns()
 
-    #eng.feed('<f5>')
-    #assert eng.waitSigns({'cur': 'main.sh:1'}, 1500) is None
+    eng.feed('<f5>')
+    assert eng.waitSigns({}, 1500) is None
