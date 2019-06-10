@@ -143,7 +143,8 @@ class App:
         self.breakpoint.clearSigns()
 
     def onBufEnter(self):
-        if self.vim.current.buffer.options['buftype'] != 'terminal':
+        # Apply keymaps to the jump window only.
+        if self.vim.current.buffer.options['buftype'] != 'terminal' and self.win.isJumpWindowActive():
             # Make sure the cursor stay visible at all times
 
             if "set_scroll_off" in self.config:

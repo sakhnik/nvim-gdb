@@ -9,6 +9,10 @@ class Win:
         self.breakpoint = breakpoint
         self.keymaps = keymaps
 
+    # Check whether the current buffer is displayed in the jump window
+    def isJumpWindowActive(self):
+        return self.vim.current.buffer == self.jumpWin.buffer
+
     def jump(self, file, line):
         # Check whether the file is already loaded or load it
         targetBuf = self.vim.call("bufnr", file, 1)
