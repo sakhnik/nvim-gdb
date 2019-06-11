@@ -36,7 +36,6 @@ def test_break(eng, post):
     eng.feed('<esc>')
 
     eng.feed('<esc><c-w>k')
-    eng.feed(':e main.py\n')
     eng.feed(':5<cr>')
     eng.feed('<f8>')
     assert {'cur': 'main.py:1', 'break': {1: [5]}} == eng.getSigns()
