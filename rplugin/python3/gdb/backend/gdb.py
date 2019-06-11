@@ -8,12 +8,13 @@ class GdbScm(BaseScm):
     def __init__(self, vim, logger, cursor, win):
         super().__init__(vim, logger, cursor, win)
 
+        re_prompt = re.compile(r'\x1a\x1a\x1a$')
         re_jump = re.compile(r'[\r\n]\x1a\x1a([^:]+):(\d+):\d+')
         self.addTrans(self.paused,  re.compile(r'[\r\n]Continuing\.'),   self.pausedContinue)
         self.addTrans(self.paused,  re_jump,                             self.pausedJump)
-        self.addTrans(self.paused,  re.compile(r'\x1a\x1a\x1a$'),        self.queryB)
+        self.addTrans(self.paused,  re_prompt,                           self.queryB)
         self.addTrans(self.running, re.compile(r'[\r\n]Breakpoint \d+'), self.queryB)
-        self.addTrans(self.running, re.compile(r'\x1a\x1a\x1a$'),        self.queryB)
+        self.addTrans(self.running, re_prompt,                           self.queryB)
         self.addTrans(self.running, re_jump,                             self.pausedJump)
 
         self.state = self.running

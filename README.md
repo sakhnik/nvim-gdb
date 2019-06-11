@@ -7,8 +7,9 @@ Branch | Status | Description
 
 # GDB for neovim
 
-[Gdb](https://www.gnu.org/software/gdb/), [LLDB](https://lldb.llvm.org/)
-and [PDB](https://docs.python.org/3/library/pdb.html) integration with NeoVim.
+[Gdb](https://www.gnu.org/software/gdb/), [LLDB](https://lldb.llvm.org/),
+[PDB](https://docs.python.org/3/library/pdb.html) and [BASHDB](http://bashdb.sourceforge.net/)
+integration with NeoVim.
 
 ## Table of contents
 
@@ -25,6 +26,7 @@ Taken from the neovim: [neovim\_gdb.vim](https://github.com/neovim/neovim/blob/m
 It is instantly usable: type `<leader>dd`, edit GDB launching command, hit `<cr>`.
 Or type `<leader>dl` to do the same with LLDB backend.
 Or type `<leader>dp` to start debugging a python program.
+Or type `<leader>db` to start debugging a BASH script.
 
 [![nvim-gdb](https://asciinema.org/a/E8sKlS53Dm6UzK2MJjEolOyam.png)](https://asciinema.org/a/E8sKlS53Dm6UzK2MJjEolOyam?autoplay=1)
 
@@ -89,6 +91,7 @@ See `:help nvimgdb` for the complete online documentation. Most notable commands
 | &lt;Leader&gt;dd | `:GdbStart gdb -q ./a.out`     | Start debugging session, allows editing the launching command |
 | &lt;Leader&gt;dl | `:GdbStartLLDB lldb ./a.out`   | Start debugging session, allows editing the launching command |
 | &lt;Leader&gt;dp | `:GdbStartPDB python -m pdb main.py`   | Start Python debugging session, allows editing the launching command |
+| &lt;Leader&gt;db | `:GdbStartBashDB bashdb main.sh`   | Start BASH debugging session, allows editing the launching command |
 | &lt;F8&gt;       | `:GdbBreakpointToggle`         | Toggle breakpoint in the coursor line                         |
 | &lt;F4&gt;       | `:GdbUntil`                    | Continue execution until a given line (`until` in gdb)        |
 | &lt;F5&gt;       | `:GdbContinue`                 | Continue execution (`continue` in gdb)                        |
@@ -101,7 +104,7 @@ See `:help nvimgdb` for the complete online documentation. Most notable commands
 ## Development
 
 The goal is to have a thin wrapper around
-GDB, LLDB and PDB, just like the official
+GDB, LLDB, PDB and BASHDB, just like the official
 [TUI](https://sourceware.org/gdb/onlinedocs/gdb/TUI.html). NeoVim will enhance
 debugging with syntax highlighting and source code navigation.
 
