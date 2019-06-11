@@ -1,4 +1,4 @@
-*nvimgdb.txt*  GDB, LLDB and PDB integration into neovim
+*nvimgdb.txt*  GDB, LLDB, PDB and BASHDB integration into neovim
 
 TBD
 
@@ -20,9 +20,9 @@ CONTENTS                                                     *NvimgdbContents*
 ==============================================================================
 Section 1: Usage                                                *NvimgdbUsage*
 
-This plugin will facilitate debugging programs with GDB, LLDB or PDB. It will
-automatically show debugged source code, breakpoints, and define convenient
-keymaps similar to Qt Creator and Microsoft Visual Studio.
+This plugin will facilitate debugging programs with GDB, LLDB, PDB or BASHDB.
+It will automatically show debugged source code, breakpoints, and define
+convenient keymaps similar to Qt Creator and Microsoft Visual Studio.
 
 To start debugging, execute `:GdbStart` command with GDB launch string as
 parameter: >
@@ -37,6 +37,11 @@ To debug Python programs, execute `:GdbStartPDB` and specify the python launch
 command as parameter: >
 
     :GdbStartPDB python -m pdb main.py
+
+To debug a Bash script, execute `:GdbStartBashDB` and specify the bashdb
+launch command as parameter: >
+
+    :GdbStartBashDB bashdb main.sh
 
 This will open a new tab with debugging view: horizontal split with source
 code and terminal. Then the whole set of commands will be available.
@@ -62,6 +67,10 @@ Section 2: Commands                                          *NvimgdbCommands*
 
                                                                *:GdbStartPDB*
 :GdbStartPDB [cmd]      Start Python debugging session with the given PDB
+                        launch command.
+
+                                                            *:GdbStartBashDB*
+:GdbStartBashDB [cmd]   Start Bash debuggin session with the given BASHDB
                         launch command.
 
                                                                *:GdbDebugStop*
@@ -113,6 +122,9 @@ g:nvimgdb_disable_start_keymaps is defined and evaluates to true:
                        still need to enter <cr> to execute it.
 
 <leader>dp             Fill in command to start debugging with PDB, you will
+                       still need to enter <cr> to execute it.
+
+<leader>db             Fill in command to start debugging with BASHDB, you will
                        still need to enter <cr> to execute it.
 
 When debugging session has started, the following mappings are defined:
@@ -283,13 +295,13 @@ Section 9: Development                                    *NvimgdbDevelopment*
   python script. The script opens a unix domain socket and receives side
   commands from it in a background thread.
 
-- PDB is like GDB run via a proxy application. Although, PDB doesn't have
-  stock distinctive prefix to bypass the history.
+- PDB and BASHDB is like GDB run via a proxy application. Although, they don't
+  have a stock distinctive prefix to bypass the history.
 
 - Breakpoints are queried from GDB, LLDB and PDB on every pause using the
-  established side channels: the pty proxy for GDB and PDB, and Python script
-  running inside the LLDB. The communication is done via unix domain sockets
-  (see rplugin/python3/gdb/breakpoint.py).
+  established side channels: the pty proxy for GDB, PDB and BASHDB, and Python
+  script running inside the LLDB. The communication is done via unix domain
+  sockets (see rplugin/python3/gdb/breakpoint.py).
 
 ==============================================================================
 Section 10: Trivia                                             *NvimgdbTrivia*
