@@ -14,6 +14,9 @@ echo -n "Check for gdb        " && which gdb \
 echo -n "Check for lldb       " && which lldb \
     && { echo -n ", 'lldb'" >> config.py; } \
     || true
+echo -n "Check for bashdb     " && which bashdb \
+    && { echo -n ", 'bashdb'" >> config.py; } \
+    || true
 echo ']' >> config.py
 
 CXX=g++

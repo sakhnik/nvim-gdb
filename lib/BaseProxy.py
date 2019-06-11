@@ -14,7 +14,9 @@ import pty
 import select
 import signal
 import socket
+import sys
 import termios
+import traceback
 import tty
 
 import StreamFilter
@@ -78,7 +80,9 @@ class BaseProxy(object):
         try:
             self._process()
         except Exception:
-            pass
+            ex = "".join(traceback.format_exception(*sys.exc_info()))
+            print(ex)
+            self.log(ex)
 
         tty.tcsetattr(pty.STDIN_FILENO, tty.TCSAFLUSH, mode)
 
@@ -148,13 +152,9 @@ class BaseProxy(object):
                     data, self.last_addr = self.sock.recvfrom(65536)
                     if data[-1] == b'\n':
                         self.log("WARNING: the command ending with <nl>. The StreamProxy filter known to fail.")
-                    try:
-                        self.log("Got command '%s'" % data.decode('utf-8'))
-                        command = self.FilterCommand(data)
-                        self.log("Translated command '%s'" % command.decode('utf-8'))
-                    except Exception as e:
-                        self.log("Exception %s" % str(e))
-                        raise
+                    self.log("Got command '%s'" % data.decode('utf-8'))
+                    command = self.FilterCommand(data)
+                    self.log("Translated command '%s'" % command.decode('utf-8'))
                     if command:
                         self.write_master(command)
                         self.write_master(b'\n')
@@ -180,14 +180,10 @@ class BaseProxy(object):
         self._write(pty.STDOUT_FILENO, data)
         if filtered:
             self.log("Filter matched %d bytes" % len(filtered))
-            try:
-                self.filter.pop()
-                res = handler(filtered)
-                if res:
-                    self.sock.sendto(res, 0, self.last_addr)
-            except Exception as e:
-                self.log("Exception: %s" % str(e))
-                raise
+            self.filter.pop()
+            res = handler(filtered)
+            if res:
+                self.sock.sendto(res, 0, self.last_addr)
 
     def write_master(self, data):
         """Write to the child process from its controlling terminal."""
