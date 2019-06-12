@@ -67,7 +67,7 @@ class BaseProxy(object):
     def run(self):
         pid, self.master_fd = pty.fork()
         if pid == pty.CHILD:
-            os.execlp(self.argv[0], *self.argv)
+            os.execvp(self.argv[0], self.argv)
 
         old_handler = signal.signal(signal.SIGWINCH,
                                     lambda signum, frame: self._set_pty_size())

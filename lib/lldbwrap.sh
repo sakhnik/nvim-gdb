@@ -15,8 +15,8 @@ shift $((OPTIND - 1))
 
 # lldb command
 lldb="$1"
-# lldb arguments
-rest="${@:2}"
+# the rest are lldb arguments
+shift
 
 # Prepare lldb initialization commands
 # Beware that readlink -f doesn't work in Darwin
@@ -42,4 +42,4 @@ cleanup()
 trap cleanup EXIT
 
 # Execute lldb finally with our custom initialization script
-"$lldb" --no-use-colors -S $lldb_init $rest
+"$lldb" --no-use-colors -S $lldb_init "$@"
