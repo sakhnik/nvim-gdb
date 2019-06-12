@@ -15,8 +15,8 @@ shift $((OPTIND - 1))
 
 # gdb command
 gdb="$1"
-# gdb arguments
-rest="${@:2}"
+# the rest are gdb arguments
+shift
 
 # Prepare gdb initialization commands
 # Beware that readlink -f doesn't work in some systems
@@ -37,4 +37,4 @@ cleanup()
 trap cleanup EXIT
 
 # Execute gdb finally through the proxy with our custom initialization script
-"$this_dir/gdbproxy.py" -a $server_addr -- "$gdb" -f -ix $gdb_init $rest
+"$this_dir/gdbproxy.py" -a $server_addr -- "$gdb" -f -ix $gdb_init "$@"
