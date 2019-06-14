@@ -79,23 +79,29 @@ class BaseProxy(object):
 
         try:
             self._process()
+        except OSError as e:
+            ex = "".join(traceback.format_exception(*sys.exc_info()))
+            self.log(ex)
+            # Avoid printing I/O Error that happens on every GDB quit
+            if e.errno != 5:
+                raise
         except Exception:
             ex = "".join(traceback.format_exception(*sys.exc_info()))
-            print(ex)
             self.log(ex)
+            raise
+        finally:
+            tty.tcsetattr(pty.STDIN_FILENO, tty.TCSAFLUSH, mode)
 
-        tty.tcsetattr(pty.STDIN_FILENO, tty.TCSAFLUSH, mode)
+            os.close(self.master_fd)
+            self.master_fd = None
+            signal.signal(signal.SIGWINCH, old_handler)
 
-        os.close(self.master_fd)
-        self.master_fd = None
-        signal.signal(signal.SIGWINCH, old_handler)
-
-        if self.server_address:
-            # Make sure the socket does not already exist
-            try:
-                os.unlink(self.server_address)
-            except OSError:
-                pass
+            if self.server_address:
+                # Make sure the socket does not already exist
+                try:
+                    os.unlink(self.server_address)
+                except OSError:
+                    pass
 
     def set_filter(self, filter, handler):
         self.log("set_filter %s %s" % (str(filter), str(handler)))
