@@ -21,5 +21,6 @@ class PdbParser(Parser):
             'delete_breakpoints': 'clear',
             'breakpoint': 'break',
             'finish': 'return',
-            'print {}': 'print({})'
+            'print {}': 'print({})',
+            'frame': 'list .'
         }

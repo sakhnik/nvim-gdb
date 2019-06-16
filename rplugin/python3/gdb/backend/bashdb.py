@@ -20,7 +20,8 @@ class BashDBParser(Parser):
 
         self.command_map = {
             'delete_breakpoints': 'delete',
-            'breakpoint': 'break'
+            'breakpoint': 'break',
+            'frame': 'frame 0'
         }
 
     def _handle_terminated(self, _):

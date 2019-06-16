@@ -27,5 +27,6 @@ class GdbParser(Parser):
 
         self.command_map = {
             'delete_breakpoints': 'delete',
-            'breakpoint': 'break'
+            'breakpoint': 'break',
+            'frame': 'frame'
         }

@@ -20,6 +20,7 @@ class Config(Common):
         'key_breakpoint': '<f8>',
         'key_frameup': '<c-p>',
         'key_framedown': '<c-n>',
+        'key_frame': '<c-`>',
         'key_eval': '<f9>',
         'set_tkeymaps': Keymaps.set_t,
         'set_keymaps': Keymaps.set,

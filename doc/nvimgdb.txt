@@ -98,8 +98,10 @@ Section 2: Commands                                          *NvimgdbCommands*
 
                                                                  *:GdbFrameUp*
                                                                *:GdbFrameDown*
+                                                                   *:GdbFrame*
 :GdbFrameUp             Navigate up/down one stack frame
 :GdbFrameDown
+:GdbFrame               Move the cursor to the current frame
 
                                                                *:GdbInterrupt*
 :GdbInterrupt          Break program execution into the debugger

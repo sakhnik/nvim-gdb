@@ -32,5 +32,6 @@ class LldbParser(Parser):
             'initParser': LldbParser,
             'delete_breakpoints': 'breakpoint delete',
             'breakpoint': 'b',
-            'until {}': 'thread until {}'
+            'until {}': 'thread until {}',
+            'frame' : 'frame select'
         }

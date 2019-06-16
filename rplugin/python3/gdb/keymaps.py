@@ -24,6 +24,7 @@ class Keymaps(Common):
         ('n', 'key_breakpoint', ':GdbBreakpointToggle'),
         ('n', 'key_frameup', ':GdbFrameUp'),
         ('n', 'key_framedown', ':GdbFrameDown'),
+        ('n', 'key_frame', ':GdbFrame'),
         ('n', 'key_eval', ':GdbEvalWord'),
         ('v', 'key_eval', ':GdbEvalRange'),
     }

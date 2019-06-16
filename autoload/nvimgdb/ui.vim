@@ -25,6 +25,7 @@ function! s:UndefCommands()
   delcommand GdbFinish
   delcommand GdbFrameUp
   delcommand GdbFrameDown
+  delcommand GdbFrame
   delcommand GdbInterrupt
   delcommand GdbEvalWord
   delcommand GdbEvalRange
@@ -41,6 +42,7 @@ function! s:DefineCommands()
   command! GdbStep call GdbSend('s')
   command! GdbFinish call GdbSend('finish')
   command! GdbFrameUp call GdbSend('up')
+  command! GdbFrame call GdbSend('frame')
   command! GdbFrameDown call GdbSend('down')
   command! GdbInterrupt call GdbSend()
   command! GdbEvalWord call GdbSend('print {}', expand('<cword>'))
