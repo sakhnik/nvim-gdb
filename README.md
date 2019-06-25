@@ -13,11 +13,11 @@ integration with NeoVim.
 
 ## Table of contents
 
-  * [Overview](#overview)
-  * [Installation](#installation)
-  * [Options](#options)
-  * [Usage](#usage)
-  * [Development](#development)
+* [Overview](#overview)
+* [Installation](#installation)
+* [Options](#options)
+* [Usage](#usage)
+* [Development](#development)
 
 ## Overview
 
@@ -48,9 +48,9 @@ Plug 'sakhnik/nvim-gdb', { 'branch': 'legacy' }
 
 You can use any other plugin manager too:
 
-  - vundle
-  - neobundle
-  - pathogen
+* vundle
+* neobundle
+* pathogen
 
 ## Options
 
@@ -86,20 +86,20 @@ is entered and left. Please refer to the online NeoVim help: `:help nvimgdb`.
 
 See `:help nvimgdb` for the complete online documentation. Most notable commands:
 
-| Mapping          | Command                        | Description                                                   |
-|------------------|--------------------------------|---------------------------------------------------------------|
-| &lt;Leader&gt;dd | `:GdbStart gdb -q ./a.out`     | Start debugging session, allows editing the launching command |
-| &lt;Leader&gt;dl | `:GdbStartLLDB lldb ./a.out`   | Start debugging session, allows editing the launching command |
-| &lt;Leader&gt;dp | `:GdbStartPDB python -m pdb main.py`   | Start Python debugging session, allows editing the launching command |
-| &lt;Leader&gt;db | `:GdbStartBashDB bashdb main.sh`   | Start BASH debugging session, allows editing the launching command |
-| &lt;F8&gt;       | `:GdbBreakpointToggle`         | Toggle breakpoint in the coursor line                         |
-| &lt;F4&gt;       | `:GdbUntil`                    | Continue execution until a given line (`until` in gdb)        |
-| &lt;F5&gt;       | `:GdbContinue`                 | Continue execution (`continue` in gdb)                        |
-| &lt;F10&gt;      | `:GdbNext`                     | Step over the next statement (`next` in gdb)                  |
-| &lt;F11&gt;      | `:GdbStep`                     | Step into the next statement (`step` in gdb)                  |
-| &lt;F12&gt;      | `:GdbFinish`                   | Step out the current frame (`finish` in gdb)                  |
-| &lt;c-p&gt;      | `:GdbFrameUp`                  | Navigate one frame up (`up` in gdb)                           |
-| &lt;c-n&gt;      | `:GdbFrameDown`                | Navigate one frame down (`down` in gdb)                       |
+| Mapping          | Command                             | Description                                                          |
+|------------------|-------------------------------------|----------------------------------------------------------------------|
+| &lt;Leader&gt;dd | `:GdbStart gdb -q ./a.out`          | Start debugging session, allows editing the launching command        |
+| &lt;Leader&gt;dl | `:GdbStartLLDB lldb ./a.out`        | Start debugging session, allows editing the launching command        |
+| &lt;Leader&gt;dp | `:GdbStartPDB python -m pdb main.py`| Start Python debugging session, allows editing the launching command |
+| &lt;Leader&gt;db | `:GdbStartBashDB bashdb main.sh`    | Start BASH debugging session, allows editing the launching command   |
+| &lt;F8&gt;       | `:GdbBreakpointToggle`              | Toggle breakpoint in the coursor line                                |
+| &lt;F4&gt;       | `:GdbUntil`                         | Continue execution until a given line (`until` in gdb)               |
+| &lt;F5&gt;       | `:GdbContinue`                      | Continue execution (`continue` in gdb)                               |
+| &lt;F10&gt;      | `:GdbNext`                          | Step over the next statement (`next` in gdb)                         |
+| &lt;F11&gt;      | `:GdbStep`                          | Step into the next statement (`step` in gdb)                         |
+| &lt;F12&gt;      | `:GdbFinish`                        | Step out the current frame (`finish` in gdb)                         |
+| &lt;c-p&gt;      | `:GdbFrameUp`                       | Navigate one frame up (`up` in gdb)                                  |
+| &lt;c-n&gt;      | `:GdbFrameDown`                     | Navigate one frame down (`down` in gdb)                              |
 
 ## Development
 
@@ -110,8 +110,8 @@ debugging with syntax highlighting and source code navigation.
 
 ## References
 
-* Porting to Moonscript: [2018-11-17](https://sakhnik.com/2018/11/17/nvimgdb-lua.html)
-* Overview to the first anniversary: [2018-08-10](https://sakhnik.com/2018/08/10/nvim-gdb-anni.html)
+  * Porting to Moonscript: [2018-11-17](https://sakhnik.com/2018/11/17/nvimgdb-lua.html)
+  * Overview to the first anniversary: [2018-08-10](https://sakhnik.com/2018/08/10/nvim-gdb-anni.html)
 
 ## Showcase
 
