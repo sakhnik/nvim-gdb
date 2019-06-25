@@ -165,7 +165,8 @@ class BaseProxy(object):
                         self.write_master(command)
                         self.write_master(b'\n')
 
-    def _write(self, fd, data):
+    @staticmethod
+    def _write(fd, data):
         """Write the data to the file."""
         while data:
             n = os.write(fd, data)

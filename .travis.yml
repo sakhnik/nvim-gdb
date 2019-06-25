@@ -24,7 +24,7 @@ notifications:
   email: false
 
 before_install:
-  - ./.travis-`uname`.sh
+  - ./.travis-$(uname).sh
   - ./install.sh
   - pip3 install --user pynvim
   - pip3 install --user pytest

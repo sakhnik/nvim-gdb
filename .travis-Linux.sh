@@ -7,7 +7,7 @@ chmod +x nvim.appimage
 mkdir -p $HOME/bin
 cat >$HOME/bin/nvim <<EOF
 #!/bin/bash
-`pwd`/squashfs-root/usr/bin/nvim "\$@"
+$(pwd)/squashfs-root/usr/bin/nvim "\$@"
 EOF
 chmod +x $HOME/bin/nvim
 

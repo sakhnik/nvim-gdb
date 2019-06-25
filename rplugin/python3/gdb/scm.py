@@ -13,7 +13,8 @@ class BaseScm:
 
     # Add a new transition for a given state using {matcher, matchingFunc}
     # Call the handler when matched.
-    def addTrans(self, state, matcher, func):
+    @staticmethod
+    def addTrans(state, matcher, func):
         state.append((matcher, func))
 
     def isPaused(self):
