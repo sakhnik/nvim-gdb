@@ -8,7 +8,7 @@ curl -LO https://github.com/neovim/neovim/releases/download/v0.3.4/nvim-macos.ta
 tar -xf nvim-macos.tar.gz
 cat >$HOME/bin/nvim <<EOF
 #!/bin/bash
-`pwd`/nvim-osx64/bin/nvim "\$@"
+$(pwd)/nvim-osx64/bin/nvim "\$@"
 EOF
 chmod +x $HOME/bin/nvim
 
