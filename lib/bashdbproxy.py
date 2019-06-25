@@ -46,7 +46,7 @@ class BashDbProxy(BaseProxy):
                         except KeyError:
                             breaks[line] = [brId]
             except Exception as e:
-                pass
+                self.log("Exception: {}".format(str(e)))
 
         return json.dumps(breaks).encode('utf-8')
 

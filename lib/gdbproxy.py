@@ -26,7 +26,6 @@ class GdbProxy(BaseProxy):
         # It itself is responsible for sending the processed result
         # to the correct address.
         self.log("Process info breakpoints %d bytes" % len(response))
-        self.log(str(response))
 
         # Filter out the escape sequences used by GDB8
         response = GdbProxy.CSEQ.sub(b'', response)
@@ -47,7 +46,7 @@ class GdbProxy(BaseProxy):
                         except KeyError:
                             breaks[line] = [brId]
             except Exception as e:
-                pass
+                self.log('Exception: {}'.format(str(e)))
 
         return json.dumps(breaks).encode('utf-8')
 
