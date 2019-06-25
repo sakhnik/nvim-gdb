@@ -174,7 +174,7 @@ class BaseProxy(object):
 
     def _timeout(self):
         filter, _ = self.filter[-1]
-        data = filter.Timeout()
+        data = filter.timeout()
         self._write(pty.STDOUT_FILENO, data)
         # Get back to the passthrough filter on timeout
         if len(self.filter) > 1:
@@ -183,7 +183,7 @@ class BaseProxy(object):
     def write_stdout(self, data):
         """Write to stdout for the child process."""
         filter, handler = self.filter[-1]
-        data, filtered = filter.Filter(data)
+        data, filtered = filter.filter(data)
         self._write(pty.STDOUT_FILENO, data)
         if filtered:
             self.log("Filter matched %d bytes" % len(filtered))
