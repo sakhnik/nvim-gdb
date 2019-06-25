@@ -103,15 +103,15 @@ class BaseProxy(object):
                 except OSError:
                     pass
 
-    def set_filter(self, filter, handler):
-        self.log("set_filter %s %s" % (str(filter), str(handler)))
+    def set_filter(self, f, handler):
+        self.log("set_filter %s %s" % (str(f), str(handler)))
         if len(self.filter) == 1:
             self.log("filter accepted")
             # Only one command at a time. Should be an assertion here,
             # but we wouldn't want to terminate the program.
             if self.filter:
                 self._timeout()
-            self.filter.append((filter, handler))
+            self.filter.append((f, handler))
             return True
         else:
             self.log("filter rejected")
@@ -173,8 +173,8 @@ class BaseProxy(object):
             data = data[n:]
 
     def _timeout(self):
-        filter, _ = self.filter[-1]
-        data = filter.timeout()
+        f, _ = self.filter[-1]
+        data = f.timeout()
         self._write(pty.STDOUT_FILENO, data)
         # Get back to the passthrough filter on timeout
         if len(self.filter) > 1:
@@ -182,8 +182,8 @@ class BaseProxy(object):
 
     def write_stdout(self, data):
         """Write to stdout for the child process."""
-        filter, handler = self.filter[-1]
-        data, filtered = filter.filter(data)
+        f, handler = self.filter[-1]
+        data, filtered = f.filter(data)
         self._write(pty.STDOUT_FILENO, data)
         if filtered:
             self.log("Filter matched %d bytes" % len(filtered))

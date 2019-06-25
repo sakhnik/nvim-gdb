@@ -46,8 +46,8 @@ class PdbProxy(BaseProxy):
                         breaks[src_line[1]].append(bid)
                     except KeyError:
                         breaks[src_line[1]] = [bid]
-            except Exception:
-                pass
+            except Exception as e:
+                self.log("Exception: {}".format(str(e)))
 
         return json.dumps(breaks).encode('utf-8')
 
