@@ -1,8 +1,8 @@
 #!/bin/bash -e
 
-cd `dirname ${BASH_SOURCE[0]}`
+cd $(dirname ${BASH_SOURCE[0]})
 
-temp_dir=`mktemp -d nvim-gdb-test.XXXXXX`
+temp_dir=$(mktemp -d nvim-gdb-test.XXXXXX)
 export NVIM_LISTEN_ADDRESS=$temp_dir/sock
 
 >visual.log
@@ -12,7 +12,7 @@ LANG=en_US.UTF-8 nvim -n -u init.vim --listen $NVIM_LISTEN_ADDRESS &
 
 cleanup()
 {
-    kill -KILL `jobs -p`
+    kill -KILL $(jobs -p)
     wait
     reset
     cat visual.log
@@ -20,7 +20,7 @@ cleanup()
 }
 trap cleanup EXIT
 
-for i in `seq 0 10`; do
+for i in $(seq 0 10); do
     test -S $NVIM_LISTEN_ADDRESS && break
     sleep 0.1
 done

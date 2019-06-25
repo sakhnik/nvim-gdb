@@ -21,9 +21,9 @@ shift
 # Prepare gdb initialization commands
 # Beware that readlink -f doesn't work in some systems
 readlinkf(){ perl -MCwd -e 'print Cwd::abs_path shift' "$1";}
-this_dir=$(readlinkf `dirname ${BASH_SOURCE[0]}`)
+this_dir=$(readlinkf $(dirname ${BASH_SOURCE[0]}))
 
-gdb_init=`mktemp /tmp/gdb_init.XXXXXX`
+gdb_init=$(mktemp /tmp/gdb_init.XXXXXX)
 cat >$gdb_init <<EOF
 set confirm off
 set pagination off
