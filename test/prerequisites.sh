@@ -4,19 +4,21 @@
 echo -n "Check for neovim     " && which nvim
 echo -n "Check for python3    " && which python3
 
-this_dir=$(dirname ${BASH_SOURCE[0]})
-
 echo -n "config = ['XXX'" >| config.py
 
-echo -n "Check for gdb        " && which gdb \
-    && { echo -n ", 'gdb'" >> config.py; } \
-    || true
-echo -n "Check for lldb       " && which lldb \
-    && { echo -n ", 'lldb'" >> config.py; } \
-    || true
-echo -n "Check for bashdb     " && which bashdb \
-    && { echo -n ", 'bashdb'" >> config.py; } \
-    || true
+echo -n "Check for gdb        "
+if which gdb; then
+    echo -n ", 'gdb'" >> config.py
+fi
+echo -n "Check for lldb       "
+if which lldb; then
+    echo -n ", 'lldb'" >> config.py
+fi
+echo -n "Check for bashdb     "
+if which bashdb; then
+    echo -n ", 'bashdb'" >> config.py
+fi
+
 echo ']' >> config.py
 
 CXX=g++
