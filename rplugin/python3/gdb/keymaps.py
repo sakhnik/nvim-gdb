@@ -1,6 +1,7 @@
 class Keymaps:
-    def __init__(self, vim, config):
+    def __init__(self, vim, logger, config):
         self.vim = vim
+        self.log = lambda msg: logger.log('keymaps', msg)
         self.config = config
         self.dispatchActive = True
 
@@ -22,16 +23,16 @@ class Keymaps:
             try:
                 keystroke = self.config[key]
                 self.vim.command('%snoremap <buffer> <silent> %s %s<cr>' % (mode, keystroke, cmd))
-            except Exception:
-                pass
+            except Exception as e:
+                self.log('Exception: {}'.format(str(e)))
 
     def unset(self):
         for mode, key, _ in Keymaps.default:
             try:
                 keystroke = self.config[key]
                 self.vim.command('%sunmap <buffer> %s' % (mode, keystroke))
-            except Exception:
-                pass
+            except Exception as e:
+                self.log('Exception: {}'.format(str(e)))
 
     defaultT = {
         ('key_until',    ':GdbUntil'),
@@ -47,8 +48,8 @@ class Keymaps:
             try:
                 keystroke = self.config[key]
                 self.vim.command('tnoremap <buffer> <silent> %s <c-\><c-n>%s<cr>i' % (keystroke, cmd))
-            except Exception:
-                pass
+            except Exception as e:
+                self.log('Exception: {}'.format(str(e)))
         self.vim.command('tnoremap <silent> <buffer> <esc> <c-\><c-n>')
 
 
@@ -56,8 +57,8 @@ class Keymaps:
         try:
             if self.dispatchActive:
                 self.config[key](self)
-        except Exception:
-            pass
+        except Exception as e:
+            self.log('Exception: {}'.format(str(e)))
 
     def dispatchSet(self):
         self._dispatch('set_keymaps')

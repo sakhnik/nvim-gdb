@@ -48,7 +48,7 @@ class App:
         self.breakpoint = Breakpoint(vim, self.config, self.proxy)
 
         # Initialize the keymaps subsystem
-        self.keymaps = Keymaps(vim, self.config)
+        self.keymaps = Keymaps(vim, logger, self.config)
 
         # Initialize the windowing subsystem
         self.win = Win(vim, wjump, self.cursor, self.client, self.breakpoint, self.keymaps)
