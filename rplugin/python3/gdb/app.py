@@ -7,7 +7,6 @@ from gdb.keymaps import Keymaps
 from gdb.proxy import Proxy
 from gdb.breakpoint import Breakpoint
 import importlib
-import os
 
 
 class App:
@@ -51,7 +50,7 @@ class App:
         self.keymaps = Keymaps(vim, logger, self.config)
 
         # Initialize the windowing subsystem
-        self.win = Win(vim, wjump, self.cursor, self.client, self.breakpoint, self.keymaps)
+        self.win = Win(vim, logger, wjump, self.cursor, self.client, self.breakpoint, self.keymaps)
 
         # Initialize the SCM
         self.scm = self.backend["initScm"](vim, logger, self.cursor, self.win)
