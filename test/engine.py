@@ -77,7 +77,8 @@ class Engine:
         """Determine how many buffers are there."""
         self.eval('len(filter(range(bufnr("$") + 1), "buflisted(v:val)"))')
 
-    def waitEqual(self, action, expected, deadline=0):
+    @staticmethod
+    def waitEqual(action, expected, deadline=0):
         deadline *= 0.001
         start = time.time()
         result = None

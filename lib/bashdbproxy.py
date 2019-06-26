@@ -9,7 +9,6 @@ to a user.
 
 import re
 import json
-import os
 
 from BaseProxy import BaseProxy
 from StreamFilter import StreamFilter
