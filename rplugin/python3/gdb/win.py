@@ -1,7 +1,8 @@
 from pynvim import NvimError
 class Win:
-    def __init__(self, vim, win, cursor, client, breakpoint, keymaps):
+    def __init__(self, vim, logger, win, cursor, client, breakpoint, keymaps):
         self.vim = vim
+        self.log = lambda msg: logger.log('win', msg)
         # window number that will be displaying the current file
         self.jumpWin = win
         self.cursor = cursor
@@ -26,7 +27,7 @@ class Win:
                 # This file being opened having a .swp file causes this function to throw
                 self.vim.call("nvim_win_set_buf", self.jumpWin.handle, targetBuf)
             except NvimError as e:
-                pass
+                self.log('Exception: {}'.format(str(e)))
             # TODO: figure out if other autocommands need ran here.
             # e.g. BufReadPost is required for syntax highlighting
             self.vim.command("doautoa BufReadPost")
