@@ -42,7 +42,7 @@ def getConfig(vim):
         for k,v in config.items():
             try:
                 config[k] = filterFuncref(vim, defaultConfig, k, v)
-            except:
+            except Exception:
                 pass
         # Make sure the essential keys are present even if not supplied.
         for mustHave in ('sign_current_line', 'sign_breakpoint', 'split_command', 'set_scroll_off'):

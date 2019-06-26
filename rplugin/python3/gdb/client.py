@@ -2,7 +2,7 @@ import os
 
 def getPluginDir():
     path = os.path.realpath(__file__)
-    for i in range(4):
+    for _ in range(4):
         path = os.path.dirname(path)
     return path
 

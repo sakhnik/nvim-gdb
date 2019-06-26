@@ -1,4 +1,3 @@
-import pytest
 from StreamFilter import StreamFilter
 
 

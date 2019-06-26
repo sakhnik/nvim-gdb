@@ -22,7 +22,7 @@ class Keymaps:
             try:
                 keystroke = self.config[key]
                 self.vim.command('%snoremap <buffer> <silent> %s %s<cr>' % (mode, keystroke, cmd))
-            except:
+            except Exception:
                 pass
 
     def unset(self):
@@ -30,7 +30,7 @@ class Keymaps:
             try:
                 keystroke = self.config[key]
                 self.vim.command('%sunmap <buffer> %s' % (mode, keystroke))
-            except:
+            except Exception:
                 pass
 
     defaultT = {
@@ -47,7 +47,7 @@ class Keymaps:
             try:
                 keystroke = self.config[key]
                 self.vim.command('tnoremap <buffer> <silent> %s <c-\><c-n>%s<cr>i' % (keystroke, cmd))
-            except:
+            except Exception:
                 pass
         self.vim.command('tnoremap <silent> <buffer> <esc> <c-\><c-n>')
 
@@ -56,7 +56,7 @@ class Keymaps:
         try:
             if self.dispatchActive:
                 self.config[key](self)
-        except:
+        except Exception:
             pass
 
     def dispatchSet(self):
