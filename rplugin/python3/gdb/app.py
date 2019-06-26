@@ -91,8 +91,8 @@ class App:
         self.vim.command("sign define GdbCurrentLine text=" + config["sign_current_line"])
         # Define signs for the breakpoints.
         breaks = config["sign_breakpoint"]
-        for i in range(len(breaks)):
-            self.vim.command('sign define GdbBreakpoint%d text=%s' % ((i+1), breaks[i]))
+        for i, b in enumerate(breaks):
+            self.vim.command('sign define GdbBreakpoint%d text=%s' % ((i+1), b))
 
     def getCommand(self, cmd):
         return self.backend.get(cmd, cmd)

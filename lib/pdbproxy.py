@@ -12,7 +12,6 @@ import json
 
 from BaseProxy import BaseProxy
 from StreamFilter import StreamFilter
-import re
 
 
 class PdbProxy(BaseProxy):
