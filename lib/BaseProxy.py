@@ -136,7 +136,7 @@ class BaseProxy(object):
                 # Don't handle user input while a side command is running.
                 if len(self.filter) == 1:
                     sockets.append(pty.STDIN_FILENO)
-                rfds, wfds, _ = select.select(sockets, [], [], 0.25)
+                rfds, _, _ = select.select(sockets, [], [], 0.25)
             except select.error as e:
                 if e[0] == errno.EAGAIN:   # Interrupted system call.
                     continue
