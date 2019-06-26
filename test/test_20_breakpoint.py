@@ -1,5 +1,6 @@
 import pytest
 import os
+import tempfile
 
 
 def test_detect(eng, backend):
@@ -13,7 +14,7 @@ def test_detect(eng, backend):
 @pytest.fixture(scope='function')
 def cd_tmp():
     old_dir = os.getcwd()
-    os.chdir('/tmp')
+    os.chdir(tempfile.gettempdir())
     yield os.path.join(old_dir, 'a.out')
     os.chdir(old_dir)
 
