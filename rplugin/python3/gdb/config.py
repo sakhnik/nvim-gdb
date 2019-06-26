@@ -14,7 +14,7 @@ def filterFuncref(vim, defConf, k, v):
     # Finally, turn the value into a Vim function call.
     return lambda _: vim.call(v)
 
-def getConfig(vim):
+def getConfig(vim, logger):
     # Default configuration
     defaultConfig = {
         'key_until': '<f4>',
@@ -42,8 +42,8 @@ def getConfig(vim):
         for k,v in config.items():
             try:
                 config[k] = filterFuncref(vim, defaultConfig, k, v)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.log('config', "Exception: {}".format(str(e)))
         # Make sure the essential keys are present even if not supplied.
         for mustHave in ('sign_current_line', 'sign_breakpoint', 'split_command', 'set_scroll_off'):
             if not mustHave in config:

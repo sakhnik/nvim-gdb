@@ -16,7 +16,7 @@ class App:
         self.log = lambda msg: logger.log('app', msg)
 
         # Prepare configuration: keymaps, hooks, parameters etc.
-        self.config = getConfig(vim)
+        self.config = getConfig(vim, logger)
         self.defineSigns(self.config)
 
         # Create new tab for the debugging view and split horizontally
