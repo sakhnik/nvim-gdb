@@ -5,11 +5,17 @@ class Filter:
     """Pass-through filter."""
     def filter(self, data):
         """Process data, filter between tokens, return the output."""
+        self._calm_the_linter()
         return data, None
 
     def timeout(self):
         """Process timeout, return whatever was kept in the buffer."""
+        self._calm_the_linter()
         return b''
+
+    @staticmethod
+    def _calm_the_linter():
+        pass
 
 
 class StreamFilter(Filter):
@@ -18,29 +24,30 @@ class StreamFilter(Filter):
     def __init__(self, finish_re):
         """Initialize the filter with start and finish tokens."""
         self.buffer = bytearray()
-        self.updateFinishMatcher(finish_re)
+        self.matcher = finish_re
 
-    # Allow changing the termination sequence on the fly
-    def updateFinishMatcher(self, finish_re):
+    def update_finish_matcher(self, finish_re):
+        '''Allow changing the termination sequence on the fly.'''
         self.matcher = finish_re
 
     # Accept the data: either append it to the buffer until
     # the final matcher has been met, or output the whole filtered buffer.
-    # Returns a tuple (bytes to show, bytes suppressed until and including the finish matcher).
+    # Returns a tuple (bytes to show, bytes suppressed until and including
+    # the finish matcher).
     def filter(self, data):
         """Process data, filter until the finish match, return the output."""
         filtered = None
         if not self.matcher:
             return data, None
         self.buffer.extend(data)
-        # XXX: note that we are scanning over the buffer again and again
+        # Note that we are scanning over the buffer again and again
         # if this causes noticeable performance issue, consider maintaining
         # a smaller part of the buffer to scan.
-        m = self.matcher.search(self.buffer)
-        if m:
+        match = self.matcher.search(self.buffer)
+        if match:
             self.matcher = None
-            filtered = self.buffer[:m.end()]
-            output = self.buffer[m.end():]
+            filtered = self.buffer[:match.end()]
+            output = self.buffer[match.end():]
             self.buffer = bytearray()
             return output, filtered
         return b'', None
@@ -51,5 +58,4 @@ class StreamFilter(Filter):
             output = self.buffer
             self.buffer = bytearray()
             return bytes(output)
-        else:
-            return b''
+        return b''

@@ -11,7 +11,7 @@ import re
 import json
 
 from base_proxy import BaseProxy
-from StreamFilter import StreamFilter
+from stream_filter import StreamFilter
 
 
 class PdbProxy(BaseProxy):

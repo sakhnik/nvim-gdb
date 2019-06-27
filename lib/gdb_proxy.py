@@ -12,7 +12,7 @@ import json
 import os
 
 from base_proxy import BaseProxy
-from StreamFilter import StreamFilter
+from stream_filter import StreamFilter
 
 
 class GdbProxy(BaseProxy):

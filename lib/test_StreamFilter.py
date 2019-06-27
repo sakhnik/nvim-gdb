@@ -1,4 +1,4 @@
-from StreamFilter import StreamFilter
+from stream_filter import StreamFilter
 
 
 def test_filter():
@@ -17,5 +17,5 @@ def test_update_finish():
     f = StreamFilter(b"\nXXXX ")
     assert (b"", None) == f.filter(b"  server nvim-gdb-breakpoint")
     assert (b"", None) == f.filter(b"foo-bar")
-    f.updateFinishMatcher(b"\n(gdb) ")
+    f.update_finish_matcher(b"\n(gdb) ")
     assert (b"", b'  server nvim-gdb-breakpointfoo-bar\n(gdb)') == f.filter(b"\n(gdb) ")

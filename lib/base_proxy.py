@@ -20,7 +20,7 @@ import termios
 import traceback
 import tty
 
-import StreamFilter
+import stream_filter
 
 
 class BaseProxy:
@@ -51,7 +51,7 @@ class BaseProxy:
             self.sock = None
 
         # Create the filter
-        self.filter = [(StreamFilter.Filter(), lambda _: None)]
+        self.filter = [(stream_filter.Filter(), lambda _: None)]
         # Where was the last command received from?
         self.last_addr = None
 
