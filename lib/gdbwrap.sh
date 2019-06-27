@@ -21,10 +21,10 @@ shift
 # Prepare gdb initialization commands
 # Beware that readlink -f doesn't work in some systems
 readlinkf(){ perl -MCwd -e 'print Cwd::abs_path shift' "$1";}
-this_dir=$(readlinkf $(dirname ${BASH_SOURCE[0]}))
+this_dir="$(readlinkf "$(dirname "${BASH_SOURCE[0]}")")"
 
 gdb_init=$(mktemp /tmp/gdb_init.XXXXXX)
-cat >$gdb_init <<EOF
+cat >"$gdb_init" <<EOF
 set confirm off
 set pagination off
 python gdb.prompt_hook = lambda p: p + ("" if p.endswith("\x1a\x1a\x1a") else "\x1a\x1a\x1a")
@@ -32,9 +32,9 @@ EOF
 
 cleanup()
 {
-    unlink $gdb_init
+    unlink "$gdb_init"
 }
 trap cleanup EXIT
 
 # Execute gdb finally through the proxy with our custom initialization script
-"$this_dir/gdbproxy.py" -a $server_addr -- "$gdb" -f -ix $gdb_init "$@"
+"$this_dir/gdb_proxy.py" -a "$server_addr" -- "$gdb" -f -ix "$gdb_init" "$@"
