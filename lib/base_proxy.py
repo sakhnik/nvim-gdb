@@ -5,6 +5,7 @@ This will allow to inject server commands not exposing them
 to a user.
 """
 
+import abc
 import argparse
 import array
 import errno
@@ -22,18 +23,16 @@ import tty
 import StreamFilter
 
 
-class BaseProxy(object):
+class BaseProxy:
     """This class does the actual work of the pseudo terminal."""
 
     def __init__(self, app_name):
         """Create a spawned process."""
 
         parser = argparse.ArgumentParser(
-                description="Run %s through a filtering proxy."
-                % app_name)
+            description="Run %s through a filtering proxy." % app_name)
         parser.add_argument('cmd', metavar='ARGS', nargs='+',
-                            help='%s command with arguments'
-                            % app_name)
+                            help='%s command with arguments' % app_name)
         parser.add_argument('-a', '--address', metavar='ADDR',
                             help='Local socket to receive commands.')
         args = parser.parse_args()
@@ -52,22 +51,28 @@ class BaseProxy(object):
             self.sock = None
 
         # Create the filter
-        self.filter = [(StreamFilter.Filter(), None)]
+        self.filter = [(StreamFilter.Filter(), lambda _: None)]
+        # Where was the last command received from?
+        self.last_addr = None
+
+        # Spawn the process in a PTY
+        pid, self.master_fd = pty.fork()
+        if pid == pty.CHILD:
+            os.execvp(self.argv[0], self.argv)
 
     def log(self, msg):
+        '''Log the message.'''
         try:
             if not self.logfile is None:
                 self.logfile.write(msg)
                 self.logfile.write("\n")
                 self.logfile.flush()
-        except Exception as e:
-            print(e)
+        except Exception as ex:
+            print(ex)
             raise
 
     def run(self):
-        pid, self.master_fd = pty.fork()
-        if pid == pty.CHILD:
-            os.execvp(self.argv[0], self.argv)
+        '''The entry point'''
 
         old_handler = signal.signal(signal.SIGWINCH,
                                     lambda signum, frame: self._set_pty_size())
@@ -79,11 +84,11 @@ class BaseProxy(object):
 
         try:
             self._process()
-        except OSError as e:
+        except OSError as os_err:
             ex = "".join(traceback.format_exception(*sys.exc_info()))
             self.log(ex)
             # Avoid printing I/O Error that happens on every GDB quit
-            if e.errno != 5:
+            if os_err.errno != 5:
                 raise
         except Exception:
             ex = "".join(traceback.format_exception(*sys.exc_info()))
@@ -103,19 +108,24 @@ class BaseProxy(object):
                 except OSError:
                     pass
 
-    def set_filter(self, f, handler):
-        self.log("set_filter %s %s" % (str(f), str(handler)))
+    def set_filter(self, filt, handler):
+        '''Push a new filter with given handler.'''
+        self.log("set_filter %s %s" % (str(filt), str(handler)))
         if len(self.filter) == 1:
             self.log("filter accepted")
             # Only one command at a time. Should be an assertion here,
             # but we wouldn't want to terminate the program.
             if self.filter:
                 self._timeout()
-            self.filter.append((f, handler))
+            self.filter.append((filt, handler))
             return True
-        else:
-            self.log("filter rejected")
-            return False
+        self.log("filter rejected")
+        return False
+
+    @abc.abstractmethod
+    def filter_command(self, command):
+        '''Preprocess received commands and make them to be suitable
+           for a specific backend.'''
 
     def _set_pty_size(self):
         """Set the window size of the child pty."""
@@ -137,11 +147,10 @@ class BaseProxy(object):
                 if len(self.filter) == 1:
                     sockets.append(pty.STDIN_FILENO)
                 rfds, _, _ = select.select(sockets, [], [], 0.25)
-            except select.error as e:
-                if e[0] == errno.EAGAIN:   # Interrupted system call.
+            except select.error as ex:
+                if ex[0] == errno.EAGAIN:   # Interrupted system call.
                     continue
-                else:
-                    raise
+                raise
 
             if not rfds:
                 self._timeout()
@@ -157,24 +166,25 @@ class BaseProxy(object):
                 elif self.sock in rfds:
                     data, self.last_addr = self.sock.recvfrom(65536)
                     if data[-1] == b'\n':
-                        self.log("WARNING: the command ending with <nl>. The StreamProxy filter known to fail.")
+                        self.log("WARNING: the command ending with <nl>. "
+                                 "The StreamProxy filter known to fail.")
                     self.log("Got command '%s'" % data.decode('utf-8'))
-                    command = self.FilterCommand(data)
+                    command = self.filter_command(data)
                     self.log("Translated command '%s'" % command.decode('utf-8'))
                     if command:
                         self.write_master(command)
                         self.write_master(b'\n')
 
     @staticmethod
-    def _write(fd, data):
+    def _write(fdesc, data):
         """Write the data to the file."""
         while data:
-            n = os.write(fd, data)
-            data = data[n:]
+            count = os.write(fdesc, data)
+            data = data[count:]
 
     def _timeout(self):
-        f, _ = self.filter[-1]
-        data = f.timeout()
+        filt, _ = self.filter[-1]
+        data = filt.timeout()
         self._write(pty.STDOUT_FILENO, data)
         # Get back to the passthrough filter on timeout
         if len(self.filter) > 1:
@@ -182,16 +192,16 @@ class BaseProxy(object):
 
     def write_stdout(self, data):
         """Write to stdout for the child process."""
-        f, handler = self.filter[-1]
-        data, filtered = f.filter(data)
+        filt, handler = self.filter[-1]
+        data, filtered = filt.filter(data)
         self._write(pty.STDOUT_FILENO, data)
         if filtered:
             self.log("Filter matched %d bytes" % len(filtered))
             self.filter.pop()
-            if callable(handler):
-                res = handler(filtered)
-                if res:
-                    self.sock.sendto(res, 0, self.last_addr)
+            assert callable(handler)
+            res = handler(filtered)
+            if res:
+                self.sock.sendto(res, 0, self.last_addr)
 
     def write_master(self, data):
         """Write to the child process from its controlling terminal."""
