@@ -11,7 +11,7 @@ import re
 import json
 import os
 
-from BaseProxy import BaseProxy
+from base_proxy import BaseProxy
 from StreamFilter import StreamFilter
 
 class GdbProxy(BaseProxy):
@@ -57,7 +57,7 @@ class GdbProxy(BaseProxy):
         # Get rid of control sequences
         return GdbProxy.CSEQ.sub(b'', result)
 
-    def FilterCommand(self, command):
+    def filter_command(self, command):
         tokens = re.split(r'\s+', command.decode('utf-8'))
         if tokens[0] == 'info-breakpoints':
             last_src = tokens[1]
