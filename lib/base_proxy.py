@@ -20,7 +20,7 @@ import termios
 import traceback
 import tty
 
-import StreamFilter
+import stream_filter
 
 
 class BaseProxy:
@@ -40,7 +40,7 @@ class BaseProxy:
         self.server_address = args.address
         self.argv = args.cmd
         self.logfile = None
-        #self.logfile = open("/tmp/log.txt", "w")
+        # self.logfile = open("/tmp/log.txt", "w")
 
         if self.server_address:
             # Create a UDS socket
@@ -51,7 +51,7 @@ class BaseProxy:
             self.sock = None
 
         # Create the filter
-        self.filter = [(StreamFilter.Filter(), lambda _: None)]
+        self.filter = [(stream_filter.Filter(), lambda _: None)]
         # Where was the last command received from?
         self.last_addr = None
 
@@ -63,7 +63,7 @@ class BaseProxy:
     def log(self, msg):
         '''Log the message.'''
         try:
-            if not self.logfile is None:
+            if self.logfile is not None:
                 self.logfile.write(msg)
                 self.logfile.write("\n")
                 self.logfile.flush()
@@ -170,7 +170,8 @@ class BaseProxy:
                                  "The StreamProxy filter known to fail.")
                     self.log("Got command '%s'" % data.decode('utf-8'))
                     command = self.filter_command(data)
-                    self.log("Translated command '%s'" % command.decode('utf-8'))
+                    self.log("Translated command '{}'"
+                             .format(command.decode('utf-8')))
                     if command:
                         self.write_master(command)
                         self.write_master(b'\n')

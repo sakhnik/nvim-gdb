@@ -21,10 +21,10 @@ shift
 # Prepare lldb initialization commands
 # Beware that readlink -f doesn't work in Darwin
 readlinkf(){ perl -MCwd -e 'print Cwd::abs_path shift' "$1";}
-this_dir=$(readlinkf $(dirname ${BASH_SOURCE[0]}))
+this_dir=$(readlinkf "$(dirname "${BASH_SOURCE[0]}")")
 
 lldb_init=$(mktemp /tmp/lldb_init.XXXXXX)
-cat >$lldb_init <<EOF
+cat >"$lldb_init" <<EOF
 command script import $this_dir/lldb_commands.py
 command script add -f lldb_commands.init nvim-gdb-init
 nvim-gdb-init $server_addr
@@ -36,10 +36,10 @@ EOF
 
 cleanup()
 {
-    unlink $lldb_init
-    unlink $server_addr
+    unlink "$lldb_init"
+    unlink "$server_addr"
 }
 trap cleanup EXIT
 
 # Execute lldb finally with our custom initialization script
-"$lldb" --no-use-colors -S $lldb_init "$@"
+"$lldb" --no-use-colors -S "$lldb_init" "$@"
