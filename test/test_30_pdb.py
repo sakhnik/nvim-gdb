@@ -9,25 +9,25 @@ def test_smoke(eng, post):
     eng.feed('cont\n')
     eng.feed('<esc>')
 
-    assert {'cur': 'main.py:15'} == eng.getSigns()
+    assert {'cur': 'main.py:15'} == eng.get_signs()
 
     eng.feed('<f10>')
-    assert {'cur': 'main.py:16'} == eng.getSigns()
+    assert {'cur': 'main.py:16'} == eng.get_signs()
 
     eng.feed('<f11>')
-    assert {'cur': 'main.py:8'} == eng.getSigns()
+    assert {'cur': 'main.py:8'} == eng.get_signs()
 
     eng.feed('<c-p>')
-    assert {'cur': 'main.py:16'} == eng.getSigns()
+    assert {'cur': 'main.py:16'} == eng.get_signs()
 
     eng.feed('<c-n>')
-    assert {'cur': 'main.py:8'} == eng.getSigns()
+    assert {'cur': 'main.py:8'} == eng.get_signs()
 
     eng.feed('<f12>')
-    assert {'cur': 'main.py:10'} == eng.getSigns()
+    assert {'cur': 'main.py:10'} == eng.get_signs()
 
     eng.feed('<f5>')
-    assert eng.waitSigns({'cur': 'main.py:1'}, 1500) is None
+    assert eng.wait_signs({'cur': 'main.py:1'}, 1500) is None
 
 def test_break(eng, post):
     # Test toggling breakpoints.
@@ -38,13 +38,13 @@ def test_break(eng, post):
     eng.feed('<esc><c-w>k')
     eng.feed(':5<cr>')
     eng.feed('<f8>')
-    assert {'cur': 'main.py:1', 'break': {1: [5]}} == eng.getSigns()
+    assert {'cur': 'main.py:1', 'break': {1: [5]}} == eng.get_signs()
 
     eng.exe('GdbContinue')
-    assert {'cur': 'main.py:5', 'break': {1: [5]}} == eng.getSigns()
+    assert {'cur': 'main.py:5', 'break': {1: [5]}} == eng.get_signs()
 
     eng.feed('<f8>')
-    assert eng.waitSigns({'cur': 'main.py:5'}) is None
+    assert eng.wait_signs({'cur': 'main.py:5'}) is None
 
 def test_navigation(eng, post):
     # Test toggling breakpoints while navigating.
@@ -55,20 +55,20 @@ def test_navigation(eng, post):
     eng.feed('<esc><c-w>w')
     eng.feed(':5<cr>')
     eng.feed('<f8>')
-    assert {'cur': 'main.py:1', 'break': {1: [5]}} == eng.getSigns()
+    assert {'cur': 'main.py:1', 'break': {1: [5]}} == eng.get_signs()
 
     # Go to another file
     eng.feed(':e lib.py\n')
     eng.feed(':3\n')
     eng.feed('<f8>')
-    assert {'cur': 'main.py:1', 'break': {1: [3]}} == eng.getSigns()
+    assert {'cur': 'main.py:1', 'break': {1: [3]}} == eng.get_signs()
     eng.feed(':5\n')
     eng.feed('<f8>')
-    assert {'cur': 'main.py:1', 'break': {1: [3,5]}} == eng.getSigns()
+    assert {'cur': 'main.py:1', 'break': {1: [3,5]}} == eng.get_signs()
 
     # Return to the original file
     eng.feed(':e main.py\n')
-    assert {'cur': 'main.py:1', 'break': {1: [5]}} == eng.getSigns()
+    assert {'cur': 'main.py:1', 'break': {1: [5]}} == eng.get_signs()
 
 def test_until(eng, post):
     # Test run until line.
@@ -82,7 +82,7 @@ def test_until(eng, post):
     eng.feed(':18<cr>')
     eng.feed('<f4>')
 
-    signs = eng.getSigns()
+    signs = eng.get_signs()
     # Python started supporting 'until line' since some version.
     # And the test still doesn't work on Travis on Darwin.
     assert len(signs) == 1

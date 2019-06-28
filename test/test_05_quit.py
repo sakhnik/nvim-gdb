@@ -3,12 +3,12 @@ import pytest
 
 @pytest.fixture(scope='function')
 def setup(eng):
-    numBufs = eng.countBuffers()
+    numBufs = eng.count_buffers()
     eng.feed(":GdbStart ./dummy-gdb.sh<cr>")
     eng.feed('<esc>')
     yield
     # Check that no new buffers have left
-    assert numBufs == eng.countBuffers()
+    assert numBufs == eng.count_buffers()
     assert 1 == eng.eval("tabpagenr('$')")
 
 
