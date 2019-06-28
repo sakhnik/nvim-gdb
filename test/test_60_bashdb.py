@@ -1,11 +1,14 @@
+'''Bashdb operation.'''
+
 import pytest
 from config import config
 
-if not "bashdb" in config:
+if "bashdb" not in config:
     pytest.skip("skipping bashdb tests", allow_module_level=True)
 
+
 def test_smoke(eng, post):
-    # Test a generic use case.
+    '''Test a generic use case.'''
     eng.feed(' db')
     eng.feed('\n', 1500)
 
@@ -37,8 +40,9 @@ def test_smoke(eng, post):
     eng.feed('<f5>')
     assert eng.wait_signs({}, 1500) is None
 
+
 def test_break(eng, post):
-    # Test toggling breakpoints.
+    '''Test toggling breakpoints.'''
     eng.feed(' db')
     eng.feed('\n', 1500)
     eng.feed('<esc>')

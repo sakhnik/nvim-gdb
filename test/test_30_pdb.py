@@ -1,8 +1,11 @@
+'''Test PDB support.'''
+
 import os
 import sys
 
+
 def test_smoke(eng, post):
-    # Test a generic use case.
+    '''Test a generic use case.'''
     eng.feed(' dp')
     eng.feed('\n', 300)
     eng.feed('tbreak _main\n')
@@ -29,8 +32,9 @@ def test_smoke(eng, post):
     eng.feed('<f5>')
     assert eng.wait_signs({'cur': 'main.py:1'}, 1500) is None
 
+
 def test_break(eng, post):
-    # Test toggling breakpoints.
+    '''Test toggling breakpoints.'''
     eng.feed(' dp')
     eng.feed('\n', 300)
     eng.feed('<esc>')
@@ -46,8 +50,9 @@ def test_break(eng, post):
     eng.feed('<f8>')
     assert eng.wait_signs({'cur': 'main.py:5'}) is None
 
+
 def test_navigation(eng, post):
-    # Test toggling breakpoints while navigating.
+    '''Test toggling breakpoints while navigating.'''
     eng.feed(' dp')
     eng.feed('\n', 300)
     eng.feed('<esc>')
@@ -64,14 +69,15 @@ def test_navigation(eng, post):
     assert {'cur': 'main.py:1', 'break': {1: [3]}} == eng.get_signs()
     eng.feed(':5\n')
     eng.feed('<f8>')
-    assert {'cur': 'main.py:1', 'break': {1: [3,5]}} == eng.get_signs()
+    assert {'cur': 'main.py:1', 'break': {1: [3, 5]}} == eng.get_signs()
 
     # Return to the original file
     eng.feed(':e main.py\n')
     assert {'cur': 'main.py:1', 'break': {1: [5]}} == eng.get_signs()
 
+
 def test_until(eng, post):
-    # Test run until line.
+    '''Test run until line.'''
     eng.feed(' dp')
     eng.feed('\n', 300)
     eng.feed('tbreak _main\n')
@@ -87,11 +93,13 @@ def test_until(eng, post):
     # And the test still doesn't work on Travis on Darwin.
     assert len(signs) == 1
     if sys.version_info >= (3, 6) and not os.getenv("TRAVIS_BUILD_ID"):
-        assert 'main.py:18' == signs['cur']
+        assert signs['cur'] == 'main.py:18'
     else:
         assert signs['cur']
 
+
 def test_eval(eng, post):
+    '''Test eval <word>.'''
     eng.feed(' dp')
     eng.feed('\n', 300)
     eng.feed('tbreak _main\n')
@@ -101,8 +109,8 @@ def test_eval(eng, post):
     eng.feed('<f10>')
 
     eng.feed('^<f9>')
-    assert 'print(_Foo)' == eng.eval('GdbTestPeek("lastCommand")')
+    assert eng.eval('GdbTestPeek("lastCommand")') == 'print(_Foo)'
 
     eng.feed('viW')
     eng.feed(':GdbEvalRange\n')
-    assert 'print(_Foo(i))' == eng.eval('GdbTestPeek("lastCommand")')
+    assert eng.eval('GdbTestPeek("lastCommand")') == 'print(_Foo(i))'

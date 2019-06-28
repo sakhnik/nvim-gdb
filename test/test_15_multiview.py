@@ -1,12 +1,14 @@
+'''Test multiple debugging sessions at once.'''
+
 
 def test_multiview(eng, two_backends):
-    # Test multiple views.
-    b1, b2 = two_backends
+    '''Test multiple views.'''
+    back1, back2 = two_backends
 
     # Launch the first backend
-    eng.feed(b1['launch'])
+    eng.feed(back1['launch'])
     assert eng.wait_paused() is None
-    eng.feed(b1['tbreak_main'])
+    eng.feed(back1['tbreak_main'])
     eng.feed('run\n', 1000)
     eng.feed('<esc>')
     eng.feed('<c-w>w')
@@ -18,9 +20,9 @@ def test_multiview(eng, two_backends):
     assert {'cur': 'test.cpp:10', 'break': {1: [11]}} == eng.get_signs()
 
     # Then launch the second backend
-    eng.feed(b2['launch'])
+    eng.feed(back2['launch'])
     assert eng.wait_paused() is None
-    eng.feed(b2['tbreak_main'])
+    eng.feed(back2['tbreak_main'])
     eng.feed('run\n', 1000)
     eng.feed('<esc>')
     eng.feed('<c-w>w')
@@ -42,4 +44,4 @@ def test_multiview(eng, two_backends):
     # Switch back to the second backend
     assert {'cur': 'test.cpp:19', 'break': {1: [5, 12]}} == eng.get_signs()
 
-    # The last debugger is quit in the after_each
+    # The last debugger is quit automatically

@@ -1,5 +1,8 @@
+'''Test generic operation.'''
+
 
 def test_smoke(eng, backend):
+    '''Smoke.'''
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
     eng.feed(backend['tbreak_main'])
@@ -22,17 +25,16 @@ def test_smoke(eng, backend):
 
     eng.feed('<f12>')
     signs = eng.get_signs()
-    assert 1 == len(signs)
+    assert len(signs) == 1
     # different for different compilers
     assert signs["cur"] in {'test.cpp:17', 'test.cpp:19'}
 
     eng.feed('<f5>')
     assert eng.wait_signs({}) is None
 
+
 def test_breaks(eng, backend):
-    # Test toggling breakpoints.
-    # TODO: Investigate socket connection race when the delay is small
-    # here, like 1ms
+    '''Test toggling breakpoints.'''
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
     eng.feed('<esc><c-w>w')
@@ -47,8 +49,9 @@ def test_breaks(eng, backend):
     eng.feed('<f8>')
     assert eng.wait_signs({'cur': 'test.cpp:5'}) is None
 
+
 def test_interrupt(eng, backend):
-    # Test interrupt.
+    '''Test interrupt.'''
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
     eng.feed('run 4294967295\n', 1000)
@@ -56,7 +59,9 @@ def test_interrupt(eng, backend):
     eng.feed(':GdbInterrupt\n')
     assert eng.wait_signs({'cur': 'test.cpp:22'}) is None
 
+
 def test_until(eng, backend):
+    '''Test run until.'''
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
     eng.feed(backend['tbreak_main'])
@@ -67,8 +72,9 @@ def test_until(eng, backend):
     eng.feed('<f4>')
     assert eng.wait_signs({'cur': 'test.cpp:21'}) is None
 
+
 def test_program_exit(eng, backend):
-    # Test the cursor is hidden after program end.
+    '''Test the cursor is hidden after program end.'''
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
     eng.feed(backend['tbreak_main'])
@@ -77,8 +83,9 @@ def test_program_exit(eng, backend):
     eng.feed('<f5>')
     assert {} == eng.get_signs()
 
+
 def test_eval(eng, backend):
-    # Test eval <cword>.
+    '''Test eval <cword>.'''
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
     eng.feed(backend['tbreak_main'])
@@ -88,9 +95,9 @@ def test_eval(eng, backend):
     eng.feed('<f10>')
 
     eng.feed('^<f9>')
-    assert 'print Foo' == eng.eval('GdbTestPeek("lastCommand")')
+    assert eng.eval('GdbTestPeek("lastCommand")') == 'print Foo'
 
     eng.feed('/Lib::Baz\n')
     eng.feed('vt(')
     eng.feed(':GdbEvalRange\n')
-    assert 'print Lib::Baz' == eng.eval('GdbTestPeek("lastCommand")')
+    assert eng.eval('GdbTestPeek("lastCommand")') == 'print Lib::Baz'
