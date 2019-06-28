@@ -15,7 +15,7 @@ function Foo() {
 
 function Main() {
     for i in $(seq 1 5); do
-        Foo $i
+        Foo "$i"
     done
 }
 
