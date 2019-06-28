@@ -46,8 +46,8 @@ class StreamFilter(Filter):
         match = self.matcher.search(self.buffer)
         if match:
             self.matcher = None
-            filtered = self.buffer[:match.end()]
-            output = self.buffer[match.end():]
+            filtered = bytes(self.buffer[:match.end()])
+            output = bytes(self.buffer[match.end():])
             self.buffer = bytearray()
             return output, filtered
         return b'', None
