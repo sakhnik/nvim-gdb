@@ -4,48 +4,36 @@ from gdb.logger import Logger
 
 
 @pynvim.plugin
-class Gdb(object):
+class Gdb:
     def __init__(self, vim):
         self.vim = vim
         self.apps = {}
         self.logger = Logger()
         self.log = lambda msg: self.logger.log('app', msg)
 
-    #@pynvim.command('Cmd', range='', nargs='*', sync=True)
-    #def command_handler(self, args, range):
-    #    self._increment_calls()
-    #    self.vim.current.line = (
-    #        'Command: Called %d times, args: %s, range: %s' % (self.calls,
-    #                                                           args,
-    #                                                           range))
-
-    #@pynvim.autocmd('BufEnter', pattern='*.py', eval='expand("<afile>")',
-    #                sync=True)
-    #def autocmd_handler(self, filename):
-    #    self._increment_calls()
-    #    self.vim.current.line = (
-    #        'Autocmd: Called %s times, file: %s' % (self.calls, filename))
-
     def _get_app(self):
         return self.apps[self.vim.current.tabpage.handle]
 
     @pynvim.function('GdbInit', sync=True)
     def gdb_init(self, args):
+        '''Command GdbInit.'''
         app = App(self.vim, self.logger, *args)
         self.apps[self.vim.current.tabpage.handle] = app
         app.start()
 
     @pynvim.function('GdbCleanup', sync=True)
-    def gdb_cleanup(self, args):
+    def gdb_cleanup(self, _):
+        '''Command GdbCleanup.'''
         tab = self.vim.current.tabpage.handle
         try:
             app = self.apps[tab]
             app.cleanup()
         finally:
-            del(self.apps[tab])
+            del self.apps[tab]
 
     @pynvim.function('GdbCheckTab', sync=True)
-    def gdb_check_tab(self, args):
+    def gdb_check_tab(self, _):
+        '''Command GdbCheckTab.'''
         try:
             return self.vim.current.tabpage.handle in self.apps
         except Exception as e:
@@ -53,6 +41,7 @@ class Gdb(object):
 
     @pynvim.function('GdbHandleEvent', sync=True)
     def gdb_handle_event(self, args):
+        '''Command GdbHandleEvent.'''
         try:
             app = self._get_app()
             handler = getattr(app, args[0])
@@ -62,6 +51,7 @@ class Gdb(object):
 
     @pynvim.function('GdbSend', sync=True)
     def gdb_send(self, args):
+        '''Command GdbSend.'''
         try:
             app = self._get_app()
             app.send(*args)
@@ -69,7 +59,8 @@ class Gdb(object):
             self.log("GdbSend: " + str(e))
 
     @pynvim.function('GdbBreakpointToggle', sync=True)
-    def gdb_breakpoint_toggle(self, args):
+    def gdb_breakpoint_toggle(self, _):
+        '''Command GdbBreakpointToggle.'''
         try:
             app = self._get_app()
             app.breakpointToggle()
@@ -77,7 +68,8 @@ class Gdb(object):
             self.log('GdbBreakpointToggle: ' + str(e))
 
     @pynvim.function('GdbBreakpointClearAll', sync=True)
-    def gdb_breakpoint_clear_all(self, args):
+    def gdb_breakpoint_clear_all(self, _):
+        '''Command GdbBreakpointClearAll.'''
         try:
             app = self._get_app()
             app.breakpointClearAll()
@@ -86,6 +78,7 @@ class Gdb(object):
 
     @pynvim.function('GdbScmFeed')
     def gdb_scm_feed(self, args):
+        '''Command GdbScmFeed.'''
         try:
             tab = args[0]
             app = self.apps[tab]
@@ -95,38 +88,41 @@ class Gdb(object):
 
     @pynvim.function('GdbCallAsync')
     def gdb_call_async(self, args):
+        '''Command GdbCallAsync.'''
         try:
             obj = self._get_app()
-            for a in args[0].split('.'):
-                obj = getattr(obj, a)
+            for name in args[0].split('.'):
+                obj = getattr(obj, name)
             obj(*args[1:])
         except Exception as e:
             self.log('GdbCallAsync: ' + str(e))
 
     @pynvim.function('GdbCall', sync=True)
     def gdb_call(self, args):
+        '''Command GdbCall.'''
         try:
             obj = self._get_app()
-            for a in args[0].split('.'):
-                obj = getattr(obj, a)
+            for name in args[0].split('.'):
+                obj = getattr(obj, name)
             if callable(obj):
                 return obj(*args[1:])
-            else:
-                return obj
+            return obj
         except Exception as e:
             self.log('GdbCall: ' + str(e))
         return None
 
     @pynvim.function('GdbCustomCommand', sync=True)
     def gdb_custom_command(self, args):
+        '''Command GdbCustomCommand.'''
         return self.gdb_call(["customCommand"] + args)
 
     @pynvim.function('GdbTestPeek', sync=True)
     def gdb_test_peek(self, args):
+        '''Command GdbTestPeek.'''
         try:
             obj = self._get_app()
-            for i, a in enumerate(args):
-                obj = getattr(obj, a)
+            for i, arg in enumerate(args):
+                obj = getattr(obj, arg)
                 if callable(obj):
                     return obj(*args[i+1:])
             return obj
@@ -135,13 +131,14 @@ class Gdb(object):
             return None
 
     @pynvim.function('GdbTestPeekConfig', sync=True)
-    def gdb_test_peek_config(self, args):
+    def gdb_test_peek_config(self, _):
+        '''Command GdbTestPeekConfig.'''
         try:
             app = self._get_app()
-            config = {k:v for k,v in app.config.items()}
-            for k, v in config.items():
-                if callable(v):
-                    config[k] = str(v)
+            config = {k: v for k, v in app.config.items()}
+            for key, val in config.items():
+                if callable(val):
+                    config[key] = str(val)
             return config
         except Exception as e:
             self.log('GdbTestPeekConfig: ' + str(e))
