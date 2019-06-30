@@ -8,12 +8,12 @@ class LldbScm(BaseScm):
         super().__init__(vim, logger, cursor, win)
 
         re_prompt = re.compile(r'[\r\n]\(lldb\) $')
-        self.addTrans(self.paused,  re.compile(r'[\r\n]Process \d+ resuming'), self.pausedContinue)
-        self.addTrans(self.paused,  re.compile(r' at ([^:]+):(\d+)'),      self.pausedJump)
-        self.addTrans(self.paused,  re_prompt,                                 self.queryB)
-        self.addTrans(self.running, re.compile(r'[\r\n]Breakpoint \d+:'),      self.queryB)
-        self.addTrans(self.running, re.compile(r'[\r\n]Process \d+ stopped'),  self.queryB)
-        self.addTrans(self.running, re_prompt,                                 self.queryB)
+        self.add_trans(self.paused,  re.compile(r'[\r\n]Process \d+ resuming'), self._paused_continue)
+        self.add_trans(self.paused,  re.compile(r' at ([^:]+):(\d+)'),      self._paused_jump)
+        self.add_trans(self.paused,  re_prompt,                                 self._query_b)
+        self.add_trans(self.running, re.compile(r'[\r\n]Breakpoint \d+:'),      self._query_b)
+        self.add_trans(self.running, re.compile(r'[\r\n]Process \d+ stopped'),  self._query_b)
+        self.add_trans(self.running, re_prompt,                                 self._query_b)
 
         self.state = self.running
 

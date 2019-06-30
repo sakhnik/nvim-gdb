@@ -1,6 +1,7 @@
+'''State machine for handing debugger output.'''
 
-# Common SCM implementation for the integrated backends
 class BaseScm:
+    '''Common SCM implementation for the integrated backends.'''
     def __init__(self, vim, logger, cursor, win):
         self.vim = vim
         self.log = lambda msg: logger.log('scm', msg)
@@ -11,16 +12,18 @@ class BaseScm:
         self.state = None  # Current state (either self.running or self.paused)
         self.buffer = '\n'
 
-    # Add a new transition for a given state using {matcher, matchingFunc}
-    # Call the handler when matched.
     @staticmethod
-    def addTrans(state, matcher, func):
+    def add_trans(state, matcher, func):
+        '''Add a new transition for a given state using {matcher, matchingFunc}
+           Call the handler when matched.'''
         state.append((matcher, func))
 
-    def isPaused(self):
+    def is_paused(self):
+        '''Test whether the SCM is in the paused state.'''
         return self.state == self.paused
 
-    def isRunning(self):
+    def is_running(self):
+        '''Test whether the SCM is in the running state.'''
         return self.state == self.running
 
     def _get_state_name(self):
@@ -30,36 +33,36 @@ class BaseScm:
             return "paused"
         return str(self.state)
 
-    def pausedContinue(self, match):
-        self.log("pausedContinue")
+    def _paused_continue(self, _):
+        self.log("_paused_continue")
         self.cursor.hide()
         return self.running
 
-    def pausedJump(self, match):
+    def _paused_jump(self, match):
         fname = match.group(1)
-        ln = match.group(2)
-        self.log("pausedJump {}:{}".format(fname, ln))
-        self.win.jump(fname, int(ln))
+        line = match.group(2)
+        self.log(f"_paused_jump {fname}:{line}")
+        self.win.jump(fname, int(line))
         return self.paused
 
-    def queryB(self, match):
-        self.log('queryB')
+    def _query_b(self, _):
+        self.log('_query_b')
         self.win.queryBreakpoints()
         return self.paused
 
     def _search(self):
         # If there is a matcher matching the line, call its handler.
         for matcher, func in self.state:
-            m = matcher.search(self.buffer)
-            if m:
-                self.buffer = self.buffer[m.end():]
-                self.state = func(m)
-                self.log("new state: {}".format(self._get_state_name()))
+            match = matcher.search(self.buffer)
+            if match:
+                self.buffer = self.buffer[match.end():]
+                self.state = func(match)
+                self.log(f"new state: {self._get_state_name()}")
                 return True
         return False
 
-    # Process a line of the debugger output through the SCM.
     def feed(self, lines):
+        '''Process a line of the debugger output through the SCM.'''
         for line in lines:
             self.log(line)
             if line:

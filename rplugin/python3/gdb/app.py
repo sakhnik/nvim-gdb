@@ -1,7 +1,7 @@
 '''.'''
 
 import importlib
-from gdb.config import getConfig
+from gdb.config import get_config
 from gdb.cursor import Cursor
 from gdb.sockdir import SockDir
 from gdb.client import Client
@@ -19,7 +19,7 @@ class App:
         self._last_command = None
 
         # Prepare configuration: keymaps, hooks, parameters etc.
-        self.config = getConfig(vim, logger)
+        self.config = get_config(vim, logger)
         self._define_signs(self.config)
 
         # Create new tab for the debugging view and split horizontally
@@ -49,7 +49,7 @@ class App:
         self.client = Client(vim, wcli, proxyCmd, clientCmd, self.sock_dir)
 
         # Initialize connection to the side channel
-        self.proxy = Proxy(vim, self.client.getProxyAddr(), self.sock_dir)
+        self.proxy = Proxy(vim, self.client.get_proxy_addr(), self.sock_dir)
 
         # Initialize breakpoint tracking
         self.breakpoint = Breakpoint(vim, self.config, self.proxy)
@@ -65,8 +65,8 @@ class App:
         self.scm = self.backend["initScm"](vim, logger, self.cursor, self.win)
 
         # Set initial keymaps in the terminal window.
-        self.keymaps.dispatchSetT()
-        self.keymaps.dispatchSet()
+        self.keymaps.dispatch_set_t()
+        self.keymaps.dispatch_set()
 
         # Start insert mode in the GDB window
         vim.feedkeys("i")
@@ -88,7 +88,7 @@ class App:
 
         # Close the windows and the tab
         tab_count = len(self.vim.tabpages)
-        self.client.delBuffer()
+        self.client.del_buffer()
         if tab_count == len(self.vim.tabpages):
             self.vim.command("tabclose")
 
@@ -112,7 +112,7 @@ class App:
         '''Send a command to the debugger.'''
         if args:
             command = self.backend.get(args[0], args[0]).format(*args[1:])
-            self.client.sendLine(command)
+            self.client.send_line(command)
             self._last_command = command  # Remember the command for testing
         else:
             self.client.interrupt()
@@ -123,7 +123,7 @@ class App:
 
     def breakpoint_toggle(self):
         '''Toggle breakpoint in the cursor line.'''
-        if self.scm.isRunning():
+        if self.scm.is_running():
             # pause first
             self.client.interrupt()
         buf = self.vim.current.buffer
@@ -134,14 +134,14 @@ class App:
         if breaks:
             # There already is a breakpoint on this line: remove
             del_br = self._get_command('delete_breakpoints')
-            self.client.sendLine("{} {}".format(del_br, breaks[-1]))
+            self.client.send_line(f"{del_br} {breaks[-1]}")
         else:
             set_br = self._get_command('breakpoint')
-            self.client.sendLine("{} {}:{}".format(set_br, file_name, line_nr))
+            self.client.send_line(f"{set_br} {file_name}:{line_nr}")
 
     def breakpoint_clear_all(self):
         '''Clear all breakpoints.'''
-        if self.scm.isRunning():
+        if self.scm.is_running():
             # pause first
             self.client.interrupt()
         # The breakpoint signs will be requeried later automatically
@@ -150,7 +150,7 @@ class App:
     def on_tab_enter(self):
         '''Actions to execute when a tabpage is entered.'''
         # Restore the signs as they may have been spoiled
-        if self.scm.isPaused():
+        if self.scm.is_paused():
             self.cursor.show()
         # Ensure breakpoints are shown if are queried dynamically
         self.win.queryBreakpoints()
@@ -172,11 +172,11 @@ class App:
                 soff_val = str(self.config['set_scroll_off'])
                 self.vim.command("if !&scrolloff | setlocal scrolloff={}"
                                  " | endif".format(soff_val))
-            self.keymaps.dispatchSet()
+            self.keymaps.dispatch_set()
             # Ensure breakpoints are shown if are queried dynamically
             self.win.queryBreakpoints()
 
     def on_buf_leave(self):
         '''Actions to execute when a buffer is left.'''
         if self.vim.current.buffer.options['buftype'] != 'terminal':
-            self.keymaps.dispatchUnset()
+            self.keymaps.dispatch_unset()

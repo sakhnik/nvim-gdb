@@ -3,7 +3,7 @@ let g:test_tkeymap = 0
 let g:test_keymap = 0
 
 function! MySetTKeymaps()
-  call GdbCallAsync("keymaps.setT")
+  call GdbCallAsync("keymaps.set_t")
   tnoremap <buffer> <silent> ~tkm <c-\><c-n>:let g:test_tkeymap = 1<cr>i
 endfunction
 
