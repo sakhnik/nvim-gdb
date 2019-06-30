@@ -19,7 +19,7 @@ class Win:
         targetBuf = self.vim.call("bufnr", file, 1)
         # The terminal buffer may contain the name of the source file (in pdb, for
         # instance)
-        if targetBuf == self.client.getBuf().handle:
+        if targetBuf == self.client.get_buf().handle:
             self.vim.command("noswapfile view " + file)
             targetBuf = self.vim.call("bufnr", file)
         if self.jumpWin.buffer.handle != targetBuf:

@@ -1,50 +1,64 @@
+'''.'''
+
 import os
 
-def getPluginDir():
-    path = os.path.realpath(__file__)
-    for _ in range(4):
-        path = os.path.dirname(path)
-    return path
 
 class Client:
-    def __init__(self, vim, win, proxyCmd, clientCmd, sockDir):
+    '''The class to maintain connection to the debugger client.'''
+    @staticmethod
+    def _get_plugin_dir():
+        path = os.path.realpath(__file__)
+        for _ in range(4):
+            path = os.path.dirname(path)
+        return path
+
+    def __init__(self, vim, win, proxy_cmd, client_cmd, sock_dir):
         self.vim = vim
         self.win = win
+        self.client_id = None
 
         # Prepare the debugger command to run
-        self.command = clientCmd
-        if proxyCmd:
-            self.proxyAddr = sockDir.get() + '/server'
-            self.command = "%s/lib/%s -a %s -- %s" % (getPluginDir(), proxyCmd, self.proxyAddr, clientCmd)
-        vim.command("%dwincmd w" % win.number)
+        self.command = client_cmd
+        if proxy_cmd:
+            self.proxy_addr = sock_dir.get() + '/server'
+            self.command = f"{self._get_plugin_dir()}/lib/{proxy_cmd}" \
+                f" -a {self.proxy_addr} -- {client_cmd}"
+        vim.command(f"{win.number}wincmd w")
         vim.command("enew")
-        self.clientBuf = vim.current.buffer
+        self.client_buf = vim.current.buffer
 
-    def delBuffer(self):
-        #if self.clientBuf.api.is_loaded():
-        if self.vim.call("bufexists", self.clientBuf.handle):
-            self.vim.command("bd! %d" % self.clientBuf.handle)
+    def del_buffer(self):
+        '''Delete the client buffer.'''
+        if self.vim.call("bufexists", self.client_buf.handle):
+            self.vim.command(f"bd! {self.client_buf.handle}")
 
     def cleanup(self):
-        if self.proxyAddr:
+        '''The destructor.'''
+        if self.proxy_addr:
             try:
-                os.remove(self.proxyAddr)
+                os.remove(self.proxy_addr)
             except FileNotFoundError:
                 pass
 
     def start(self):
+        '''Open a terminal window with the debugger client command.'''
         # Go to the yet-to-be terminal window
-        self.vim.command("%dwincmd w" % self.win.number)
-        self.clientId = self.vim.call("nvimgdb#TermOpen", self.command, self.vim.current.tabpage.handle)
+        self.vim.command(f"{self.win.number}wincmd w")
+        self.client_id = self.vim.call("nvimgdb#TermOpen", self.command,
+                                       self.vim.current.tabpage.handle)
 
     def interrupt(self):
-        self.vim.call("jobsend", self.clientId, "\x03")
+        '''Interrupt running program by sending ^c.'''
+        self.vim.call("jobsend", self.client_id, "\x03")
 
-    def sendLine(self, data):
-        self.vim.call("jobsend", self.clientId, data + "\n")
+    def send_line(self, data):
+        '''Execute one command on the debugger interpreter.'''
+        self.vim.call("jobsend", self.client_id, data + "\n")
 
-    def getBuf(self):
-        return self.clientBuf
+    def get_buf(self):
+        '''Get the client terminal buffer.'''
+        return self.client_buf
 
-    def getProxyAddr(self):
-        return self.proxyAddr
+    def get_proxy_addr(self):
+        '''Get the side-channel address.'''
+        return self.proxy_addr

@@ -49,7 +49,7 @@ class App:
         self.client = Client(vim, wcli, proxyCmd, clientCmd, self.sock_dir)
 
         # Initialize connection to the side channel
-        self.proxy = Proxy(vim, self.client.getProxyAddr(), self.sock_dir)
+        self.proxy = Proxy(vim, self.client.get_proxy_addr(), self.sock_dir)
 
         # Initialize breakpoint tracking
         self.breakpoint = Breakpoint(vim, self.config, self.proxy)
@@ -88,7 +88,7 @@ class App:
 
         # Close the windows and the tab
         tab_count = len(self.vim.tabpages)
-        self.client.delBuffer()
+        self.client.del_buffer()
         if tab_count == len(self.vim.tabpages):
             self.vim.command("tabclose")
 
@@ -112,7 +112,7 @@ class App:
         '''Send a command to the debugger.'''
         if args:
             command = self.backend.get(args[0], args[0]).format(*args[1:])
-            self.client.sendLine(command)
+            self.client.send_line(command)
             self._last_command = command  # Remember the command for testing
         else:
             self.client.interrupt()
@@ -134,10 +134,10 @@ class App:
         if breaks:
             # There already is a breakpoint on this line: remove
             del_br = self._get_command('delete_breakpoints')
-            self.client.sendLine("{} {}".format(del_br, breaks[-1]))
+            self.client.send_line(f"{del_br} {breaks[-1]}")
         else:
             set_br = self._get_command('breakpoint')
-            self.client.sendLine("{} {}:{}".format(set_br, file_name, line_nr))
+            self.client.send_line(f"{set_br} {file_name}:{line_nr}")
 
     def breakpoint_clear_all(self):
         '''Clear all breakpoints.'''
