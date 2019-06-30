@@ -1,56 +1,65 @@
+'''.'''
+
 from pynvim import NvimError
+
+
 class Win:
+    '''Jump window management.'''
     def __init__(self, vim, logger, win, cursor, client, breakpoint, keymaps):
         self.vim = vim
         self.log = lambda msg: logger.log('win', msg)
         # window number that will be displaying the current file
-        self.jumpWin = win
+        self.jump_win = win
         self.cursor = cursor
         self.client = client
         self.breakpoint = breakpoint
         self.keymaps = keymaps
 
-    # Check whether the current buffer is displayed in the jump window
-    def isJumpWindowActive(self):
-        return self.vim.current.buffer == self.jumpWin.buffer
+    def is_jump_window_active(self):
+        '''Check whether the current buffer is displayed in the jump window.'''
+        return self.vim.current.buffer == self.jump_win.buffer
 
     def jump(self, file, line):
+        '''Show the file and the current line in the jump window.'''
         # Check whether the file is already loaded or load it
-        targetBuf = self.vim.call("bufnr", file, 1)
-        # The terminal buffer may contain the name of the source file (in pdb, for
-        # instance)
-        if targetBuf == self.client.get_buf().handle:
+        target_buf = self.vim.call("bufnr", file, 1)
+        # The terminal buffer may contain the name of the source file
+        # (in pdb, for instance).
+        if target_buf == self.client.get_buf().handle:
             self.vim.command("noswapfile view " + file)
-            targetBuf = self.vim.call("bufnr", file)
-        if self.jumpWin.buffer.handle != targetBuf:
+            target_buf = self.vim.call("bufnr", file)
+        if self.jump_win.buffer.handle != target_buf:
             try:
-                # This file being opened having a .swp file causes this function to throw
-                self.vim.call("nvim_win_set_buf", self.jumpWin.handle, targetBuf)
-            except NvimError as e:
-                self.log('Exception: {}'.format(str(e)))
+                # This file being opened having a .swp file causes this
+                # function to throw
+                self.vim.call("nvim_win_set_buf", self.jump_win.handle,
+                              target_buf)
+            except NvimError as ex:
+                self.log(f'Exception: {str(ex)}')
             # TODO: figure out if other autocommands need ran here.
             # e.g. BufReadPost is required for syntax highlighting
             self.vim.command("doautoa BufReadPost")
-            self.queryBreakpoints()
+            self.query_breakpoints()
 
         # Goto the proper line and set the cursor on it
-        self.jumpWin.cursor = (line, 0)
-        self.cursor.set(targetBuf, line)
+        self.jump_win.cursor = (line, 0)
+        self.cursor.set(target_buf, line)
         self.cursor.show()
         self.vim.command("redraw")
 
-    def queryBreakpoints(self):
+    def query_breakpoints(self):
+        '''Show actual breakpoints in the current window.'''
         # Get the source code buffer number
-        bufNum = self.jumpWin.buffer.handle
+        buf_num = self.jump_win.buffer.handle
 
         # Get the source code file name
-        fname = self.vim.call("expand", '#%d:p' % bufNum)
+        fname = self.vim.call("expand", f'#{buf_num}:p')
 
         # If no file name or a weird name with spaces, ignore it (to avoid
         # misinterpretation)
         if fname and fname.find(' ') == -1:
             # Query the breakpoints for the shown file
-            self.breakpoint.query(bufNum, fname)
+            self.breakpoint.query(buf_num, fname)
             # If there was a cursor, make sure it stays above the breakpoints.
             self.cursor.reshow()
             self.vim.command("redraw")

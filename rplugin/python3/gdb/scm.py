@@ -47,7 +47,7 @@ class BaseScm:
 
     def _query_b(self, _):
         self.log('_query_b')
-        self.win.queryBreakpoints()
+        self.win.query_breakpoints()
         return self.paused
 
     def _search(self):

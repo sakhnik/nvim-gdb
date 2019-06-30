@@ -1,9 +1,11 @@
-from gdb.scm import BaseScm
-import re
+'''BashDB specifics.'''
 
-# gdb specifics
+import re
+from gdb.scm import BaseScm
+
 
 class BashDBScm(BaseScm):
+    '''BashDB SCM.'''
 
     def __init__(self, vim, logger, cursor, win):
         super().__init__(vim, logger, cursor, win)
@@ -11,17 +13,18 @@ class BashDBScm(BaseScm):
         re_jump = re.compile(r'[\r\n]\(([^:]+):(\d+)\):(?=[\r\n])')
         re_prompt = re.compile(r'[\r\n]bashdb<\(?\d+\)?> $')
         re_term = re.compile(r'[\r\n]Debugged program terminated ')
-        self.add_trans(self.paused,  re_jump,    self._paused_jump)
-        self.add_trans(self.paused,  re_prompt,  self._query_b)
-        self.add_trans(self.paused,  re_term,    self.handleTerminated)
+        self.add_trans(self.paused, re_jump, self._paused_jump)
+        self.add_trans(self.paused, re_prompt, self._query_b)
+        self.add_trans(self.paused, re_term, self._handle_terminated)
         self.state = self.paused
 
-    def handleTerminated(self, match):
+    def _handle_terminated(self, _):
         self.cursor.hide()
         return self.paused
 
 
 def init():
-    return { 'initScm': BashDBScm,
-             'delete_breakpoints': 'delete',
-             'breakpoint': 'break' }
+    '''Initialize the backend.'''
+    return {'initScm': BashDBScm,
+            'delete_breakpoints': 'delete',
+            'breakpoint': 'break'}
