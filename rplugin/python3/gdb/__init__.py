@@ -63,7 +63,7 @@ class Gdb:
         '''Command GdbBreakpointToggle.'''
         try:
             app = self._get_app()
-            app.breakpointToggle()
+            app.breakpoint_toggle()
         except Exception as e:
             self.log('GdbBreakpointToggle: ' + str(e))
 
@@ -72,7 +72,7 @@ class Gdb:
         '''Command GdbBreakpointClearAll.'''
         try:
             app = self._get_app()
-            app.breakpointClearAll()
+            app.breakpoint_clear_all()
         except Exception as e:
             self.log('GdbBreakpointClearAll: ' + str(e))
 
@@ -114,7 +114,7 @@ class Gdb:
     @pynvim.function('GdbCustomCommand', sync=True)
     def gdb_custom_command(self, args):
         '''Command GdbCustomCommand.'''
-        return self.gdb_call(["customCommand"] + args)
+        return self.gdb_call(["custom_command"] + args)
 
     @pynvim.function('GdbTestPeek', sync=True)
     def gdb_test_peek(self, args):

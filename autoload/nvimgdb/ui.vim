@@ -75,10 +75,10 @@ function! nvimgdb#ui#Enter()
       "   window. We start a timer expecting it to expire after the window
       "   has been closed. It's a race.
       au BufWinLeave * call timer_start(100, "nvimgdb#CheckWindowClosed")
-      au TabEnter * call GdbHandleEvent("onTabEnter")
-      au TabLeave * call GdbHandleEvent("onTabLeave")
-      au BufEnter * call GdbHandleEvent("onBufEnter")
-      au BufLeave * call GdbHandleEvent("onBufLeave")
+      au TabEnter * call GdbHandleEvent("on_tab_enter")
+      au TabLeave * call GdbHandleEvent("on_tab_leave")
+      au BufEnter * call GdbHandleEvent("on_buf_enter")
+      au BufLeave * call GdbHandleEvent("on_buf_leave")
     augroup END
   endif
   let g:nvimgdb_count += 1

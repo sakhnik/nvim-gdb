@@ -109,8 +109,8 @@ def test_eval(eng, post):
     eng.feed('<f10>')
 
     eng.feed('^<f9>')
-    assert eng.eval('GdbTestPeek("lastCommand")') == 'print(_Foo)'
+    assert eng.eval('GdbTestPeek("_last_command")') == 'print(_Foo)'
 
     eng.feed('viW')
     eng.feed(':GdbEvalRange\n')
-    assert eng.eval('GdbTestPeek("lastCommand")') == 'print(_Foo(i))'
+    assert eng.eval('GdbTestPeek("_last_command")') == 'print(_Foo(i))'

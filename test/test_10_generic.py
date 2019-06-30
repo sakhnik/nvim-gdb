@@ -95,9 +95,9 @@ def test_eval(eng, backend):
     eng.feed('<f10>')
 
     eng.feed('^<f9>')
-    assert eng.eval('GdbTestPeek("lastCommand")') == 'print Foo'
+    assert eng.eval('GdbTestPeek("_last_command")') == 'print Foo'
 
     eng.feed('/Lib::Baz\n')
     eng.feed('vt(')
     eng.feed(':GdbEvalRange\n')
-    assert eng.eval('GdbTestPeek("lastCommand")') == 'print Lib::Baz'
+    assert eng.eval('GdbTestPeek("_last_command")') == 'print Lib::Baz'
