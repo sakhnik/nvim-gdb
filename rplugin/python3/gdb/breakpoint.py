@@ -32,7 +32,8 @@ class Breakpoint:
             for line, ids in self.breaks.get(bpath, {}).items():
                 sign_id += 1
                 sign_name = get_sign_name(len(ids))
-                cmd = f'sign place {sign_id} name={sign_name} line={line} buffer={buf}'
+                cmd = f'sign place {sign_id} name={sign_name} line={line}' \
+                      f' buffer={buf}'
                 self.vim.command(cmd)
             self.max_sign_id = sign_id
 
