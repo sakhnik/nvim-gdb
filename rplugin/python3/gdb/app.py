@@ -1,3 +1,6 @@
+'''.'''
+
+import importlib
 from gdb.config import getConfig
 from gdb.cursor import Cursor
 from gdb.sockdir import SockDir
@@ -6,42 +9,47 @@ from gdb.win import Win
 from gdb.keymaps import Keymaps
 from gdb.proxy import Proxy
 from gdb.breakpoint import Breakpoint
-import importlib
 
 
 class App:
+    '''Main application class.'''
     def __init__(self, vim, logger, backendStr, proxyCmd, clientCmd):
         self.vim = vim
         self.log = lambda msg: logger.log('app', msg)
+        self._last_command = None
 
         # Prepare configuration: keymaps, hooks, parameters etc.
         self.config = getConfig(vim, logger)
-        self.defineSigns(self.config)
+        self._define_signs(self.config)
 
         # Create new tab for the debugging view and split horizontally
-        vim.command('tabnew | setlocal nowinfixwidth | setlocal nowinfixheight | silent wincmd o')
+        vim.command('tabnew | setlocal nowinfixwidth | setlocal nowinfixheight'
+                    ' | silent wincmd o')
         vim.command(self.config["split_command"])
         if len(vim.current.tabpage.windows) != 2:
-            raise Exception("The split_command should result in exactly two windows")
+            raise Exception("The split_command should result in exactly two"
+                            " windows")
 
         # Enumerate the available windows
         wins = vim.current.tabpage.windows
         wcli, wjump = wins[1], wins[0]
 
         # Import the desired backend module
-        self.backend = importlib.import_module("gdb.backend." + backendStr).init()
+        self.backend = importlib \
+            .import_module("gdb.backend." + backendStr) \
+            .init()
 
         # Create a temporary unique directory for all the sockets.
-        self.sockDir = SockDir()
+        self.sock_dir = SockDir()
 
         # Initialize current line tracking
         self.cursor = Cursor(vim)
 
         # Go to the other window and spawn gdb client
-        self.client = Client(vim, wcli, proxyCmd, clientCmd, self.sockDir)
+        self.client = Client(vim, wcli, proxyCmd, clientCmd, self.sock_dir)
 
         # Initialize connection to the side channel
-        self.proxy = Proxy(vim, self.client.getProxyAddr(), self.sockDir)
+        self.proxy = Proxy(vim, self.client.getProxyAddr(), self.sock_dir)
 
         # Initialize breakpoint tracking
         self.breakpoint = Breakpoint(vim, self.config, self.proxy)
@@ -50,7 +58,8 @@ class App:
         self.keymaps = Keymaps(vim, logger, self.config)
 
         # Initialize the windowing subsystem
-        self.win = Win(vim, logger, wjump, self.cursor, self.client, self.breakpoint, self.keymaps)
+        self.win = Win(vim, logger, wjump, self.cursor, self.client,
+                       self.breakpoint, self.keymaps)
 
         # Initialize the SCM
         self.scm = self.backend["initScm"](vim, logger, self.cursor, self.win)
@@ -63,10 +72,11 @@ class App:
         vim.feedkeys("i")
 
     def start(self):
-        # The SCM should be ready by now, spawn the debugger!
+        '''The SCM should be ready by now, spawn the debugger!'''
         self.client.start()
 
     def cleanup(self):
+        '''Finish up the debugging session.'''
         # Clean up the breakpoint signs
         self.breakpoint.resetSigns()
 
@@ -77,81 +87,96 @@ class App:
         self.proxy.cleanup()
 
         # Close the windows and the tab
-        tabCount = len(self.vim.tabpages)
+        tab_count = len(self.vim.tabpages)
         self.client.delBuffer()
-        if tabCount == len(self.vim.tabpages):
+        if tab_count == len(self.vim.tabpages):
             self.vim.command("tabclose")
 
         self.client.cleanup()
-        self.sockDir.cleanup()
+        self.sock_dir.cleanup()
 
-    def defineSigns(self, config):
+    def _define_signs(self, config):
         # Define the sign for current line the debugged program is executing.
-        self.vim.command("sign define GdbCurrentLine text=" + config["sign_current_line"])
+        self.vim.command("sign define GdbCurrentLine text="
+                         + config["sign_current_line"])
         # Define signs for the breakpoints.
         breaks = config["sign_breakpoint"]
-        for i, b in enumerate(breaks):
-            self.vim.command('sign define GdbBreakpoint%d text=%s' % ((i+1), b))
+        for i, brk in enumerate(breaks):
+            self.vim.command('sign define GdbBreakpoint{} text={}'
+                             .format((i+1), brk))
 
-    def getCommand(self, cmd):
+    def _get_command(self, cmd):
         return self.backend.get(cmd, cmd)
 
     def send(self, *args):
+        '''Send a command to the debugger.'''
         if args:
             command = self.backend.get(args[0], args[0]).format(*args[1:])
             self.client.sendLine(command)
-            self.lastCommand = command  # Remember the command for testing
+            self._last_command = command  # Remember the command for testing
         else:
             self.client.interrupt()
 
-    def customCommand(self, cmd):
+    def custom_command(self, cmd):
+        '''Execute a custom debugger command and return its output.'''
         return self.proxy.query("handle-command " + cmd)
 
-    def breakpointToggle(self):
+    def breakpoint_toggle(self):
+        '''Toggle breakpoint in the cursor line.'''
         if self.scm.isRunning():
             # pause first
             self.client.interrupt()
         buf = self.vim.current.buffer
-        fileName = self.vim.call("expand", '#%d:p' % buf.handle)
-        lineNr = self.vim.call("line", ".")
-        breaks = self.breakpoint.getForFile(fileName, lineNr)
+        file_name = self.vim.call("expand", '#%d:p' % buf.handle)
+        line_nr = self.vim.call("line", ".")
+        breaks = self.breakpoint.getForFile(file_name, line_nr)
 
         if breaks:
             # There already is a breakpoint on this line: remove
-            self.client.sendLine("%s %d" % (self.getCommand('delete_breakpoints'), breaks[-1]))
+            del_br = self._get_command('delete_breakpoints')
+            self.client.sendLine("{} {}".format(del_br, breaks[-1]))
         else:
-            self.client.sendLine("%s %s:%s" % (self.getCommand('breakpoint'), fileName, lineNr))
+            set_br = self._get_command('breakpoint')
+            self.client.sendLine("{} {}:{}".format(set_br, file_name, line_nr))
 
-    def breakpointClearAll(self):
+    def breakpoint_clear_all(self):
+        '''Clear all breakpoints.'''
         if self.scm.isRunning():
             # pause first
             self.client.interrupt()
         # The breakpoint signs will be requeried later automatically
         self.send('delete_breakpoints')
 
-    def onTabEnter(self):
+    def on_tab_enter(self):
+        '''Actions to execute when a tabpage is entered.'''
         # Restore the signs as they may have been spoiled
         if self.scm.isPaused():
             self.cursor.show()
         # Ensure breakpoints are shown if are queried dynamically
         self.win.queryBreakpoints()
 
-    def onTabLeave(self):
+    def on_tab_leave(self):
+        '''Actions to execute when a tabpage is left.'''
         # Hide the signs
         self.cursor.hide()
         self.breakpoint.clearSigns()
 
-    def onBufEnter(self):
+    def on_buf_enter(self):
+        '''Actions to execute when a buffer is entered.'''
         # Apply keymaps to the jump window only.
-        if self.vim.current.buffer.options['buftype'] != 'terminal' and self.win.isJumpWindowActive():
+        if self.vim.current.buffer.options['buftype'] != 'terminal' \
+                and self.win.isJumpWindowActive():
             # Make sure the cursor stay visible at all times
 
             if "set_scroll_off" in self.config:
-                self.vim.command("if !&scrolloff | setlocal scrolloff=%s | endif" % str(self.config['set_scroll_off']))
+                soff_val = str(self.config['set_scroll_off'])
+                self.vim.command("if !&scrolloff | setlocal scrolloff={}"
+                                 " | endif".format(soff_val))
             self.keymaps.dispatchSet()
             # Ensure breakpoints are shown if are queried dynamically
             self.win.queryBreakpoints()
 
-    def onBufLeave(self):
+    def on_buf_leave(self):
+        '''Actions to execute when a buffer is left.'''
         if self.vim.current.buffer.options['buftype'] != 'terminal':
             self.keymaps.dispatchUnset()

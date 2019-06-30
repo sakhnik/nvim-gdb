@@ -1,21 +1,21 @@
 language: minimal
-sudo: required
 
 matrix:
   include:
     - os: linux
-      dist: trusty
+      dist: xenial
       addons:
         apt:
           sources: 
+            - deadsnakes
             - ubuntu-toolchain-r-test
-            - llvm-toolchain-trusty-5.0
+            - llvm-toolchain-xenial-7
           packages:
             - g++
             - gdb
-            - lldb-5.0
-            - python3-dev
-            - python3-pip
+            - lldb-7
+            - python3.7
+            - python3.7-dev
             - bashdb
 
     - os: osx

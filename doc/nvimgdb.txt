@@ -222,7 +222,7 @@ For instance, it's possible to execute commands automatically with `autocmd`.
                                                                 *NvimGdbQuery*
 NvimGdbQuery            Fired whenever the plugin queried for breakpoints.
                         This can be used to execute additional queries
-                        with `NvimGdb-customCommand()`
+                        with `GdbCustomCommand()`
 
 ==============================================================================
 Section 6: Functions                                        *NvimgdbFunctions*
