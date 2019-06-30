@@ -123,7 +123,7 @@ class App:
 
     def breakpoint_toggle(self):
         '''Toggle breakpoint in the cursor line.'''
-        if self.scm.isRunning():
+        if self.scm.is_running():
             # pause first
             self.client.interrupt()
         buf = self.vim.current.buffer
@@ -141,7 +141,7 @@ class App:
 
     def breakpoint_clear_all(self):
         '''Clear all breakpoints.'''
-        if self.scm.isRunning():
+        if self.scm.is_running():
             # pause first
             self.client.interrupt()
         # The breakpoint signs will be requeried later automatically
@@ -150,7 +150,7 @@ class App:
     def on_tab_enter(self):
         '''Actions to execute when a tabpage is entered.'''
         # Restore the signs as they may have been spoiled
-        if self.scm.isPaused():
+        if self.scm.is_paused():
             self.cursor.show()
         # Ensure breakpoints are shown if are queried dynamically
         self.win.queryBreakpoints()

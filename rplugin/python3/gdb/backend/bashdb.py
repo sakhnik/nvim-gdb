@@ -11,9 +11,9 @@ class BashDBScm(BaseScm):
         re_jump = re.compile(r'[\r\n]\(([^:]+):(\d+)\):(?=[\r\n])')
         re_prompt = re.compile(r'[\r\n]bashdb<\(?\d+\)?> $')
         re_term = re.compile(r'[\r\n]Debugged program terminated ')
-        self.addTrans(self.paused,  re_jump,    self.pausedJump)
-        self.addTrans(self.paused,  re_prompt,  self.queryB)
-        self.addTrans(self.paused,  re_term,    self.handleTerminated)
+        self.add_trans(self.paused,  re_jump,    self._paused_jump)
+        self.add_trans(self.paused,  re_prompt,  self._query_b)
+        self.add_trans(self.paused,  re_term,    self.handleTerminated)
         self.state = self.paused
 
     def handleTerminated(self, match):
