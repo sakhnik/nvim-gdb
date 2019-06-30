@@ -1,22 +1,25 @@
-from gdb.keymaps import Keymaps
+'''Calculate current configuration from the defaults, Vim variables
+   overrides and overloads.'''
+
 import copy
 import re
+from gdb.keymaps import Keymaps
 
-# Calculate current configuration from the defaults, Vim variables overrides and overloads.
 
-# Turn a string into a funcref looking up a Vim function.
-def filterFuncref(vim, defConf, k, v):
+def _filter_funcref(vim, def_conf, key, val):
+    '''Turn a string into a funcref looking up a Vim function.'''
     # Lookup the key in the default config.
-    defVal = defConf[k]
+    def_val = def_conf[key]
     # Check whether the key should be a function.
-    if not callable(defVal):
-        return v
+    if not callable(def_val):
+        return val
     # Finally, turn the value into a Vim function call.
-    return lambda _: vim.call(v)
+    return lambda _: vim.call(val)
 
-def getConfig(vim, logger):
+def get_config(vim, logger):
+    '''Get actual configuration with overrides resolved.'''
     # Default configuration
-    defaultConfig = {
+    default_config = {
         'key_until': '<f4>',
         'key_continue': '<f5>',
         'key_next': '<f10>',
@@ -30,7 +33,8 @@ def getConfig(vim, logger):
         'set_keymaps': Keymaps.set,
         'unset_keymaps': Keymaps.unset,
         'sign_current_line': '▶',
-        'sign_breakpoint': [ '●', '●²', '●³', '●⁴', '●⁵', '●⁶', '●⁷', '●⁸', '●⁹', '●ⁿ' ],
+        'sign_breakpoint': ['●', '●²', '●³', '●⁴', '●⁵', '●⁶', '●⁷', '●⁸',
+                            '●⁹', '●ⁿ'],
         'split_command': 'split',
         'set_scroll_off': 5
         }
@@ -39,56 +43,57 @@ def getConfig(vim, logger):
     config = {}
     if vim.call("exists", 'g:nvimgdb_config'):
         config = vim.vars['nvimgdb_config']
-        for k,v in config.items():
+        for key, val in config.items():
             try:
-                config[k] = filterFuncref(vim, defaultConfig, k, v)
+                config[key] = _filter_funcref(vim, default_config, key, val)
             except Exception as e:
                 logger.log('config', "Exception: {}".format(str(e)))
         # Make sure the essential keys are present even if not supplied.
-        for mustHave in ('sign_current_line', 'sign_breakpoint', 'split_command', 'set_scroll_off'):
-            if not mustHave in config:
-                config[mustHave] = defaultConfig[mustHave]
+        for must_have in ('sign_current_line', 'sign_breakpoint',
+                          'split_command', 'set_scroll_off'):
+            if must_have not in config:
+                config[must_have] = default_config[must_have]
 
     if not config:
-        config = copy.deepcopy(defaultConfig)
+        config = copy.deepcopy(default_config)
 
     # Check for keymap configuration sanity
-    keyToFunc = {}
-    def checkKeymapConflicts(key, func, verbose):
+    key_to_func = {}
+
+    def check_keymap_conflicts(key, func, verbose):
         if re.match('^key_.*', func):
-            prevFunc = keyToFunc.get(key, None)
-            if prevFunc and prevFunc != func:
+            prev_func = key_to_func.get(key, None)
+            if prev_func and prev_func != func:
                 if verbose:
-                    vim.command("echo 'Overriding conflicting keymap \"{}\" for {} (was {})'" \
-                            .format(key, func, prevFunc))
-                del(keyToFunc[config[func]])
-                config[prevFunc] = None
-            keyToFunc[key] = func
+                    vim.command(f"echo 'Overriding conflicting keymap"
+                                f" \"{key}\" for {func} (was {prev_func})'")
+                del key_to_func[config[func]]
+                config[prev_func] = None
+            key_to_func[key] = func
 
-    for func,key in config.items():
-        checkKeymapConflicts(key, func, True)
-
+    for func, key in config.items():
+        check_keymap_conflicts(key, func, True)
 
     # If there is config override defined, add it
     if vim.call("exists", 'g:nvimgdb_config_override'):
         override = vim.vars['nvimgdb_config_override']
         if override:
-            for k,v in override.items():
-                keyVal = filterFuncref(vim, defaultConfig, k, v)
-                checkKeymapConflicts(keyVal, k, True)
-                config[k] = keyVal
+            for key, val in override.items():
+                key_val = _filter_funcref(vim, default_config, key, val)
+                check_keymap_conflicts(key_val, key, True)
+                config[key] = key_val
 
     # See whether a global override for a specific configuration
     # key exists. If so, update the config.
-    for key in defaultConfig.keys():
+    for key, _ in default_config.items():
         vname = 'nvimgdb_' + key
         if vim.call("exists", 'g:'+vname):
             val = vim.vars[vname]
             if val:
-                keyVal = filterFuncref(vim, defaultConfig, key, val)
-                checkKeymapConflicts(keyVal, key, False)
-                config[key] = keyVal
+                key_val = _filter_funcref(vim, default_config, key, val)
+                check_keymap_conflicts(key_val, key, False)
+                config[key] = key_val
 
     # Return the resulting configuration
-    config = {k:v for k,v in config.items() if v}
+    config = {key: val for key, val in config.items() if val}
     return config

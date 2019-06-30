@@ -1,7 +1,7 @@
 '''.'''
 
 import importlib
-from gdb.config import getConfig
+from gdb.config import get_config
 from gdb.cursor import Cursor
 from gdb.sockdir import SockDir
 from gdb.client import Client
@@ -19,7 +19,7 @@ class App:
         self._last_command = None
 
         # Prepare configuration: keymaps, hooks, parameters etc.
-        self.config = getConfig(vim, logger)
+        self.config = get_config(vim, logger)
         self._define_signs(self.config)
 
         # Create new tab for the debugging view and split horizontally
