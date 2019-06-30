@@ -29,7 +29,7 @@ def get_config(vim, logger):
         'key_frameup': '<c-p>',
         'key_framedown': '<c-n>',
         'key_eval': '<f9>',
-        'set_tkeymaps': Keymaps.setT,
+        'set_tkeymaps': Keymaps.set_t,
         'set_keymaps': Keymaps.set,
         'unset_keymaps': Keymaps.unset,
         'sign_current_line': '▶',

@@ -1,73 +1,79 @@
+'''Manipulate keymaps: define and undefined when needed.'''
+
 class Keymaps:
+    '''Keymaps manager.'''
     def __init__(self, vim, logger, config):
         self.vim = vim
         self.log = lambda msg: logger.log('keymaps', msg)
         self.config = config
-        self.dispatchActive = True
+        self.dispatch_active = True
 
     default = {
-        ('n', 'key_until',      ':GdbUntil'),
-        ('n', 'key_continue',   ':GdbContinue'),
-        ('n', 'key_next',       ':GdbNext'),
-        ('n', 'key_step',       ':GdbStep'),
-        ('n', 'key_finish',     ':GdbFinish'),
+        ('n', 'key_until', ':GdbUntil'),
+        ('n', 'key_continue', ':GdbContinue'),
+        ('n', 'key_next', ':GdbNext'),
+        ('n', 'key_step', ':GdbStep'),
+        ('n', 'key_finish', ':GdbFinish'),
         ('n', 'key_breakpoint', ':GdbBreakpointToggle'),
-        ('n', 'key_frameup',    ':GdbFrameUp'),
-        ('n', 'key_framedown',  ':GdbFrameDown'),
-        ('n', 'key_eval',       ':GdbEvalWord'),
-        ('v', 'key_eval',       ':GdbEvalRange'),
+        ('n', 'key_frameup', ':GdbFrameUp'),
+        ('n', 'key_framedown', ':GdbFrameDown'),
+        ('n', 'key_eval', ':GdbEvalWord'),
+        ('v', 'key_eval', ':GdbEvalRange'),
     }
 
     def set(self):
+        '''Set buffer-local keymaps.'''
         for mode, key, cmd in Keymaps.default:
             try:
                 keystroke = self.config[key]
-                self.vim.command('%snoremap <buffer> <silent> %s %s<cr>' % (mode, keystroke, cmd))
+                self.vim.command(
+                    f'{mode}noremap <buffer> <silent> {keystroke} {cmd}<cr>')
             except Exception as e:
-                self.log('Exception: {}'.format(str(e)))
+                self.log(f'Exception: {str(e)}')
 
     def unset(self):
+        '''Unset buffer-local keymaps.'''
         for mode, key, _ in Keymaps.default:
             try:
                 keystroke = self.config[key]
-                self.vim.command('%sunmap <buffer> %s' % (mode, keystroke))
+                self.vim.command(f'{mode}unmap <buffer> {keystroke}')
             except Exception as e:
-                self.log('Exception: {}'.format(str(e)))
+                self.log(f'Exception: {str(e)}')
 
-    defaultT = {
-        ('key_until',    ':GdbUntil'),
+    default_t = {
+        ('key_until', ':GdbUntil'),
         ('key_continue', ':GdbContinue'),
-        ('key_next',     ':GdbNext'),
-        ('key_step',     ':GdbStep'),
-        ('key_finish',   ':GdbFinish'),
+        ('key_next', ':GdbNext'),
+        ('key_step', ':GdbStep'),
+        ('key_finish', ':GdbFinish'),
     }
 
-    def setT(self):
-        # Set term-local key maps
-        for key, cmd in Keymaps.defaultT:
+    def set_t(self):
+        '''Set term-local keymaps.'''
+        for key, cmd in Keymaps.default_t:
             try:
                 keystroke = self.config[key]
-                self.vim.command('tnoremap <buffer> <silent> %s <c-\><c-n>%s<cr>i' % (keystroke, cmd))
+                self.vim.command(f'tnoremap <buffer> <silent> {keystroke}'
+                                 rf' <c-\><c-n>{cmd}<cr>i')
             except Exception as e:
-                self.log('Exception: {}'.format(str(e)))
-        self.vim.command('tnoremap <silent> <buffer> <esc> <c-\><c-n>')
-
+                self.log(f'Exception: {str(e)}')
+        self.vim.command(r'tnoremap <silent> <buffer> <esc> <c-\><c-n>')
 
     def _dispatch(self, key):
         try:
-            if self.dispatchActive:
+            if self.dispatch_active:
                 self.config[key](self)
         except Exception as e:
-            self.log('Exception: {}'.format(str(e)))
+            self.log(f'Exception: {str(e)}')
 
-    def dispatchSet(self):
+    def dispatch_set(self):
+        '''Call the hook to set the keymaps.'''
         self._dispatch('set_keymaps')
 
-    def dispatchUnset(self):
+    def dispatch_unset(self):
+        '''Call the hook to unset the keymaps.'''
         self._dispatch('unset_keymaps')
 
-    def dispatchSetT(self):
+    def dispatch_set_t(self):
+        '''Call the hook to set the terminal keymaps.'''
         self._dispatch('set_tkeymaps')
-
-    def setDispatchActive(self, state):
-        self.dispatchActive = state

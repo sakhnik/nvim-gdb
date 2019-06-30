@@ -65,8 +65,8 @@ class App:
         self.scm = self.backend["initScm"](vim, logger, self.cursor, self.win)
 
         # Set initial keymaps in the terminal window.
-        self.keymaps.dispatchSetT()
-        self.keymaps.dispatchSet()
+        self.keymaps.dispatch_set_t()
+        self.keymaps.dispatch_set()
 
         # Start insert mode in the GDB window
         vim.feedkeys("i")
@@ -172,11 +172,11 @@ class App:
                 soff_val = str(self.config['set_scroll_off'])
                 self.vim.command("if !&scrolloff | setlocal scrolloff={}"
                                  " | endif".format(soff_val))
-            self.keymaps.dispatchSet()
+            self.keymaps.dispatch_set()
             # Ensure breakpoints are shown if are queried dynamically
             self.win.queryBreakpoints()
 
     def on_buf_leave(self):
         '''Actions to execute when a buffer is left.'''
         if self.vim.current.buffer.options['buftype'] != 'terminal':
-            self.keymaps.dispatchUnset()
+            self.keymaps.dispatch_unset()
