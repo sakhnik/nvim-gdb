@@ -1,53 +1,63 @@
+'''.'''
+
 import json
 
+
 class Breakpoint:
+    '''Handle breakpoint signs.'''
     def __init__(self, vim, config, proxy):
         self.vim = vim
         self.config = config
         self.proxy = proxy
         self.breaks = {}    # {file -> {line -> [id]}}
-        self.maxSignId = 0
+        self.max_sign_id = 0
 
-    def clearSigns(self):
-        for i in range(5000, self.maxSignId + 1):
-            self.vim.command('sign unplace %d' % i)
-        self.maxSignId = 0
+    def clear_signs(self):
+        '''Clear all breakpoint signs.'''
+        for i in range(5000, self.max_sign_id + 1):
+            self.vim.command(f'sign unplace {i}')
+        self.max_sign_id = 0
 
-    def setSigns(self, buf):
+    def _set_signs(self, buf):
         if buf != -1:
-            signId = 5000 - 1
+            sign_id = 5000 - 1
             # Breakpoints need full path to the buffer (at least in lldb)
-            bpath = self.vim.call("expand", '#%d:p' % buf)
-            def getSignName(count):
-                maxCount = len(self.config['sign_breakpoint'])
-                idx = count if count < maxCount else maxCount - 1
-                return "GdbBreakpoint%d" % idx
-            for line, ids in self.breaks.get(bpath, {}).items():
-                signId += 1
-                cmd = 'sign place %d name=%s line=%s buffer=%d' % \
-                    (signId, getSignName(len(ids)), line, buf)
-                self.vim.command(cmd)
-            self.maxSignId = signId
+            bpath = self.vim.call("expand", f'#{buf}:p')
 
-    def query(self, bufNum, fname):
+            def get_sign_name(count):
+                max_count = len(self.config['sign_breakpoint'])
+                idx = count if count < max_count else max_count - 1
+                return f"GdbBreakpoint{idx}"
+
+            for line, ids in self.breaks.get(bpath, {}).items():
+                sign_id += 1
+                sign_name = get_sign_name(len(ids))
+                cmd = f'sign place {sign_id} name={sign_name} line={line} buffer={buf}'
+                self.vim.command(cmd)
+            self.max_sign_id = sign_id
+
+    def query(self, buf_num, fname):
+        '''Query actual breakpoints for the given file.'''
         self.breaks[fname] = {}
-        resp = self.proxy.query("info-breakpoints %s\n" % fname)
+        resp = self.proxy.query(f"info-breakpoints {fname}\n")
         if resp:
             # We expect the proxies to send breakpoints for a given file
             # as a map of lines to array of breakpoint ids set in those lines.
-            br = json.loads(resp)
-            err = br.get('_error', None)
+            breaks = json.loads(resp)
+            err = breaks.get('_error', None)
             if err:
-                self.vim.command("echo \"Can't get breakpoints: %s\"" % err)
+                self.vim.command(f"echo \"Can't get breakpoints: {err}\"")
             else:
-                self.breaks[fname] = br
-                self.clearSigns()
-                self.setSigns(bufNum)
+                self.breaks[fname] = breaks
+                self.clear_signs()
+                self._set_signs(buf_num)
 
-    def resetSigns(self):
+    def reset_signs(self):
+        '''Reset all known breakpoints and their signs.'''
         self.breaks = {}
-        self.clearSigns()
+        self.clear_signs()
 
-    def getForFile(self, fname, line):
+    def get_for_file(self, fname, line):
+        '''Get breakpoints for the given position in a file.'''
         breaks = self.breaks.get(fname, {})
-        return breaks.get("%d" % line, {})   # make sure the line is a string
+        return breaks.get(f"{line}", {})   # make sure the line is a string

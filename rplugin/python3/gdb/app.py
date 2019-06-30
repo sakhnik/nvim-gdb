@@ -78,7 +78,7 @@ class App:
     def cleanup(self):
         '''Finish up the debugging session.'''
         # Clean up the breakpoint signs
-        self.breakpoint.resetSigns()
+        self.breakpoint.reset_signs()
 
         # Clean up the current line sign
         self.cursor.hide()
@@ -129,7 +129,7 @@ class App:
         buf = self.vim.current.buffer
         file_name = self.vim.call("expand", '#%d:p' % buf.handle)
         line_nr = self.vim.call("line", ".")
-        breaks = self.breakpoint.getForFile(file_name, line_nr)
+        breaks = self.breakpoint.get_for_file(file_name, line_nr)
 
         if breaks:
             # There already is a breakpoint on this line: remove
@@ -159,7 +159,7 @@ class App:
         '''Actions to execute when a tabpage is left.'''
         # Hide the signs
         self.cursor.hide()
-        self.breakpoint.clearSigns()
+        self.breakpoint.clear_signs()
 
     def on_buf_enter(self):
         '''Actions to execute when a buffer is entered.'''
