@@ -36,6 +36,9 @@ class BaseScm:
     def _paused_continue(self, _):
         self.log("_paused_continue")
         self.cursor.hide()
+
+        self.vim.command("doautocmd User NvimGdbContinue")
+
         return self.running
 
     def _paused_jump(self, match):
@@ -43,11 +46,18 @@ class BaseScm:
         line = match.group(2)
         self.log(f"_paused_jump {fname}:{line}")
         self.win.jump(fname, int(line))
+
+        self.vim.command("doautocmd User NvimGdbBreak")
+
         return self.paused
 
     def _query_b(self, _):
         self.log('_query_b')
         self.win.query_breakpoints()
+
+        # Execute the rest of custom commands
+        self.vim.command("doautocmd User NvimGdbQuery")
+
         return self.paused
 
     def _search(self):
