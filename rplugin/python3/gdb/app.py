@@ -153,7 +153,7 @@ class App:
         if self.scm.is_paused():
             self.cursor.show()
         # Ensure breakpoints are shown if are queried dynamically
-        self.win.queryBreakpoints()
+        self.win.query_breakpoints()
 
     def on_tab_leave(self):
         '''Actions to execute when a tabpage is left.'''
@@ -165,7 +165,7 @@ class App:
         '''Actions to execute when a buffer is entered.'''
         # Apply keymaps to the jump window only.
         if self.vim.current.buffer.options['buftype'] != 'terminal' \
-                and self.win.isJumpWindowActive():
+                and self.win.is_jump_window_active():
             # Make sure the cursor stay visible at all times
 
             if "set_scroll_off" in self.config:
@@ -174,7 +174,7 @@ class App:
                                  " | endif".format(soff_val))
             self.keymaps.dispatch_set()
             # Ensure breakpoints are shown if are queried dynamically
-            self.win.queryBreakpoints()
+            self.win.query_breakpoints()
 
     def on_buf_leave(self):
         '''Actions to execute when a buffer is left.'''
