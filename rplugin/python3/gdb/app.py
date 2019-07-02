@@ -74,9 +74,12 @@ class App:
     def start(self):
         '''The SCM should be ready by now, spawn the debugger!'''
         self.client.start()
+        self.vim.command("doautocmd User NvimGdbStart")
 
     def cleanup(self):
         '''Finish up the debugging session.'''
+        self.vim.command("doautocmd User NvimGdbCleanup")
+
         # Clean up the breakpoint signs
         self.breakpoint.reset_signs()
 

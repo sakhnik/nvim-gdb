@@ -224,6 +224,15 @@ NvimGdbQuery            Fired whenever the plugin queried for breakpoints.
                         This can be used to execute additional queries
                         with `GdbCustomCommand()`
 
+NvimGdbBreak            Fired whenever the programm is paused.
+
+NvimGdbContinue         Fired whenever the program is resumed after it has
+                        been paused.
+
+NvimGdbStart            Fired when the debugging session starts.
+
+NvimGdbCleanup          Fired before the debugging session ends.
+
 ==============================================================================
 Section 6: Functions                                        *NvimgdbFunctions*
 
