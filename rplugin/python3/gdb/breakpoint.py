@@ -1,12 +1,13 @@
 '''.'''
 
 import json
+from gdb.common import Common
 
 
-class Breakpoint:
+class Breakpoint(Common):
     '''Handle breakpoint signs.'''
-    def __init__(self, vim, config, proxy):
-        self.vim = vim
+    def __init__(self, common, config, proxy):
+        super().__init__(common)
         self.config = config
         self.proxy = proxy
         self.breaks = {}    # {file -> {line -> [id]}}

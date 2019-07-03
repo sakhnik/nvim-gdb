@@ -2,12 +2,13 @@
 
 import os
 import socket
+from gdb.common import Common
 
 
-class Proxy:
+class Proxy(Common):
     '''Proxy to the side channel.'''
-    def __init__(self, vim, proxy_addr, sock_dir):
-        self.vim = vim
+    def __init__(self, common, proxy_addr, sock_dir):
+        super().__init__(common)
         self.proxy_addr = proxy_addr
         self.sock_addr = os.path.join(sock_dir.get(), "client")
 

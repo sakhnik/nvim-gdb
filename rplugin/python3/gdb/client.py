@@ -1,9 +1,10 @@
 '''.'''
 
 import os
+from gdb.common import Common
 
 
-class Client:
+class Client(Common):
     '''The class to maintain connection to the debugger client.'''
     @staticmethod
     def _get_plugin_dir():
@@ -12,8 +13,8 @@ class Client:
             path = os.path.dirname(path)
         return path
 
-    def __init__(self, vim, win, proxy_cmd, client_cmd, sock_dir):
-        self.vim = vim
+    def __init__(self, common, win, proxy_cmd, client_cmd, sock_dir):
+        super().__init__(common)
         self.win = win
         self.client_id = None
 
@@ -23,9 +24,9 @@ class Client:
             self.proxy_addr = sock_dir.get() + '/server'
             self.command = f"{self._get_plugin_dir()}/lib/{proxy_cmd}" \
                 f" -a {self.proxy_addr} -- {client_cmd}"
-        vim.command(f"{win.number}wincmd w")
-        vim.command("enew")
-        self.client_buf = vim.current.buffer
+        self.vim.command(f"{win.number}wincmd w")
+        self.vim.command("enew")
+        self.client_buf = self.vim.current.buffer
 
     def del_buffer(self):
         '''Delete the client buffer.'''

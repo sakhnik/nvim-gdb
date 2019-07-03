@@ -1,15 +1,18 @@
+'''Plugin entry point.'''
+
 import pynvim
+from gdb.common import BaseCommon, Common
 from gdb.app import App
 from gdb.logger import Logger
 
 
 @pynvim.plugin
-class Gdb:
+class Gdb(Common):
+    '''Plugin implementation.'''
     def __init__(self, vim):
-        self.vim = vim
+        common = BaseCommon(vim, Logger())
+        super().__init__(common)
         self.apps = {}
-        self.logger = Logger()
-        self.log = lambda msg: self.logger.log('app', msg)
 
     def _get_app(self):
         return self.apps[self.vim.current.tabpage.handle]
@@ -17,7 +20,7 @@ class Gdb:
     @pynvim.function('GdbInit', sync=True)
     def gdb_init(self, args):
         '''Command GdbInit.'''
-        app = App(self.vim, self.logger, *args)
+        app = App(self, *args)
         self.apps[self.vim.current.tabpage.handle] = app
         app.start()
 
