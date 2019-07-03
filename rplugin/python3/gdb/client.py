@@ -33,7 +33,7 @@ class Client(Common):
 
     def get_sock_dir(self):
         '''Access the temporary socket directory.'''
-        return self.sock_dir
+        return self.sock_dir.get()
 
     def del_buffer(self):
         '''Delete the client buffer.'''

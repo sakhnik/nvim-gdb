@@ -47,8 +47,7 @@ class App(Common):
         self.client = Client(common, wcli, proxyCmd, clientCmd)
 
         # Initialize connection to the side channel
-        self.proxy = Proxy(common, self.client.get_proxy_addr(),
-                           self.client.get_sock_dir())
+        self.proxy = Proxy(common, self.client)
 
         # Initialize breakpoint tracking
         self.breakpoint = Breakpoint(common, self.config, self.proxy)
