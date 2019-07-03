@@ -1,5 +1,6 @@
 #!/bin/bash -x
 
+source .travis-common.sh
 
 ln -sf /usr/bin/python3.7 "$HOME/bin/python3"
 ln -sf /usr/bin/python3.7-config "$HOME/bin/python3-config"
@@ -8,7 +9,7 @@ ln -sf /usr/bin/python3.7-config "$HOME/bin/python3-config"
 curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 python3 get-pip.py --user
 
-curl -LO https://github.com/neovim/neovim/releases/download/v0.3.4/nvim.appimage
+curl -LO "$NVIM_RELEASE_URL/nvim.appimage"
 chmod +x nvim.appimage
 ./nvim.appimage --appimage-extract
 
