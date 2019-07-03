@@ -1,10 +1,12 @@
 '''State machine for handing debugger output.'''
 
-class BaseScm:
+from gdb.common import Common
+
+
+class BaseScm(Common):
     '''Common SCM implementation for the integrated backends.'''
-    def __init__(self, vim, logger, cursor, win):
-        self.vim = vim
-        self.log = lambda msg: logger.log('scm', msg)
+    def __init__(self, common, cursor, win):
+        super().__init__(common)
         self.cursor = cursor
         self.win = win
         self.running = []  # The running state [(matcher, matchingFunc)]

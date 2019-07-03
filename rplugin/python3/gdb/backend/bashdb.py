@@ -7,8 +7,8 @@ from gdb.scm import BaseScm
 class BashDBScm(BaseScm):
     '''BashDB SCM.'''
 
-    def __init__(self, vim, logger, cursor, win):
-        super().__init__(vim, logger, cursor, win)
+    def __init__(self, common, cursor, win):
+        super().__init__(common, cursor, win)
 
         re_jump = re.compile(r'[\r\n]\(([^:]+):(\d+)\):(?=[\r\n])')
         re_prompt = re.compile(r'[\r\n]bashdb<\(?\d+\)?> $')

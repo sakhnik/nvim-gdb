@@ -6,8 +6,8 @@ from gdb.scm import BaseScm
 
 class PdbScm(BaseScm):
     '''PDB SCM.'''
-    def __init__(self, vim, logger, cursor, backend):
-        super().__init__(vim, logger, cursor, backend)
+    def __init__(self, common, cursor, backend):
+        super().__init__(common, cursor, backend)
         self.add_trans(self.paused,
                        re.compile(r'[\r\n]> ([^(]+)\((\d+)\)[^(]+\(\)'),
                        self._paused_jump)

@@ -2,6 +2,7 @@
 
 import importlib
 from gdb.config import get_config
+from gdb.common import Common
 from gdb.cursor import Cursor
 from gdb.sockdir import SockDir
 from gdb.client import Client
@@ -11,27 +12,28 @@ from gdb.proxy import Proxy
 from gdb.breakpoint import Breakpoint
 
 
-class App:
+class App(Common):
     '''Main application class.'''
-    def __init__(self, vim, logger, backendStr, proxyCmd, clientCmd):
-        self.vim = vim
-        self.log = lambda msg: logger.log('app', msg)
+    def __init__(self, common, backendStr, proxyCmd, clientCmd):
+        super().__init__(common)
         self._last_command = None
 
         # Prepare configuration: keymaps, hooks, parameters etc.
-        self.config = get_config(vim, logger)
+        self.config = get_config(self.vim, self.logger)
         self._define_signs(self.config)
 
         # Create new tab for the debugging view and split horizontally
-        vim.command('tabnew | setlocal nowinfixwidth | setlocal nowinfixheight'
-                    ' | silent wincmd o')
-        vim.command(self.config["split_command"])
-        if len(vim.current.tabpage.windows) != 2:
+        self.vim.command('tabnew'
+                         ' | setlocal nowinfixwidth'
+                         ' | setlocal nowinfixheight'
+                         ' | silent wincmd o')
+        self.vim.command(self.config["split_command"])
+        if len(self.vim.current.tabpage.windows) != 2:
             raise Exception("The split_command should result in exactly two"
                             " windows")
 
         # Enumerate the available windows
-        wins = vim.current.tabpage.windows
+        wins = self.vim.current.tabpage.windows
         wcli, wjump = wins[1], wins[0]
 
         # Import the desired backend module
@@ -43,33 +45,33 @@ class App:
         self.sock_dir = SockDir()
 
         # Initialize current line tracking
-        self.cursor = Cursor(vim)
+        self.cursor = Cursor(common)
 
         # Go to the other window and spawn gdb client
-        self.client = Client(vim, wcli, proxyCmd, clientCmd, self.sock_dir)
+        self.client = Client(common, wcli, proxyCmd, clientCmd, self.sock_dir)
 
         # Initialize connection to the side channel
-        self.proxy = Proxy(vim, self.client.get_proxy_addr(), self.sock_dir)
+        self.proxy = Proxy(common, self.client.get_proxy_addr(), self.sock_dir)
 
         # Initialize breakpoint tracking
-        self.breakpoint = Breakpoint(vim, self.config, self.proxy)
+        self.breakpoint = Breakpoint(common, self.config, self.proxy)
 
         # Initialize the keymaps subsystem
-        self.keymaps = Keymaps(vim, logger, self.config)
+        self.keymaps = Keymaps(common, self.config)
 
         # Initialize the windowing subsystem
-        self.win = Win(vim, logger, wjump, self.cursor, self.client,
+        self.win = Win(common, wjump, self.cursor, self.client,
                        self.breakpoint, self.keymaps)
 
         # Initialize the SCM
-        self.scm = self.backend["initScm"](vim, logger, self.cursor, self.win)
+        self.scm = self.backend["initScm"](common, self.cursor, self.win)
 
         # Set initial keymaps in the terminal window.
         self.keymaps.dispatch_set_t()
         self.keymaps.dispatch_set()
 
         # Start insert mode in the GDB window
-        vim.feedkeys("i")
+        self.vim.feedkeys("i")
 
     def start(self):
         '''The SCM should be ready by now, spawn the debugger!'''

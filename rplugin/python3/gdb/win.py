@@ -1,18 +1,18 @@
 '''.'''
 
 from pynvim import NvimError
+from gdb.common import Common
 
 
-class Win:
+class Win(Common):
     '''Jump window management.'''
-    def __init__(self, vim, logger, win, cursor, client, breakpoint, keymaps):
-        self.vim = vim
-        self.log = lambda msg: logger.log('win', msg)
+    def __init__(self, common, win, cursor, client, break_point, keymaps):
+        super().__init__(common)
         # window number that will be displaying the current file
         self.jump_win = win
         self.cursor = cursor
         self.client = client
-        self.breakpoint = breakpoint
+        self.breakpoint = break_point
         self.keymaps = keymaps
 
     def is_jump_window_active(self):

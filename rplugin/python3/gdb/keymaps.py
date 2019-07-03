@@ -1,10 +1,12 @@
 '''Manipulate keymaps: define and undefined when needed.'''
 
-class Keymaps:
+from gdb.common import Common
+
+
+class Keymaps(Common):
     '''Keymaps manager.'''
-    def __init__(self, vim, logger, config):
-        self.vim = vim
-        self.log = lambda msg: logger.log('keymaps', msg)
+    def __init__(self, common, config):
+        super().__init__(common)
         self.config = config
         self.dispatch_active = True
 

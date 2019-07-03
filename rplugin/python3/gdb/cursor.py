@@ -1,10 +1,12 @@
 '''Manipulating the current line sign.'''
 
+from gdb.common import Common
 
-class Cursor:
+
+class Cursor(Common):
     '''The current line sign operations.'''
-    def __init__(self, vim):
-        self.vim = vim
+    def __init__(self, common):
+        super().__init__(common)
         self.buf = -1
         self.line = -1
         self.sign_id = -1
