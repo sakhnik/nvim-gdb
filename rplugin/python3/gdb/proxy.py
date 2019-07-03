@@ -7,10 +7,10 @@ from gdb.common import Common
 
 class Proxy(Common):
     '''Proxy to the side channel.'''
-    def __init__(self, common, proxy_addr, sock_dir):
+    def __init__(self, common, client):
         super().__init__(common)
-        self.proxy_addr = proxy_addr
-        self.sock_addr = os.path.join(sock_dir.get(), "client")
+        self.proxy_addr = client.get_proxy_addr()
+        self.sock_addr = os.path.join(client.get_sock_dir(), "client")
 
         self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
         self.sock.bind(self.sock_addr)

@@ -4,7 +4,6 @@ import importlib
 from gdb.config import get_config
 from gdb.common import Common
 from gdb.cursor import Cursor
-from gdb.sockdir import SockDir
 from gdb.client import Client
 from gdb.win import Win
 from gdb.keymaps import Keymaps
@@ -41,17 +40,14 @@ class App(Common):
             .import_module("gdb.backend." + backendStr) \
             .init()
 
-        # Create a temporary unique directory for all the sockets.
-        self.sock_dir = SockDir()
-
         # Initialize current line tracking
         self.cursor = Cursor(common)
 
         # Go to the other window and spawn gdb client
-        self.client = Client(common, wcli, proxyCmd, clientCmd, self.sock_dir)
+        self.client = Client(common, wcli, proxyCmd, clientCmd)
 
         # Initialize connection to the side channel
-        self.proxy = Proxy(common, self.client.get_proxy_addr(), self.sock_dir)
+        self.proxy = Proxy(common, self.client)
 
         # Initialize breakpoint tracking
         self.breakpoint = Breakpoint(common, self.config, self.proxy)
@@ -98,7 +94,6 @@ class App(Common):
             self.vim.command("tabclose")
 
         self.client.cleanup()
-        self.sock_dir.cleanup()
 
     def _define_signs(self, config):
         # Define the sign for current line the debugged program is executing.
