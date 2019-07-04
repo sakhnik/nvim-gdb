@@ -3,9 +3,10 @@
 
 class BaseCommon:
     '''Common base part of all classes.'''
-    def __init__(self, vim, logger):
+    def __init__(self, vim, logger, config):
         self.vim = vim
         self.logger = logger
+        self.config = config
 
     def log(self, msg):
         '''Log a message with the class name as the key.'''
@@ -18,4 +19,4 @@ class BaseCommon:
 class Common(BaseCommon):
     '''Common part of all classes with convenient constructor.'''
     def __init__(self, common):
-        super().__init__(common.vim, common.logger)
+        super().__init__(common.vim, common.logger, common.config)

@@ -3,6 +3,7 @@
 import pynvim
 from gdb.common import BaseCommon, Common
 from gdb.app import App
+from gdb.config import Config
 from gdb.logger import Logger
 
 
@@ -10,7 +11,7 @@ from gdb.logger import Logger
 class Gdb(Common):
     '''Plugin implementation.'''
     def __init__(self, vim):
-        common = BaseCommon(vim, Logger())
+        common = BaseCommon(vim, Logger(), None)
         super().__init__(common)
         self.apps = {}
 
@@ -20,7 +21,9 @@ class Gdb(Common):
     @pynvim.function('GdbInit', sync=True)
     def gdb_init(self, args):
         '''Command GdbInit.'''
-        app = App(self, *args)
+        # Prepare configuration: keymaps, hooks, parameters etc.
+        common = BaseCommon(self.vim, self.logger, Config(self))
+        app = App(common, *args)
         self.apps[self.vim.current.tabpage.handle] = app
         app.start()
 
@@ -138,7 +141,7 @@ class Gdb(Common):
         '''Command GdbTestPeekConfig.'''
         try:
             app = self._get_app()
-            config = {k: v for k, v in app.config.items()}
+            config = {k: v for k, v in app.config.config.items()}
             for key, val in config.items():
                 if callable(val):
                     config[key] = str(val)

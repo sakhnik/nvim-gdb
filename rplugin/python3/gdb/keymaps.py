@@ -5,9 +5,8 @@ from gdb.common import Common
 
 class Keymaps(Common):
     '''Keymaps manager.'''
-    def __init__(self, common, config):
+    def __init__(self, common):
         super().__init__(common)
-        self.config = config
         self.dispatch_active = True
 
     default = {
@@ -27,7 +26,7 @@ class Keymaps(Common):
         '''Set buffer-local keymaps.'''
         for mode, key, cmd in Keymaps.default:
             try:
-                keystroke = self.config[key]
+                keystroke = self.config.get(key)
                 self.vim.command(
                     f'{mode}noremap <buffer> <silent> {keystroke} {cmd}<cr>')
             except Exception as e:
@@ -37,7 +36,7 @@ class Keymaps(Common):
         '''Unset buffer-local keymaps.'''
         for mode, key, _ in Keymaps.default:
             try:
-                keystroke = self.config[key]
+                keystroke = self.config.get(key)
                 self.vim.command(f'{mode}unmap <buffer> {keystroke}')
             except Exception as e:
                 self.log(f'Exception: {str(e)}')
@@ -54,7 +53,7 @@ class Keymaps(Common):
         '''Set term-local keymaps.'''
         for key, cmd in Keymaps.default_t:
             try:
-                keystroke = self.config[key]
+                keystroke = self.config.get(key)
                 self.vim.command(f'tnoremap <buffer> <silent> {keystroke}'
                                  rf' <c-\><c-n>{cmd}<cr>i')
             except Exception as e:
@@ -64,7 +63,7 @@ class Keymaps(Common):
     def _dispatch(self, key):
         try:
             if self.dispatch_active:
-                self.config[key](self)
+                self.config.get(key)(self)
         except Exception as e:
             self.log(f'Exception: {str(e)}')
 

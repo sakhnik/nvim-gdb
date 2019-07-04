@@ -6,9 +6,8 @@ from gdb.common import Common
 
 class Breakpoint(Common):
     '''Handle breakpoint signs.'''
-    def __init__(self, common, config, proxy):
+    def __init__(self, common, proxy):
         super().__init__(common)
-        self.config = config
         self.proxy = proxy
         self.breaks = {}    # {file -> {line -> [id]}}
         self.max_sign_id = 0
@@ -26,7 +25,7 @@ class Breakpoint(Common):
             bpath = self.vim.call("expand", f'#{buf}:p')
 
             def get_sign_name(count):
-                max_count = len(self.config['sign_breakpoint'])
+                max_count = len(self.config.get('sign_breakpoint'))
                 idx = count if count < max_count else max_count - 1
                 return f"GdbBreakpoint{idx}"
 
