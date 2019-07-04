@@ -6,14 +6,13 @@ from gdb.common import Common
 
 class Win(Common):
     '''Jump window management.'''
-    def __init__(self, common, win, cursor, client, break_point, keymaps):
+    def __init__(self, common, win, cursor, client, break_point):
         super().__init__(common)
         # window number that will be displaying the current file
         self.jump_win = win
         self.cursor = cursor
         self.client = client
         self.breakpoint = break_point
-        self.keymaps = keymaps
 
     def is_jump_window_active(self):
         '''Check whether the current buffer is displayed in the jump window.'''

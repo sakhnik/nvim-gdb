@@ -57,7 +57,7 @@ class App(Common):
 
         # Initialize the windowing subsystem
         self.win = Win(common, wjump, self.cursor, self.client,
-                       self.breakpoint, self.keymaps)
+                       self.breakpoint)
 
         # Initialize the SCM
         self.scm = self.backend["initScm"](common, self.cursor, self.win)
