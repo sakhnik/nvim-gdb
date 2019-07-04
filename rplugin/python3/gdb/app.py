@@ -1,8 +1,8 @@
 '''.'''
 
 import importlib
-from gdb.config import get_config
 from gdb.common import Common
+from gdb.config import Config
 from gdb.cursor import Cursor
 from gdb.client import Client
 from gdb.win import Win
@@ -18,15 +18,14 @@ class App(Common):
         self._last_command = None
 
         # Prepare configuration: keymaps, hooks, parameters etc.
-        self.config = get_config(self.vim, self.logger)
-        self._define_signs(self.config)
+        self.config = Config(common)
 
         # Create new tab for the debugging view and split horizontally
         self.vim.command('tabnew'
                          ' | setlocal nowinfixwidth'
                          ' | setlocal nowinfixheight'
                          ' | silent wincmd o')
-        self.vim.command(self.config["split_command"])
+        self.vim.command(self.config.get("split_command"))
         if len(self.vim.current.tabpage.windows) != 2:
             raise Exception("The split_command should result in exactly two"
                             " windows")
@@ -95,16 +94,6 @@ class App(Common):
 
         self.client.cleanup()
 
-    def _define_signs(self, config):
-        # Define the sign for current line the debugged program is executing.
-        self.vim.command("sign define GdbCurrentLine text="
-                         + config["sign_current_line"])
-        # Define signs for the breakpoints.
-        breaks = config["sign_breakpoint"]
-        for i, brk in enumerate(breaks):
-            self.vim.command('sign define GdbBreakpoint{} text={}'
-                             .format((i+1), brk))
-
     def _get_command(self, cmd):
         return self.backend.get(cmd, cmd)
 
@@ -168,10 +157,11 @@ class App(Common):
                 and self.win.is_jump_window_active():
             # Make sure the cursor stay visible at all times
 
-            if "set_scroll_off" in self.config:
-                soff_val = str(self.config['set_scroll_off'])
-                self.vim.command("if !&scrolloff | setlocal scrolloff={}"
-                                 " | endif".format(soff_val))
+            scroll_off = self.config.get_or('set_scroll_off', None)
+            if scroll_off is not None:
+                self.vim.command("if !&scrolloff"
+                                 f" | setlocal scrolloff={str(scroll_off)}"
+                                 " | endif")
             self.keymaps.dispatch_set()
             # Ensure breakpoints are shown if are queried dynamically
             self.win.query_breakpoints()

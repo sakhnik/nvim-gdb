@@ -138,7 +138,7 @@ class Gdb(Common):
         '''Command GdbTestPeekConfig.'''
         try:
             app = self._get_app()
-            config = {k: v for k, v in app.config.items()}
+            config = {k: v for k, v in app.config.config.items()}
             for key, val in config.items():
                 if callable(val):
                     config[key] = str(val)

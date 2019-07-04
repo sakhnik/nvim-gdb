@@ -26,7 +26,7 @@ class Breakpoint(Common):
             bpath = self.vim.call("expand", f'#{buf}:p')
 
             def get_sign_name(count):
-                max_count = len(self.config['sign_breakpoint'])
+                max_count = len(self.config.get('sign_breakpoint'))
                 idx = count if count < max_count else max_count - 1
                 return f"GdbBreakpoint{idx}"
 
