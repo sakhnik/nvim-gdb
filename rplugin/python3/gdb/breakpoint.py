@@ -6,9 +6,8 @@ from gdb.common import Common
 
 class Breakpoint(Common):
     '''Handle breakpoint signs.'''
-    def __init__(self, common, config, proxy):
+    def __init__(self, common, proxy):
         super().__init__(common)
-        self.config = config
         self.proxy = proxy
         self.breaks = {}    # {file -> {line -> [id]}}
         self.max_sign_id = 0

@@ -17,9 +17,6 @@ class App(Common):
         super().__init__(common)
         self._last_command = None
 
-        # Prepare configuration: keymaps, hooks, parameters etc.
-        self.config = Config(common)
-
         # Create new tab for the debugging view and split horizontally
         self.vim.command('tabnew'
                          ' | setlocal nowinfixwidth'
@@ -49,10 +46,10 @@ class App(Common):
         self.proxy = Proxy(common, self.client)
 
         # Initialize breakpoint tracking
-        self.breakpoint = Breakpoint(common, self.config, self.proxy)
+        self.breakpoint = Breakpoint(common, self.proxy)
 
         # Initialize the keymaps subsystem
-        self.keymaps = Keymaps(common, self.config)
+        self.keymaps = Keymaps(common)
 
         # Initialize the windowing subsystem
         self.win = Win(common, wjump, self.cursor, self.client,
