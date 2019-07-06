@@ -36,28 +36,16 @@ class Config(Common):
         super().__init__(common)
 
         # Make a copy of the supplied configuration if defined
-        config = self._copy_user_config()
+        self.config = self._copy_user_config()
 
-        if not config:
-            config = copy.deepcopy(Config.default)
+        if not self.config:
+            self.config = copy.deepcopy(Config.default)
 
         # Check for keymap configuration sanity
-        key_to_func = {}
+        self.key_to_func = {}
 
-        def check_keymap_conflicts(key, func, verbose):
-            if re.match('^key_.*', func):
-                prev_func = key_to_func.get(key, None)
-                if prev_func and prev_func != func:
-                    if verbose:
-                        self.vim.command(
-                            f"echo 'Overriding conflicting keymap"
-                            f" \"{key}\" for {func} (was {prev_func})'")
-                    del key_to_func[config[func]]
-                    config[prev_func] = None
-                key_to_func[key] = func
-
-        for func, key in config.items():
-            check_keymap_conflicts(key, func, True)
+        for func, key in self.config.items():
+            self._check_keymap_conflicts(key, func, True)
 
         # If there is config override defined, add it
         if self.vim.call("exists", 'g:nvimgdb_config_override'):
@@ -65,8 +53,8 @@ class Config(Common):
             if override:
                 for key, val in override.items():
                     key_val = self._filter_funcref(Config.default, key, val)
-                    check_keymap_conflicts(key_val, key, True)
-                    config[key] = key_val
+                    self._check_keymap_conflicts(key_val, key, True)
+                    self.config[key] = key_val
 
         # See whether a global override for a specific configuration
         # key exists. If so, update the config.
@@ -76,11 +64,12 @@ class Config(Common):
                 val = self.vim.vars[vname]
                 if val:
                     key_val = self._filter_funcref(Config.default, key, val)
-                    check_keymap_conflicts(key_val, key, False)
-                    config[key] = key_val
+                    self._check_keymap_conflicts(key_val, key, False)
+                    self.config[key] = key_val
 
-        # Remember the resulting configuration
-        self.config = {key: val for key, val in config.items() if val}
+        # Remove undefined keys
+        self.config = {key: val for key, val in self.config.items() if val}
+
         self._define_signs()
 
     def _filter_funcref(self, def_conf, key, val):
@@ -110,6 +99,18 @@ class Config(Common):
                 if must_have not in config:
                     config[must_have] = Config.default[must_have]
         return config
+
+    def _check_keymap_conflicts(self, key, func, verbose):
+        if re.match('^key_.*', func):
+            prev_func = self.key_to_func.get(key, None)
+            if prev_func and prev_func != func:
+                if verbose:
+                    self.vim.command(
+                        f"echo 'Overriding conflicting keymap"
+                        f" \"{key}\" for {func} (was {prev_func})'")
+                del self.key_to_func[self.config[func]]
+                self.config[prev_func] = None
+            self.key_to_func[key] = func
 
     def _define_signs(self):
         # Define the sign for current line the debugged program is executing.
