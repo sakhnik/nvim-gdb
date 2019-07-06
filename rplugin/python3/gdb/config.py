@@ -69,7 +69,7 @@ class Config(Common):
                     config[key] = self._filter_funcref(Config.default,
                                                        key, val)
                 except Exception as ex:
-                    self.logger.log('config', f"Exception: {str(ex)}")
+                    self.log(f"Exception: {str(ex)}")
             # Make sure the essential keys are present even if not supplied.
             for must_have in ('sign_current_line', 'sign_breakpoint',
                               'split_command', 'set_scroll_off'):
