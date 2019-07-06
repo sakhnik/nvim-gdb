@@ -35,38 +35,15 @@ class Config(Common):
         '''Prepare actual configuration with overrides resolved.'''
         super().__init__(common)
 
-        # Make a copy of the supplied configuration if defined
-        self.config = self._copy_user_config()
-
-        if not self.config:
-            self.config = copy.deepcopy(Config.default)
-
-        # Check for keymap configuration sanity
         self.key_to_func = {}
 
+        # Make a copy of the supplied configuration if defined
+        self.config = self._copy_user_config()
+        if not self.config:
+            self.config = copy.deepcopy(Config.default)
         for func, key in self.config.items():
             self._check_keymap_conflicts(key, func, True)
-
-        # If there is config override defined, add it
-        if self.vim.call("exists", 'g:nvimgdb_config_override'):
-            override = self.vim.vars['nvimgdb_config_override']
-            if override:
-                for key, val in override.items():
-                    key_val = self._filter_funcref(Config.default, key, val)
-                    self._check_keymap_conflicts(key_val, key, True)
-                    self.config[key] = key_val
-
-        # See whether a global override for a specific configuration
-        # key exists. If so, update the config.
-        for key, _ in Config.default.items():
-            vname = 'nvimgdb_' + key
-            if self.vim.call("exists", 'g:'+vname):
-                val = self.vim.vars[vname]
-                if val:
-                    key_val = self._filter_funcref(Config.default, key, val)
-                    self._check_keymap_conflicts(key_val, key, False)
-                    self.config[key] = key_val
-
+        self._apply_overrides()
         # Remove undefined keys
         self.config = {key: val for key, val in self.config.items() if val}
 
@@ -100,7 +77,29 @@ class Config(Common):
                     config[must_have] = Config.default[must_have]
         return config
 
+    def _apply_overrides(self):
+        # If there is config override defined, add it
+        if self.vim.call("exists", 'g:nvimgdb_config_override'):
+            override = self.vim.vars['nvimgdb_config_override']
+            if override:
+                for key, val in override.items():
+                    key_val = self._filter_funcref(Config.default, key, val)
+                    self._check_keymap_conflicts(key_val, key, True)
+                    self.config[key] = key_val
+
+        # See whether a global override for a specific configuration
+        # key exists. If so, update the config.
+        for key, _ in Config.default.items():
+            vname = 'nvimgdb_' + key
+            if self.vim.call("exists", 'g:'+vname):
+                val = self.vim.vars[vname]
+                if val:
+                    key_val = self._filter_funcref(Config.default, key, val)
+                    self._check_keymap_conflicts(key_val, key, False)
+                    self.config[key] = key_val
+
     def _check_keymap_conflicts(self, key, func, verbose):
+        '''Check for keymap configuration sanity.'''
         if re.match('^key_.*', func):
             prev_func = self.key_to_func.get(key, None)
             if prev_func and prev_func != func:
