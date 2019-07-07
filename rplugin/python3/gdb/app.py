@@ -96,7 +96,7 @@ class App(Common):
     def send(self, *args):
         '''Send a command to the debugger.'''
         if args:
-            command = self.backend.get(args[0], args[0]).format(*args[1:])
+            command = self._get_command(args[0]).format(*args[1:])
             self.client.send_line(command)
             self._last_command = command  # Remember the command for testing
         else:
