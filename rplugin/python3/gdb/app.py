@@ -2,7 +2,6 @@
 
 import importlib
 from gdb.common import Common
-from gdb.config import Config
 from gdb.cursor import Cursor
 from gdb.client import Client
 from gdb.win import Win
@@ -97,7 +96,7 @@ class App(Common):
     def send(self, *args):
         '''Send a command to the debugger.'''
         if args:
-            command = self.backend.get(args[0], args[0]).format(*args[1:])
+            command = self._get_command(args[0]).format(*args[1:])
             self.client.send_line(command)
             self._last_command = command  # Remember the command for testing
         else:
