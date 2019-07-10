@@ -114,3 +114,15 @@ def test_eval(eng, post):
     eng.feed('viW')
     eng.feed(':GdbEvalRange\n')
     assert eng.eval('GdbTestPeek("_last_command")') == 'print(_Foo(i))'
+
+
+def test_expand(eng, post):
+    '''Test launch expand().'''
+    eng.feed(':e main.py\n')    # Open a file to activate %
+    eng.feed(' dp')
+    # Substitute main.py by % and launch
+    eng.feed('<c-w><c-w><c-w>%\n', 300)
+    # Ensure a debugging session has started
+    assert {'cur': 'main.py:1'} == eng.get_signs()
+    # Clean up the main tabpage
+    eng.feed('gt:new\n<c-w>ogt')
