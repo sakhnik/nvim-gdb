@@ -1,3 +1,6 @@
+'''The program injected into LLDB to provide a side channel
+to the plugin.'''
+
 import threading
 import os
 import socket
@@ -7,20 +10,20 @@ import lldb
 
 
 # Get list of enabled breakpoints for a given source file
-def _GetBreaks(fname):
+def _get_breaks(fname):
     breaks = {}
 
     # Ensure target is the actually selected one
     target = lldb.debugger.GetSelectedTarget()
 
     # Consider every breakpoint while skipping over the disabled ones
-    for breakpoint in target.breakpoint_iter():
-        if not breakpoint.IsEnabled():
+    for bpt in target.breakpoint_iter():
+        if not bpt.IsEnabled():
             continue
-        bid = breakpoint.GetID()
+        bid = bpt.GetID()
 
         # Consider every location of a breakpoint
-        for loc in breakpoint:
+        for loc in bpt:
             lineentry = loc.GetAddress().GetLineEntry()
             filespec = lineentry.GetFileSpec()
             filename = filespec.GetFilename()
@@ -40,7 +43,7 @@ def _GetBreaks(fname):
     return json.dumps(breaks)
 
 
-def server(server_address):
+def _server(server_address):
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
     sock.bind(server_address)
 
@@ -51,13 +54,14 @@ def server(server_address):
             if command[0] == "info-breakpoints":
                 fname = command[1]
                 # response_addr = command[3]
-                breaks = _GetBreaks(fname)
+                breaks = _get_breaks(fname)
                 sock.sendto(breaks.encode('utf-8'), 0, addr)
             elif command[0] == "handle-command":
                 try:
                     command_to_handle = " ".join(command[1:]).encode('ascii')
                     return_object = lldb.SBCommandReturnObject()
-                    lldb.debugger.GetCommandInterpreter().HandleCommand(command_to_handle, return_object)
+                    lldb.debugger.GetCommandInterpreter().HandleCommand(
+                        command_to_handle, return_object)
                     result = ''
                     if return_object.GetError():
                         result += return_object.GetError()
@@ -65,8 +69,8 @@ def server(server_address):
                         result += return_object.GetOutput()
                     result = b'' if result is None else result.encode('utf-8')
                     sock.sendto(result.strip(), 0, addr)
-                except Exception as e:
-                    self.log("Exception " + str(e))
+                except Exception as ex:
+                    print("Exception " + str(ex))
     finally:
         try:
             os.unlink(server_address)
@@ -74,7 +78,8 @@ def server(server_address):
             pass
 
 
-def init(debugger, command, result, internal_dict):
+def init(_1, command, _3, _4):
+    '''Entry point.'''
     server_address = command
-    t = threading.Thread(target=server, args=(server_address,))
-    t.start()
+    thrd = threading.Thread(target=_server, args=(server_address,))
+    thrd.start()
