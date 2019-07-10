@@ -46,7 +46,9 @@ endfunction
 
 
 function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
-  call GdbInit(a:backend, a:proxy_cmd, a:client_cmd)
+  "Expand words in the client_cmd to support %, <word> etc
+  let cmd = join(map(split(a:client_cmd), {k, v -> expand(v)}))
+  call GdbInit(a:backend, a:proxy_cmd, cmd)
 
   " Initialize the UI commands, autocommands etc
   call nvimgdb#ui#Enter()
