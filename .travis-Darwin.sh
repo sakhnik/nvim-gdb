@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-source .travis-common.sh
+source .travis-common
 
 mkdir -p "$HOME/bin"
 

@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-source .travis-common.sh
+source .travis-common
 
 ln -sf /usr/bin/python3.7 "$HOME/bin/python3"
 ln -sf /usr/bin/python3.7-config "$HOME/bin/python3-config"
