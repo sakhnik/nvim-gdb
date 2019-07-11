@@ -14,6 +14,8 @@ def test_detect(eng, backend):
     assert eng.wait_signs({'cur': 'test.cpp:17', 'break': {1: [17]}}) is None
 
 
+# pylint: disable=redefined-outer-name
+
 @pytest.fixture(scope='function')
 def cd_tmp():
     '''Fixture to change directory temporarily.'''
