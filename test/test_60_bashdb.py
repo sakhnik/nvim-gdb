@@ -9,6 +9,7 @@ if "bashdb" not in config:
 
 def test_smoke(eng, post):
     '''Test a generic use case.'''
+    assert post
     eng.feed(' db')
     eng.feed('\n', 1500)
 
@@ -43,6 +44,7 @@ def test_smoke(eng, post):
 
 def test_break(eng, post):
     '''Test toggling breakpoints.'''
+    assert post
     eng.feed(' db')
     eng.feed('\n', 1500)
     eng.feed('<esc>')
