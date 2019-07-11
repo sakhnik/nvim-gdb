@@ -1,5 +1,7 @@
 '''Test keymaps configuration.'''
 
+# pylint: disable=redefined-outer-name
+
 import pytest
 
 
@@ -10,12 +12,14 @@ def _launch(eng):
 @pytest.fixture(scope='function')
 def keymap(eng, post):
     '''Fixture to clear custom keymaps.'''
-    yield
+    assert post
+    yield True
     eng.exe('source keymap_cleanup.vim')
 
 
 def test_hooks(eng, keymap):
     '''Test custom programmable keymaps.'''
+    assert keymap
     eng.exe("source keymap_hooks.vim")
     _launch(eng)
 
@@ -36,6 +40,7 @@ def test_hooks(eng, keymap):
 
 def test_conflict(eng, keymap):
     '''Conflicting keymap.'''
+    assert keymap
     eng.exe("let g:nvimgdb_config = {'key_next': '<f5>', 'key_prev': '<f5>'}")
     _launch(eng)
 
@@ -50,6 +55,7 @@ def test_conflict(eng, keymap):
 
 def test_override(eng, keymap):
     '''Override a key.'''
+    assert keymap
     eng.exe("let g:nvimgdb_config_override = {'key_next': '<f2>'}")
     _launch(eng)
     key = eng.eval('get(GdbTestPeekConfig(), "key_next", 0)')
@@ -58,6 +64,7 @@ def test_override(eng, keymap):
 
 def test_override_priority(eng, keymap):
     '''Check that a config override assumes priority in a conflict.'''
+    assert keymap
     eng.exe("let g:nvimgdb_config_override = {'key_next': '<f8>'}")
     _launch(eng)
     res = eng.eval('get(GdbTestPeekConfig(), "key_breakpoint", 0)')
@@ -66,6 +73,7 @@ def test_override_priority(eng, keymap):
 
 def test_override_one(eng, keymap):
     '''Override a single key.'''
+    assert keymap
     eng.exe("let g:nvimgdb_key_next = '<f3>'")
     _launch(eng)
     key = eng.eval('get(GdbTestPeekConfig(), "key_next", 0)')
@@ -74,6 +82,7 @@ def test_override_one(eng, keymap):
 
 def test_override_one_priority(eng, keymap):
     '''Override a single key, priority.'''
+    assert keymap
     eng.exe("let g:nvimgdb_key_next = '<f8>'")
     _launch(eng)
     res = eng.eval('get(GdbTestPeekConfig(), "key_breakpoint", 0)')
@@ -82,6 +91,7 @@ def test_override_one_priority(eng, keymap):
 
 def test_overall(eng, keymap):
     '''Smoke test.'''
+    assert keymap
     eng.exe("let g:nvimgdb_config_override = {'key_next': '<f5>'}")
     eng.exe("let g:nvimgdb_key_step = '<f5>'")
     _launch(eng)
