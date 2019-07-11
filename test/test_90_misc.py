@@ -3,6 +3,7 @@
 
 def test_buffer_keymaps(eng, post):
     '''Ensure that keymaps are defined in the jump window when navigating.'''
+    assert post
 
     def get_map():
         return eng.eval('execute("map <c-n>")')
