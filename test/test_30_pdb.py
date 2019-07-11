@@ -6,6 +6,7 @@ import sys
 
 def test_smoke(eng, post):
     '''Test a generic use case.'''
+    assert post
     eng.feed(' dp')
     eng.feed('\n', 300)
     eng.feed('tbreak _main\n')
@@ -35,6 +36,7 @@ def test_smoke(eng, post):
 
 def test_break(eng, post):
     '''Test toggling breakpoints.'''
+    assert post
     eng.feed(' dp')
     eng.feed('\n', 300)
     eng.feed('<esc>')
@@ -53,6 +55,7 @@ def test_break(eng, post):
 
 def test_navigation(eng, post):
     '''Test toggling breakpoints while navigating.'''
+    assert post
     eng.feed(' dp')
     eng.feed('\n', 300)
     eng.feed('<esc>')
@@ -78,6 +81,7 @@ def test_navigation(eng, post):
 
 def test_until(eng, post):
     '''Test run until line.'''
+    assert post
     eng.feed(' dp')
     eng.feed('\n', 300)
     eng.feed('tbreak _main\n')
@@ -100,6 +104,7 @@ def test_until(eng, post):
 
 def test_eval(eng, post):
     '''Test eval <word>.'''
+    assert post
     eng.feed(' dp')
     eng.feed('\n', 300)
     eng.feed('tbreak _main\n')
@@ -118,6 +123,7 @@ def test_eval(eng, post):
 
 def test_expand(eng, post):
     '''Test launch expand().'''
+    assert post
     eng.feed(':e main.py\n')    # Open a file to activate %
     eng.feed(' dp')
     # Substitute main.py by % and launch

@@ -22,6 +22,7 @@ def test_backend(eng, backend):
 
 def test_pdb(eng, post):
     '''Custom command in PDB.'''
+    assert post
     eng.feed(' dp')
     eng.feed('\n', 300)
     eng.feed('b _Foo\n')
