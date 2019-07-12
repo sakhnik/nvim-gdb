@@ -16,7 +16,7 @@ def eng():
 
 
 BACKENDS = {}
-if "gdb" in config.config:
+if "gdb" in config.BACKEND_NAMES:
     BACKENDS['gdb'] = {
         'name': 'gdb',
         'launch': ' dd\n',
@@ -25,7 +25,7 @@ if "gdb" in config.config:
         'break_bar': 'break Bar\n',
         'launchF': ':GdbStart gdb -q {}\n',
     }
-if "lldb" in config.config:
+if "lldb" in config.BACKEND_NAMES:
     BACKENDS['lldb'] = {
         'name': 'lldb',
         'launch': ' dl\n',

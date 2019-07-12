@@ -1,25 +1,23 @@
 #!/bin/bash -e
 
 # Check the prerequisites
-echo -n "Check for neovim     " && which nvim
-echo -n "Check for python3    " && which python3
+echo -n "Check for neovim     " && command -v nvim
+echo -n "Check for python3    " && command -v python3
 
-echo -n "config = ['XXX'" >| config.py
+echo -n "" >| backends.txt
 
 echo -n "Check for gdb        "
-if which gdb; then
-    echo -n ", 'gdb'" >> config.py
+if command -v gdb; then
+    echo "gdb" >> backends.txt
 fi
 echo -n "Check for lldb       "
-if which lldb; then
-    echo -n ", 'lldb'" >> config.py
+if command -v lldb; then
+    echo "lldb" >> backends.txt
 fi
 echo -n "Check for bashdb     "
-if which bashdb; then
-    echo -n ", 'bashdb'" >> config.py
+if command -v bashdb; then
+    echo "bashdb" >> backends.txt
 fi
-
-echo ']' >> config.py
 
 CXX=g++
 [[ $(uname) == Darwin ]] && CXX=clang++
