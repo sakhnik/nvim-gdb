@@ -1,9 +1,10 @@
 '''Bashdb operation.'''
 
 import pytest
-from config import config
+import config
 
-if "bashdb" not in config:
+
+if "bashdb" not in config.BACKEND_NAMES:
     pytest.skip("skipping bashdb tests", allow_module_level=True)
 
 
