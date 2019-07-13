@@ -25,8 +25,8 @@ def test_pdb(eng, post):
     assert post
     eng.feed(' dp')
     eng.feed('\n', 300)
-    eng.feed('b _Foo\n')
+    eng.feed('b _foo\n')
     eng.feed('cont\n')
-    assert eng.eval("GdbCustomCommand('print(n)')") == "0"
+    assert eng.eval("GdbCustomCommand('print(num)')") == "0"
     eng.feed('cont\n')
-    assert eng.eval("GdbCustomCommand('print(n)')") == "1"
+    assert eng.eval("GdbCustomCommand('print(num)')") == "1"

@@ -59,7 +59,9 @@ def backend(post, request):
 def two_backends(post):
     '''Use two C++ backends at once.'''
     assert post
-    it1 = iter(BACKENDS.values())
-    backend1 = next(it1, None)
-    backend2 = next(it1, backend1)
-    yield backend1, backend2
+    gdb = BACKENDS.get('gdb', None)
+    lldb = BACKENDS.get('lldb', None)
+    if gdb:
+        yield gdb, lldb if lldb else gdb
+    else:
+        yield lldb, lldb

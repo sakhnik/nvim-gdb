@@ -67,12 +67,12 @@ def test_navigation(eng, post):
 
     # Go to another file
     eng.feed(':e lib.py\n')
-    eng.feed(':3\n')
-    eng.feed('<f8>')
-    assert {'cur': 'main.py:1', 'break': {1: [3]}} == eng.get_signs()
     eng.feed(':5\n')
     eng.feed('<f8>')
-    assert {'cur': 'main.py:1', 'break': {1: [3, 5]}} == eng.get_signs()
+    assert {'cur': 'main.py:1', 'break': {1: [5]}} == eng.get_signs()
+    eng.feed(':7\n')
+    eng.feed('<f8>')
+    assert {'cur': 'main.py:1', 'break': {1: [5, 7]}} == eng.get_signs()
 
     # Return to the original file
     eng.feed(':e main.py\n')
@@ -114,11 +114,11 @@ def test_eval(eng, post):
     eng.feed('<f10>')
 
     eng.feed('^<f9>')
-    assert eng.eval('GdbTestPeek("_last_command")') == 'print(_Foo)'
+    assert eng.eval('GdbTestPeek("_last_command")') == 'print(_foo)'
 
     eng.feed('viW')
     eng.feed(':GdbEvalRange\n')
-    assert eng.eval('GdbTestPeek("_last_command")') == 'print(_Foo(i))'
+    assert eng.eval('GdbTestPeek("_last_command")') == 'print(_foo(i))'
 
 
 def test_expand(eng, post):
