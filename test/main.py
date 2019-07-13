@@ -1,19 +1,19 @@
 """Test program."""
 
 
-def _Bar(i):
+def _bar(i):
     return i * 2
 
 
-def _Foo(n):
-    if n == 0:
+def _foo(num):
+    if num == 0:
         return 0
-    return n + _Bar(n - 1)
+    return num + _bar(num - 1)
 
 
 def _main():
     for i in range(10):
-        _Foo(i)
+        _foo(i)
     for i in range(0xffffff):
         pass
 
