@@ -1,5 +1,7 @@
 '''Plugin entry point.'''
 
+# pylint: disable=broad-except
+
 import pynvim
 from gdb.common import BaseCommon, Common
 from gdb.app import App

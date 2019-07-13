@@ -24,14 +24,14 @@ class Breakpoint(Common):
             # Breakpoints need full path to the buffer (at least in lldb)
             bpath = self.vim.call("expand", f'#{buf}:p')
 
-            def get_sign_name(count):
+            def _get_sign_name(count):
                 max_count = len(self.config.get('sign_breakpoint'))
                 idx = count if count < max_count else max_count - 1
                 return f"GdbBreakpoint{idx}"
 
             for line, ids in self.breaks.get(bpath, {}).items():
                 sign_id += 1
-                sign_name = get_sign_name(len(ids))
+                sign_name = _get_sign_name(len(ids))
                 cmd = f'sign place {sign_id} name={sign_name} line={line}' \
                       f' buffer={buf}'
                 self.vim.command(cmd)
