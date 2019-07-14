@@ -1,11 +1,11 @@
 '''GDB specifics.'''
 
 import re
-from gdb.scm import BaseScm
+from gdb.parser import Parser
 
 
-class GdbScm(BaseScm):
-    '''GDB SCM.'''
+class GdbParser(Parser):
+    '''GDB parser and FSM.'''
 
     def __init__(self, common, cursor, win):
         super().__init__(common, cursor, win)
@@ -28,6 +28,6 @@ class GdbScm(BaseScm):
 
 def init():
     '''Initialize the backend.'''
-    return {'initScm': GdbScm,
+    return {'initParser': GdbParser,
             'delete_breakpoints': 'delete',
             'breakpoint': 'break'}

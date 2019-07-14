@@ -54,8 +54,8 @@ class App(Common):
         self.win = Win(common, wjump, self.cursor, self.client,
                        self.breakpoint)
 
-        # Initialize the SCM
-        self.scm = self.backend["initScm"](common, self.cursor, self.win)
+        # Initialize the parser
+        self.parser = self.backend["initParser"](common, self.cursor, self.win)
 
         # Set initial keymaps in the terminal window.
         self.keymaps.dispatch_set_t()
@@ -65,7 +65,7 @@ class App(Common):
         self.vim.feedkeys("i")
 
     def start(self):
-        '''The SCM should be ready by now, spawn the debugger!'''
+        '''The parser should be ready by now, spawn the debugger!'''
         self.client.start()
         self.vim.command("doautocmd User NvimGdbStart")
 
@@ -108,7 +108,7 @@ class App(Common):
 
     def breakpoint_toggle(self):
         '''Toggle breakpoint in the cursor line.'''
-        if self.scm.is_running():
+        if self.parser.is_running():
             # pause first
             self.client.interrupt()
         buf = self.vim.current.buffer
@@ -126,7 +126,7 @@ class App(Common):
 
     def breakpoint_clear_all(self):
         '''Clear all breakpoints.'''
-        if self.scm.is_running():
+        if self.parser.is_running():
             # pause first
             self.client.interrupt()
         # The breakpoint signs will be requeried later automatically
@@ -135,7 +135,7 @@ class App(Common):
     def on_tab_enter(self):
         '''Actions to execute when a tabpage is entered.'''
         # Restore the signs as they may have been spoiled
-        if self.scm.is_paused():
+        if self.parser.is_paused():
             self.cursor.show()
         # Ensure breakpoints are shown if are queried dynamically
         self.win.query_breakpoints()

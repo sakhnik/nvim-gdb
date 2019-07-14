@@ -84,15 +84,15 @@ class Gdb(Common):
         except Exception as ex:
             self.log('GdbBreakpointClearAll: ' + str(ex))
 
-    @pynvim.function('GdbScmFeed')
-    def gdb_scm_feed(self, args):
-        '''Command GdbScmFeed.'''
+    @pynvim.function('GdbParserFeed')
+    def gdb_parser_feed(self, args):
+        '''Command GdbParserFeed.'''
         try:
             tab = args[0]
             app = self.apps[tab]
-            app.scm.feed(args[1])
+            app.parser.feed(args[1])
         except Exception as ex:
-            self.log('GdbScmFeed: ' + str(ex))
+            self.log('GdbParserFeed: ' + str(ex))
 
     @pynvim.function('GdbCallAsync')
     def gdb_call_async(self, args):

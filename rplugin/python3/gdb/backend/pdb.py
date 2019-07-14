@@ -1,11 +1,11 @@
 '''PDB specifics.'''
 
 import re
-from gdb.scm import BaseScm
+from gdb.parser import Parser
 
 
-class PdbScm(BaseScm):
-    '''PDB SCM.'''
+class PdbParser(Parser):
+    '''PDB parser and FSM.'''
     def __init__(self, common, cursor, backend):
         super().__init__(common, cursor, backend)
         self.add_trans(self.paused,
@@ -19,7 +19,7 @@ class PdbScm(BaseScm):
 
 def init():
     '''Initialize the backend.'''
-    return {'initScm': PdbScm,
+    return {'initParser': PdbParser,
             'delete_breakpoints': 'clear',
             'breakpoint': 'break',
             'finish': 'return',
