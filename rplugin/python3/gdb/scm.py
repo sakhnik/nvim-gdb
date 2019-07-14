@@ -7,6 +7,7 @@ class BaseScm(Common):
     '''Common SCM implementation for the integrated backends.'''
     def __init__(self, common, cursor, win):
         super().__init__(common)
+        self.vim = common.vim
         self.cursor = cursor
         self.win = win
         self.running = []  # The running state [(matcher, matchingFunc)]
