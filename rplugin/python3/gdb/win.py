@@ -1,6 +1,6 @@
 '''.'''
 
-from pynvim import NvimError
+from pynvim import NvimError  # type: ignore
 from gdb.common import Common
 
 

@@ -2,7 +2,7 @@
 
 # pylint: disable=broad-except
 
-import pynvim
+import pynvim   # type: ignore
 from gdb.common import BaseCommon, Common
 from gdb.app import App
 from gdb.config import Config

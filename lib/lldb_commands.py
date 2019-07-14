@@ -6,6 +6,7 @@ import os
 import socket
 import re
 import json
+# pylint: disable=import-error
 import lldb
 
 
@@ -57,6 +58,7 @@ def _server(server_address):
                 breaks = _get_breaks(fname)
                 sock.sendto(breaks.encode('utf-8'), 0, addr)
             elif command[0] == "handle-command":
+                # pylint: disable=broad-except
                 try:
                     command_to_handle = " ".join(command[1:]).encode('ascii')
                     return_object = lldb.SBCommandReturnObject()

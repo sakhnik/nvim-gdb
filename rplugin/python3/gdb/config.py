@@ -1,5 +1,5 @@
 '''Calculate current configuration from the defaults, Vim variables
-   overrides and overloads.'''
+    overrides and overloads.'''
 
 import copy
 import re
@@ -65,6 +65,7 @@ class Config(Common):
         if self.vim.call("exists", 'g:nvimgdb_config'):
             config = self.vim.vars['nvimgdb_config']
             for key, val in config.items():
+                # pylint: disable=broad-except
                 try:
                     config[key] = self._filter_funcref(Config.default,
                                                        key, val)
