@@ -4,6 +4,7 @@ import importlib
 from gdb.common import Common
 from gdb.cursor import Cursor
 from gdb.client import Client
+from gdb.debugger import Debugger
 from gdb.win import Win
 from gdb.keymaps import Keymaps
 from gdb.proxy import Proxy
@@ -56,6 +57,8 @@ class App(Common):
 
         # Initialize the parser
         self.parser = self.backend["initParser"](common, self.cursor, self.win)
+
+        self.debugger = Debugger(common, self.parser, self.client)
 
         # Set initial keymaps in the terminal window.
         self.keymaps.dispatch_set_t()
@@ -118,8 +121,7 @@ class App(Common):
 
         if breaks:
             # There already is a breakpoint on this line: remove
-            del_br = self._get_command('delete_breakpoints')
-            self.client.send_line(f"{del_br} {breaks[-1]}")
+            self.debugger.delete_breakpoint(breaks[-1])
         else:
             set_br = self._get_command('breakpoint')
             self.client.send_line(f"{set_br} {file_name}:{line_nr}")
