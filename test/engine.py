@@ -102,5 +102,5 @@ class Engine:
 
     def wait_paused(self, deadline=2000):
         '''Wait until the SCM goes into the paused state.'''
-        return self.wait_equal(lambda: self.eval("GdbCall('scm.is_aused')"),
+        return self.wait_equal(lambda: self.eval("GdbCall('scm.is_paused')"),
                                True, deadline)
