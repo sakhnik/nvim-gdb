@@ -107,7 +107,14 @@ class Gdb(Common):
 
     @pynvim.function('GdbCall', sync=True)
     def gdb_call(self, args):
-        '''Command GdbCall.'''
+        '''
+        Reads a period separated list of words and invokes the corresponding
+        method on the `App` class.
+            e.g.
+                self.gdb_call(['custom_command'] + args)
+                  maps to
+                self.app.custom_command(args)
+        '''
         try:
             obj = self._get_app()
             for name in args[0].split('.'):
