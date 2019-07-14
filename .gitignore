@@ -3,3 +3,4 @@ a.out
 .ropeproject/
 __pycache__/
 .mypy_cache/
+*.pyc
