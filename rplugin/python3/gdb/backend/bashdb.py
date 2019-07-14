@@ -1,11 +1,11 @@
 '''BashDB specifics.'''
 
 import re
-from gdb.scm import BaseScm
+from gdb.parser import Parser
 
 
-class BashDBScm(BaseScm):
-    '''BashDB SCM.'''
+class BashDBParser(Parser):
+    '''BashDB FSM.'''
 
     def __init__(self, common, cursor, win):
         super().__init__(common, cursor, win)
@@ -25,6 +25,6 @@ class BashDBScm(BaseScm):
 
 def init():
     '''Initialize the backend.'''
-    return {'initScm': BashDBScm,
+    return {'initParser': BashDBParser,
             'delete_breakpoints': 'delete',
             'breakpoint': 'break'}

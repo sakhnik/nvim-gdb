@@ -291,7 +291,7 @@ Section 9: Development                                    *NvimgdbDevelopment*
                                                              *NVIMGDB_LOGKEYS*
 - To enable logging, define the following environment variables:
   - `NVIMGDB_LOGFILE` the file to write the logs to
-  - `NVIMGDB_LOGKEYS` a comma-separated list of log keys, e.g.: scm,app
+  - `NVIMGDB_LOGKEYS` a comma-separated list of log keys, e.g.: parser,app
   The list of available keys can be obtained from the source code.
 
 - The keymaps are defined buffer-local for every buffer when it's entered,

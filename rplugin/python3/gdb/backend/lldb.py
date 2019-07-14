@@ -1,11 +1,11 @@
 '''LLDB specifics.'''
 
 import re
-from gdb.scm import BaseScm
+from gdb.parser import Parser
 
 
-class LldbScm(BaseScm):
-    '''LLDB SCM.'''
+class LldbParser(Parser):
+    '''LLDB parser and FSM.'''
     def __init__(self, common, cursor, win):
         super().__init__(common, cursor, win)
 
@@ -30,7 +30,7 @@ class LldbScm(BaseScm):
 
 def init():
     '''Initialize the backend.'''
-    return {'initScm': LldbScm,
+    return {'initParser': LldbParser,
             'delete_breakpoints': 'breakpoint delete',
             'breakpoint': 'b',
             'until {}': 'thread until {}'}

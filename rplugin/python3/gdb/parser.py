@@ -3,8 +3,8 @@
 from gdb.common import Common
 
 
-class BaseScm(Common):
-    '''Common SCM implementation for the integrated backends.'''
+class Parser(Common):
+    '''Common FSM implementation for the integrated backends.'''
     def __init__(self, common, cursor, win):
         super().__init__(common)
         self.cursor = cursor
@@ -21,11 +21,11 @@ class BaseScm(Common):
         state.append((matcher, func))
 
     def is_paused(self):
-        '''Test whether the SCM is in the paused state.'''
+        '''Test whether the FSM is in the paused state.'''
         return self.state == self.paused
 
     def is_running(self):
-        '''Test whether the SCM is in the running state.'''
+        '''Test whether the FSM is in the running state.'''
         return self.state == self.running
 
     def _get_state_name(self):
@@ -74,7 +74,7 @@ class BaseScm(Common):
         return False
 
     def feed(self, lines):
-        '''Process a line of the debugger output through the SCM.'''
+        '''Process a line of the debugger output through the FSM.'''
         for line in lines:
             self.log(line)
             if line:
