@@ -6,8 +6,7 @@ import os
 import socket
 import re
 import json
-# pylint: disable=import-error
-import lldb
+import lldb  # type: ignore
 
 
 # Get list of enabled breakpoints for a given source file
