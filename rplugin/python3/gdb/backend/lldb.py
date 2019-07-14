@@ -6,6 +6,7 @@ from gdb.parser import Parser
 
 class LldbParser(Parser):
     '''LLDB parser and FSM.'''
+
     def __init__(self, common, cursor, win):
         super().__init__(common, cursor, win)
 
@@ -27,10 +28,9 @@ class LldbParser(Parser):
 
         self.state = self.running
 
-
-def init():
-    '''Initialize the backend.'''
-    return {'initParser': LldbParser,
+        self.command_map = {
+            'initParser': LldbParser,
             'delete_breakpoints': 'breakpoint delete',
             'breakpoint': 'b',
-            'until {}': 'thread until {}'}
+            'until {}': 'thread until {}'
+        }

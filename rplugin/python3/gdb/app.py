@@ -1,6 +1,5 @@
 '''.'''
 
-import importlib
 from gdb.common import Common
 from gdb.cursor import Cursor
 from gdb.client import Client
@@ -9,9 +8,15 @@ from gdb.keymaps import Keymaps
 from gdb.proxy import Proxy
 from gdb.breakpoint import Breakpoint
 
+from gdb.backend.gdb import GdbParser
+from gdb.backend.pdb import PdbParser
+from gdb.backend.lldb import LldbParser
+from gdb.backend.bashdb import BashDBParser
+
 
 class App(Common):
     '''Main application class.'''
+
     def __init__(self, common, backendStr, proxyCmd, clientCmd):
         super().__init__(common)
         self._last_command = None
@@ -29,11 +34,6 @@ class App(Common):
         # Enumerate the available windows
         wins = self.vim.current.tabpage.windows
         wcli, wjump = wins[1], wins[0]
-
-        # Import the desired backend module
-        self.backend = importlib \
-            .import_module("gdb.backend." + backendStr) \
-            .init()
 
         # Initialize current line tracking
         self.cursor = Cursor(common)
@@ -54,8 +54,17 @@ class App(Common):
         self.win = Win(common, wjump, self.cursor, self.client,
                        self.breakpoint)
 
+        # Get the selected backend module
+        backend_maps = {
+            "gdb": GdbParser,
+            "bashdb": BashDBParser,
+            "lldb": LldbParser,
+            "pdb": PdbParser
+        }
+        backend_class = backend_maps[backendStr]
+
         # Initialize the parser
-        self.parser = self.backend["initParser"](common, self.cursor, self.win)
+        self.parser = backend_class(common, self.cursor, self.win)
 
         # Set initial keymaps in the terminal window.
         self.keymaps.dispatch_set_t()
@@ -91,7 +100,7 @@ class App(Common):
         self.client.cleanup()
 
     def _get_command(self, cmd):
-        return self.backend.get(cmd, cmd)
+        return self.parser.command_map.get(cmd, cmd)
 
     def send(self, *args):
         '''Send a command to the debugger.'''
