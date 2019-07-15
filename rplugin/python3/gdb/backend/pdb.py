@@ -6,6 +6,7 @@ from gdb.parser import Parser
 
 class PdbParser(Parser):
     '''PDB parser and FSM.'''
+
     def __init__(self, common, cursor, backend):
         super().__init__(common, cursor, backend)
         self.add_trans(self.paused,
@@ -16,11 +17,9 @@ class PdbParser(Parser):
                        self._query_b)
         self.state = self.paused
 
-
-def init():
-    '''Initialize the backend.'''
-    return {'initParser': PdbParser,
+        self.command_map = {
             'delete_breakpoints': 'clear',
             'breakpoint': 'break',
             'finish': 'return',
-            'print {}': 'print({})'}
+            'print {}': 'print({})'
+        }

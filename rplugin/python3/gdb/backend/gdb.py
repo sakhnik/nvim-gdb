@@ -25,9 +25,7 @@ class GdbParser(Parser):
 
         self.state = self.running
 
-
-def init():
-    '''Initialize the backend.'''
-    return {'initParser': GdbParser,
+        self.command_map = {
             'delete_breakpoints': 'delete',
-            'breakpoint': 'break'}
+            'breakpoint': 'break'
+        }

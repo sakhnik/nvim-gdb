@@ -18,13 +18,11 @@ class BashDBParser(Parser):
         self.add_trans(self.paused, re_term, self._handle_terminated)
         self.state = self.paused
 
+        self.command_map = {
+            'delete_breakpoints': 'delete',
+            'breakpoint': 'break'
+        }
+
     def _handle_terminated(self, _):
         self.cursor.hide()
         return self.paused
-
-
-def init():
-    '''Initialize the backend.'''
-    return {'initParser': BashDBParser,
-            'delete_breakpoints': 'delete',
-            'breakpoint': 'break'}
