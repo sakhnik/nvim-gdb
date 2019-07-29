@@ -1,7 +1,7 @@
 '''Plugin entry point.'''
 
 # pylint: disable=broad-except
-
+import re
 import pynvim   # type: ignore
 from gdb.common import BaseCommon, Common
 from gdb.app import App
@@ -16,6 +16,7 @@ class Gdb(Common):
         common = BaseCommon(vim, Logger(), None)
         super().__init__(common)
         self.apps = {}
+        self.ansi_escaper = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
 
     def _get_app(self):
         return self.apps[self.vim.current.tabpage.handle]
@@ -87,10 +88,14 @@ class Gdb(Common):
     @pynvim.function('GdbParserFeed')
     def gdb_parser_feed(self, args):
         '''Command GdbParserFeed.'''
+
         try:
             tab = args[0]
             app = self.apps[tab]
-            app.parser.feed(args[1])
+            content = args[1]
+            for i, ele in enumerate(content):
+                content[i] = self.ansi_escaper.sub('', ele)
+            app.parser.feed(content)
         except Exception as ex:
             self.log('GdbParserFeed: ' + str(ex))
 
