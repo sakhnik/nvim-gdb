@@ -42,4 +42,4 @@ cleanup()
 trap cleanup EXIT
 
 # Execute lldb finally with our custom initialization script
-"$lldb" --no-use-colors -S "$lldb_init" "$@"
+"$lldb" -S "$lldb_init" "$@"
