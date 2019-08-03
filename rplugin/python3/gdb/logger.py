@@ -13,7 +13,7 @@ class Logger:
 
     def log(self, key, msg):
         '''Log a message identified by the key.'''
-        if self.fout and key in self.keys:
+        if self.fout and (not self.keys or key in self.keys):
             self.fout.write(f'[{key}] {msg}\n')
             self.fout.flush()
 
