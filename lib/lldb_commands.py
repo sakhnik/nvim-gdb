@@ -17,13 +17,15 @@ def _get_breaks(fname):
     target = lldb.debugger.GetSelectedTarget()
 
     # Consider every breakpoint while skipping over the disabled ones
-    for bpt in target.breakpoint_iter():
+    for bidx in range(target.GetNumBreakpoints()):
+        bpt = target.GetBreakpointAtIndex(bidx)
         if not bpt.IsEnabled():
             continue
         bid = bpt.GetID()
 
         # Consider every location of a breakpoint
-        for loc in bpt:
+        for lidx in range(bpt.GetNumLocations()):
+            loc = bpt.GetLocationAtIndex(lidx)
             lineentry = loc.GetAddress().GetLineEntry()
             filespec = lineentry.GetFileSpec()
             filename = filespec.GetFilename()
