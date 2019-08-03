@@ -10,7 +10,7 @@ class LldbParser(Parser):
     def __init__(self, common, cursor, win):
         super().__init__(common, cursor, win)
 
-        re_prompt = re.compile(r'[\r\n]\(lldb\) $')
+        re_prompt = re.compile(r'\s\(lldb\) $')
         self.add_trans(self.paused,
                        re.compile(r'[\r\n]Process \d+ resuming'),
                        self._paused_continue)
