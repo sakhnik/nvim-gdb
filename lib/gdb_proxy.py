@@ -42,17 +42,18 @@ class GdbProxy(BaseProxy):
                 fields = re.split(r"\s+", line)
                 if fields[3] == 'y':    # Is enabled?
                     match = pattern.fullmatch(fields[-1])   # file.cpp:line
-                    if match:
-                        is_end_match = last_src.endswith(match.group(1))
-                        is_end_match_full_path = \
-                            last_src.endswith(os.path.realpath(match.group(1)))
-                        if (match and (is_end_match or is_end_match_full_path)):
-                            line = match.group(2)
-                            br_id = float(fields[0])
-                            try:
-                                breaks[line].append(br_id)
-                            except KeyError:
-                                breaks[line] = [br_id]
+                    if not match:
+                        continue
+                    is_end_match = last_src.endswith(match.group(1))
+                    is_end_match_full_path = \
+                        last_src.endswith(os.path.realpath(match.group(1)))
+                    if (match and (is_end_match or is_end_match_full_path)):
+                        line = match.group(2)
+                        br_id = fields[0]
+                        try:
+                            breaks[line].append(br_id)
+                        except KeyError:
+                            breaks[line] = [br_id]
             except IndexError:
                 continue
             except ValueError as ex:
