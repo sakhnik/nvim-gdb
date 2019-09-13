@@ -37,7 +37,7 @@ class PdbProxy(BaseProxy):
         for line in response.decode('utf-8').splitlines():
             try:
                 tokens = re.split(r'\s+', line)
-                bid = int(tokens[0])
+                bid = tokens[0]
                 if tokens[1] != 'breakpoint':
                     continue
                 if tokens[3] != 'yes':
