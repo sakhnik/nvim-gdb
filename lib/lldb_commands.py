@@ -21,7 +21,7 @@ def _get_breaks(fname):
         bpt = target.GetBreakpointAtIndex(bidx)
         if not bpt.IsEnabled():
             continue
-        bid = bpt.GetID()
+        bid = str(bpt.GetID())
 
         # Consider every location of a breakpoint
         for lidx in range(bpt.GetNumLocations()):

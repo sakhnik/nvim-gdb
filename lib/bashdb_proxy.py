@@ -42,7 +42,7 @@ class BashDbProxy(BaseProxy):
                     match = pattern.fullmatch(fields[-1])   # file.cpp:line
                     if match and match.group(1) == last_src:
                         line = match.group(2)
-                        br_id = int(fields[0])
+                        br_id = fields[0]
                         try:
                             breaks[line].append(br_id)
                         except KeyError:
