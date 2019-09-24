@@ -38,7 +38,7 @@ class Engine:
     def get_signs(self):
         """Get pointer position and list of breakpoints."""
 
-        out = self.nvim.eval('execute("sign place")')
+        out = self.nvim.eval('execute("sign place group=NvimGdb")')
 
         fname = None   # Filename where the current line sign is
         cur = None  # The return value from the function in the form fname:line
@@ -47,7 +47,7 @@ class Engine:
             if match:
                 fname = os.path.basename(match.group(1))
                 continue
-            match = re.match(r'    line=(\d+)\s+id=\d+\s+name=GdbCurrentLine',
+            match = re.match(r'    line=(\d+)\s+id=\d+\s+group=NvimGdb\s+name=GdbCurrentLine\s+priority=20',
                              line)
             if match:
                 # There can be only one current line sign
@@ -60,7 +60,7 @@ class Engine:
         breaks = {}
         for num in range(1, 11):
             lines = re.findall(
-                r'line=(\d+)\s+id=\d+\s+name=GdbBreakpoint' + str(num),
+                r'line=(\d+)\s+id=\d+\s+group=NvimGdb\s+name=GdbBreakpoint' + str(num),
                 out)
             lines = sorted([int(l) for l in lines])
             if lines:

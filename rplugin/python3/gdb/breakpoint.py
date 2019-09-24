@@ -15,7 +15,7 @@ class Breakpoint(Common):
     def clear_signs(self):
         '''Clear all breakpoint signs.'''
         for i in range(5000, self.max_sign_id + 1):
-            self.vim.command(f'sign unplace {i}')
+            self.vim.call('sign_unplace', 'NvimGdb', {'id': i})
         self.max_sign_id = 0
 
     def _set_signs(self, buf):
@@ -32,9 +32,8 @@ class Breakpoint(Common):
             for line, ids in self.breaks.get(bpath, {}).items():
                 sign_id += 1
                 sign_name = _get_sign_name(len(ids))
-                cmd = f'sign place {sign_id} name={sign_name} line={line}' \
-                      f' buffer={buf}'
-                self.vim.command(cmd)
+                self.vim.call('sign_place', sign_id, 'NvimGdb', sign_name, buf,
+                        {'lnum': line, 'priority': 10})
             self.max_sign_id = sign_id
 
     def query(self, buf_num, fname):

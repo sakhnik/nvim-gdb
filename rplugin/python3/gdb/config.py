@@ -114,12 +114,12 @@ class Config(Common):
 
     def _define_signs(self):
         # Define the sign for current line the debugged program is executing.
-        self.vim.command("sign define GdbCurrentLine text="
-                         + self.config["sign_current_line"])
+        self.vim.call('sign_define', 'GdbCurrentLine',
+                {'text': self.config["sign_current_line"]})
         # Define signs for the breakpoints.
         breaks = self.config["sign_breakpoint"]
         for i, brk in enumerate(breaks):
-            self.vim.command(f'sign define GdbBreakpoint{i+1} text={brk}')
+            self.vim.call('sign_define', f'GdbBreakpoint{i+1}', {'text': brk})
 
     def get(self, key):
         '''Get the configuration value by key.'''
