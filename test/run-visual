@@ -8,7 +8,7 @@ export NVIM_LISTEN_ADDRESS=$temp_dir/sock
 >visual.log
 
 # Run the test suite with a visible neovim
-LANG=en_US.UTF-8 nvim -n -u init.vim --listen "$NVIM_LISTEN_ADDRESS" &
+nvim -n -u init.vim --listen "$NVIM_LISTEN_ADDRESS" &
 
 cleanup()
 {
@@ -20,7 +20,7 @@ cleanup()
 }
 trap cleanup EXIT
 
-for i in $(seq 0 10); do
+for _ in $(seq 0 10); do
     test -S "$NVIM_LISTEN_ADDRESS" && break
     sleep 0.1
 done
