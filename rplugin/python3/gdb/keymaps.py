@@ -60,7 +60,7 @@ class Keymaps(Common):
                                  rf' <c-\><c-n>{cmd}<cr>i')
             except Exception as ex:
                 self.log(f'Exception: {str(ex)}')
-        self.vim.command(r'tnoremap <silent> <buffer> <esc> <c-\><c-n>')
+        self.vim.command(r'tnoremap <silent> <buffer> <esc> <c-\><c-n>G')
 
     def _dispatch(self, key):
         try:
