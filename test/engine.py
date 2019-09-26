@@ -38,35 +38,25 @@ class Engine:
     def get_signs(self):
         """Get pointer position and list of breakpoints."""
 
-        out = self.nvim.eval('execute("sign place")')
-
-        fname = None   # Filename where the current line sign is
-        cur = None  # The return value from the function in the form fname:line
-        for line in out.splitlines():
-            match = re.match(r'Signs for ([^:]+):', line)
-            if match:
-                fname = os.path.basename(match.group(1))
-                continue
-            match = re.match(r'    line=(\d+)\s+id=\d+\s+name=GdbCurrentLine',
-                             line)
-            if match:
-                # There can be only one current line sign
-                assert cur is None
-                cur = "%s:%s" % (fname, match.group(1))
-
         ret = {}
-        if cur:
-            ret["cur"] = cur
-        breaks = {}
-        for num in range(1, 11):
-            lines = re.findall(
-                r'line=(\d+)\s+id=\d+\s+name=GdbBreakpoint' + str(num),
-                out)
-            lines = sorted([int(l) for l in lines])
-            if lines:
-                breaks[num] = lines
-        if breaks:
-            ret['break'] = breaks
+
+        for bnum in self.eval('nvim_list_bufs()'):
+            out = self.eval(f'sign_getplaced({bnum}, {{"group": "NvimGdb"}})')
+            breaks = {}
+            for bsigns in out:
+                for signs in bsigns['signs']:
+                    sname = signs['name']
+                    if sname == 'GdbCurrentLine':
+                        bname = os.path.basename(self.eval(f"bufname({bnum})"))
+                        ret["cur"] = f'{bname}:{signs["lnum"]}'
+                    if sname.startswith('GdbBreakpoint'):
+                        num = int(sname[len('GdbBreakpoint'):])
+                        try:
+                            breaks[num].append(signs["lnum"])
+                        except KeyError:
+                            breaks[num] = [signs["lnum"]]
+            if breaks:
+                ret['break'] = breaks
         return ret
 
     def feed(self, keys, delay=100):

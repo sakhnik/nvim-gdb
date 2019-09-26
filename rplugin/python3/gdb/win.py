@@ -59,6 +59,4 @@ class Win(Common):
         if fname and fname.find(' ') == -1:
             # Query the breakpoints for the shown file
             self.breakpoint.query(buf_num, fname)
-            # If there was a cursor, make sure it stays above the breakpoints.
-            self.cursor.reshow()
             self.vim.command("redraw")
