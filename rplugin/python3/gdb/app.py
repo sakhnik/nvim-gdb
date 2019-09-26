@@ -175,3 +175,5 @@ class App(Common):
         '''Actions to execute when a buffer is left.'''
         if self.vim.current.buffer.options['buftype'] != 'terminal':
             self.keymaps.dispatch_unset()
+        else:
+            self.vim.command("normal G")
