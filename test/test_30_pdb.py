@@ -4,9 +4,10 @@ import os
 import sys
 
 
-def test_smoke(eng, post):
+def test_smoke(eng, post, terminal_end):
     '''Test a generic use case.'''
     assert post
+    assert terminal_end
     eng.feed(' dp')
     eng.feed('\n', 300)
     eng.feed('tbreak _main\n')
@@ -34,9 +35,10 @@ def test_smoke(eng, post):
     assert eng.wait_signs({'cur': 'main.py:1'}, 1500) is None
 
 
-def test_break(eng, post):
+def test_break(eng, post, terminal_end):
     '''Test toggling breakpoints.'''
     assert post
+    assert terminal_end
     eng.feed(' dp')
     eng.feed('\n', 300)
     eng.feed('<esc>')
@@ -53,9 +55,10 @@ def test_break(eng, post):
     assert eng.wait_signs({'cur': 'main.py:5'}) is None
 
 
-def test_navigation(eng, post):
+def test_navigation(eng, post, terminal_end):
     '''Test toggling breakpoints while navigating.'''
     assert post
+    assert terminal_end
     eng.feed(' dp')
     eng.feed('\n', 300)
     eng.feed('<esc>')
@@ -79,9 +82,10 @@ def test_navigation(eng, post):
     assert {'cur': 'main.py:1', 'break': {1: [5]}} == eng.get_signs()
 
 
-def test_until(eng, post):
+def test_until(eng, post, terminal_end):
     '''Test run until line.'''
     assert post
+    assert terminal_end
     eng.feed(' dp')
     eng.feed('\n', 300)
     eng.feed('tbreak _main\n')
@@ -102,9 +106,10 @@ def test_until(eng, post):
         assert signs['cur']
 
 
-def test_eval(eng, post):
+def test_eval(eng, post, terminal_end):
     '''Test eval <word>.'''
     assert post
+    assert terminal_end
     eng.feed(' dp')
     eng.feed('\n', 300)
     eng.feed('tbreak _main\n')

@@ -43,7 +43,7 @@ def test_smoke(eng, post):
     assert eng.wait_signs({}, 1500) is None
 
 
-def test_break(eng, post):
+def test_break(eng, post, terminal_end):
     '''Test toggling breakpoints.'''
     assert post
     eng.feed(' db')
