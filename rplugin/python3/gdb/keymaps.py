@@ -11,6 +11,10 @@ class Keymaps(Common):
         super().__init__(common)
         self.dispatch_active = True
 
+    def set_dispatch_active(self, state):
+        '''Turn on/off keymaps manipulation.'''
+        self.dispatch_active = state
+
     default = {
         ('n', 'key_until', ':GdbUntil'),
         ('n', 'key_continue', ':GdbContinue'),

@@ -8,9 +8,10 @@ if "bashdb" not in config.BACKEND_NAMES:
     pytest.skip("skipping bashdb tests", allow_module_level=True)
 
 
-def test_smoke(eng, post):
+def test_smoke(eng, post, terminal_end):
     '''Test a generic use case.'''
     assert post
+    assert terminal_end
     eng.feed(' db')
     eng.feed('\n', 1500)
 
@@ -46,6 +47,7 @@ def test_smoke(eng, post):
 def test_break(eng, post, terminal_end):
     '''Test toggling breakpoints.'''
     assert post
+    assert terminal_end
     eng.feed(' db')
     eng.feed('\n', 1500)
     eng.feed('<esc>')

@@ -52,7 +52,7 @@ class App(Common):
 
         # Initialize the windowing subsystem
         self.win = Win(common, wjump, self.cursor, self.client,
-                       self.breakpoint)
+                       self.breakpoint, self.keymaps)
 
         # Get the selected backend module
         backend_maps = {
