@@ -1,6 +1,6 @@
 [DESIGN]
 max-attributes=9
-max-args=6
+max-args=7
 
 [TYPECHECK]
 ignored-modules=pytest,pynvim,lldb

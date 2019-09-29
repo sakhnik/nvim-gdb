@@ -37,21 +37,34 @@ if "lldb" in config.BACKEND_NAMES:
 
 
 @pytest.fixture(scope="function")
+def terminal_end(eng):
+    '''Check that the terminal cursor is on the last line.'''
+    yield True
+    cursor_line = eng.eval("GdbTestPeek('client', 'win', 'cursor')")[0]
+    last_line = eng.eval("GdbTestPeek('client', 'win', 'buffer', 'api', "
+                         "'line_count')")
+    assert cursor_line == last_line
+
+
+@pytest.fixture(scope="function")
 def post(eng):
     '''Prepare and check tabpages for every test.
        Quit debugging and do post checks.'''
+
     while eng.eval("tabpagenr('$')") > 1:
         eng.exe('tabclose $')
     yield True
+
     eng.exe("GdbDebugStop")
     assert eng.eval("tabpagenr('$')") == 1
     assert {} == eng.get_signs()
 
 
 @pytest.fixture(scope="function", params=BACKENDS.values())
-def backend(post, request):
+def backend(post, request, terminal_end):
     '''Parametrized tests with C++ backends.'''
     assert post
+    assert terminal_end
     yield request.param
 
 
