@@ -4,6 +4,7 @@ to the plugin.'''
 import threading
 import os
 import socket
+import sys
 import re
 import json
 import lldb  # type: ignore
@@ -61,7 +62,9 @@ def _server(server_address):
             elif command[0] == "handle-command":
                 # pylint: disable=broad-except
                 try:
-                    command_to_handle = " ".join(command[1:]).encode('ascii')
+                    command_to_handle = " ".join(command[1:])
+                    if sys.version_info < (3, 0):
+                        command_to_handle = command_to_handle.encode('ascii')
                     return_object = lldb.SBCommandReturnObject()
                     lldb.debugger.GetCommandInterpreter().HandleCommand(
                         command_to_handle, return_object)
