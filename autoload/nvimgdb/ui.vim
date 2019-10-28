@@ -69,14 +69,9 @@ function! nvimgdb#ui#Enter()
     call s:DefineCommands()
     augroup NvimGdb
       au!
-      " Unfortunately, there is no event to handle a window closed.
-      " It's needed to be handled heuristically:
-      "   When :quit is executed, the cursor will enter another buffer
-      au WinEnter * call nvimgdb#CheckWindowClosed()
       "   When :only is executed, BufWinLeave will be issued before closing
       "   window. We start a timer expecting it to expire after the window
       "   has been closed. It's a race.
-      au BufWinLeave * call timer_start(100, "nvimgdb#CheckWindowClosed")
       au TabEnter * call GdbHandleEvent("on_tab_enter")
       au TabLeave * call GdbHandleEvent("on_tab_leave")
       au BufEnter * call GdbHandleEvent("on_buf_enter")
