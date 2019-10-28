@@ -1,6 +1,10 @@
 '''.'''
 
 import os
+from typing import Optional
+
+import pynvim
+
 from gdb.common import Common
 from gdb.sockdir import SockDir
 
@@ -14,10 +18,10 @@ class Client(Common):
             path = os.path.dirname(path)
         return path
 
-    def __init__(self, common, win, proxy_cmd, client_cmd):
+    def __init__(self, common: Common, win: pynvim.api.Window, proxy_cmd: str, client_cmd: str):
         super().__init__(common)
         self.win = win
-        self.client_id = None
+        self.client_id: Optional[int] = None
         # Create a temporary unique directory for all the sockets.
         self.sock_dir = SockDir()
 
@@ -64,7 +68,7 @@ class Client(Common):
         '''Execute one command on the debugger interpreter.'''
         self.vim.call("jobsend", self.client_id, data + "\n")
 
-    def get_buf(self):
+    def get_buf(self) -> pynvim.api.Buffer:
         '''Get the client terminal buffer.'''
         return self.client_buf
 

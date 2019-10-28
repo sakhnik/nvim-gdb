@@ -2,9 +2,12 @@
 
 # pylint: disable=broad-except
 import re
-import pynvim   # type: ignore
-from gdb.common import BaseCommon, Common
+from typing import Dict, List, Union
+
+import pynvim  # type: ignore
+
 from gdb.app import App
+from gdb.common import BaseCommon, Common
 from gdb.config import Config
 from gdb.logger import Logger
 
@@ -12,17 +15,18 @@ from gdb.logger import Logger
 @pynvim.plugin
 class Gdb(Common):
     '''Plugin implementation.'''
-    def __init__(self, vim):
+
+    def __init__(self, vim: pynvim.api.nvim.Nvim):
         common = BaseCommon(vim, Logger(), None)
         super().__init__(common)
-        self.apps = {}
+        self.apps: Dict[int, App] = {}
         self.ansi_escaper = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
 
     def _get_app(self):
         return self.apps[self.vim.current.tabpage.handle]
 
     @pynvim.function('GdbInit', sync=True)
-    def gdb_init(self, args):
+    def gdb_init(self, args: List[str]):
         '''Command GdbInit.'''
         # Prepare configuration: keymaps, hooks, parameters etc.
         common = BaseCommon(self.vim, self.logger, Config(self))
@@ -86,16 +90,21 @@ class Gdb(Common):
             self.log('GdbBreakpointClearAll: ' + str(ex))
 
     @pynvim.function('GdbParserFeed')
-    def gdb_parser_feed(self, args):
+    def gdb_parser_feed(self, args: List[Union[List[str], int]]):
         '''Command GdbParserFeed.'''
-
         try:
             tab = args[0]
-            app = self.apps[tab]
+            if isinstance(tab, int):
+                app = self.apps[tab]
+            else:
+                raise Exception("App index wasn't an int.")
             content = args[1]
-            for i, ele in enumerate(content):
-                content[i] = self.ansi_escaper.sub('', ele)
-            app.parser.feed(content)
+            if isinstance(content, list):
+                for i, ele in enumerate(content):
+                    content[i] = self.ansi_escaper.sub('', ele)
+                app.parser.feed(content)
+            else:
+                raise Exception("Expected a list of strings from debugger.")
         except Exception as ex:
             self.log('GdbParserFeed: ' + str(ex))
 
@@ -134,7 +143,8 @@ class Gdb(Common):
     @pynvim.function('GdbCustomCommand', sync=True)
     def gdb_custom_command(self, args):
         '''Command GdbCustomCommand.'''
-        return self.gdb_call(["custom_command"] + args)
+        val = self.gdb_call(["custom_command"] + args)
+        return val
 
     @pynvim.function('GdbTestPeek', sync=True)
     def gdb_test_peek(self, args):

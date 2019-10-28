@@ -1,13 +1,17 @@
 '''GDB specifics.'''
 
 import re
+
 from gdb.parser import Parser
+from gdb.common import Common
+from gdb.cursor import Cursor
+from gdb.win import Win
 
 
 class GdbParser(Parser):
     '''GDB parser and FSM.'''
 
-    def __init__(self, common, cursor, win):
+    def __init__(self, common: Common, cursor: Cursor, win: Win):
         super().__init__(common, cursor, win)
 
         re_prompt = re.compile(r'\x1a\x1a\x1a$')

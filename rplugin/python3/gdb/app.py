@@ -1,25 +1,29 @@
 '''.'''
 
+from typing import List, Optional
+
+import pynvim
+
+from gdb.backend.bashdb import BashDBParser
+from gdb.backend.gdb import GdbParser
+from gdb.backend.lldb import LldbParser
+from gdb.backend.pdb import PdbParser
+from gdb.breakpoint import Breakpoint
+from gdb.client import Client
 from gdb.common import Common
 from gdb.cursor import Cursor
-from gdb.client import Client
-from gdb.win import Win
 from gdb.keymaps import Keymaps
+from gdb.parser import Parser
 from gdb.proxy import Proxy
-from gdb.breakpoint import Breakpoint
-
-from gdb.backend.gdb import GdbParser
-from gdb.backend.pdb import PdbParser
-from gdb.backend.lldb import LldbParser
-from gdb.backend.bashdb import BashDBParser
+from gdb.win import Win
 
 
 class App(Common):
     '''Main application class.'''
 
-    def __init__(self, common, backendStr, proxyCmd, clientCmd):
+    def __init__(self, common: Common, backendStr: str, proxyCmd: str, clientCmd: str):
         super().__init__(common)
-        self._last_command = None
+        self._last_command: Optional[str] = None
 
         # Create new tab for the debugging view and split horizontally
         self.vim.command('tabnew'
@@ -32,7 +36,7 @@ class App(Common):
                             " windows")
 
         # Enumerate the available windows
-        wins = self.vim.current.tabpage.windows
+        wins: List[pynvim.api.Window] = self.vim.current.tabpage.windows
         wcli, wjump = wins[1], wins[0]
 
         # Initialize current line tracking
@@ -64,7 +68,7 @@ class App(Common):
         backend_class = backend_maps[backendStr]
 
         # Initialize the parser
-        self.parser = backend_class(common, self.cursor, self.win)
+        self.parser: Parser = backend_class(common, self.cursor, self.win)
 
         # Set initial keymaps in the terminal window.
         self.keymaps.dispatch_set_t()
@@ -99,7 +103,7 @@ class App(Common):
 
         self.client.cleanup()
 
-    def _get_command(self, cmd):
+    def _get_command(self, cmd) -> str:
         return self.parser.command_map.get(cmd, cmd)
 
     def send(self, *args):
@@ -120,9 +124,9 @@ class App(Common):
         if self.parser.is_running():
             # pause first
             self.client.interrupt()
-        buf = self.vim.current.buffer
-        file_name = self.vim.call("expand", '#%d:p' % buf.handle)
-        line_nr = self.vim.call("line", ".")
+        buf: pynvim.api.Buffer = self.vim.current.buffer
+        file_name: str = self.vim.call("expand", '#%d:p' % buf.handle)
+        line_nr: int = self.vim.call("line", ".")
         breaks = self.breakpoint.get_for_file(file_name, line_nr)
 
         if breaks:

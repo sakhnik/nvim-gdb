@@ -1,12 +1,13 @@
 '''.'''
 
 import tempfile
+from typing import Optional
 
 
 class SockDir:
     '''Unique directory for the rendez-vous point.'''
     def __init__(self):
-        self.sock_dir = tempfile.TemporaryDirectory(prefix='nvimgdb-sock')
+        self.sock_dir: Optional[tempfile.TemporaryDirectory] = tempfile.TemporaryDirectory(prefix='nvimgdb-sock')
 
     def cleanup(self):
         '''The destructor.'''

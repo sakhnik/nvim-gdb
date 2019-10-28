@@ -1,11 +1,20 @@
 '''.'''
 
+from typing import Dict, Optional, Union
+
+import pynvim
+
+from gdb.breakpoint import Breakpoint
+from gdb.client import Client
 from gdb.common import Common
+from gdb.cursor import Cursor
+from gdb.keymaps import Keymaps
 
 
 class Win(Common):
     '''Jump window management.'''
-    def __init__(self, common, win, cursor, client, break_point, keymaps):
+
+    def __init__(self, common: Common, win: pynvim.api.Window, cursor: Cursor, client: Client, break_point: Breakpoint, keymaps: Keymaps):
         super().__init__(common)
         # window number that will be displaying the current file
         self.jump_win = win
@@ -14,15 +23,15 @@ class Win(Common):
         self.breakpoint = break_point
         self.keymaps = keymaps
 
-    def is_jump_window_active(self):
+    def is_jump_window_active(self) -> bool:
         '''Check whether the current buffer is displayed in the jump window.'''
         return self.vim.current.buffer == self.jump_win.buffer
 
-    def jump(self, file, line):
+    def jump(self, file: str, line: int):
         '''Show the file and the current line in the jump window.'''
         self.log(f"jump({file}:{line})")
         # Check whether the file is already loaded or load it
-        target_buf = self.vim.call("bufnr", file, 1)
+        target_buf: int = self.vim.call("bufnr", file, 1)
 
         # The terminal buffer may contain the name of the source file
         # (in pdb, for instance).
@@ -40,8 +49,8 @@ class Win(Common):
                 self.keymaps.set_dispatch_active(True)
 
         if self.jump_win.buffer.handle != target_buf:
-            mode = self.vim.api.get_mode()
-            prev_window = None
+            mode: Dict[str, Union[bool, str, int]] = self.vim.api.get_mode()
+            prev_window: Optional[pynvim.api.Window] = None
             if self.jump_win != self.vim.current.window:
                 prev_window = self.vim.current.window
                 self.vim.current.window = self.jump_win
@@ -61,10 +70,10 @@ class Win(Common):
     def query_breakpoints(self):
         '''Show actual breakpoints in the current window.'''
         # Get the source code buffer number
-        buf_num = self.jump_win.buffer.handle
+        buf_num: int = self.jump_win.buffer.handle
 
         # Get the source code file name
-        fname = self.vim.call("expand", f'#{buf_num}:p')
+        fname: str = self.vim.call("expand", f'#{buf_num}:p')
 
         # If no file name or a weird name with spaces, ignore it (to avoid
         # misinterpretation)

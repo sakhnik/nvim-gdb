@@ -38,7 +38,7 @@ class Proxy(Common):
                                  f" to the proxy: {msg}'")
         return self.connected
 
-    def query(self, request):
+    def query(self, request) -> str:
         '''Send a request to the proxy and wait for the response.'''
         # It takes time for the proxy to open a side channel.
         # So we're connecting to the socket lazily during

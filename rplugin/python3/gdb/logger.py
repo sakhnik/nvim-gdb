@@ -5,6 +5,7 @@ import os
 
 class Logger:
     '''The logger configurable with environment variables.'''
+
     def __init__(self):
         fname = os.getenv('NVIMGDB_LOGFILE')
         self.fout = None if not fname else open(fname, 'w')

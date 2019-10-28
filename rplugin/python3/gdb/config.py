@@ -3,8 +3,9 @@
 
 import copy
 import re
-from gdb.keymaps import Keymaps
+
 from gdb.common import Common
+from gdb.keymaps import Keymaps
 
 
 class Config(Common):
@@ -30,9 +31,9 @@ class Config(Common):
                             '●⁹', '●ⁿ'],
         'split_command': 'split',
         'set_scroll_off': 5
-        }
+    }
 
-    def __init__(self, common):
+    def __init__(self, common: Common):
         '''Prepare actual configuration with overrides resolved.'''
         super().__init__(common)
 
@@ -116,7 +117,7 @@ class Config(Common):
     def _define_signs(self):
         # Define the sign for current line the debugged program is executing.
         self.vim.call('sign_define', 'GdbCurrentLine',
-                {'text': self.config["sign_current_line"]})
+                      {'text': self.config["sign_current_line"]})
         # Define signs for the breakpoints.
         breaks = self.config["sign_breakpoint"]
         for i, brk in enumerate(breaks):

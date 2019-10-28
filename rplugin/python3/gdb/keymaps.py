@@ -7,6 +7,7 @@ from gdb.common import Common
 
 class Keymaps(Common):
     '''Keymaps manager.'''
+
     def __init__(self, common):
         super().__init__(common)
         self.dispatch_active = True
