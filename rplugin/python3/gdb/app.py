@@ -115,6 +115,17 @@ class App(Common):
         '''Execute a custom debugger command and return its output.'''
         return self.proxy.query("handle-command " + cmd)
 
+    def create_watch(self, cmd):
+        '''Create a window to watch for a debugger expression.
+           The output of the expression or command will be displayed
+           in that window.
+        '''
+        self.vim.command("vnew")
+        cur_buf = self.vim.current.buffer.number
+        self.vim.command("autocmd User NvimGdbQuery"
+                f" call nvim_buf_set_lines({cur_buf}, 0, -1, 0,"
+                f" split(GdbCustomCommand('{cmd}'), '\\n'))")
+
     def breakpoint_toggle(self):
         '''Toggle breakpoint in the cursor line.'''
         if self.parser.is_running():

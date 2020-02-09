@@ -136,6 +136,11 @@ class Gdb(Common):
         '''Command GdbCustomCommand.'''
         return self.gdb_call(["custom_command"] + args)
 
+    @pynvim.function('GdbCreateWatch', sync=True)
+    def gdb_create_watch(self, args):
+        '''Command GdbCreateWatch.'''
+        return self.gdb_call(["create_watch"] + args)
+
     @pynvim.function('GdbTestPeek', sync=True)
     def gdb_test_peek(self, args):
         '''Command GdbTestPeek.'''

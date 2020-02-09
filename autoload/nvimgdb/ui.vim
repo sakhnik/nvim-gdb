@@ -28,6 +28,7 @@ function! s:UndefCommands()
   delcommand GdbInterrupt
   delcommand GdbEvalWord
   delcommand GdbEvalRange
+  delcommand GdbCreateWatch
 endfunction
 
 function! s:DefineCommands()
@@ -45,6 +46,7 @@ function! s:DefineCommands()
   command! GdbInterrupt call GdbSend()
   command! GdbEvalWord call GdbSend('print {}', expand('<cword>'))
   command! -range GdbEvalRange call GdbSend('print {}', s:GetExpression(<f-args>))
+  command! -nargs=1 GdbCreateWatch call GdbCreateWatch(<q-args>)
 endfunction
 
 
