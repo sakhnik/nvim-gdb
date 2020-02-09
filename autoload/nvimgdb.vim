@@ -1,13 +1,4 @@
 
-augroup NvimGdbInternal
-  au!
-  au User NvimGdbQuery ""
-  au User NvimGdbBreak ""
-  au User NvimGdbContinue ""
-  au User NvimGdbStart ""
-  au User NvimGdbCleanup ""
-augroup END
-
 function! s:GdbKill()
   " Prevent "ghost" [noname] buffers when leaving debug when 'hidden' is on
   if &hidden

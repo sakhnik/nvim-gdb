@@ -57,6 +57,12 @@ function! nvimgdb#ui#Leave()
     augroup END
     augroup! NvimGdb
 
+    " Cleanup custom events
+    augroup NvimGdbInternal
+      au!
+    augroup END
+    augroup! NvimGdbInternal
+
     " Cleanup user commands and keymaps
     call s:UndefCommands()
   endif
@@ -80,6 +86,17 @@ function! nvimgdb#ui#Enter()
       au BufEnter * call GdbHandleEvent("on_buf_enter")
       au BufLeave * call GdbHandleEvent("on_buf_leave")
     augroup END
+
+    " Define custom events
+    augroup NvimGdbInternal
+      au!
+      au User NvimGdbQuery ""
+      au User NvimGdbBreak ""
+      au User NvimGdbContinue ""
+      au User NvimGdbStart ""
+      au User NvimGdbCleanup ""
+    augroup END
+
   endif
   let g:nvimgdb_count += 1
 endfunction
