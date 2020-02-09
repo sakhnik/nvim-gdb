@@ -250,6 +250,12 @@ GdbCustomCommand("cmd")
 or if LLDB is used: >
     :autocmd User NvimGdbQuery echo GdbCustomCommand('frame var')
 <
+Such autocommand could update buffer contents on every debugger stop.  Assume
+you created a new window displaying the buffer bufnum. Then try the following:
+>
+    :autocmd User NvimGdbQuery call nvim_buf_set_lines(bufnum, 0, -1, 0,
+        \ split(GdbCustomCommand("info locals"), "\n"))
+<
 
 ==============================================================================
 Section 7: Backends                                          *NvimgdbBackends*
