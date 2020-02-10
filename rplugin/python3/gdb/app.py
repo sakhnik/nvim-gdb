@@ -120,7 +120,7 @@ class App(Common):
            The output of the expression or command will be displayed
            in that window.
         '''
-        self.vim.command("vnew")
+        self.vim.command("vnew | set readonly buftype=nofile")
         cur_buf = self.vim.current.buffer.number
         self.vim.command("autocmd User NvimGdbQuery"
                 f" call nvim_buf_set_lines({cur_buf}, 0, -1, 0,"
