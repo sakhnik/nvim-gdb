@@ -49,21 +49,20 @@ function! s:DefineCommands()
   command! -nargs=1 GdbCreateWatch call GdbCreateWatch(<q-args>)
 endfunction
 
+function! nvimgdb#ui#ClearAugroup(name)
+    exe "augroup " . a:name
+      au!
+    augroup END
+    exe "augroup! " . a:name
+endfunction
 
 function! nvimgdb#ui#Leave()
   let g:nvimgdb_count -= 1
   if !g:nvimgdb_count
     " Cleanup the autocommands
-    augroup NvimGdb
-      au!
-    augroup END
-    augroup! NvimGdb
-
+    call nvimgdb#ui#ClearAugroup("NvimGdb")
     " Cleanup custom events
-    augroup NvimGdbInternal
-      au!
-    augroup END
-    augroup! NvimGdbInternal
+    call nvimgdb#ui#ClearAugroup("NvimGdbInternal")
 
     " Cleanup user commands and keymaps
     call s:UndefCommands()

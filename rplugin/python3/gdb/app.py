@@ -91,11 +91,6 @@ class App(Common):
         # Close connection to the side channel
         self.proxy.cleanup()
 
-        # Cleanup the autocommands associated with this tabpage
-        self.vim.command(f"augroup {self._get_autocmd_group_name()}")
-        self.vim.command("autocmd!")
-        self.vim.command("augroup END")
-
         # Close the windows and the tab
         tab_count = len(self.vim.tabpages)
         self.client.del_buffer()
@@ -120,10 +115,6 @@ class App(Common):
         '''Execute a custom debugger command and return its output.'''
         return self.proxy.query("handle-command " + cmd)
 
-    def _get_autocmd_group_name(self):
-        '''Create a unique autocmd group name for this tab.'''
-        return f"NvimGdbTab{self.vim.current.tabpage.number}";
-
     def create_watch(self, cmd):
         '''Create a window to watch for a debugger expression.
            The output of the expression or command will be displayed
@@ -132,11 +123,19 @@ class App(Common):
         self.vim.command("vnew | set readonly buftype=nowrite")
         buf = self.vim.current.buffer
         buf.name = cmd
-        self.vim.command(f"augroup {self._get_autocmd_group_name()}")
+
+        augroup_name = f"NvimGdbTab{self.vim.current.tabpage.number}_{buf.number}"
+
+        self.vim.command(f"augroup {augroup_name}")
+        self.vim.command("autocmd!")
         self.vim.command("autocmd User NvimGdbQuery"
                 f" call nvim_buf_set_lines({buf.number}, 0, -1, 0,"
                 f" split(GdbCustomCommand('{cmd}'), '\\n'))")
         self.vim.command("augroup END")
+
+        # Destroy the autowatch automatically when the window is gone.
+        self.vim.command(f"autocmd BufWinLeave <buffer> call nvimgdb#ui#ClearAugroup('{augroup_name}')")
+        #self.vim.command(f"autocmd BufWinLeave <buffer> bwipeout! {buf.number}")
 
     def breakpoint_toggle(self):
         '''Toggle breakpoint in the cursor line.'''
