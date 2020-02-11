@@ -135,7 +135,9 @@ class App(Common):
 
         # Destroy the autowatch automatically when the window is gone.
         self.vim.command(f"autocmd BufWinLeave <buffer> call nvimgdb#ui#ClearAugroup('{augroup_name}')")
-        #self.vim.command(f"autocmd BufWinLeave <buffer> bwipeout! {buf.number}")
+        # Destroy the watch buffer.
+        self.vim.command("autocmd BufWinLeave <buffer> call timer_start(100,"
+                f" {{ -> execute('bwipeout! {buf.number}') }})")
 
     def breakpoint_toggle(self):
         '''Toggle breakpoint in the cursor line.'''
