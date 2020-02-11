@@ -27,12 +27,12 @@ class App(Common):
                          ' | setlocal nowinfixheight'
                          ' | silent wincmd o')
         self.vim.command(self.config.get("split_command"))
-        if len(self.vim.current.tabpage.windows) != 2:
-            raise Exception("The split_command should result in exactly two"
-                            " windows")
 
         # Enumerate the available windows
         wins = self.vim.current.tabpage.windows
+        if len(wins) != 2:
+            raise Exception("The split_command should result in exactly two"
+                            " windows")
         wcli, wjump = wins[1], wins[0]
 
         # Initialize current line tracking
@@ -201,3 +201,13 @@ class App(Common):
             self.keymaps.dispatch_unset()
         else:
             self.vim.command("normal G")
+
+    def on_check_window_closed(self):
+        '''The checks to be executed when navigating the windows.'''
+        # The tabpage should contain the two initial windows (client, jump).
+        # If any of them is closed, finish debugging.
+        wins = self.vim.current.tabpage.windows
+        if self.client.win not in wins:
+            self.vim.call("nvimgdb#Kill")
+        elif self.win.jump_win not in wins:
+            self.vim.call("nvimgdb#Kill")

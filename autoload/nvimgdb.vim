@@ -23,19 +23,6 @@ function! s:GdbKill()
 endfunction
 
 
-" The checks to be executed when navigating the windows
-function! nvimgdb#CheckWindowClosed(...)
-  " If this isn't a debugging session, nothing to do
-  if !GdbCheckTab() | return | endif
-
-  " The tabpage should contain at least two windows, finish debugging
-  " otherwise.
-  if tabpagewinnr(tabpagenr(), '$') == 1
-    call s:GdbKill()
-  endif
-endfunction
-
-
 function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   "Expand words in the client_cmd to support %, <word> etc
   let cmd = join(map(split(a:client_cmd), {k, v -> expand(v)}))
