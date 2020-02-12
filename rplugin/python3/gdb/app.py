@@ -138,6 +138,8 @@ class App(Common):
         # Destroy the watch buffer.
         self.vim.command("autocmd BufWinLeave <buffer> call timer_start(100,"
                 f" {{ -> execute('bwipeout! {buf.number}') }})")
+        # Return the cursor to the previous window
+        self.vim.command("wincmd l")
 
     def breakpoint_toggle(self):
         '''Toggle breakpoint in the cursor line.'''
