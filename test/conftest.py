@@ -38,12 +38,13 @@ if "lldb" in config.BACKEND_NAMES:
 
 @pytest.fixture(scope="function")
 def terminal_end(eng):
-    '''Check that the terminal cursor is on the last line.'''
+    '''Check that the terminal last line is visible.'''
     yield True
     cursor_line = eng.eval("GdbTestPeek('client', 'win', 'cursor')")[0]
     last_line = eng.eval("GdbTestPeek('client', 'win', 'buffer', 'api', "
                          "'line_count')")
-    assert cursor_line == last_line
+    win_height = eng.eval("GdbTestPeek('client', 'win', 'height')")
+    assert cursor_line >= last_line - win_height
 
 
 @pytest.fixture(scope="function")

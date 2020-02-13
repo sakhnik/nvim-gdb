@@ -19,7 +19,6 @@ def test_backend(eng, backend):
     for cmd, exp in TESTS[backend['name']]:
         assert exp == eng.eval(cmd)
 
-
 def test_pdb(eng, post):
     '''Custom command in PDB.'''
     assert post
@@ -30,3 +29,21 @@ def test_pdb(eng, post):
     assert eng.eval("GdbCustomCommand('print(num)')") == "0"
     eng.feed('cont\n')
     assert eng.eval("GdbCustomCommand('print(num)')") == "1"
+
+WATCH_TESTS = {
+    'gdb': ('info locals', ['i = 0']),
+    'lldb': ('frame var i', ['(int) i = 0']),
+}
+
+def test_watch_backend(eng, backend):
+    '''Watch window with custom command in C++.'''
+    eng.feed(backend['launch'])
+    assert eng.wait_paused() is None
+    eng.feed(backend['tbreak_main'])
+    eng.feed('run\n', 1000)
+    eng.feed('<esc>')
+    cmd, res = WATCH_TESTS[backend["name"]]
+    eng.feed(f':GdbCreateWatch {cmd}\n')
+    eng.feed(':GdbNext\n')
+    out = eng.eval(f"getbufline('{cmd}', 1)")
+    assert out == res

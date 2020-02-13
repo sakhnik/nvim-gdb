@@ -5,7 +5,7 @@ rootDir="$(pwd -P)"
 
 # Deliberately test that the tests pass from a random symlink
 # to the source directory.
-tmpDir="$(mktemp -d /tmp/nvim-gdb-test-XXXXXX)"
+tmpDir="$(mktemp -d /tmp/nvim-gdb-test.XXXXXX)"
 ln -sf "$rootDir" "$tmpDir/src"
 cleanup() {
     unlink "$tmpDir/src";

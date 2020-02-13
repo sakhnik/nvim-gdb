@@ -28,6 +28,7 @@ function! s:UndefCommands()
   delcommand GdbInterrupt
   delcommand GdbEvalWord
   delcommand GdbEvalRange
+  delcommand GdbCreateWatch
 endfunction
 
 function! s:DefineCommands()
@@ -45,17 +46,23 @@ function! s:DefineCommands()
   command! GdbInterrupt call GdbSend()
   command! GdbEvalWord call GdbSend('print {}', expand('<cword>'))
   command! -range GdbEvalRange call GdbSend('print {}', s:GetExpression(<f-args>))
+  command! -nargs=1 GdbCreateWatch call GdbCreateWatch(<q-args>)
 endfunction
 
+function! nvimgdb#ui#ClearAugroup(name)
+    exe "augroup " . a:name
+      au!
+    augroup END
+    exe "augroup! " . a:name
+endfunction
 
 function! nvimgdb#ui#Leave()
   let g:nvimgdb_count -= 1
   if !g:nvimgdb_count
     " Cleanup the autocommands
-    augroup NvimGdb
-      au!
-    augroup END
-    augroup! NvimGdb
+    call nvimgdb#ui#ClearAugroup("NvimGdb")
+    " Cleanup custom events
+    call nvimgdb#ui#ClearAugroup("NvimGdbInternal")
 
     " Cleanup user commands and keymaps
     call s:UndefCommands()
@@ -70,16 +77,27 @@ function! nvimgdb#ui#Enter()
       " Unfortunately, there is no event to handle a window closed.
       " It's needed to be handled heuristically:
       "   When :quit is executed, the cursor will enter another buffer
-      au WinEnter * call nvimgdb#CheckWindowClosed()
+      au WinEnter * call GdbHandleEvent("on_check_window_closed")
       "   When :only is executed, BufWinLeave will be issued before closing
       "   window. We start a timer expecting it to expire after the window
       "   has been closed. It's a race.
-      au BufWinLeave * call timer_start(100, "nvimgdb#CheckWindowClosed")
+      au BufWinLeave * call timer_start(100, { -> GdbHandleEvent("on_check_window_closed") })
       au TabEnter * call GdbHandleEvent("on_tab_enter")
       au TabLeave * call GdbHandleEvent("on_tab_leave")
       au BufEnter * call GdbHandleEvent("on_buf_enter")
       au BufLeave * call GdbHandleEvent("on_buf_leave")
     augroup END
+
+    " Define custom events
+    augroup NvimGdbInternal
+      au!
+      au User NvimGdbQuery ""
+      au User NvimGdbBreak ""
+      au User NvimGdbContinue ""
+      au User NvimGdbStart ""
+      au User NvimGdbCleanup ""
+    augroup END
+
   endif
   let g:nvimgdb_count += 1
 endfunction

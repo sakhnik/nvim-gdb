@@ -1,12 +1,12 @@
 *nvimgdb.txt*  GDB, LLDB, PDB and BASHDB integration into neovim
 
-TBD
+NvimGdb is a plugin to facilitate debugging native and interpreted programs.
 
 ==============================================================================
 CONTENTS                                                     *NvimgdbContents*
 
     1. Usage ................ |NvimgdbUsage|
-    2. Commands ............. |NvigdbCommands|
+    2. Commands ............. |NvimgdbCommands|
     3. Mappings ............. |NvimgdbMappings|
     4. Variables ............ |NvimgdbVariables|
     5. Events ............... |NvimgdbEvents|
@@ -65,11 +65,11 @@ Section 2: Commands                                          *NvimgdbCommands*
 :GdbStartLLDB [cmd]     Start debugging session with the given LLDB launch
                         command.
 
-                                                               *:GdbStartPDB*
+                                                                *:GdbStartPDB*
 :GdbStartPDB [cmd]      Start Python debugging session with the given PDB
                         launch command.
 
-                                                            *:GdbStartBashDB*
+                                                             *:GdbStartBashDB*
 :GdbStartBashDB [cmd]   Start Bash debuggin session with the given BASHDB
                         launch command.
 
@@ -108,6 +108,12 @@ Section 2: Commands                                          *NvimgdbCommands*
                                                                *:GdbEvalRange*
 :GdbEvalWord           Evaluate |<cword>| or |[range]|
 :<range>GdbEvalRange
+
+                                                             *:GdbCreateWatch*
+:GdbCreateWatch [command]
+                       Create a new watch window with the [command] to be
+                       evaluated using `GdbCustomCommand()` on every debug
+                       prompt when the event `NvimGdbQuery` fires.
 
 ==============================================================================
 Section 3: Mappings                                          *NvimgdbMappings*
@@ -224,13 +230,17 @@ NvimGdbQuery            Fired whenever the plugin queried for breakpoints.
                         This can be used to execute additional queries
                         with `GdbCustomCommand()`
 
+                                                                *NvimGdbBreak*
 NvimGdbBreak            Fired whenever the programm is paused.
 
+                                                             *NvimGdbContinue*
 NvimGdbContinue         Fired whenever the program is resumed after it has
                         been paused.
 
+                                                                *NvimGdbStart*
 NvimGdbStart            Fired when the debugging session starts.
 
+                                                              *NvimGdbCleanup*
 NvimGdbCleanup          Fired before the debugging session ends.
 
 ==============================================================================
@@ -249,6 +259,12 @@ GdbCustomCommand("cmd")
 <
 or if LLDB is used: >
     :autocmd User NvimGdbQuery echo GdbCustomCommand('frame var')
+<
+Such autocommand could update buffer contents on every debugger stop.  Assume
+you created a new window displaying the buffer bufnum. Then try the following:
+>
+    :autocmd User NvimGdbQuery call nvim_buf_set_lines(bufnum, 0, -1, 0,
+        \ split(GdbCustomCommand("info locals"), "\n"))
 <
 
 ==============================================================================
