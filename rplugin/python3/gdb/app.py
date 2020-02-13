@@ -27,12 +27,12 @@ class App(Common):
                          ' | setlocal nowinfixheight'
                          ' | silent wincmd o')
         self.vim.command(self.config.get("split_command"))
-        if len(self.vim.current.tabpage.windows) != 2:
-            raise Exception("The split_command should result in exactly two"
-                            " windows")
 
         # Enumerate the available windows
         wins = self.vim.current.tabpage.windows
+        if len(wins) != 2:
+            raise Exception("The split_command should result in exactly two"
+                            " windows")
         wcli, wjump = wins[1], wins[0]
 
         # Initialize current line tracking
@@ -115,6 +115,32 @@ class App(Common):
         '''Execute a custom debugger command and return its output.'''
         return self.proxy.query("handle-command " + cmd)
 
+    def create_watch(self, cmd):
+        '''Create a window to watch for a debugger expression.
+           The output of the expression or command will be displayed
+           in that window.
+        '''
+        self.vim.command("vnew | set readonly buftype=nowrite")
+        buf = self.vim.current.buffer
+        buf.name = cmd
+
+        augroup_name = f"NvimGdbTab{self.vim.current.tabpage.number}_{buf.number}"
+
+        self.vim.command(f"augroup {augroup_name}")
+        self.vim.command("autocmd!")
+        self.vim.command("autocmd User NvimGdbQuery"
+                f" call nvim_buf_set_lines({buf.number}, 0, -1, 0,"
+                f" split(GdbCustomCommand('{cmd}'), '\\n'))")
+        self.vim.command("augroup END")
+
+        # Destroy the autowatch automatically when the window is gone.
+        self.vim.command(f"autocmd BufWinLeave <buffer> call nvimgdb#ui#ClearAugroup('{augroup_name}')")
+        # Destroy the watch buffer.
+        self.vim.command("autocmd BufWinLeave <buffer> call timer_start(100,"
+                f" {{ -> execute('bwipeout! {buf.number}') }})")
+        # Return the cursor to the previous window
+        self.vim.command("wincmd l")
+
     def breakpoint_toggle(self):
         '''Toggle breakpoint in the cursor line.'''
         if self.parser.is_running():
@@ -177,3 +203,13 @@ class App(Common):
             self.keymaps.dispatch_unset()
         else:
             self.vim.command("normal G")
+
+    def on_check_window_closed(self):
+        '''The checks to be executed when navigating the windows.'''
+        # The tabpage should contain the two initial windows (client, jump).
+        # If any of them is closed, finish debugging.
+        wins = self.vim.current.tabpage.windows
+        if self.client.win not in wins:
+            self.vim.call("nvimgdb#Kill")
+        elif self.win.jump_win not in wins:
+            self.vim.call("nvimgdb#Kill")

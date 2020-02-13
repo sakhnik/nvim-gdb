@@ -103,6 +103,9 @@ See `:help nvimgdb` for the complete online documentation. Most notable commands
 | &lt;c-p&gt;      | `:GdbFrameUp`                        | Navigate one frame up (`up` in gdb)                                  |
 | &lt;c-n&gt;      | `:GdbFrameDown`                      | Navigate one frame down (`down` in gdb)                              |
 
+You can create a watch window evaluating a backend command on every step.
+Try `:GdbCreateWatch info locals` in GDB, for istance.
+
 ## Development
 
 The goal is to have a thin wrapper around

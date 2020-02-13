@@ -2,7 +2,7 @@
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
-temp_dir=$(mktemp -d nvim-gdb-test.XXXXXX)
+temp_dir=$(mktemp -d /tmp/nvim-gdb-test-visual.XXXXXX)
 export NVIM_LISTEN_ADDRESS=$temp_dir/sock
 
 >visual.log
