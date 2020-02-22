@@ -39,7 +39,7 @@ def test_multiview(eng, two_backends):
     assert {'cur': 'test.cpp:10', 'break': {1: [11]}} == eng.get_signs()
 
     # Quit
-    eng.feed('ZZ')
+    eng.feed(':GdbDebugStop\n')
 
     # Switch back to the second backend
     assert {'cur': 'test.cpp:19', 'break': {1: [5, 12]}} == eng.get_signs()

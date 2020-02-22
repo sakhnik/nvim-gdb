@@ -203,13 +203,3 @@ class App(Common):
             self.keymaps.dispatch_unset()
         else:
             self.vim.command("normal G")
-
-    def on_check_window_closed(self):
-        '''The checks to be executed when navigating the windows.'''
-        # The tabpage should contain the two initial windows (client, jump).
-        # If any of them is closed, finish debugging.
-        wins = self.vim.current.tabpage.windows
-        if self.client.win not in wins:
-            self.vim.call("nvimgdb#Kill")
-        elif self.win.jump_win not in wins:
-            self.vim.call("nvimgdb#Kill")

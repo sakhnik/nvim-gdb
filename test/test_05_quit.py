@@ -21,16 +21,3 @@ def test_gdb_debug_stop(setup, eng):
     '''Quit with the command GdbDebugStop.'''
     assert setup
     eng.feed(":GdbDebugStop<cr>")
-
-
-def test_terminal_zz(setup, eng):
-    '''Quit with ZZ.'''
-    assert setup
-    eng.feed("ZZ")
-
-
-def test_jump_zz(setup, eng):
-    '''Quit with ZZ from the jump window.'''
-    assert setup
-    eng.feed("<c-w>w")
-    eng.feed("ZZ")
