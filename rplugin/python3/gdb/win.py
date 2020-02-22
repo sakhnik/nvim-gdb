@@ -18,11 +18,27 @@ class Win(Common):
         '''Check whether the current buffer is displayed in the jump window.'''
         return self.vim.current.buffer == self.jump_win.buffer
 
+    def _check_jump_window(self):
+        '''Check that the jump window is available.
+           Create a new one otherwise.'''
+        wins = self.vim.current.tabpage.windows
+        if self.jump_win not in wins:
+            # The jump window needs to be created first
+            self.keymaps.set_dispatch_active(False)
+            prev_win = self.vim.current.window
+            self.vim.command("new")
+            self.jump_win = self.vim.current.window
+            self.vim.command(f"{prev_win.number}wincmd w")
+            self.keymaps.set_dispatch_active(True)
+
     def jump(self, file, line):
         '''Show the file and the current line in the jump window.'''
         self.log(f"jump({file}:{line})")
         # Check whether the file is already loaded or load it
         target_buf = self.vim.call("bufnr", file, 1)
+
+        # Ensure the jump window is available
+        self._check_jump_window()
 
         # The terminal buffer may contain the name of the source file
         # (in pdb, for instance).
