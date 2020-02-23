@@ -1,6 +1,7 @@
 '''.'''
 
 from gdb.common import Common
+from contextlib import contextmanager
 
 
 class Win(Common):
@@ -14,11 +15,27 @@ class Win(Common):
         self.breakpoint = break_point
         self.keymaps = keymaps
 
+        # Create the default jump window
         self._ensure_jump_window()
 
     def is_jump_window_active(self):
         '''Check whether the current buffer is displayed in the jump window.'''
         return self.vim.current.buffer == self.jump_win.buffer
+
+    @contextmanager
+    def _saved_win(self):
+        self.keymaps.set_dispatch_active(False)
+        prev_win = self.vim.current.window
+        yield
+        self.vim.current.window = prev_win
+        self.keymaps.set_dispatch_active(True)
+
+    @contextmanager
+    def _saved_mode(self):
+        mode = self.vim.api.get_mode()
+        yield
+        if mode['mode'] in "ti":
+            self.vim.command("startinsert")
 
     def _ensure_jump_window(self):
         '''Check that the jump window is available.
@@ -26,12 +43,9 @@ class Win(Common):
         wins = self.vim.current.tabpage.windows
         if self.jump_win not in wins:
             # The jump window needs to be created first
-            self.keymaps.set_dispatch_active(False)
-            prev_win = self.vim.current.window
-            self.vim.command(self.config.get("codewin_command"))
-            self.jump_win = self.vim.current.window
-            self.vim.command(f"{prev_win.number}wincmd w")
-            self.keymaps.set_dispatch_active(True)
+            with self._saved_win():
+                self.vim.command(self.config.get("codewin_command"))
+                self.jump_win = self.vim.current.window
 
     def jump(self, file, line):
         '''Show the file and the current line in the jump window.'''
@@ -40,7 +54,8 @@ class Win(Common):
         target_buf = self.vim.call("bufnr", file, 1)
 
         # Ensure the jump window is available
-        self._ensure_jump_window()
+        with self._saved_mode():
+            self._ensure_jump_window()
 
         # The terminal buffer may contain the name of the source file
         # (in pdb, for instance).
@@ -58,18 +73,12 @@ class Win(Common):
                 self.keymaps.set_dispatch_active(True)
 
         if self.jump_win.buffer.handle != target_buf:
-            mode = self.vim.api.get_mode()
-            prev_window = None
-            if self.jump_win != self.vim.current.window:
-                prev_window = self.vim.current.window
-                self.vim.current.window = self.jump_win
-            self.vim.command("noswap e %s" % file)
-            self.query_breakpoints()
+            with self._saved_mode(), self._saved_win():
+                if self.jump_win != self.vim.current.window:
+                    self.vim.current.window = self.jump_win
+                self.vim.command("noswap e %s" % file)
+                self.query_breakpoints()
 
-            if prev_window is not None:
-                self.vim.current.window = prev_window
-            if mode['mode'] in "ti":
-                self.vim.command("startinsert")
         # Goto the proper line and set the cursor on it
         self.jump_win.cursor = (line, 0)
         self.cursor.set(target_buf, line)
