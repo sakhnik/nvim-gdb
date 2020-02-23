@@ -26,7 +26,7 @@ class Win(Common):
             # The jump window needs to be created first
             self.keymaps.set_dispatch_active(False)
             prev_win = self.vim.current.window
-            self.vim.command("new")
+            self.vim.command(self.config.get("codewin_command"))
             self.jump_win = self.vim.current.window
             self.vim.command(f"{prev_win.number}wincmd w")
             self.keymaps.set_dispatch_active(True)

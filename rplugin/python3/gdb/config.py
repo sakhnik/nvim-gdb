@@ -28,6 +28,7 @@ class Config(Common):
         'sign_breakpoint': ['●', '●²', '●³', '●⁴', '●⁵', '●⁶', '●⁷', '●⁸',
                             '●⁹', '●ⁿ'],
         'split_command': 'split',
+        'codewin_command': 'new',
         'set_scroll_off': 5
         }
 
@@ -73,7 +74,7 @@ class Config(Common):
                     self.log(f"Exception: {str(ex)}")
             # Make sure the essential keys are present even if not supplied.
             for must_have in ('sign_current_line', 'sign_breakpoint',
-                              'split_command', 'set_scroll_off'):
+                              'split_command', 'codewin_command', 'set_scroll_off'):
                 if must_have not in config:
                     config[must_have] = Config.default[must_have]
         return config
