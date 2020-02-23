@@ -26,20 +26,12 @@ class App(Common):
                          ' | setlocal nowinfixwidth'
                          ' | setlocal nowinfixheight'
                          ' | silent wincmd o')
-        self.vim.command(self.config.get("split_command"))
-
-        # Enumerate the available windows
-        wins = self.vim.current.tabpage.windows
-        if len(wins) != 2:
-            raise Exception("The split_command should result in exactly two"
-                            " windows")
-        wcli, wjump = wins[1], wins[0]
 
         # Initialize current line tracking
         self.cursor = Cursor(common)
 
         # Go to the other window and spawn gdb client
-        self.client = Client(common, wcli, proxyCmd, clientCmd)
+        self.client = Client(common, proxyCmd, clientCmd)
 
         # Initialize connection to the side channel
         self.proxy = Proxy(common, self.client)
@@ -51,7 +43,7 @@ class App(Common):
         self.keymaps = Keymaps(common)
 
         # Initialize the windowing subsystem
-        self.win = Win(common, wjump, self.cursor, self.client,
+        self.win = Win(common, self.cursor, self.client,
                        self.breakpoint, self.keymaps)
 
         # Get the selected backend module

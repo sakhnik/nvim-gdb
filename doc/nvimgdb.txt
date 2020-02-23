@@ -178,7 +178,6 @@ allows overriding the given keys. For example, the default config is: >
       \ 'unset_keymaps':  'function("GdbCallAsync", "keymaps.unset")',
       \ 'sign_current_line': '▶',
       \ 'sign_breakpoint': [ '●', '●²', '●³', '●⁴', '●⁵', '●⁶', '●⁷', '●⁸', '●⁹', '●ⁿ' ],
-      \ 'split_command': 'split',
       \ 'codewin_command': 'new'
       \ }
 <

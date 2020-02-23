@@ -5,20 +5,22 @@ from gdb.common import Common
 
 class Win(Common):
     '''Jump window management.'''
-    def __init__(self, common, win, cursor, client, break_point, keymaps):
+    def __init__(self, common, cursor, client, break_point, keymaps):
         super().__init__(common)
         # window number that will be displaying the current file
-        self.jump_win = win
+        self.jump_win = None
         self.cursor = cursor
         self.client = client
         self.breakpoint = break_point
         self.keymaps = keymaps
 
+        self._ensure_jump_window()
+
     def is_jump_window_active(self):
         '''Check whether the current buffer is displayed in the jump window.'''
         return self.vim.current.buffer == self.jump_win.buffer
 
-    def _check_jump_window(self):
+    def _ensure_jump_window(self):
         '''Check that the jump window is available.
            Create a new one otherwise.'''
         wins = self.vim.current.tabpage.windows
@@ -38,7 +40,7 @@ class Win(Common):
         target_buf = self.vim.call("bufnr", file, 1)
 
         # Ensure the jump window is available
-        self._check_jump_window()
+        self._ensure_jump_window()
 
         # The terminal buffer may contain the name of the source file
         # (in pdb, for instance).

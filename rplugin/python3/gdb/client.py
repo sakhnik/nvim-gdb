@@ -14,9 +14,9 @@ class Client(Common):
             path = os.path.dirname(path)
         return path
 
-    def __init__(self, common, win, proxy_cmd, client_cmd):
+    def __init__(self, common, proxy_cmd, client_cmd):
         super().__init__(common)
-        self.win = win
+        self.win = self.vim.current.window
         self.client_id = None
         # Create a temporary unique directory for all the sockets.
         self.sock_dir = SockDir()
@@ -27,7 +27,7 @@ class Client(Common):
             self.proxy_addr = self.sock_dir.get() + '/server'
             self.command = f"{self._get_plugin_dir()}/lib/{proxy_cmd}" \
                 f" -a {self.proxy_addr} -- {client_cmd}"
-        self.vim.command(f"{win.number}wincmd w")
+        self.vim.command(f"{self.win.number}wincmd w")
         self.vim.command("enew")
         self.client_buf = self.vim.current.buffer
 
