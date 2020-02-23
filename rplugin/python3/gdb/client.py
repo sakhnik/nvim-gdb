@@ -27,7 +27,6 @@ class Client(Common):
             self.proxy_addr = self.sock_dir.get() + '/server'
             self.command = f"{self._get_plugin_dir()}/lib/{proxy_cmd}" \
                 f" -a {self.proxy_addr} -- {client_cmd}"
-        self.vim.command(f"{self.win.number}wincmd w")
         self.vim.command("enew")
         self.client_buf = self.vim.current.buffer
 
@@ -52,7 +51,7 @@ class Client(Common):
     def start(self):
         '''Open a terminal window with the debugger client command.'''
         # Go to the yet-to-be terminal window
-        self.vim.command(f"{self.win.number}wincmd w")
+        self.vim.current.window = self.win
         self.client_id = self.vim.call("nvimgdb#TermOpen", self.command,
                                        self.vim.current.tabpage.handle)
 
