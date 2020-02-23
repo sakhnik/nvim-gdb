@@ -24,6 +24,8 @@ class Win(Common):
 
     @contextmanager
     def _saved_win(self):
+        # We're going to jump to another window and return.
+        # There is no need to change keymaps forth and back.
         self.keymaps.set_dispatch_active(False)
         prev_win = self.vim.current.window
         yield
@@ -60,17 +62,11 @@ class Win(Common):
         # The terminal buffer may contain the name of the source file
         # (in pdb, for instance).
         if target_buf == self.client.get_buf().handle:
-            window = self.vim.current.window
-            if self.jump_win != window:
-                # We're going to jump to another window and return.
-                # There is no need to change keymaps forth and back.
-                self.keymaps.set_dispatch_active(False)
-                self.vim.command(f"{self.jump_win.number}wincmd w")
-            self.vim.command("noswapfile view " + file)
-            target_buf = self.vim.call("bufnr", file)
-            if self.jump_win != window:
-                self.vim.command(f"{window.number}wincmd w")
-                self.keymaps.set_dispatch_active(True)
+            with self._saved_win():
+                if self.jump_win != window:
+                    self.vim.current.window = self.jump_win
+                self.vim.command("noswapfile view " + file)
+                target_buf = self.vim.call("bufnr", file)
 
         if self.jump_win.buffer.handle != target_buf:
             with self._saved_mode(), self._saved_win():
