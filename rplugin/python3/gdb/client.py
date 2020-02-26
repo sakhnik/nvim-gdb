@@ -54,6 +54,7 @@ class Client(Common):
         self.vim.current.window = self.win
         self.client_id = self.vim.call("nvimgdb#TermOpen", self.command,
                                        self.vim.current.tabpage.handle)
+        self.vim.command("au TermClose <buffer> call nvimgdb#Kill()")
 
     def interrupt(self):
         '''Interrupt running program by sending ^c.'''
