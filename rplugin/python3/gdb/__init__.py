@@ -35,10 +35,11 @@ class Gdb(Common):
         '''Command GdbCleanup.'''
         tab = self.vim.current.tabpage.handle
         try:
-            app = self.apps[tab]
-            app.cleanup()
-        finally:
-            del self.apps[tab]
+            app = self.apps.pop(tab, None)
+            if app:
+                app.cleanup()
+        except Exception as ex:
+            self.log("GdbCleanup: " + str(ex))
 
     @pynvim.function('GdbCheckTab', sync=True)
     def gdb_check_tab(self, _):
