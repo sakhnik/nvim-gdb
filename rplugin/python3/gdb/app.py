@@ -126,7 +126,7 @@ class App(Common):
         self.vim.command("augroup END")
 
         # Destroy the autowatch automatically when the window is gone.
-        self.vim.command(f"autocmd BufWinLeave <buffer> call nvimgdb#ui#ClearAugroup('{augroup_name}')")
+        self.vim.command(f"autocmd BufWinLeave <buffer> call nvimgdb#ClearAugroup('{augroup_name}')")
         # Destroy the watch buffer.
         self.vim.command("autocmd BufWinLeave <buffer> call timer_start(100,"
                 f" {{ -> execute('bwipeout! {buf.number}') }})")

@@ -50,3 +50,10 @@ function! nvimgdb#TermOpen(command, tab)
     \  'on_exit': {j,c,e -> execute('if c == 0 | silent! close! | endif')},
     \ })
 endfunction
+
+function! nvimgdb#ClearAugroup(name)
+    exe "augroup " . a:name
+      au!
+    augroup END
+    exe "augroup! " . a:name
+endfunction

@@ -34,6 +34,7 @@ class Gdb(Common):
     def gdb_cleanup(self, _):
         '''Command GdbCleanup.'''
         tab = self.vim.current.tabpage.handle
+        self.log(f"Cleanup tab={tab}")
         try:
             app = self.apps.pop(tab, None)
             if app:
