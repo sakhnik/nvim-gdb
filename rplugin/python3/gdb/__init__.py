@@ -63,14 +63,6 @@ class Gdb(Common):
         except Exception as ex:
             self.log("FIXME GdbCleanup: " + str(ex))
 
-    @pynvim.function('GdbCheckTab', sync=True)
-    def gdb_check_tab(self, _):
-        '''Command GdbCheckTab.'''
-        try:
-            return self.vim.current.tabpage.handle in self.apps
-        except Exception as ex:
-            self.log("GdbCheckTab: " + str(ex))
-
     @pynvim.function('GdbHandleEvent', sync=True)
     def gdb_handle_event(self, args):
         '''Command GdbHandleEvent.'''
