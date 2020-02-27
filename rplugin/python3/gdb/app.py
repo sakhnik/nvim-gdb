@@ -194,4 +194,5 @@ class App(Common):
         if self.vim.current.buffer.options['buftype'] != 'terminal':
             self.keymaps.dispatch_unset()
         else:
-            self.vim.command("normal G")
+            # Move the cursor to the end of the buffer
+            self.vim.command("$")
