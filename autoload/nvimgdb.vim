@@ -1,28 +1,4 @@
 
-function! s:GdbKill()
-  " Prevent "ghost" [noname] buffers when leaving debug when 'hidden' is on
-  if &hidden
-    set nohidden
-    let l:hidden = 1
-  else
-    let l:hidden = 0
-  endif
-
-  " Cleanup commands, autocommands etc
-  call nvimgdb#Leave()
-
-  call GdbCleanup()
-
-  " TabEnter isn't fired automatically when a tab is closed
-  call GdbHandleEvent("on_tab_enter")
-
-  " sets hidden back to user default
-  if l:hidden
-    set hidden
-  endif
-endfunction
-
-
 function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   "Expand words in the client_cmd to support %, <word> etc
   let cmd = join(map(split(a:client_cmd), {k, v -> expand(v)}))
@@ -32,11 +8,6 @@ function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
   call nvimgdb#Enter()
 endfunction
 
-
-function! nvimgdb#Kill()
-  if !GdbCheckTab() | return | endif
-  call s:GdbKill()
-endfunction
 
 let s:plugin_dir = expand('<sfile>:p:h:h')
 
@@ -92,7 +63,7 @@ function! s:UndefCommands()
 endfunction
 
 function! s:DefineCommands()
-  command! GdbDebugStop call nvimgdb#Kill()
+  command! GdbDebugStop call GdbCleanup(nvim_get_current_tabpage())
   command! GdbBreakpointToggle call GdbBreakpointToggle()
   command! GdbBreakpointClearAll call GdbBreakpointClearAll()
   command! GdbRun call GdbSend('run')

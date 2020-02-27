@@ -7,6 +7,7 @@ from gdb.common import BaseCommon, Common
 from gdb.app import App
 from gdb.config import Config
 from gdb.logger import Logger
+from contextlib import contextmanager
 
 
 @pynvim.plugin
@@ -30,15 +31,31 @@ class Gdb(Common):
         self.apps[self.vim.current.tabpage.handle] = app
         app.start()
 
+    @contextmanager
+    def _saved_hidden(self):
+        # Prevent "ghost" [noname] buffers when leaving debug when 'hidden' is on
+        hidden = self.vim.eval("&hidden")
+        if hidden:
+          self.vim.command("set nohidden")
+        yield
+        # sets hidden back to user default
+        if hidden:
+            self.vim.eval("set hidden")
+
     @pynvim.function('GdbCleanup', sync=True)
-    def gdb_cleanup(self, _):
+    def gdb_cleanup(self, args):
         '''Command GdbCleanup.'''
-        tab = self.vim.current.tabpage.handle
+        tab = args[0]
         self.log(f"Cleanup tab={tab}")
         try:
             app = self.apps.pop(tab, None)
             if app:
-                app.cleanup()
+                with self._saved_hidden():
+                    # Cleanup commands, autocommands etc
+                    self.vim.call("nvimgdb#Leave")
+                    app.cleanup()
+                # TabEnter isn't fired automatically when a tab is closed
+                self.gdb_handle_event("on_tab_enter")
         except Exception as ex:
             self.log("GdbCleanup: " + str(ex))
 

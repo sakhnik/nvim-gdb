@@ -57,7 +57,7 @@ class Client(Common):
         # Allow detaching the terminal from its window
         self.vim.command("set bufhidden=hide")
         # Finsih the debugging session when the terminal is closed
-        self.vim.command("au TermClose <buffer> call nvimgdb#Kill()")
+        self.vim.command(f"au TermClose <buffer> call GdbCleanup({self.vim.current.tabpage.handle})")
 
     def interrupt(self):
         '''Interrupt running program by sending ^c.'''
