@@ -59,7 +59,7 @@ class Gdb(Common):
                         self.vim.call("nvimgdb#GlobalCleanup")
                     app.cleanup()
                 # TabEnter isn't fired automatically when a tab is closed
-                self.gdb_handle_event("on_tab_enter")
+                self.gdb_handle_event(["on_tab_enter"])
         except Exception as ex:
             self.log("GdbCleanup: " + str(ex))
 
@@ -74,6 +74,7 @@ class Gdb(Common):
     @pynvim.function('GdbHandleEvent', sync=True)
     def gdb_handle_event(self, args):
         '''Command GdbHandleEvent.'''
+        self.log(f"GdbHandleEvent {' '.join(args)}")
         try:
             app = self._get_app()
             handler = getattr(app, args[0])
