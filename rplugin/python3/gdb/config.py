@@ -5,7 +5,7 @@ import copy
 import re
 from gdb.keymaps import Keymaps
 from gdb.common import Common
-
+import traceback
 
 class Config(Common):
     '''Resolved configuration.'''
@@ -69,8 +69,8 @@ class Config(Common):
                 try:
                     config[key] = self._filter_funcref(Config.default,
                                                        key, val)
-                except Exception as ex:
-                    self.log(f"Exception: {str(ex)}")
+                except Exception:
+                    self.log(f"Exception: {traceback.format_exc()}")
             # Make sure the essential keys are present even if not supplied.
             for must_have in ('sign_current_line', 'sign_breakpoint',
                               'codewin_command', 'set_scroll_off'):

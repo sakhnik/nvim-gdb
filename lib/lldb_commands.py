@@ -8,6 +8,7 @@ import sys
 import re
 import json
 import lldb  # type: ignore
+import traceback
 
 
 # Get list of enabled breakpoints for a given source file
@@ -76,7 +77,7 @@ def _server(server_address):
                     result = b'' if result is None else result.encode('utf-8')
                     sock.sendto(result.strip(), 0, addr)
                 except Exception as ex:
-                    print("Exception " + str(ex))
+                    print("Exception: " + trackback.format_exc())
     finally:
         try:
             os.unlink(server_address)

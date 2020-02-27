@@ -10,6 +10,7 @@ to a user.
 import re
 import json
 import os
+import traceback
 
 from base_proxy import BaseProxy
 from stream_filter import StreamFilter
@@ -57,7 +58,7 @@ class GdbProxy(BaseProxy):
             except IndexError:
                 continue
             except ValueError as ex:
-                self.log('Exception: {}'.format(str(ex)))
+                self.log(f'Exception: {traceback.format_exc()}')
 
         return json.dumps(breaks).encode('utf-8')
 

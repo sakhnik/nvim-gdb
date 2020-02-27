@@ -68,7 +68,7 @@ class BaseProxy:
                 self.logfile.write("\n")
                 self.logfile.flush()
         except Exception as ex:
-            print(ex)
+            print(traceback.format_exc())
             raise
 
     def run(self):
