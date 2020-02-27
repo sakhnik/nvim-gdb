@@ -20,7 +20,7 @@ class Gdb(Common):
         self.ansi_escaper = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
 
     def _get_app(self):
-        return self.apps[self.vim.current.tabpage.handle]
+        return self.apps.get(self.vim.current.tabpage.handle, None)
 
     @pynvim.function('GdbInit', sync=True)
     def gdb_init(self, args):
@@ -69,8 +69,9 @@ class Gdb(Common):
         self.log(f"GdbHandleEvent {' '.join(args)}")
         try:
             app = self._get_app()
-            handler = getattr(app, args[0])
-            handler()
+            if app:
+                handler = getattr(app, args[0])
+                handler()
         except Exception as ex:
             self.log("GdbHandleEvent: " + str(ex))
 
@@ -89,7 +90,8 @@ class Gdb(Common):
         '''Command GdbSend.'''
         try:
             app = self._get_app()
-            app.send(*args)
+            if app:
+                app.send(*args)
         except Exception as ex:
             self.log("GdbSend: " + str(ex))
 
@@ -98,7 +100,8 @@ class Gdb(Common):
         '''Command GdbBreakpointToggle.'''
         try:
             app = self._get_app()
-            app.breakpoint_toggle()
+            if app:
+                app.breakpoint_toggle()
         except Exception as ex:
             self.log('GdbBreakpointToggle: ' + str(ex))
 
@@ -107,7 +110,8 @@ class Gdb(Common):
         '''Command GdbBreakpointClearAll.'''
         try:
             app = self._get_app()
-            app.breakpoint_clear_all()
+            if app:
+                app.breakpoint_clear_all()
         except Exception as ex:
             self.log('GdbBreakpointClearAll: ' + str(ex))
 
@@ -130,9 +134,10 @@ class Gdb(Common):
         '''Command GdbCallAsync.'''
         try:
             obj = self._get_app()
-            for name in args[0].split('.'):
-                obj = getattr(obj, name)
-            obj(*args[1:])
+            if obj:
+                for name in args[0].split('.'):
+                    obj = getattr(obj, name)
+                obj(*args[1:])
         except Exception as ex:
             self.log('GdbCallAsync: ' + str(ex))
 
@@ -148,11 +153,12 @@ class Gdb(Common):
         '''
         try:
             obj = self._get_app()
-            for name in args[0].split('.'):
-                obj = getattr(obj, name)
-            if callable(obj):
-                return obj(*args[1:])
-            return obj
+            if obj:
+                for name in args[0].split('.'):
+                    obj = getattr(obj, name)
+                if callable(obj):
+                    return obj(*args[1:])
+                return obj
         except Exception as ex:
             self.log('GdbCall: ' + str(ex))
         return None
@@ -172,11 +178,12 @@ class Gdb(Common):
         '''Command GdbTestPeek.'''
         try:
             obj = self._get_app()
-            for i, arg in enumerate(args):
-                obj = getattr(obj, arg)
-                if callable(obj):
-                    return obj(*args[i+1:])
-            return obj
+            if obj:
+                for i, arg in enumerate(args):
+                    obj = getattr(obj, arg)
+                    if callable(obj):
+                        return obj(*args[i+1:])
+                return obj
         except Exception as ex:
             self.log('GdbTestPeek: ' + str(ex))
             return None
@@ -186,11 +193,12 @@ class Gdb(Common):
         '''Command GdbTestPeekConfig.'''
         try:
             app = self._get_app()
-            config = {k: v for k, v in app.config.config.items()}
-            for key, val in config.items():
-                if callable(val):
-                    config[key] = str(val)
-            return config
+            if app:
+                config = {k: v for k, v in app.config.config.items()}
+                for key, val in config.items():
+                    if callable(val):
+                        config[key] = str(val)
+                return config
         except Exception as ex:
             self.log('GdbTestPeekConfig: ' + str(ex))
             return None
