@@ -102,6 +102,7 @@ function! nvimgdb#Enter()
       au TabLeave * call GdbHandleEvent("on_tab_leave")
       au BufEnter * call GdbHandleEvent("on_buf_enter")
       au BufLeave * call GdbHandleEvent("on_buf_leave")
+      au TabClosed * call GdbCleanup(expand("<afile>"))
     augroup END
 
     " Define custom events
