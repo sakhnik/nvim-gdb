@@ -1,14 +1,4 @@
 
-function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
-  "Expand words in the client_cmd to support %, <word> etc
-  let cmd = join(map(split(a:client_cmd), {k, v -> expand(v)}))
-  call GdbInit(a:backend, a:proxy_cmd, cmd)
-
-  " Initialize the UI commands, autocommands etc
-  call nvimgdb#Enter()
-endfunction
-
-
 let s:plugin_dir = expand('<sfile>:p:h:h')
 
 function! nvimgdb#GetPluginDir()
@@ -30,10 +20,6 @@ function! nvimgdb#ClearAugroup(name)
 endfunction
 
 
-" Count of active debugging views
-let g:nvimgdb_count = 0
-
-
 function! s:GetExpression(...) range
   let [lnum1, col1] = getpos("'<")[1:2]
   let [lnum2, col2] = getpos("'>")[1:2]
@@ -44,25 +30,8 @@ function! s:GetExpression(...) range
 endfunction
 
 
-function! s:UndefCommands()
-  delcommand GdbDebugStop
-  delcommand GdbBreakpointToggle
-  delcommand GdbBreakpointClearAll
-  delcommand GdbRun
-  delcommand GdbUntil
-  delcommand GdbContinue
-  delcommand GdbNext
-  delcommand GdbStep
-  delcommand GdbFinish
-  delcommand GdbFrameUp
-  delcommand GdbFrameDown
-  delcommand GdbInterrupt
-  delcommand GdbEvalWord
-  delcommand GdbEvalRange
-  delcommand GdbCreateWatch
-endfunction
-
-function! s:DefineCommands()
+"Shared global state initialization (commands, keymaps etc)
+function! nvimgdb#GlobalInit()
   command! GdbDebugStop call GdbCleanup(nvim_get_current_tabpage())
   command! GdbBreakpointToggle call GdbBreakpointToggle()
   command! GdbBreakpointClearAll call GdbBreakpointClearAll()
@@ -78,43 +47,48 @@ function! s:DefineCommands()
   command! GdbEvalWord call GdbSend('print {}', expand('<cword>'))
   command! -range GdbEvalRange call GdbSend('print {}', s:GetExpression(<f-args>))
   command! -nargs=1 GdbCreateWatch call GdbCreateWatch(<q-args>)
+
+  augroup NvimGdb
+    au!
+    au TabEnter * call GdbHandleEvent("on_tab_enter")
+    au TabLeave * call GdbHandleEvent("on_tab_leave")
+    au BufEnter * call GdbHandleEvent("on_buf_enter")
+    au BufLeave * call GdbHandleEvent("on_buf_leave")
+    au TabClosed * call GdbCleanup(expand("<afile>"))
+  augroup END
+
+  " Define custom events
+  augroup NvimGdbInternal
+    au!
+    au User NvimGdbQuery ""
+    au User NvimGdbBreak ""
+    au User NvimGdbContinue ""
+    au User NvimGdbStart ""
+    au User NvimGdbCleanup ""
+  augroup END
 endfunction
 
-function! nvimgdb#Leave()
-  let g:nvimgdb_count -= 1
-  if !g:nvimgdb_count
-    " Cleanup the autocommands
-    call nvimgdb#ClearAugroup("NvimGdb")
-    " Cleanup custom events
-    call nvimgdb#ClearAugroup("NvimGdbInternal")
+"Shared global state cleanup after the last session ended
+function! nvimgdb#GlobalCleanup()
+  " Cleanup the autocommands
+  call nvimgdb#ClearAugroup("NvimGdb")
+  " Cleanup custom events
+  call nvimgdb#ClearAugroup("NvimGdbInternal")
 
-    " Cleanup user commands and keymaps
-    call s:UndefCommands()
-  endif
-endfunction
-
-function! nvimgdb#Enter()
-  if !g:nvimgdb_count
-    call s:DefineCommands()
-    augroup NvimGdb
-      au!
-      au TabEnter * call GdbHandleEvent("on_tab_enter")
-      au TabLeave * call GdbHandleEvent("on_tab_leave")
-      au BufEnter * call GdbHandleEvent("on_buf_enter")
-      au BufLeave * call GdbHandleEvent("on_buf_leave")
-      au TabClosed * call GdbCleanup(expand("<afile>"))
-    augroup END
-
-    " Define custom events
-    augroup NvimGdbInternal
-      au!
-      au User NvimGdbQuery ""
-      au User NvimGdbBreak ""
-      au User NvimGdbContinue ""
-      au User NvimGdbStart ""
-      au User NvimGdbCleanup ""
-    augroup END
-
-  endif
-  let g:nvimgdb_count += 1
+  " Cleanup user commands and keymaps
+  delcommand GdbDebugStop
+  delcommand GdbBreakpointToggle
+  delcommand GdbBreakpointClearAll
+  delcommand GdbRun
+  delcommand GdbUntil
+  delcommand GdbContinue
+  delcommand GdbNext
+  delcommand GdbStep
+  delcommand GdbFinish
+  delcommand GdbFrameUp
+  delcommand GdbFrameDown
+  delcommand GdbInterrupt
+  delcommand GdbEvalWord
+  delcommand GdbEvalRange
+  delcommand GdbCreateWatch
 endfunction

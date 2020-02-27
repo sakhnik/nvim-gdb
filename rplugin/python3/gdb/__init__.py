@@ -30,6 +30,9 @@ class Gdb(Common):
         app = App(common, *args)
         self.apps[self.vim.current.tabpage.handle] = app
         app.start()
+        if len(self.apps) == 1:
+            # Initialize the UI commands, autocommands etc
+            self.vim.call("nvimgdb#GlobalInit")
 
     @contextmanager
     def _saved_hidden(self):
@@ -51,8 +54,9 @@ class Gdb(Common):
             app = self.apps.pop(tab, None)
             if app:
                 with self._saved_hidden():
-                    # Cleanup commands, autocommands etc
-                    self.vim.call("nvimgdb#Leave")
+                    if len(self.apps) == 0:
+                        # Cleanup commands, autocommands etc
+                        self.vim.call("nvimgdb#GlobalCleanup")
                     app.cleanup()
                 # TabEnter isn't fired automatically when a tab is closed
                 self.gdb_handle_event("on_tab_enter")
