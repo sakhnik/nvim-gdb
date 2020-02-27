@@ -34,13 +34,10 @@ class Client(Common):
         '''Access the temporary socket directory.'''
         return self.sock_dir.get()
 
-    def del_buffer(self):
-        '''Delete the client buffer.'''
-        if self.vim.call("bufexists", self.client_buf.handle):
-            self.vim.command(f"bd! {self.client_buf.handle}")
-
     def cleanup(self):
         '''The destructor.'''
+        if self.vim.call("bufexists", self.client_buf.handle):
+            self.vim.command(f"bd! {self.client_buf.handle}")
         if self.proxy_addr:
             try:
                 os.remove(self.proxy_addr)

@@ -70,7 +70,7 @@ class App(Common):
         self.client.start()
         self.vim.command("doautocmd User NvimGdbStart")
 
-    def cleanup(self):
+    def cleanup(self, tab):
         '''Finish up the debugging session.'''
         self.vim.command("doautocmd User NvimGdbCleanup")
 
@@ -83,13 +83,13 @@ class App(Common):
         # Close connection to the side channel
         self.proxy.cleanup()
 
-        # Close the windows and the tab
-        tab_count = len(self.vim.tabpages)
-        self.client.del_buffer()
-        if tab_count == len(self.vim.tabpages):
-            self.vim.command("tabclose")
-
+        # Close the debugger backend
         self.client.cleanup()
+
+        # Close the windows and the tab
+        for t in self.vim.tabpages:
+            if t.handle == tab:
+                self.vim.command(f"tabclose! {t.number}")
 
     def _get_command(self, cmd):
         return self.parser.command_map.get(cmd, cmd)
