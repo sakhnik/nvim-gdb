@@ -45,7 +45,7 @@ class Gdb(Common):
     @pynvim.function('GdbCleanup', sync=True)
     def gdb_cleanup(self, args):
         '''Command GdbCleanup.'''
-        tab = args[0]
+        tab = int(args[0])
         self.log(f"Cleanup tab={tab}")
         try:
             app = self.apps.pop(tab, None)
