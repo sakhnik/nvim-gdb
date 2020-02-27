@@ -74,6 +74,16 @@ class Gdb(Common):
         except Exception as ex:
             self.log("GdbHandleEvent: " + str(ex))
 
+    @pynvim.function('GdbHandleTabClosed', sync=True)
+    def gdb_handle_tab_closed(self, args):
+        '''Command GdbHandleTabClosed.'''
+        self.log("GdbHandleTabClosed")
+        active_tabs = {t.handle for t in self.vim.tabpages}
+        managed_tabs = {t for t in self.apps.keys()}
+        closed_tabs = managed_tabs.difference(active_tabs)
+        for t in closed_tabs:
+            self.gdb_cleanup([t])
+
     @pynvim.function('GdbSend', sync=True)
     def gdb_send(self, args):
         '''Command GdbSend.'''
