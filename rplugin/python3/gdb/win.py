@@ -51,7 +51,7 @@ class Win(Common):
 
     def jump(self, file, line):
         '''Show the file and the current line in the jump window.'''
-        self.log(f"jump({file}:{line})")
+        self.logger.info(f"jump({file}:{line})")
         # Check whether the file is already loaded or load it
         target_buf = self.vim.call("bufnr", file, 1)
 

@@ -303,12 +303,8 @@ Section 8: Limitations                                    *NvimgdbLimitations*
 Section 9: Development                                    *NvimgdbDevelopment*
 
                                                               *NvimgdbLogging*
-                                                             *NVIMGDB_LOGFILE*
-                                                             *NVIMGDB_LOGKEYS*
-- To enable logging, define the following environment variables:
-  - `NVIMGDB_LOGFILE` the file to write the logs to
-  - `NVIMGDB_LOGKEYS` a comma-separated list of log keys, e.g.: GdbParser,App
-  If unset or empty, all the keys are logged. A key is the name of a class.
+- To enable logging, edit the conventional Python logging configuration file
+  ../rplugin/python3/gdb/logger.py
 
 - The keymaps are defined buffer-local for every buffer when it's entered,
   and undefined when a buffer is left. This was done to ensure that users's

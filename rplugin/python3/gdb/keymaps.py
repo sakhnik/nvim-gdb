@@ -3,7 +3,6 @@
 # pylint: disable=broad-except
 
 from gdb.common import Common
-import traceback
 
 
 class Keymaps(Common):
@@ -37,7 +36,7 @@ class Keymaps(Common):
                 self.vim.command(
                     f'{mode}noremap <buffer> <silent> {keystroke} {cmd}<cr>')
             except Exception:
-                self.log(f'Exception: {traceback.format_exc()}')
+                self.logger.exception('Exception')
 
     def unset(self):
         '''Unset buffer-local keymaps.'''
@@ -46,7 +45,7 @@ class Keymaps(Common):
                 keystroke = self.config.get(key)
                 self.vim.command(f'{mode}unmap <buffer> {keystroke}')
             except Exception:
-                self.log(f'Exception: {traceback.format_exc()}')
+                self.logger.exception('Exception')
 
     default_t = {
         ('key_until', ':GdbUntil'),
@@ -64,7 +63,7 @@ class Keymaps(Common):
                 self.vim.command(f'tnoremap <buffer> <silent> {keystroke}'
                                  rf' <c-\><c-n>{cmd}<cr>i')
             except Exception:
-                self.log(f'Exception: {traceback.format_exc()}')
+                self.logger.exception('Exception')
         self.vim.command(r'tnoremap <silent> <buffer> <esc> <c-\><c-n>G')
 
     def _dispatch(self, key):
@@ -72,7 +71,7 @@ class Keymaps(Common):
             if self.dispatch_active:
                 self.config.get(key)(self)
         except Exception:
-            self.log(f'Exception: {traceback.format_exc()}')
+            self.logger.exception('Exception')
 
     def dispatch_set(self):
         '''Call the hook to set the keymaps.'''

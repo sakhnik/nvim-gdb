@@ -6,16 +6,18 @@ import pynvim   # type: ignore
 from gdb.common import BaseCommon, Common
 from gdb.app import App
 from gdb.config import Config
-from gdb.logger import Logger
+from gdb.logger import LOGGING_CONFIG
 from contextlib import contextmanager
-import traceback
+import logging
+import logging.config
 
 
 @pynvim.plugin
 class Gdb(Common):
     '''Plugin implementation.'''
     def __init__(self, vim):
-        common = BaseCommon(vim, Logger(), None)
+        logging.config.dictConfig(LOGGING_CONFIG)
+        common = BaseCommon(vim, None)
         super().__init__(common)
         self.apps = {}
         self.ansi_escaper = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
@@ -27,7 +29,7 @@ class Gdb(Common):
     def gdb_init(self, args):
         '''Command GdbInit.'''
         # Prepare configuration: keymaps, hooks, parameters etc.
-        common = BaseCommon(self.vim, self.logger, Config(self))
+        common = BaseCommon(self.vim, Config(self))
         app = App(common, *args)
         self.apps[self.vim.current.tabpage.handle] = app
         app.start()
@@ -50,7 +52,7 @@ class Gdb(Common):
     def gdb_cleanup(self, args):
         '''Command GdbCleanup.'''
         tab = int(args[0])
-        self.log(f"Cleanup tab={tab}")
+        self.logger.info(f"Cleanup tab={tab}")
         try:
             app = self.apps.pop(tab, None)
             if app:
@@ -62,24 +64,24 @@ class Gdb(Common):
                 # TabEnter isn't fired automatically when a tab is closed
                 self.gdb_handle_event(["on_tab_enter"])
         except Exception:
-            self.log("FIXME GdbCleanup Exception: " + traceback.format_exc())
+            self.logger.exception("FIXME GdbCleanup Exception")
 
     @pynvim.function('GdbHandleEvent', sync=True)
     def gdb_handle_event(self, args):
         '''Command GdbHandleEvent.'''
-        self.log(f"GdbHandleEvent {' '.join(args)}")
+        self.logger.info(f"GdbHandleEvent {' '.join(args)}")
         try:
             app = self._get_app()
             if app:
                 handler = getattr(app, args[0])
                 handler()
         except Exception:
-            self.log("GdbHandleEvent Exception: " + traceback.format_exc())
+            self.logger.exception("GdbHandleEvent Exception")
 
     @pynvim.function('GdbHandleTabClosed', sync=True)
     def gdb_handle_tab_closed(self, args):
         '''Command GdbHandleTabClosed.'''
-        self.log("GdbHandleTabClosed")
+        self.logger.info("GdbHandleTabClosed")
         active_tabs = {t.handle for t in self.vim.tabpages}
         managed_tabs = {t for t in self.apps.keys()}
         closed_tabs = managed_tabs.difference(active_tabs)
@@ -94,7 +96,7 @@ class Gdb(Common):
             if app:
                 app.send(*args)
         except Exception:
-            self.log("GdbSend Exception: " + traceback.format_exc())
+            self.logger.exception("GdbSend Exception")
 
     @pynvim.function('GdbBreakpointToggle', sync=True)
     def gdb_breakpoint_toggle(self, _):
@@ -104,7 +106,7 @@ class Gdb(Common):
             if app:
                 app.breakpoint_toggle()
         except Exception:
-            self.log('GdbBreakpointToggle Exception: ' + traceback.format_exc())
+            self.logger.exception('GdbBreakpointToggle Exception')
 
     @pynvim.function('GdbBreakpointClearAll', sync=True)
     def gdb_breakpoint_clear_all(self, _):
@@ -114,7 +116,7 @@ class Gdb(Common):
             if app:
                 app.breakpoint_clear_all()
         except Exception:
-            self.log('GdbBreakpointClearAll Exception: ' + traceback.format_exc())
+            self.logger.exception('GdbBreakpointClearAll Exception')
 
     @pynvim.function('GdbParserFeed')
     def gdb_parser_feed(self, args):
@@ -129,7 +131,7 @@ class Gdb(Common):
                     content[i] = self.ansi_escaper.sub('', ele)
                 app.parser.feed(content)
         except Exception:
-            self.log('GdbParserFeed Exception: ' + traceback.format_exc())
+            self.logger.exception('GdbParserFeed Exception')
 
     @pynvim.function('GdbCallAsync')
     def gdb_call_async(self, args):
@@ -141,7 +143,7 @@ class Gdb(Common):
                     obj = getattr(obj, name)
                 obj(*args[1:])
         except Exception:
-            self.log('GdbCallAsync Exception: ' + traceback.format_exc())
+            self.logger.exception('GdbCallAsync Exception')
 
     @pynvim.function('GdbCall', sync=True)
     def gdb_call(self, args):
@@ -162,7 +164,7 @@ class Gdb(Common):
                     return obj(*args[1:])
                 return obj
         except Exception:
-            self.log('GdbCall Exception: ' + traceback.format_exc())
+            self.logger.exception('GdbCall Exception')
         return None
 
     @pynvim.function('GdbCustomCommand', sync=True)
@@ -187,7 +189,7 @@ class Gdb(Common):
                         return obj(*args[i+1:])
                 return obj
         except Exception:
-            self.log('GdbTestPeek Exception: ' + traceback.format_exc())
+            self.logger.exception('GdbTestPeek Exception')
             return None
 
     @pynvim.function('GdbTestPeekConfig', sync=True)
@@ -202,5 +204,5 @@ class Gdb(Common):
                         config[key] = str(val)
                 return config
         except Exception:
-            self.log('GdbTestPeekConfig Exception: ' + traceback.format_exc())
+            self.logger.exception('GdbTestPeekConfig Exception')
             return None

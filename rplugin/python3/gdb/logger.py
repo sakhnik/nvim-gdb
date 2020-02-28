@@ -1,21 +1,31 @@
 '''.'''
 
-import os
 
-
-class Logger:
-    '''The logger configurable with environment variables.'''
-    def __init__(self):
-        fname = os.getenv('NVIMGDB_LOGFILE')
-        self.fout = None if not fname else open(fname, 'w')
-        keys = os.getenv('NVIMGDB_LOGKEYS')
-        self.keys = {} if not keys else set(keys.split(','))
-
-    def log(self, key, msg):
-        '''Log a message identified by the key.'''
-        if self.fout and (not self.keys or key in self.keys):
-            self.fout.write(f'[{key}] {msg}\n')
-            self.fout.flush()
-
-    def dummy(self):
-        '''Do nothing.'''
+LOGGING_CONFIG = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+        'standard': {
+            'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+        },
+    },
+    'handlers': {
+        'null': {
+            'class': 'logging.NullHandler',
+        },
+        #'file': {
+        #    'level': 'INFO',
+        #    'formatter': 'standard',
+        #    'class': 'logging.FileHandler',
+        #    'filename': '/tmp/nvimgdb.log',
+        #    #'mode': 'a',
+        #},
+    },
+    'loggers': {
+        '': {  # root logger
+            'handlers': ['null'],
+            'level': 'INFO',
+            'propagate': False
+        },
+    }
+}
