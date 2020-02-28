@@ -8,7 +8,6 @@ import sys
 import re
 import json
 import lldb  # type: ignore
-import traceback
 
 
 # Get list of enabled breakpoints for a given source file

@@ -27,7 +27,7 @@ class BashDbProxy(BaseProxy):
         # Gdb invokes a custom gdb command implemented in Python.
         # It itself is responsible for sending the processed result
         # to the correct address.
-        self.log("Process info breakpoints %d bytes" % len(response))
+        self.logger.info(f"Process info breakpoints {len(response)} bytes")
 
         # Filter out the escape sequences used by GDB8
         response = BashDbProxy.CSEQ.sub(b'', response)
@@ -54,7 +54,7 @@ class BashDbProxy(BaseProxy):
 
     def process_handle_command(self, cmd, response):
         '''Callback for custom commands.'''
-        self.log("Process handle command %d bytes" % len(response))
+        self.logger.info(f"Process handle command {len(response)} bytes")
         # Assuming the prompt occupies the last line
         result = response[(len(cmd) + 1):response.rfind(b'\n')].strip()
         # Get rid of control sequences

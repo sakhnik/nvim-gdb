@@ -55,8 +55,8 @@ class PdbProxy(BaseProxy):
 
     def process_handle_command(self, cmd, response):
         '''Callback for a custom command.'''
-        self.log("Process handle command {} bytes: {}"
-                 .format(len(response), response))
+        self.logger.info(f"Process handle command {len(response)} bytes")
+        self.logger.debug(f"{response}")
         return response[(len(cmd) + 1):response.rfind(b'\n')].strip()
 
     def filter_command(self, command):

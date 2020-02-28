@@ -5,7 +5,7 @@ import copy
 import re
 from gdb.keymaps import Keymaps
 from gdb.common import Common
-import traceback
+
 
 class Config(Common):
     '''Resolved configuration.'''
