@@ -80,12 +80,20 @@ class Gdb(Common):
 
     @pynvim.function('GdbHandleTabClosed', sync=True)
     def gdb_handle_tab_closed(self, args):
-        '''Command GdbHandleTabClosed.'''
+        '''Function GdbHandleTabClosed.'''
         self.logger.info("GdbHandleTabClosed")
         active_tabs = {t.handle for t in self.vim.tabpages}
         managed_tabs = {t for t in self.apps.keys()}
         closed_tabs = managed_tabs.difference(active_tabs)
         for t in closed_tabs:
+            self.gdb_cleanup([t])
+
+    @pynvim.function('GdbHandleVimLeavePre', sync=True)
+    def gdb_handle_vim_leave_pre(self, args):
+        '''Function GdbHandleVimLeavePre.'''
+        self.logger.info("GdbHandleVimLeavePre")
+        # Make sure a copy of the list is made.
+        for t in [t for t in self.apps.keys()]:
             self.gdb_cleanup([t])
 
     @pynvim.function('GdbSend', sync=True)

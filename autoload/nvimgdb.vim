@@ -55,6 +55,7 @@ function! nvimgdb#GlobalInit()
     au BufEnter * call GdbHandleEvent("on_buf_enter")
     au BufLeave * call GdbHandleEvent("on_buf_leave")
     au TabClosed * call GdbHandleTabClosed()
+    au VimLeavePre * call GdbHandleVimLeavePre()
   augroup END
 
   " Define custom events
