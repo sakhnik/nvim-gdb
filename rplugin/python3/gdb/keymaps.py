@@ -32,9 +32,10 @@ class Keymaps(Common):
         '''Set buffer-local keymaps.'''
         for mode, key, cmd in Keymaps.default:
             try:
-                keystroke = self.config.get(key)
-                self.vim.command(
-                    f'{mode}noremap <buffer> <silent> {keystroke} {cmd}<cr>')
+                keystroke = self.config.get_or(key, None)
+                if keystroke is not None:
+                    self.vim.command(
+                        f'{mode}noremap <buffer> <silent> {keystroke} {cmd}<cr>')
             except Exception:
                 self.logger.exception('Exception')
 
@@ -42,8 +43,9 @@ class Keymaps(Common):
         '''Unset buffer-local keymaps.'''
         for mode, key, _ in Keymaps.default:
             try:
-                keystroke = self.config.get(key)
-                self.vim.command(f'{mode}unmap <buffer> {keystroke}')
+                keystroke = self.config.get_or(key, None)
+                if keystroke is not None:
+                    self.vim.command(f'{mode}unmap <buffer> {keystroke}')
             except Exception:
                 self.logger.exception('Exception')
 
@@ -59,9 +61,10 @@ class Keymaps(Common):
         '''Set term-local keymaps.'''
         for key, cmd in Keymaps.default_t:
             try:
-                keystroke = self.config.get(key)
-                self.vim.command(f'tnoremap <buffer> <silent> {keystroke}'
-                                 rf' <c-\><c-n>{cmd}<cr>i')
+                keystroke = self.config.get_or(key, None)
+                if keystroke is not None:
+                    self.vim.command(f'tnoremap <buffer> <silent> {keystroke}'
+                                     rf' <c-\><c-n>{cmd}<cr>i')
             except Exception:
                 self.logger.exception('Exception')
         self.vim.command(r'tnoremap <silent> <buffer> <esc> <c-\><c-n>G')
@@ -69,7 +72,7 @@ class Keymaps(Common):
     def _dispatch(self, key):
         try:
             if self.dispatch_active:
-                self.config.get(key)(self)
+                self.config.get_or(key, lambda _: None)(self)
         except Exception:
             self.logger.exception('Exception')
 
