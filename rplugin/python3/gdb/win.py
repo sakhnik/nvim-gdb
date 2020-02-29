@@ -18,8 +18,14 @@ class Win(Common):
         # Create the default jump window
         self._ensure_jump_window()
 
+    def _has_jump_win(self):
+        '''Check whether the jump window is displayed.'''
+        return self.jump_win in self.vim.current.tabpage.windows
+
     def is_jump_window_active(self):
         '''Check whether the current buffer is displayed in the jump window.'''
+        if not self._has_jump_win():
+            return False
         return self.vim.current.buffer == self.jump_win.buffer
 
     @contextmanager
@@ -42,8 +48,7 @@ class Win(Common):
     def _ensure_jump_window(self):
         '''Check that the jump window is available.
            Create a new one otherwise.'''
-        wins = self.vim.current.tabpage.windows
-        if self.jump_win not in wins:
+        if not self._has_jump_win():
             # The jump window needs to be created first
             with self._saved_win():
                 self.vim.command(self.config.get("codewin_command"))
@@ -83,6 +88,9 @@ class Win(Common):
 
     def query_breakpoints(self):
         '''Show actual breakpoints in the current window.'''
+        if not self._has_jump_win():
+            return
+
         # Get the source code buffer number
         buf_num = self.jump_win.buffer.handle
 
