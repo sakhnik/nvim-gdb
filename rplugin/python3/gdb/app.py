@@ -113,6 +113,7 @@ class App(Common):
            in that window.
         '''
         self.vim.command("vnew | set readonly buftype=nowrite")
+        self.keymaps.dispatch_set()
         buf = self.vim.current.buffer
         buf.name = cmd
 
