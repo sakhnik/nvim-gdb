@@ -14,9 +14,8 @@ class Breakpoint(Common):
         self.max_sign_id = 0
 
         # Function to transform source file name before querying
-        locate_source_file = getattr(self.backend, "LocateSourceFile", None)
-        self.locate_source_file = locate_source_file \
-                if callable(locate_source_file) else lambda a, _: a
+        impl_cls = getattr(self.backend, "Breakpoint")
+        self.impl = impl_cls(self.proxy)
 
     def clear_signs(self):
         '''Clear all breakpoint signs.'''
@@ -46,7 +45,7 @@ class Breakpoint(Common):
         '''Query actual breakpoints for the given file.'''
         # Transform the source file path if necessary for the backend
         self.logger.info(f"Query breakpoints for {fname}")
-        fname_sym = self.locate_source_file(fname, self.proxy)
+        fname_sym = self.impl.LocateSourceFile(fname)
         if fname != fname_sym:
             self.logger.info(f"Map file path {fname} to {fname_sym}")
         self.breaks[fname] = {}

@@ -27,3 +27,11 @@ class BashDB:
         def _handle_terminated(self, _):
             self.cursor.hide()
             return self.paused
+
+
+    class Breakpoint:
+        def __init__(self, proxy):
+            pass
+
+        def LocateSourceFile(self, fname):
+            return fname

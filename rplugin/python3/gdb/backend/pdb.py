@@ -24,3 +24,11 @@ class Pdb:
                            re.compile(r'[\r\n]\(Pdb\) $'),
                            self._query_b)
             self.state = self.paused
+
+
+    class Breakpoint:
+        def __init__(self, proxy):
+            pass
+
+        def LocateSourceFile(self, fname):
+            return fname

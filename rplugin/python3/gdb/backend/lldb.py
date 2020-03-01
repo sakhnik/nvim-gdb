@@ -34,3 +34,11 @@ class Lldb:
             self.add_trans(self.running, re_prompt, self._query_b)
 
             self.state = self.running
+
+
+    class Breakpoint:
+        def __init__(self, proxy):
+            pass
+
+        def LocateSourceFile(self, fname):
+            return fname
