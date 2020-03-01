@@ -13,7 +13,7 @@ class Cursor(Common):
 
     def hide(self):
         '''Hide the current line sign.'''
-        if self.sign_id != -1:
+        if self.sign_id != -1 and self.buf != -1:
             self.vim.call('sign_unplace', 'NvimGdb',
                           {'id': self.sign_id, 'buffer': self.buf})
             self.sign_id = -1

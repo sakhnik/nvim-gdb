@@ -1,43 +1,4 @@
 
-function! s:GdbKill()
-  " Prevent "ghost" [noname] buffers when leaving debug when 'hidden' is on
-  if &hidden
-    set nohidden
-    let l:hidden = 1
-  else
-    let l:hidden = 0
-  endif
-
-  " Cleanup commands, autocommands etc
-  call nvimgdb#ui#Leave()
-
-  call GdbCleanup()
-
-  " TabEnter isn't fired automatically when a tab is closed
-  call GdbHandleEvent("on_tab_enter")
-
-  " sets hidden back to user default
-  if l:hidden
-    set hidden
-  endif
-endfunction
-
-
-function! nvimgdb#Spawn(backend, proxy_cmd, client_cmd)
-  "Expand words in the client_cmd to support %, <word> etc
-  let cmd = join(map(split(a:client_cmd), {k, v -> expand(v)}))
-  call GdbInit(a:backend, a:proxy_cmd, cmd)
-
-  " Initialize the UI commands, autocommands etc
-  call nvimgdb#ui#Enter()
-endfunction
-
-
-function! nvimgdb#Kill()
-  if !GdbCheckTab() | return | endif
-  call s:GdbKill()
-endfunction
-
 let s:plugin_dir = expand('<sfile>:p:h:h')
 
 function! nvimgdb#GetPluginDir()
@@ -49,4 +10,86 @@ function! nvimgdb#TermOpen(command, tab)
     \ {'on_stdout': {j,d,e -> GdbParserFeed(a:tab, d)},
     \  'on_exit': {j,c,e -> execute('if c == 0 | silent! close! | endif')},
     \ })
+endfunction
+
+function! nvimgdb#ClearAugroup(name)
+    exe "augroup " . a:name
+      au!
+    augroup END
+    exe "augroup! " . a:name
+endfunction
+
+
+function! s:GetExpression(...) range
+  let [lnum1, col1] = getpos("'<")[1:2]
+  let [lnum2, col2] = getpos("'>")[1:2]
+  let lines = getline(lnum1, lnum2)
+  let lines[-1] = lines[-1][:col2 - 1]
+  let lines[0] = lines[0][col1 - 1:]
+  return join(lines, "\n")
+endfunction
+
+
+"Shared global state initialization (commands, keymaps etc)
+function! nvimgdb#GlobalInit()
+  command! GdbDebugStop call GdbCleanup(nvim_get_current_tabpage())
+  command! GdbBreakpointToggle call GdbBreakpointToggle()
+  command! GdbBreakpointClearAll call GdbBreakpointClearAll()
+  command! GdbRun call GdbSend('run')
+  command! GdbUntil call GdbSend('until {}', line('.'))
+  command! GdbContinue call GdbSend('c')
+  command! GdbNext call GdbSend('n')
+  command! GdbStep call GdbSend('s')
+  command! GdbFinish call GdbSend('finish')
+  command! GdbFrameUp call GdbSend('up')
+  command! GdbFrameDown call GdbSend('down')
+  command! GdbInterrupt call GdbSend()
+  command! GdbEvalWord call GdbSend('print {}', expand('<cword>'))
+  command! -range GdbEvalRange call GdbSend('print {}', s:GetExpression(<f-args>))
+  command! -nargs=1 GdbCreateWatch call GdbCreateWatch(<q-args>)
+
+  augroup NvimGdb
+    au!
+    au TabEnter * call GdbHandleEvent("on_tab_enter")
+    au TabLeave * call GdbHandleEvent("on_tab_leave")
+    au BufEnter * call GdbHandleEvent("on_buf_enter")
+    au BufLeave * call GdbHandleEvent("on_buf_leave")
+    au TabClosed * call GdbHandleTabClosed()
+    au VimLeavePre * call GdbHandleVimLeavePre()
+  augroup END
+
+  " Define custom events
+  augroup NvimGdbInternal
+    au!
+    au User NvimGdbQuery ""
+    au User NvimGdbBreak ""
+    au User NvimGdbContinue ""
+    au User NvimGdbStart ""
+    au User NvimGdbCleanup ""
+  augroup END
+endfunction
+
+"Shared global state cleanup after the last session ended
+function! nvimgdb#GlobalCleanup()
+  " Cleanup the autocommands
+  call nvimgdb#ClearAugroup("NvimGdb")
+  " Cleanup custom events
+  call nvimgdb#ClearAugroup("NvimGdbInternal")
+
+  " Cleanup user commands and keymaps
+  delcommand GdbDebugStop
+  delcommand GdbBreakpointToggle
+  delcommand GdbBreakpointClearAll
+  delcommand GdbRun
+  delcommand GdbUntil
+  delcommand GdbContinue
+  delcommand GdbNext
+  delcommand GdbStep
+  delcommand GdbFinish
+  delcommand GdbFrameUp
+  delcommand GdbFrameDown
+  delcommand GdbInterrupt
+  delcommand GdbEvalWord
+  delcommand GdbEvalRange
+  delcommand GdbCreateWatch
 endfunction

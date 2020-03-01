@@ -27,7 +27,7 @@ class Config(Common):
         'sign_current_line': '▶',
         'sign_breakpoint': ['●', '●²', '●³', '●⁴', '●⁵', '●⁶', '●⁷', '●⁸',
                             '●⁹', '●ⁿ'],
-        'split_command': 'split',
+        'codewin_command': 'new',
         'set_scroll_off': 5
         }
 
@@ -52,7 +52,7 @@ class Config(Common):
     def _filter_funcref(self, def_conf, key, val):
         '''Turn a string into a funcref looking up a Vim function.'''
         # Lookup the key in the default config.
-        def_val = def_conf[key]
+        def_val = def_conf.get(key, None)
         # Check whether the key should be a function.
         if not callable(def_val):
             return val
@@ -65,15 +65,14 @@ class Config(Common):
         if self.vim.call("exists", 'g:nvimgdb_config'):
             config = self.vim.vars['nvimgdb_config']
             for key, val in config.items():
-                # pylint: disable=broad-except
-                try:
-                    config[key] = self._filter_funcref(Config.default,
-                                                       key, val)
-                except Exception as ex:
-                    self.log(f"Exception: {str(ex)}")
+                filtered_val = self._filter_funcref(Config.default,
+                                                    key, val)
+                if filtered_val is None:
+                    continue
+                config[key] = filtered_val
             # Make sure the essential keys are present even if not supplied.
             for must_have in ('sign_current_line', 'sign_breakpoint',
-                              'split_command', 'set_scroll_off'):
+                              'codewin_command', 'set_scroll_off'):
                 if must_have not in config:
                     config[must_have] = Config.default[must_have]
         return config
@@ -85,6 +84,8 @@ class Config(Common):
             if override:
                 for key, val in override.items():
                     key_val = self._filter_funcref(Config.default, key, val)
+                    if key_val is None:
+                        continue
                     self._check_keymap_conflicts(key_val, key, True)
                     self.config[key] = key_val
 
@@ -96,6 +97,8 @@ class Config(Common):
                 val = self.vim.vars[vname]
                 if val:
                     key_val = self._filter_funcref(Config.default, key, val)
+                    if key_val is None:
+                        continue
                     self._check_keymap_conflicts(key_val, key, False)
                     self.config[key] = key_val
 

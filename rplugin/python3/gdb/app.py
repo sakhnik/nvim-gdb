@@ -26,20 +26,12 @@ class App(Common):
                          ' | setlocal nowinfixwidth'
                          ' | setlocal nowinfixheight'
                          ' | silent wincmd o')
-        self.vim.command(self.config.get("split_command"))
-
-        # Enumerate the available windows
-        wins = self.vim.current.tabpage.windows
-        if len(wins) != 2:
-            raise Exception("The split_command should result in exactly two"
-                            " windows")
-        wcli, wjump = wins[1], wins[0]
 
         # Initialize current line tracking
         self.cursor = Cursor(common)
 
         # Go to the other window and spawn gdb client
-        self.client = Client(common, wcli, proxyCmd, clientCmd)
+        self.client = Client(common, proxyCmd, clientCmd)
 
         # Initialize connection to the side channel
         self.proxy = Proxy(common, self.client)
@@ -51,7 +43,7 @@ class App(Common):
         self.keymaps = Keymaps(common)
 
         # Initialize the windowing subsystem
-        self.win = Win(common, wjump, self.cursor, self.client,
+        self.win = Win(common, self.cursor, self.client,
                        self.breakpoint, self.keymaps)
 
         # Get the selected backend module
@@ -78,7 +70,7 @@ class App(Common):
         self.client.start()
         self.vim.command("doautocmd User NvimGdbStart")
 
-    def cleanup(self):
+    def cleanup(self, tab):
         '''Finish up the debugging session.'''
         self.vim.command("doautocmd User NvimGdbCleanup")
 
@@ -91,13 +83,13 @@ class App(Common):
         # Close connection to the side channel
         self.proxy.cleanup()
 
-        # Close the windows and the tab
-        tab_count = len(self.vim.tabpages)
-        self.client.del_buffer()
-        if tab_count == len(self.vim.tabpages):
-            self.vim.command("tabclose")
-
+        # Close the debugger backend
         self.client.cleanup()
+
+        # Close the windows and the tab
+        for t in self.vim.tabpages:
+            if t.handle == tab:
+                self.vim.command(f"tabclose! {t.number}")
 
     def _get_command(self, cmd):
         return self.parser.command_map.get(cmd, cmd)
@@ -121,6 +113,7 @@ class App(Common):
            in that window.
         '''
         self.vim.command("vnew | set readonly buftype=nowrite")
+        self.keymaps.dispatch_set()
         buf = self.vim.current.buffer
         buf.name = cmd
 
@@ -134,7 +127,7 @@ class App(Common):
         self.vim.command("augroup END")
 
         # Destroy the autowatch automatically when the window is gone.
-        self.vim.command(f"autocmd BufWinLeave <buffer> call nvimgdb#ui#ClearAugroup('{augroup_name}')")
+        self.vim.command(f"autocmd BufWinLeave <buffer> call nvimgdb#ClearAugroup('{augroup_name}')")
         # Destroy the watch buffer.
         self.vim.command("autocmd BufWinLeave <buffer> call timer_start(100,"
                 f" {{ -> execute('bwipeout! {buf.number}') }})")
@@ -202,14 +195,5 @@ class App(Common):
         if self.vim.current.buffer.options['buftype'] != 'terminal':
             self.keymaps.dispatch_unset()
         else:
-            self.vim.command("normal G")
-
-    def on_check_window_closed(self):
-        '''The checks to be executed when navigating the windows.'''
-        # The tabpage should contain the two initial windows (client, jump).
-        # If any of them is closed, finish debugging.
-        wins = self.vim.current.tabpage.windows
-        if self.client.win not in wins:
-            self.vim.call("nvimgdb#Kill")
-        elif self.win.jump_win not in wins:
-            self.vim.call("nvimgdb#Kill")
+            # Move the cursor to the end of the buffer
+            self.vim.command("$")

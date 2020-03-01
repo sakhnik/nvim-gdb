@@ -32,20 +32,22 @@ class Keymaps(Common):
         '''Set buffer-local keymaps.'''
         for mode, key, cmd in Keymaps.default:
             try:
-                keystroke = self.config.get(key)
-                self.vim.command(
-                    f'{mode}noremap <buffer> <silent> {keystroke} {cmd}<cr>')
-            except Exception as ex:
-                self.log(f'Exception: {str(ex)}')
+                keystroke = self.config.get_or(key, None)
+                if keystroke is not None:
+                    self.vim.command(
+                        f'{mode}noremap <buffer> <silent> {keystroke} {cmd}<cr>')
+            except Exception:
+                self.logger.exception('Exception')
 
     def unset(self):
         '''Unset buffer-local keymaps.'''
         for mode, key, _ in Keymaps.default:
             try:
-                keystroke = self.config.get(key)
-                self.vim.command(f'{mode}unmap <buffer> {keystroke}')
-            except Exception as ex:
-                self.log(f'Exception: {str(ex)}')
+                keystroke = self.config.get_or(key, None)
+                if keystroke is not None:
+                    self.vim.command(f'{mode}unmap <buffer> {keystroke}')
+            except Exception:
+                self.logger.exception('Exception')
 
     default_t = {
         ('key_until', ':GdbUntil'),
@@ -59,19 +61,20 @@ class Keymaps(Common):
         '''Set term-local keymaps.'''
         for key, cmd in Keymaps.default_t:
             try:
-                keystroke = self.config.get(key)
-                self.vim.command(f'tnoremap <buffer> <silent> {keystroke}'
-                                 rf' <c-\><c-n>{cmd}<cr>i')
-            except Exception as ex:
-                self.log(f'Exception: {str(ex)}')
+                keystroke = self.config.get_or(key, None)
+                if keystroke is not None:
+                    self.vim.command(f'tnoremap <buffer> <silent> {keystroke}'
+                                     rf' <c-\><c-n>{cmd}<cr>i')
+            except Exception:
+                self.logger.exception('Exception')
         self.vim.command(r'tnoremap <silent> <buffer> <esc> <c-\><c-n>G')
 
     def _dispatch(self, key):
         try:
             if self.dispatch_active:
-                self.config.get(key)(self)
-        except Exception as ex:
-            self.log(f'Exception: {str(ex)}')
+                self.config.get_or(key, lambda _: None)(self)
+        except Exception:
+            self.logger.exception('Exception')
 
     def dispatch_set(self):
         '''Call the hook to set the keymaps.'''

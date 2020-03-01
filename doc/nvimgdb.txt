@@ -51,8 +51,8 @@ launch by attaching to already running program, the first stop won't open the
 source code location of the frame. To catch up, just navigate around the call
 stack with `:GdbFrameUp` and `:GdbFrameDown`.
 
-To quit debugging, either close one of the debugger windows or execute the
-command `:GdbDebugStop`.
+To quit debugging, either close the tabpage with the debugging session or
+execute the command `:GdbDebugStop`.
 
 ==============================================================================
 Section 2: Commands                                          *NvimgdbCommands*
@@ -178,12 +178,12 @@ allows overriding the given keys. For example, the default config is: >
       \ 'unset_keymaps':  'function("GdbCallAsync", "keymaps.unset")',
       \ 'sign_current_line': '▶',
       \ 'sign_breakpoint': [ '●', '●²', '●³', '●⁴', '●⁵', '●⁶', '●⁷', '●⁸', '●⁹', '●ⁿ' ],
-      \ 'split_command': 'split'
+      \ 'codewin_command': 'new'
       \ }
 <
-The key `split_command` defines a Vim command to create the layout of debugger
-windows. It should produce exactly two windows: one for the debugger terminal,
-the other one for the code display.
+The key `codewin_command` defines a Vim command to create a new empty window
+for the code view. It should produce one focused window, and could be used to
+build desired layout.
 
 The keys starting with `sign_` define how the signs for the currently executed
 line and breakpoints look like. The default values assume a modern terminal
@@ -303,12 +303,8 @@ Section 8: Limitations                                    *NvimgdbLimitations*
 Section 9: Development                                    *NvimgdbDevelopment*
 
                                                               *NvimgdbLogging*
-                                                             *NVIMGDB_LOGFILE*
-                                                             *NVIMGDB_LOGKEYS*
-- To enable logging, define the following environment variables:
-  - `NVIMGDB_LOGFILE` the file to write the logs to
-  - `NVIMGDB_LOGKEYS` a comma-separated list of log keys, e.g.: GdbParser,App
-  If unset or empty, all the keys are logged. A key is the name of a class.
+- To enable logging, edit the conventional Python logging configuration file
+  ../rplugin/python3/gdb/logger.py
 
 - The keymaps are defined buffer-local for every buffer when it's entered,
   and undefined when a buffer is left. This was done to ensure that users's
