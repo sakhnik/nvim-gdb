@@ -71,7 +71,13 @@ class Engine:
 
     def count_buffers(self):
         """Determine how many buffers are there."""
-        self.eval('len(filter(range(bufnr("$") + 1), "buflisted(v:val)"))')
+        self.eval('len(filter(nvim_list_bufs(), "nvim_buf_is_loaded(v:val)"))')
+
+    def count_termbuffers(self):
+        """Determine how many terminal buffers are there."""
+        terms = [b for b in self.nvim.buffers \
+                if b.api.is_loaded() and b.api.get_option('buftype') == 'terminal']
+        return len(terms)
 
     @staticmethod
     def wait_equal(action, expected, deadline=0):
