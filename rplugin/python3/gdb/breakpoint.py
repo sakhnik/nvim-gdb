@@ -6,11 +6,17 @@ from gdb.common import Common
 
 class Breakpoint(Common):
     '''Handle breakpoint signs.'''
-    def __init__(self, common, proxy):
+    def __init__(self, common, proxy, backend):
         super().__init__(common)
         self.proxy = proxy
+        self.backend = backend
         self.breaks = {}    # {file -> {line -> [id]}}
         self.max_sign_id = 0
+
+        # Function to transform source file name before querying
+        locate_source_file = getattr(self.backend, "LocateSourceFile", None)
+        self.locate_source_file = locate_source_file \
+                if callable(locate_source_file) else lambda a, _: a
 
     def clear_signs(self):
         '''Clear all breakpoint signs.'''
@@ -38,8 +44,13 @@ class Breakpoint(Common):
 
     def query(self, buf_num, fname):
         '''Query actual breakpoints for the given file.'''
+        # Transform the source file path if necessary for the backend
+        self.logger.info(f"Query breakpoints for {fname}")
+        fname_sym = self.locate_source_file(fname, self.proxy)
+        if fname != fname_sym:
+            self.logger.info(f"Map file path {fname} to {fname_sym}")
         self.breaks[fname] = {}
-        resp = self.proxy.query(f"info-breakpoints {fname}\n")
+        resp = self.proxy.query(f"info-breakpoints {fname_sym}\n")
         if resp:
             # We expect the proxies to send breakpoints for a given file
             # as a map of lines to array of breakpoint ids set in those lines.

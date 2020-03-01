@@ -27,6 +27,15 @@ class App(Common):
                          ' | setlocal nowinfixheight'
                          ' | silent wincmd o')
 
+        # Get the selected backend module
+        backend_maps = {
+            "gdb": GdbParser,
+            "bashdb": BashDBParser,
+            "lldb": LldbParser,
+            "pdb": PdbParser
+        }
+        backend_class = backend_maps[backendStr]
+
         # Initialize current line tracking
         self.cursor = Cursor(common)
 
@@ -37,7 +46,7 @@ class App(Common):
         self.proxy = Proxy(common, self.client)
 
         # Initialize breakpoint tracking
-        self.breakpoint = Breakpoint(common, self.proxy)
+        self.breakpoint = Breakpoint(common, self.proxy, backend_class)
 
         # Initialize the keymaps subsystem
         self.keymaps = Keymaps(common)
@@ -45,15 +54,6 @@ class App(Common):
         # Initialize the windowing subsystem
         self.win = Win(common, self.cursor, self.client,
                        self.breakpoint, self.keymaps)
-
-        # Get the selected backend module
-        backend_maps = {
-            "gdb": GdbParser,
-            "bashdb": BashDBParser,
-            "lldb": LldbParser,
-            "pdb": PdbParser
-        }
-        backend_class = backend_maps[backendStr]
 
         # Initialize the parser
         self.parser = backend_class(common, self.cursor, self.win)

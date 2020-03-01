@@ -2,10 +2,13 @@
 
 import re
 from gdb.parser import Parser
+import logging
 
 
 class GdbParser(Parser):
     '''GDB parser and FSM.'''
+
+    logger = None
 
     command_map = {
         'delete_breakpoints': 'delete',
@@ -29,3 +32,22 @@ class GdbParser(Parser):
         self.add_trans(self.running, re_jump, self._paused_jump)
 
         self.state = self.running
+
+    @staticmethod
+    def get_logger():
+        if GdbParser.logger is None:
+            GdbParser.logger = logging.getLogger("GdbParser")
+        return GdbParser.logger
+
+    @staticmethod
+    def LocateSourceFile(fname, proxy):
+        '''Resolve full path to the filename into its presentation
+           in the debugger.'''
+        resp = proxy.query(f"handle-command info source {fname}")
+        GdbParser.get_logger().debug(resp)
+        pattern = re.compile(r"Current source file is ([^\r\n]+)")
+        m = pattern.search(resp)
+        if m:
+            GdbParser.get_logger().info(m.group(1))
+            return m.group(1)
+        return fname
