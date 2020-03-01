@@ -1,10 +1,10 @@
 '''PDB specifics.'''
 
 import re
-from gdb.parser import Parser
+from gdb import parser
 
 
-class PdbParser(Parser):
+class Pdb:
     '''PDB parser and FSM.'''
 
     command_map = {
@@ -14,12 +14,13 @@ class PdbParser(Parser):
         'print {}': 'print({})',
     }
 
-    def __init__(self, common, cursor, backend):
-        super().__init__(common, cursor, backend)
-        self.add_trans(self.paused,
-                       re.compile(r'[\r\n]> ([^(]+)\((\d+)\)[^(]+\(\)'),
-                       self._paused_jump)
-        self.add_trans(self.paused,
-                       re.compile(r'[\r\n]\(Pdb\) $'),
-                       self._query_b)
-        self.state = self.paused
+    class Parser(parser.Parser):
+        def __init__(self, common, cursor, backend):
+            super().__init__(common, cursor, backend)
+            self.add_trans(self.paused,
+                           re.compile(r'[\r\n]> ([^(]+)\((\d+)\)[^(]+\(\)'),
+                           self._paused_jump)
+            self.add_trans(self.paused,
+                           re.compile(r'[\r\n]\(Pdb\) $'),
+                           self._query_b)
+            self.state = self.paused
