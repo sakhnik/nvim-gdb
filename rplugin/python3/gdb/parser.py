@@ -36,7 +36,7 @@ class Parser(Common):
         return str(self.state)
 
     def _paused_continue(self, _):
-        self.log("_paused_continue")
+        self.logger.info("_paused_continue")
         self.cursor.hide()
 
         self.vim.command("doautocmd User NvimGdbContinue")
@@ -46,7 +46,7 @@ class Parser(Common):
     def _paused_jump(self, match):
         fname = match.group(1)
         line = match.group(2)
-        self.log(f"_paused_jump {fname}:{line}")
+        self.logger.info(f"_paused_jump {fname}:{line}")
         self.win.jump(fname, int(line))
 
         self.vim.command("doautocmd User NvimGdbBreak")
@@ -54,7 +54,7 @@ class Parser(Common):
         return self.paused
 
     def _query_b(self, _):
-        self.log('_query_b')
+        self.logger.info('_query_b')
         self.win.query_breakpoints()
 
         # Execute the rest of custom commands
@@ -69,14 +69,14 @@ class Parser(Common):
             if match:
                 self.buffer = self.buffer[match.end():]
                 self.state = func(match)
-                self.log(f"new state: {self._get_state_name()}")
+                self.logger.info(f"new state: {self._get_state_name()}")
                 return True
         return False
 
     def feed(self, lines):
         '''Process a line of the debugger output through the FSM.'''
         for line in lines:
-            self.log(line)
+            self.logger.debug(line)
             if line:
                 self.buffer += line
             else:

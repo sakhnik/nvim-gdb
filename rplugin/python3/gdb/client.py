@@ -14,9 +14,9 @@ class Client(Common):
             path = os.path.dirname(path)
         return path
 
-    def __init__(self, common, win, proxy_cmd, client_cmd):
+    def __init__(self, common, proxy_cmd, client_cmd):
         super().__init__(common)
-        self.win = win
+        self.win = self.vim.current.window
         self.client_id = None
         # Create a temporary unique directory for all the sockets.
         self.sock_dir = SockDir()
@@ -27,7 +27,6 @@ class Client(Common):
             self.proxy_addr = self.sock_dir.get() + '/server'
             self.command = f"{self._get_plugin_dir()}/lib/{proxy_cmd}" \
                 f" -a {self.proxy_addr} -- {client_cmd}"
-        self.vim.command(f"{win.number}wincmd w")
         self.vim.command("enew")
         self.client_buf = self.vim.current.buffer
 
@@ -35,13 +34,10 @@ class Client(Common):
         '''Access the temporary socket directory.'''
         return self.sock_dir.get()
 
-    def del_buffer(self):
-        '''Delete the client buffer.'''
-        if self.vim.call("bufexists", self.client_buf.handle):
-            self.vim.command(f"bd! {self.client_buf.handle}")
-
     def cleanup(self):
         '''The destructor.'''
+        if self.vim.call("bufexists", self.client_buf.handle):
+            self.vim.command(f"bd! {self.client_buf.handle}")
         if self.proxy_addr:
             try:
                 os.remove(self.proxy_addr)
@@ -52,9 +48,13 @@ class Client(Common):
     def start(self):
         '''Open a terminal window with the debugger client command.'''
         # Go to the yet-to-be terminal window
-        self.vim.command(f"{self.win.number}wincmd w")
+        self.vim.current.window = self.win
         self.client_id = self.vim.call("nvimgdb#TermOpen", self.command,
                                        self.vim.current.tabpage.handle)
+        # Allow detaching the terminal from its window
+        self.vim.command("set bufhidden=hide")
+        # Finsih the debugging session when the terminal is closed
+        self.vim.command(f"au TermClose <buffer> call GdbCleanup({self.vim.current.tabpage.handle})")
 
     def interrupt(self):
         '''Interrupt running program by sending ^c.'''

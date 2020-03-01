@@ -59,6 +59,7 @@ def post(eng):
     eng.exe("GdbDebugStop")
     assert eng.eval("tabpagenr('$')") == 1
     assert {} == eng.get_signs()
+    assert 0 == eng.count_termbuffers()
 
 
 @pytest.fixture(scope="function", params=BACKENDS.values())

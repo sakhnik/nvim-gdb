@@ -10,6 +10,7 @@ import argparse
 import array
 import errno
 import fcntl
+import logging
 import os
 import pty
 import select
@@ -17,7 +18,6 @@ import signal
 import socket
 import sys
 import termios
-import traceback
 import tty
 
 import stream_filter
@@ -39,8 +39,10 @@ class BaseProxy:
 
         self.server_address = args.address
         self.argv = args.cmd
-        self.logfile = None
-        # self.logfile = open("/tmp/log.txt", "w")
+        logging.basicConfig(level=logging.DEBUG,
+                format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+                handlers=[logging.NullHandler()])
+        self.logger = logging.getLogger(type(self).__name__)
 
         if self.server_address:
             # Create a UDS socket
@@ -60,17 +62,6 @@ class BaseProxy:
         if pid == pty.CHILD:
             os.execvp(self.argv[0], self.argv)
 
-    def log(self, msg):
-        '''Log the message.'''
-        try:
-            if self.logfile is not None:
-                self.logfile.write(msg)
-                self.logfile.write("\n")
-                self.logfile.flush()
-        except Exception as ex:
-            print(ex)
-            raise
-
     def run(self):
         '''The entry point'''
 
@@ -85,14 +76,12 @@ class BaseProxy:
         try:
             self._process()
         except OSError as os_err:
-            ex = "".join(traceback.format_exception(*sys.exc_info()))
-            self.log(ex)
+            self.logger.exception("Exception")
             # Avoid printing I/O Error that happens on every GDB quit
             if os_err.errno != 5:
                 raise
         except Exception:
-            ex = "".join(traceback.format_exception(*sys.exc_info()))
-            self.log(ex)
+            self.logger.exception("Exception")
             raise
         finally:
             tty.tcsetattr(pty.STDIN_FILENO, tty.TCSAFLUSH, mode)
@@ -110,16 +99,16 @@ class BaseProxy:
 
     def set_filter(self, filt, handler):
         '''Push a new filter with given handler.'''
-        self.log("set_filter %s %s" % (str(filt), str(handler)))
+        self.logger.info(f"set_filter {str(filt)} {str(handler)}")
         if len(self.filter) == 1:
-            self.log("filter accepted")
+            self.logger.info("filter accepted")
             # Only one command at a time. Should be an assertion here,
             # but we wouldn't want to terminate the program.
             if self.filter:
                 self._timeout()
             self.filter.append((filt, handler))
             return True
-        self.log("filter rejected")
+        self.logger.warning("filter rejected")
         return False
 
     @abc.abstractmethod
@@ -166,12 +155,11 @@ class BaseProxy:
                 elif self.sock in rfds:
                     data, self.last_addr = self.sock.recvfrom(65536)
                     if data[-1] == b'\n':
-                        self.log("WARNING: the command ending with <nl>. "
+                        self.logger.warning("The command ending with <nl>. "
                                  "The StreamProxy filter known to fail.")
-                    self.log("Got command '%s'" % data.decode('utf-8'))
+                    self.logger.info(f"Got command '{data.decode('utf-8')}'")
                     command = self.filter_command(data)
-                    self.log("Translated command '{}'"
-                             .format(command.decode('utf-8')))
+                    self.logger.info(f"Translated command '{command.decode('utf-8')}'")
                     if command:
                         self.write_master(command)
                         self.write_master(b'\n')
@@ -197,7 +185,7 @@ class BaseProxy:
         data, filtered = filt.filter(data)
         self._write(pty.STDOUT_FILENO, data)
         if filtered:
-            self.log("Filter matched %d bytes" % len(filtered))
+            self.logger.info(f"Filter matched {len(filtered)} bytes")
             self.filter.pop()
             assert callable(handler)
             res = handler(filtered)
