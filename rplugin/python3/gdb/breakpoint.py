@@ -45,11 +45,16 @@ class Breakpoint(Common):
         '''Query actual breakpoints for the given file.'''
         # Transform the source file path if necessary for the backend
         self.logger.info(f"Query breakpoints for {fname}")
-        fname_sym = self.impl.LocateSourceFile(fname)
-        if fname != fname_sym:
-            self.logger.info(f"Map file path {fname} to {fname_sym}")
+
+        query_impl = getattr(self.impl, "Query", None)
+        if query_impl is not None:
+            self.breaks[fname] = query_impl(fname)
+            self.clear_signs()
+            self._set_signs(buf_num)
+            return
+
         self.breaks[fname] = {}
-        resp = self.proxy.query(f"info-breakpoints {fname_sym}\n")
+        resp = self.proxy.query(f"info-breakpoints {fname}\n")
         if resp:
             # We expect the proxies to send breakpoints for a given file
             # as a map of lines to array of breakpoint ids set in those lines.
