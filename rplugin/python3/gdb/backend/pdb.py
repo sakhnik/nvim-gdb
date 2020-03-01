@@ -7,6 +7,13 @@ from gdb.parser import Parser
 class PdbParser(Parser):
     '''PDB parser and FSM.'''
 
+    command_map = {
+        'delete_breakpoints': 'clear',
+        'breakpoint': 'break',
+        'finish': 'return',
+        'print {}': 'print({})',
+    }
+
     def __init__(self, common, cursor, backend):
         super().__init__(common, cursor, backend)
         self.add_trans(self.paused,
@@ -16,10 +23,3 @@ class PdbParser(Parser):
                        re.compile(r'[\r\n]\(Pdb\) $'),
                        self._query_b)
         self.state = self.paused
-
-        self.command_map = {
-            'delete_breakpoints': 'clear',
-            'breakpoint': 'break',
-            'finish': 'return',
-            'print {}': 'print({})'
-        }

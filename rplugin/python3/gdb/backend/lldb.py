@@ -7,6 +7,12 @@ from gdb.parser import Parser
 class LldbParser(Parser):
     '''LLDB parser and FSM.'''
 
+    command_map = {
+        'delete_breakpoints': 'breakpoint delete',
+        'breakpoint': 'b',
+        'until {}': 'thread until {}',
+    }
+
     def __init__(self, common, cursor, win):
         super().__init__(common, cursor, win)
 
@@ -27,10 +33,3 @@ class LldbParser(Parser):
         self.add_trans(self.running, re_prompt, self._query_b)
 
         self.state = self.running
-
-        self.command_map = {
-            'initParser': LldbParser,
-            'delete_breakpoints': 'breakpoint delete',
-            'breakpoint': 'b',
-            'until {}': 'thread until {}'
-        }

@@ -7,6 +7,11 @@ from gdb.parser import Parser
 class GdbParser(Parser):
     '''GDB parser and FSM.'''
 
+    command_map = {
+        'delete_breakpoints': 'delete',
+        'breakpoint': 'break',
+    }
+
     def __init__(self, common, cursor, win):
         super().__init__(common, cursor, win)
 
@@ -24,8 +29,3 @@ class GdbParser(Parser):
         self.add_trans(self.running, re_jump, self._paused_jump)
 
         self.state = self.running
-
-        self.command_map = {
-            'delete_breakpoints': 'delete',
-            'breakpoint': 'break'
-        }
