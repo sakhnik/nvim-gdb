@@ -43,29 +43,10 @@ class Breakpoint(Common):
 
     def query(self, buf_num, fname):
         '''Query actual breakpoints for the given file.'''
-        # Transform the source file path if necessary for the backend
         self.logger.info(f"Query breakpoints for {fname}")
-
-        query_impl = getattr(self.impl, "Query", None)
-        if query_impl is not None:
-            self.breaks[fname] = query_impl(fname)
-            self.clear_signs()
-            self._set_signs(buf_num)
-            return
-
-        self.breaks[fname] = {}
-        resp = self.proxy.query(f"info-breakpoints {fname}\n")
-        if resp:
-            # We expect the proxies to send breakpoints for a given file
-            # as a map of lines to array of breakpoint ids set in those lines.
-            breaks = json.loads(resp)
-            err = breaks.get('_error', None)
-            if err:
-                self.vim.command(f"echo \"Can't get breakpoints: {err}\"")
-            else:
-                self.breaks[fname] = breaks
-                self.clear_signs()
-                self._set_signs(buf_num)
+        self.breaks[fname] = self.impl.Query(fname)
+        self.clear_signs()
+        self._set_signs(buf_num)
 
     def reset_signs(self):
         '''Reset all known breakpoints and their signs.'''
