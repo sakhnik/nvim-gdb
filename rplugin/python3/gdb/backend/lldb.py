@@ -2,6 +2,8 @@
 
 import re
 from gdb import parser
+import logging
+import json
 
 
 class Lldb:
@@ -38,7 +40,19 @@ class Lldb:
 
     class Breakpoint:
         def __init__(self, proxy):
-            pass
+            self.proxy = proxy
+            self.logger = logging.getLogger("Gdb.Breakpoint")
 
-        def LocateSourceFile(self, fname):
-            return fname
+        def Query(self, fname):
+            self.logger.info(f"Query breakpoints for {fname}")
+            resp = self.proxy.query(f"info-breakpoints {fname}\n")
+            if not resp:
+                return {}
+            # We expect the proxies to send breakpoints for a given file
+            # as a map of lines to array of breakpoint ids set in those lines.
+            breaks = json.loads(resp)
+            err = breaks.get('_error', None)
+            if err:
+                self.vim.command(f"echo \"Can't get breakpoints: {err}\"")
+                return {}
+            return breaks
