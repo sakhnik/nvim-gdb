@@ -55,7 +55,7 @@ class Gdb:
             fname_sym = self._ResolveFile(fname)
             if fname != fname_sym:
                 self.logger.info(f"Map file path {fname} to {fname_sym}")
-            response = self.proxy.query(f"handle-command info breakpoints")
+            response = self.proxy.query("handle-command info breakpoints")
             if not response:
                 return {}
 

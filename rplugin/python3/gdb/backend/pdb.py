@@ -2,6 +2,7 @@
 
 import re
 from gdb import parser
+import logging
 
 
 class Pdb:
@@ -28,7 +29,33 @@ class Pdb:
 
     class Breakpoint:
         def __init__(self, proxy):
-            pass
+            self.proxy = proxy
+            self.logger = logging.getLogger("Pdb.Breakpoint")
 
-        def LocateSourceFile(self, fname):
-            return fname
+        def Query(self, fname):
+            self.logger.info(f"Query breakpoints for {fname}")
+
+            response = self.proxy.query("handle-command break")
+
+            # Num Type         Disp Enb   Where
+            # 1   breakpoint   keep yes   at /tmp/nvim-gdb/test/main.py:8
+
+            breaks = {}
+            for line in response.splitlines():
+                try:
+                    tokens = re.split(r'\s+', line)
+                    bid = tokens[0]
+                    if tokens[1] != 'breakpoint':
+                        continue
+                    if tokens[3] != 'yes':
+                        continue
+                    src_line = re.split(r':', tokens[-1])
+                    if fname == src_line[0]:
+                        try:
+                            breaks[src_line[1]].append(bid)
+                        except KeyError:
+                            breaks[src_line[1]] = [bid]
+                except (IndexError, ValueError):
+                    continue
+
+            return breaks
