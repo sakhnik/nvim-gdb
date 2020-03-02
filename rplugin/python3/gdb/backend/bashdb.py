@@ -2,6 +2,7 @@
 
 import re
 from gdb import parser
+import logging
 
 
 class BashDB:
@@ -31,7 +32,31 @@ class BashDB:
 
     class Breakpoint:
         def __init__(self, proxy):
-            pass
+            self.proxy = proxy
+            self.logger = logging.getLogger("BashDB.Breakpoint")
 
-        def LocateSourceFile(self, fname):
-            return fname
+        def Query(self, fname):
+            self.logger.info(f"Query breakpoints for {fname}")
+            response = self.proxy.query("handle-command info breakpoints")
+            if not response:
+                return {}
+
+            # Select lines in the current file with enabled breakpoints.
+            pattern = re.compile(r"([^:]+):(\d+)")
+            breaks = {}
+            for line in response.splitlines():
+                try:
+                    fields = re.split(r"\s+", line)
+                    if fields[3] == 'y':    # Is enabled?
+                        match = pattern.fullmatch(fields[-1])   # file.cpp:line
+                        if match and match.group(1) == fname:
+                            line = match.group(2)
+                            br_id = fields[0]
+                            try:
+                                breaks[line].append(br_id)
+                            except KeyError:
+                                breaks[line] = [br_id]
+                except (ValueError, IndexError):
+                    continue
+
+            return breaks
