@@ -75,7 +75,10 @@ class Gdb:
                             fname_sym.endswith(os.path.realpath(match.group(1)))
                         if (match and (is_end_match or is_end_match_full_path)):
                             line = match.group(2)
-                            br_id = fields[0]
+                            # If a breakpoint has multiple locations, GDB only allows
+                            # to disable by the breakpoint number, not location number.
+                            # For instance, 1.4 -> 1
+                            br_id = fields[0].split('.')[0]
                             try:
                                 breaks[line].append(br_id)
                             except KeyError:
