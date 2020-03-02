@@ -60,13 +60,14 @@ class Gdb:
                 return {}
 
             # Select lines in the current file with enabled breakpoints.
-            pattern = re.compile(r"([^:]+):(\d+)")
+            pos_pattern = re.compile(r"([^:]+):(\d+)")
+            enb_pattern = re.compile(r"\sy\s+0x")
             breaks = {}
             for line in response.splitlines():
                 try:
-                    fields = re.split(r"\s+", line)
-                    if fields[3] == 'y':    # Is enabled?
-                        match = pattern.fullmatch(fields[-1])   # file.cpp:line
+                    if enb_pattern.search(line):    # Is enabled?
+                        fields = re.split(r"\s+", line)
+                        match = pos_pattern.fullmatch(fields[-1])   # file.cpp:line
                         if not match:
                             continue
                         is_end_match = fname_sym.endswith(match.group(1))
