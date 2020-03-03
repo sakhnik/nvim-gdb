@@ -192,8 +192,9 @@ class App(Common):
 
     def on_buf_leave(self):
         '''Actions to execute when a buffer is left.'''
-        if self.vim.current.buffer.options['buftype'] != 'terminal':
-            self.keymaps.dispatch_unset()
-        else:
+        if self.vim.current.buffer.options['buftype'] == 'terminal':
             # Move the cursor to the end of the buffer
             self.vim.command("$")
+            return
+        if self.win.is_jump_window_active():
+            self.keymaps.dispatch_unset()
