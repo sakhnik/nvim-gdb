@@ -189,8 +189,8 @@ class BaseProxy:
             self.filter.pop()
             assert callable(handler)
             res = handler(filtered)
-            if res:
-                self.sock.sendto(res, 0, self.last_addr)
+            self.logger.debug(f"Sending to {self.last_addr}: {res}")
+            self.sock.sendto(res, 0, self.last_addr)
 
     def write_master(self, data):
         """Write to the child process from its controlling terminal."""

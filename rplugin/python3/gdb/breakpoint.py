@@ -6,11 +6,16 @@ from gdb.common import Common
 
 class Breakpoint(Common):
     '''Handle breakpoint signs.'''
-    def __init__(self, common, proxy):
+    def __init__(self, common, proxy, backend):
         super().__init__(common)
         self.proxy = proxy
+        self.backend = backend
         self.breaks = {}    # {file -> {line -> [id]}}
         self.max_sign_id = 0
+
+        # Function to transform source file name before querying
+        impl_cls = getattr(self.backend, "Breakpoint")
+        self.impl = impl_cls(self.proxy)
 
     def clear_signs(self):
         '''Clear all breakpoint signs.'''
@@ -38,19 +43,10 @@ class Breakpoint(Common):
 
     def query(self, buf_num, fname):
         '''Query actual breakpoints for the given file.'''
-        self.breaks[fname] = {}
-        resp = self.proxy.query(f"info-breakpoints {fname}\n")
-        if resp:
-            # We expect the proxies to send breakpoints for a given file
-            # as a map of lines to array of breakpoint ids set in those lines.
-            breaks = json.loads(resp)
-            err = breaks.get('_error', None)
-            if err:
-                self.vim.command(f"echo \"Can't get breakpoints: {err}\"")
-            else:
-                self.breaks[fname] = breaks
-                self.clear_signs()
-                self._set_signs(buf_num)
+        self.logger.info(f"Query breakpoints for {fname}")
+        self.breaks[fname] = self.impl.Query(fname)
+        self.clear_signs()
+        self._set_signs(buf_num)
 
     def reset_signs(self):
         '''Reset all known breakpoints and their signs.'''
