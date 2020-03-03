@@ -8,10 +8,10 @@ from gdb.keymaps import Keymaps
 from gdb.proxy import Proxy
 from gdb.breakpoint import Breakpoint
 
-from gdb.backend.gdb import GdbParser
-from gdb.backend.pdb import PdbParser
-from gdb.backend.lldb import LldbParser
-from gdb.backend.bashdb import BashDBParser
+from gdb.backend.gdb import Gdb
+from gdb.backend.pdb import Pdb
+from gdb.backend.lldb import Lldb
+from gdb.backend.bashdb import BashDB
 
 
 class App(Common):
@@ -27,6 +27,15 @@ class App(Common):
                          ' | setlocal nowinfixheight'
                          ' | silent wincmd o')
 
+        # Get the selected backend module
+        backend_maps = {
+            "gdb": Gdb,
+            "bashdb": BashDB,
+            "lldb": Lldb,
+            "pdb": Pdb,
+        }
+        self.backend = backend_maps[backendStr]
+
         # Initialize current line tracking
         self.cursor = Cursor(common)
 
@@ -37,7 +46,7 @@ class App(Common):
         self.proxy = Proxy(common, self.client)
 
         # Initialize breakpoint tracking
-        self.breakpoint = Breakpoint(common, self.proxy)
+        self.breakpoint = Breakpoint(common, self.proxy, self.backend)
 
         # Initialize the keymaps subsystem
         self.keymaps = Keymaps(common)
@@ -46,17 +55,8 @@ class App(Common):
         self.win = Win(common, self.cursor, self.client,
                        self.breakpoint, self.keymaps)
 
-        # Get the selected backend module
-        backend_maps = {
-            "gdb": GdbParser,
-            "bashdb": BashDBParser,
-            "lldb": LldbParser,
-            "pdb": PdbParser
-        }
-        backend_class = backend_maps[backendStr]
-
         # Initialize the parser
-        self.parser = backend_class(common, self.cursor, self.win)
+        self.parser = getattr(self.backend, "Parser")(common, self.cursor, self.win)
 
         # Set initial keymaps in the terminal window.
         self.keymaps.dispatch_set_t()
@@ -92,7 +92,7 @@ class App(Common):
                 self.vim.command(f"tabclose! {t.number}")
 
     def _get_command(self, cmd):
-        return self.parser.command_map.get(cmd, cmd)
+        return self.backend.command_map.get(cmd, cmd)
 
     def send(self, *args):
         '''Send a command to the debugger.'''
