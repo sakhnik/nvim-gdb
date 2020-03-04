@@ -1,29 +1,32 @@
-'''.'''
+"""."""
 
-import json
+from typing import Dict, List
 from gdb.common import Common
+from gdb.proxy import Proxy
 
 
 class Breakpoint(Common):
-    '''Handle breakpoint signs.'''
-    def __init__(self, common, proxy, backend):
+    """Handle breakpoint signs."""
+
+    def __init__(self, common: Common, proxy: Proxy, backend):
+        """ctor."""
         super().__init__(common)
         self.proxy = proxy
         self.backend = backend
-        self.breaks = {}    # {file -> {line -> [id]}}
+        # Discovered breakpoints so far: {file -> {line -> [id]}}
+        self.breaks: Dict[str, Dict[str, List[str]]] = {}
         self.max_sign_id = 0
 
-        # Function to transform source file name before querying
-        impl_cls = getattr(self.backend, "Breakpoint")
-        self.impl = impl_cls(self.proxy)
+        # Backend class to query breakpoints
+        self.impl = self.backend.Breakpoint(self.proxy)
 
     def clear_signs(self):
-        '''Clear all breakpoint signs.'''
+        """Clear all breakpoint signs."""
         for i in range(5000, self.max_sign_id + 1):
             self.vim.call('sign_unplace', 'NvimGdb', {'id': i})
         self.max_sign_id = 0
 
-    def _set_signs(self, buf):
+    def _set_signs(self, buf: int):
         if buf != -1:
             sign_id = 5000 - 1
             # Breakpoints need full path to the buffer (at least in lldb)
@@ -38,22 +41,22 @@ class Breakpoint(Common):
                 sign_id += 1
                 sign_name = _get_sign_name(len(ids))
                 self.vim.call('sign_place', sign_id, 'NvimGdb', sign_name, buf,
-                        {'lnum': line, 'priority': 10})
+                              {'lnum': line, 'priority': 10})
             self.max_sign_id = sign_id
 
-    def query(self, buf_num, fname):
-        '''Query actual breakpoints for the given file.'''
-        self.logger.info(f"Query breakpoints for {fname}")
+    def query(self, buf_num: int, fname: str):
+        """Query actual breakpoints for the given file."""
+        self.logger.info("Query breakpoints for %s", fname)
         self.breaks[fname] = self.impl.Query(fname)
         self.clear_signs()
         self._set_signs(buf_num)
 
     def reset_signs(self):
-        '''Reset all known breakpoints and their signs.'''
+        """Reset all known breakpoints and their signs."""
         self.breaks = {}
         self.clear_signs()
 
-    def get_for_file(self, fname, line):
-        '''Get breakpoints for the given position in a file.'''
+    def get_for_file(self, fname: str, line: int):
+        """Get breakpoints for the given position in a file."""
         breaks = self.breaks.get(fname, {})
         return breaks.get(f"{line}", {})   # make sure the line is a string
