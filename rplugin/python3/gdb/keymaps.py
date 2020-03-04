@@ -1,4 +1,4 @@
-'''Manipulate keymaps: define and undefined when needed.'''
+"""Manipulate keymaps: define and undefined when needed."""
 
 # pylint: disable=broad-except
 
@@ -6,13 +6,15 @@ from gdb.common import Common
 
 
 class Keymaps(Common):
-    '''Keymaps manager.'''
-    def __init__(self, common):
+    """Keymaps manager."""
+
+    def __init__(self, common: Common):
+        """ctor."""
         super().__init__(common)
         self.dispatch_active = True
 
-    def set_dispatch_active(self, state):
-        '''Turn on/off keymaps manipulation.'''
+    def set_dispatch_active(self, state: bool):
+        """Turn on/off keymaps manipulation."""
         self.dispatch_active = state
 
     default = {
@@ -29,18 +31,19 @@ class Keymaps(Common):
     }
 
     def set(self):
-        '''Set buffer-local keymaps.'''
+        """Set buffer-local keymaps."""
         for mode, key, cmd in Keymaps.default:
             try:
                 keystroke = self.config.get_or(key, None)
                 if keystroke is not None:
                     self.vim.command(
-                        f'{mode}noremap <buffer> <silent> {keystroke} {cmd}<cr>')
+                        f'{mode}noremap <buffer> <silent> {keystroke}'
+                        f' {cmd}<cr>')
             except Exception:
                 self.logger.exception('Exception')
 
     def unset(self):
-        '''Unset buffer-local keymaps.'''
+        """Unset buffer-local keymaps."""
         for mode, key, _ in Keymaps.default:
             try:
                 keystroke = self.config.get_or(key, None)
@@ -58,7 +61,7 @@ class Keymaps(Common):
     }
 
     def set_t(self):
-        '''Set term-local keymaps.'''
+        """Set term-local keymaps."""
         for key, cmd in Keymaps.default_t:
             try:
                 keystroke = self.config.get_or(key, None)
@@ -77,13 +80,13 @@ class Keymaps(Common):
             self.logger.exception('Exception')
 
     def dispatch_set(self):
-        '''Call the hook to set the keymaps.'''
+        """Call the hook to set the keymaps."""
         self._dispatch('set_keymaps')
 
     def dispatch_unset(self):
-        '''Call the hook to unset the keymaps.'''
+        """Call the hook to unset the keymaps."""
         self._dispatch('unset_keymaps')
 
     def dispatch_set_t(self):
-        '''Call the hook to set the terminal keymaps.'''
+        """Call the hook to set the terminal keymaps."""
         self._dispatch('set_tkeymaps')
