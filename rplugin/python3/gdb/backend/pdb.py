@@ -32,7 +32,7 @@ class Pdb:
             self.proxy = proxy
             self.logger = logging.getLogger("Pdb.Breakpoint")
 
-        def Query(self, fname):
+        def query(self, fname):
             self.logger.info(f"Query breakpoints for {fname}")
 
             response = self.proxy.query("handle-command break")

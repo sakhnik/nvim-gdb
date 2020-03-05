@@ -43,7 +43,7 @@ class Lldb:
             self.proxy = proxy
             self.logger = logging.getLogger("Gdb.Breakpoint")
 
-        def Query(self, fname):
+        def query(self, fname):
             self.logger.info(f"Query breakpoints for {fname}")
             resp = self.proxy.query(f"info-breakpoints {fname}\n")
             if not resp:

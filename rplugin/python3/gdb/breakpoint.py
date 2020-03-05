@@ -48,7 +48,7 @@ class Breakpoint(Common):
     def query(self, buf_num: int, fname: str):
         """Query actual breakpoints for the given file."""
         self.logger.info("Query breakpoints for %s", fname)
-        self.breaks[fname] = self.impl.Query(fname)
+        self.breaks[fname] = self.impl.query(fname)
         self.clear_signs()
         self._set_signs(buf_num)
 
