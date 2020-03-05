@@ -3,12 +3,13 @@
 from typing import Dict, List
 from gdb.common import Common
 from gdb.proxy import Proxy
+from gdb.backend.gdb import Gdb
 
 
 class Breakpoint(Common):
     """Handle breakpoint signs."""
 
-    def __init__(self, common: Common, proxy: Proxy, backend):
+    def __init__(self, common: Common, proxy: Proxy, backend: Gdb):
         """ctor."""
         super().__init__(common)
         self.proxy = proxy
