@@ -3,6 +3,7 @@
 import logging
 import os
 import re
+from typing import Dict, List
 from gdb import parser
 
 
@@ -64,7 +65,7 @@ class Gdb:
                 return match.group(1)
             return fname
 
-        def query(self, fname):
+        def query(self, fname: str):
             """Query actual breakpoints for the given file name."""
             self.logger.info("Query breakpoints for %s", fname)
             fname_sym = self._resolve_file(fname)
@@ -76,11 +77,11 @@ class Gdb:
 
             return self._parse_response(response, fname_sym)
 
-        def _parse_response(self, response, fname_sym):
+        def _parse_response(self, response: str, fname_sym: str):
             # Select lines in the current file with enabled breakpoints.
             pos_pattern = re.compile(r"([^:]+):(\d+)")
             enb_pattern = re.compile(r"\sy\s+0x")
-            breaks = {}
+            breaks: Dict[str, List[str]] = {}
             for line in response.splitlines():
                 try:
                     if enb_pattern.search(line):    # Is enabled?
