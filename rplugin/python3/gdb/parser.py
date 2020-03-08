@@ -1,31 +1,45 @@
-'''State machine for handing debugger output.'''
+"""State machine for handing debugger output."""
 
+from typing import List, Tuple, Callable, Union
+import re
 from gdb.common import Common
+from gdb.cursor import Cursor
+from gdb.win import Win
 
 
 class Parser(Common):
-    '''Common FSM implementation for the integrated backends.'''
-    def __init__(self, common, cursor, win):
+    """Common FSM implementation for the integrated backends."""
+
+    # [(matcher, matchingFunc)]
+    matcher_type = Union[re.Pattern]
+    transition_type = Callable[[re.Match], None]
+    state_list_type = List[Tuple[matcher_type, transition_type]]
+
+    def __init__(self, common: Common, cursor: Cursor, win: Win):
+        """ctor."""
         super().__init__(common)
         self.cursor = cursor
         self.win = win
-        self.running = []  # The running state [(matcher, matchingFunc)]
-        self.paused = []   # The paused state [(matcher, matchingFunc)]
-        self.state = None  # Current state (either self.running or self.paused)
+        # The running state
+        self.running: Parser.state_list_type = []
+        # The paused state [(matcher, matchingFunc)]
+        self.paused: Parser.state_list_type = []
+        # Current state (either self.running or self.paused)
+        self.state: Parser.state_list_type = self.paused
         self.buffer = '\n'
 
     @staticmethod
-    def add_trans(state, matcher, func):
-        '''Add a new transition for a given state using {matcher, matchingFunc}
-           Call the handler when matched.'''
+    def add_trans(state: state_list_type, matcher: matcher_type,
+                  func: transition_type):
+        """Add a new transition for a given state."""
         state.append((matcher, func))
 
     def is_paused(self):
-        '''Test whether the FSM is in the paused state.'''
+        """Test whether the FSM is in the paused state."""
         return self.state == self.paused
 
     def is_running(self):
-        '''Test whether the FSM is in the running state.'''
+        """Test whether the FSM is in the running state."""
         return self.state == self.running
 
     def _get_state_name(self):
@@ -43,10 +57,10 @@ class Parser(Common):
 
         return self.running
 
-    def _paused_jump(self, match):
+    def _paused_jump(self, match: re.Match):
         fname = match.group(1)
         line = match.group(2)
-        self.logger.info(f"_paused_jump {fname}:{line}")
+        self.logger.info("_paused_jump %s:%s", fname, line)
         self.win.jump(fname, int(line))
 
         self.vim.command("doautocmd User NvimGdbBreak")
@@ -69,12 +83,12 @@ class Parser(Common):
             if match:
                 self.buffer = self.buffer[match.end():]
                 self.state = func(match)
-                self.logger.info(f"new state: {self._get_state_name()}")
+                self.logger.info("new state: %s", self._get_state_name())
                 return True
         return False
 
-    def feed(self, lines):
-        '''Process a line of the debugger output through the FSM.'''
+    def feed(self, lines: List[str]):
+        """Process a line of the debugger output through the FSM."""
         for line in lines:
             self.logger.debug(line)
             if line:
