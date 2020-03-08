@@ -3,8 +3,6 @@
 from typing import List, Tuple, Callable, Union
 import re
 from gdb.common import Common
-from gdb.cursor import Cursor
-from gdb.win import Win
 
 
 class Parser(Common):
@@ -15,7 +13,7 @@ class Parser(Common):
     transition_type = Callable[[re.Match], None]
     state_list_type = List[Tuple[matcher_type, transition_type]]
 
-    def __init__(self, common: Common, cursor: Cursor, win: Win):
+    def __init__(self, common: Common, cursor, win):
         """ctor."""
         super().__init__(common)
         self.cursor = cursor
