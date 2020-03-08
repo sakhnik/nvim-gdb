@@ -8,6 +8,26 @@ from gdb import parser
 from gdb.backend import base
 
 
+class _ParserImpl(parser.Parser):
+    def __init__(self, common, cursor, win):
+        super().__init__(common, cursor, win)
+
+        re_prompt = re.compile(r'\x1a\x1a\x1a$')
+        re_jump = re.compile(r'[\r\n]\x1a\x1a([^:]+):(\d+):\d+')
+        self.add_trans(self.paused,
+                       re.compile(r'[\r\n]Continuing\.'),
+                       self._paused_continue)
+        self.add_trans(self.paused, re_jump, self._paused_jump)
+        self.add_trans(self.paused, re_prompt, self._query_b)
+        self.add_trans(self.running,
+                       re.compile(r'[\r\n]Breakpoint \d+'),
+                       self._query_b)
+        self.add_trans(self.running, re_prompt, self._query_b)
+        self.add_trans(self.running, re_jump, self._paused_jump)
+
+        self.state = self.running
+
+
 class _BreakpointImpl(base.BaseBreakpoint):
     def __init__(self, proxy):
         """ctor."""
@@ -79,31 +99,10 @@ class Gdb(base.BaseBackend):
         'breakpoint': 'break',
     }
 
-    def treat_the_linter(self):
-        """Make the linter happy."""
+    def create_parser_impl(self, common, cursor, win):
+        """Create parser implementation instance."""
+        return _ParserImpl(common, cursor, win)
 
     def create_breakpoint_impl(self, proxy):
-        """Create breakpoint impl instance."""
+        """Create breakpoint implementation instance."""
         return _BreakpointImpl(proxy)
-
-    class Parser(parser.Parser):
-        """Parser for GDB output."""
-
-        def __init__(self, common, cursor, win):
-            """ctor."""
-            super().__init__(common, cursor, win)
-
-            re_prompt = re.compile(r'\x1a\x1a\x1a$')
-            re_jump = re.compile(r'[\r\n]\x1a\x1a([^:]+):(\d+):\d+')
-            self.add_trans(self.paused,
-                           re.compile(r'[\r\n]Continuing\.'),
-                           self._paused_continue)
-            self.add_trans(self.paused, re_jump, self._paused_jump)
-            self.add_trans(self.paused, re_prompt, self._query_b)
-            self.add_trans(self.running,
-                           re.compile(r'[\r\n]Breakpoint \d+'),
-                           self._query_b)
-            self.add_trans(self.running, re_prompt, self._query_b)
-            self.add_trans(self.running, re_jump, self._paused_jump)
-
-            self.state = self.running

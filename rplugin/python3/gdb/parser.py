@@ -3,9 +3,10 @@
 from typing import List, Tuple, Callable, Union
 import re
 from gdb.common import Common
+from gdb.backend.base import BaseParser
 
 
-class Parser(Common):
+class Parser(Common, BaseParser):
     """Common FSM implementation for the integrated backends."""
 
     # [(matcher, matchingFunc)]

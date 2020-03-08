@@ -7,6 +7,23 @@ from gdb import parser
 from gdb.backend import base
 
 
+class _ParserImpl(parser.Parser):
+    def __init__(self, common, cursor, win):
+        super().__init__(common, cursor, win)
+
+        re_jump = re.compile(r'[\r\n]\(([^:]+):(\d+)\):(?=[\r\n])')
+        re_prompt = re.compile(r'[\r\n]bashdb<\(?\d+\)?> $')
+        re_term = re.compile(r'[\r\n]Debugged program terminated ')
+        self.add_trans(self.paused, re_jump, self._paused_jump)
+        self.add_trans(self.paused, re_prompt, self._query_b)
+        self.add_trans(self.paused, re_term, self._handle_terminated)
+        self.state = self.paused
+
+    def _handle_terminated(self, _):
+        self.cursor.hide()
+        return self.paused
+
+
 class _BreakpointImpl(base.BaseBreakpoint):
     def __init__(self, proxy):
         self.proxy = proxy
@@ -47,31 +64,10 @@ class BashDB(base.BaseBackend):
         'breakpoint': 'break',
     }
 
-    def dummy1(self):
-        """Treat the linter."""
+    def create_parser_impl(self, common, cursor, win):
+        """Create parser implementation instance."""
+        return _ParserImpl(common, cursor, win)
 
     def create_breakpoint_impl(self, proxy):
         """Create breakpoint impl instance."""
         return _BreakpointImpl(proxy)
-
-    class Parser(parser.Parser):
-        """Parse BashDB output."""
-
-        def dummy(self):
-            """Treat the linter."""
-
-        def __init__(self, common, cursor, win):
-            """ctor."""
-            super().__init__(common, cursor, win)
-
-            re_jump = re.compile(r'[\r\n]\(([^:]+):(\d+)\):(?=[\r\n])')
-            re_prompt = re.compile(r'[\r\n]bashdb<\(?\d+\)?> $')
-            re_term = re.compile(r'[\r\n]Debugged program terminated ')
-            self.add_trans(self.paused, re_jump, self._paused_jump)
-            self.add_trans(self.paused, re_prompt, self._query_b)
-            self.add_trans(self.paused, re_term, self._handle_terminated)
-            self.state = self.paused
-
-        def _handle_terminated(self, _):
-            self.cursor.hide()
-            return self.paused

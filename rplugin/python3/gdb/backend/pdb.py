@@ -7,6 +7,18 @@ from gdb import parser
 from gdb.backend import base
 
 
+class _ParserImpl(parser.Parser):
+    def __init__(self, common, cursor, backend):
+        super().__init__(common, cursor, backend)
+        self.add_trans(self.paused,
+                       re.compile(r'[\r\n]> ([^(]+)\((\d+)\)[^(]+\(\)'),
+                       self._paused_jump)
+        self.add_trans(self.paused,
+                       re.compile(r'[\r\n]\(Pdb\) $'),
+                       self._query_b)
+        self.state = self.paused
+
+
 class _BreakpointImpl(base.BaseBreakpoint):
     def __init__(self, proxy):
         """ctor."""
@@ -53,23 +65,10 @@ class Pdb(base.BaseBackend):
         'print {}': 'print({})',
     }
 
-    def dummy1(self):
-        """Treat the linter."""
+    def create_parser_impl(self, common, cursor, win):
+        """Create parser implementation instance."""
+        return _ParserImpl(common, cursor, win)
 
     def create_breakpoint_impl(self, proxy):
-        """Create breakpoint impl instance."""
+        """Create breakpoint implementation instance."""
         return _BreakpointImpl(proxy)
-
-    class Parser(parser.Parser):
-        """Parse PDB output."""
-
-        def __init__(self, common, cursor, backend):
-            """ctor."""
-            super().__init__(common, cursor, backend)
-            self.add_trans(self.paused,
-                           re.compile(r'[\r\n]> ([^(]+)\((\d+)\)[^(]+\(\)'),
-                           self._paused_jump)
-            self.add_trans(self.paused,
-                           re.compile(r'[\r\n]\(Pdb\) $'),
-                           self._query_b)
-            self.state = self.paused

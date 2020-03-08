@@ -61,7 +61,7 @@ class App(Common):
                        self.breakpoint, self.keymaps)
 
         # Initialize the parser
-        self.parser = self.backend.Parser(common, self.cursor, self.win)
+        self.parser = self.backend().create_parser_impl(common, self.cursor, self.win)
 
         # Set initial keymaps in the terminal window.
         self.keymaps.dispatch_set_t()
