@@ -94,11 +94,6 @@ class _BreakpointImpl(base.BaseBreakpoint):
 class Gdb(base.BaseBackend):
     """GDB parser and FSM."""
 
-    command_map = {
-        'delete_breakpoints': 'delete',
-        'breakpoint': 'break',
-    }
-
     def create_parser_impl(self, common, cursor, win):
         """Create parser implementation instance."""
         return _ParserImpl(common, cursor, win)
@@ -106,3 +101,12 @@ class Gdb(base.BaseBackend):
     def create_breakpoint_impl(self, proxy):
         """Create breakpoint implementation instance."""
         return _BreakpointImpl(proxy)
+
+    command_map = {
+        'delete_breakpoints': 'delete',
+        'breakpoint': 'break',
+    }
+
+    def translate_command(self, command):
+        """Adapt command if necessary."""
+        return self.command_map.get(command, command)

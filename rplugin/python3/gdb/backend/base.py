@@ -41,3 +41,7 @@ class BaseBackend(abc.ABC):
     @abc.abstractmethod
     def create_breakpoint_impl(self, proxy) -> BaseBreakpoint:
         """Create a BaseBreakpoint implementation instance."""
+
+    @abc.abstractmethod
+    def translate_command(self, command: str) -> str:
+        """Adapt command for the debugger if necessary."""

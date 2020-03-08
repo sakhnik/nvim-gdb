@@ -53,12 +53,6 @@ class _BreakpointImpl(base.BaseBreakpoint):
 class Lldb(base.BaseBackend):
     """LLDB parser and FSM."""
 
-    command_map = {
-        'delete_breakpoints': 'breakpoint delete',
-        'breakpoint': 'b',
-        'until {}': 'thread until {}',
-    }
-
     def create_parser_impl(self, common, cursor, win):
         """Create parser implementation instance."""
         return _ParserImpl(common, cursor, win)
@@ -66,3 +60,13 @@ class Lldb(base.BaseBackend):
     def create_breakpoint_impl(self, proxy):
         """Create breakpoint implementation instance."""
         return _BreakpointImpl(proxy)
+
+    command_map = {
+        'delete_breakpoints': 'breakpoint delete',
+        'breakpoint': 'b',
+        'until {}': 'thread until {}',
+    }
+
+    def translate_command(self, command):
+        """Adapt command if necessary."""
+        return self.command_map.get(command, command)

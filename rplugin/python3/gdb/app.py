@@ -38,7 +38,7 @@ class App(Common):
             "lldb": Lldb,
             "pdb": Pdb,
         }
-        self.backend = backend_maps[backendStr]
+        self.backend = backend_maps[backendStr]()
 
         # Initialize current line tracking
         self.cursor = Cursor(common)
@@ -50,7 +50,7 @@ class App(Common):
         self.proxy = Proxy(common, self.client)
 
         # Initialize breakpoint tracking
-        breakpoint_impl = self.backend().create_breakpoint_impl(self.proxy)
+        breakpoint_impl = self.backend.create_breakpoint_impl(self.proxy)
         self.breakpoint = Breakpoint(common, self.proxy, breakpoint_impl)
 
         # Initialize the keymaps subsystem
@@ -61,7 +61,8 @@ class App(Common):
                        self.breakpoint, self.keymaps)
 
         # Initialize the parser
-        self.parser = self.backend().create_parser_impl(common, self.cursor, self.win)
+        self.parser = self.backend.create_parser_impl(common,
+                                                      self.cursor, self.win)
 
         # Set initial keymaps in the terminal window.
         self.keymaps.dispatch_set_t()
@@ -97,7 +98,7 @@ class App(Common):
                 self.vim.command(f"tabclose! {t.number}")
 
     def _get_command(self, cmd):
-        return self.backend.command_map.get(cmd, cmd)
+        return self.backend.translate_command(cmd)
 
     def send(self, *args):
         '''Send a command to the debugger.'''
