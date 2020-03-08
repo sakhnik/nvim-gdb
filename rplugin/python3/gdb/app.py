@@ -72,12 +72,12 @@ class App(Common):
         self.vim.feedkeys("i")
 
     def start(self):
-        '''The parser should be ready by now, spawn the debugger!'''
+        """Spawn the debugger, the parser should be ready by now."""
         self.client.start()
         self.vim.command("doautocmd User NvimGdbStart")
 
     def cleanup(self, tab):
-        '''Finish up the debugging session.'''
+        """Finish up the debugging session."""
         self.vim.command("doautocmd User NvimGdbCleanup")
 
         # Clean up the breakpoint signs
@@ -93,15 +93,15 @@ class App(Common):
         self.client.cleanup()
 
         # Close the windows and the tab
-        for t in self.vim.tabpages:
-            if t.handle == tab:
-                self.vim.command(f"tabclose! {t.number}")
+        for tabpage in self.vim.tabpages:
+            if tabpage.handle == tab:
+                self.vim.command(f"tabclose! {tabpage.number}")
 
     def _get_command(self, cmd):
         return self.backend.translate_command(cmd)
 
     def send(self, *args):
-        '''Send a command to the debugger.'''
+        """Send a command to the debugger."""
         if args:
             command = self._get_command(args[0]).format(*args[1:])
             self.client.send_line(command)
@@ -110,38 +110,41 @@ class App(Common):
             self.client.interrupt()
 
     def custom_command(self, cmd):
-        '''Execute a custom debugger command and return its output.'''
+        """Execute a custom debugger command and return its output."""
         return self.proxy.query("handle-command " + cmd)
 
     def create_watch(self, cmd):
-        '''Create a window to watch for a debugger expression.
-           The output of the expression or command will be displayed
-           in that window.
-        '''
+        """Create a window to watch for a debugger expression.
+
+        The output of the expression or command will be displayed
+        in that window.
+        """
         self.vim.command("vnew | set readonly buftype=nowrite")
         self.keymaps.dispatch_set()
         buf = self.vim.current.buffer
         buf.name = cmd
 
-        augroup_name = f"NvimGdbTab{self.vim.current.tabpage.number}_{buf.number}"
+        cur_tabpage = self.vim.current.tabpage.number
+        augroup_name = f"NvimGdbTab{cur_tabpage}_{buf.number}"
 
         self.vim.command(f"augroup {augroup_name}")
         self.vim.command("autocmd!")
         self.vim.command("autocmd User NvimGdbQuery"
-                f" call nvim_buf_set_lines({buf.number}, 0, -1, 0,"
-                f" split(GdbCustomCommand('{cmd}'), '\\n'))")
+                         f" call nvim_buf_set_lines({buf.number}, 0, -1, 0,"
+                         f" split(GdbCustomCommand('{cmd}'), '\\n'))")
         self.vim.command("augroup END")
 
         # Destroy the autowatch automatically when the window is gone.
-        self.vim.command(f"autocmd BufWinLeave <buffer> call nvimgdb#ClearAugroup('{augroup_name}')")
+        self.vim.command("autocmd BufWinLeave <buffer> call"
+                         f" nvimgdb#ClearAugroup('{augroup_name}')")
         # Destroy the watch buffer.
         self.vim.command("autocmd BufWinLeave <buffer> call timer_start(100,"
-                f" {{ -> execute('bwipeout! {buf.number}') }})")
+                         f" {{ -> execute('bwipeout! {buf.number}') }})")
         # Return the cursor to the previous window
         self.vim.command("wincmd l")
 
     def breakpoint_toggle(self):
-        '''Toggle breakpoint in the cursor line.'''
+        """Toggle breakpoint in the cursor line."""
         if self.parser.is_running():
             # pause first
             self.client.interrupt()
@@ -159,7 +162,7 @@ class App(Common):
             self.client.send_line(f"{set_br} {file_name}:{line_nr}")
 
     def breakpoint_clear_all(self):
-        '''Clear all breakpoints.'''
+        """Clear all breakpoints."""
         if self.parser.is_running():
             # pause first
             self.client.interrupt()
@@ -167,7 +170,7 @@ class App(Common):
         self.send('delete_breakpoints')
 
     def on_tab_enter(self):
-        '''Actions to execute when a tabpage is entered.'''
+        """Actions to execute when a tabpage is entered."""
         # Restore the signs as they may have been spoiled
         if self.parser.is_paused():
             self.cursor.show()
@@ -175,13 +178,13 @@ class App(Common):
         self.win.query_breakpoints()
 
     def on_tab_leave(self):
-        '''Actions to execute when a tabpage is left.'''
+        """Actions to execute when a tabpage is left."""
         # Hide the signs
         self.cursor.hide()
         self.breakpoint.clear_signs()
 
     def on_buf_enter(self):
-        '''Actions to execute when a buffer is entered.'''
+        """Actions to execute when a buffer is entered."""
         # Apply keymaps to the jump window only.
         if self.vim.current.buffer.options['buftype'] != 'terminal' \
                 and self.win.is_jump_window_active():
@@ -197,7 +200,7 @@ class App(Common):
             self.win.query_breakpoints()
 
     def on_buf_leave(self):
-        '''Actions to execute when a buffer is left.'''
+        """Actions to execute when a buffer is left."""
         if self.vim.current.buffer.options['buftype'] == 'terminal':
             # Move the cursor to the end of the buffer
             self.vim.command("$")
