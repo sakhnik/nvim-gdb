@@ -7,7 +7,27 @@ from gdb import parser
 from gdb.backend import base
 
 
-class Lldb:
+class _BreakpointImpl(base.BaseBreakpoint):
+    def __init__(self, proxy):
+        self.proxy = proxy
+        self.logger = logging.getLogger("Gdb.Breakpoint")
+
+    def query(self, fname: str):
+        self.logger.info("Query breakpoints for %s", fname)
+        resp = self.proxy.query(f"info-breakpoints {fname}\n")
+        if not resp:
+            return {}
+        # We expect the proxies to send breakpoints for a given file
+        # as a map of lines to array of breakpoint ids set in those lines.
+        breaks = json.loads(resp)
+        err = breaks.get('_error', None)
+        if err:
+            # self.vim.command(f"echo \"Can't get breakpoints: {err}\"")
+            return {}
+        return breaks
+
+
+class Lldb(base.BaseBackend):
     """LLDB parser and FSM."""
 
     command_map = {
@@ -19,8 +39,9 @@ class Lldb:
     def dummy1(self):
         """Treat the linter."""
 
-    def dummy2(self):
-        """Treat the linter."""
+    def create_breakpoint_impl(self, proxy):
+        """Create breakpoint impl instance."""
+        return _BreakpointImpl(proxy)
 
     class Parser(parser.Parser):
         """Parse LLDB output and manage FSM."""
@@ -46,26 +67,3 @@ class Lldb:
             self.add_trans(self.running, re_prompt, self._query_b)
 
             self.state = self.running
-
-    class Breakpoint(base.BaseBreakpoint):
-        """Query breakpoints from the side channel."""
-
-        def __init__(self, proxy):
-            """ctor."""
-            self.proxy = proxy
-            self.logger = logging.getLogger("Gdb.Breakpoint")
-
-        def query(self, fname: str):
-            """Query actual breakpoints for the given file."""
-            self.logger.info("Query breakpoints for %s", fname)
-            resp = self.proxy.query(f"info-breakpoints {fname}\n")
-            if not resp:
-                return {}
-            # We expect the proxies to send breakpoints for a given file
-            # as a map of lines to array of breakpoint ids set in those lines.
-            breaks = json.loads(resp)
-            err = breaks.get('_error', None)
-            if err:
-                # self.vim.command(f"echo \"Can't get breakpoints: {err}\"")
-                return {}
-            return breaks

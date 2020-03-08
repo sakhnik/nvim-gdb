@@ -1,6 +1,6 @@
 """."""
 
-from typing import Union
+from typing import Union, Dict, Type
 
 from gdb.common import Common
 from gdb.cursor import Cursor
@@ -10,6 +10,7 @@ from gdb.keymaps import Keymaps
 from gdb.proxy import Proxy
 from gdb.breakpoint import Breakpoint
 
+from gdb.backend import base
 from gdb.backend.gdb import Gdb
 from gdb.backend.pdb import Pdb
 from gdb.backend.lldb import Lldb
@@ -31,7 +32,7 @@ class App(Common):
                          ' | silent wincmd o')
 
         # Get the selected backend module
-        backend_maps = {
+        backend_maps: Dict[str, Type[base.BaseBackend]] = {
             "gdb": Gdb,
             "bashdb": BashDB,
             "lldb": Lldb,
@@ -49,7 +50,7 @@ class App(Common):
         self.proxy = Proxy(common, self.client)
 
         # Initialize breakpoint tracking
-        breakpoint_impl = self.backend.Breakpoint(self.proxy)
+        breakpoint_impl = self.backend().create_breakpoint_impl(self.proxy)
         self.breakpoint = Breakpoint(common, self.proxy, breakpoint_impl)
 
         # Initialize the keymaps subsystem
@@ -60,7 +61,7 @@ class App(Common):
                        self.breakpoint, self.keymaps)
 
         # Initialize the parser
-        self.parser = getattr(self.backend, "Parser")(common, self.cursor, self.win)
+        self.parser = self.backend.Parser(common, self.cursor, self.win)
 
         # Set initial keymaps in the terminal window.
         self.keymaps.dispatch_set_t()

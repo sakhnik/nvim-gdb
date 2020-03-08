@@ -8,7 +8,70 @@ from gdb import parser
 from gdb.backend import base
 
 
-class Gdb:
+class _BreakpointImpl(base.BaseBreakpoint):
+    def __init__(self, proxy):
+        """ctor."""
+        self.proxy = proxy
+        self.logger = logging.getLogger("Gdb.Breakpoint")
+
+    def _resolve_file(self, fname):
+        """Resolve filename full path into its debugger presentation."""
+        resp = self.proxy.query(f"handle-command info source {fname}")
+        self.logger.debug(resp)
+        pattern = re.compile(r"Current source file is ([^\r\n]+)")
+        match = pattern.search(resp)
+        if match:
+            self.logger.info(match.group(1))
+            return match.group(1)
+        return fname
+
+    def query(self, fname: str):
+        self.logger.info("Query breakpoints for %s", fname)
+        fname_sym = self._resolve_file(fname)
+        if fname != fname_sym:
+            self.logger.info("Map file path %s to %s", fname, fname_sym)
+        response = self.proxy.query("handle-command info breakpoints")
+        if not response:
+            return {}
+
+        return self._parse_response(response, fname_sym)
+
+    def _parse_response(self, response: str, fname_sym: str):
+        # Select lines in the current file with enabled breakpoints.
+        pos_pattern = re.compile(r"([^:]+):(\d+)")
+        enb_pattern = re.compile(r"\sy\s+0x")
+        breaks: Dict[str, List[str]] = {}
+        for line in response.splitlines():
+            try:
+                if enb_pattern.search(line):    # Is enabled?
+                    fields = re.split(r"\s+", line)
+                    # file.cpp:line
+                    match = pos_pattern.fullmatch(fields[-1])
+                    if not match:
+                        continue
+                    is_end_match = fname_sym.endswith(match.group(1))
+                    is_end_match_full_path = fname_sym.endswith(
+                        os.path.realpath(match.group(1)))
+                    if (match and
+                            (is_end_match or is_end_match_full_path)):
+                        line = match.group(2)
+                        # If a breakpoint has multiple locations, GDB only
+                        # allows to disable by the breakpoint number, not
+                        # location number.  For instance, 1.4 -> 1
+                        br_id = fields[0].split('.')[0]
+                        try:
+                            breaks[line].append(br_id)
+                        except KeyError:
+                            breaks[line] = [br_id]
+            except IndexError:
+                continue
+            except ValueError:
+                self.logger.exception('Exception')
+
+        return breaks
+
+
+class Gdb(base.BaseBackend):
     """GDB parser and FSM."""
 
     command_map = {
@@ -19,8 +82,9 @@ class Gdb:
     def treat_the_linter(self):
         """Make the linter happy."""
 
-    def treat_the_linter2(self):
-        """Make the linter happy."""
+    def create_breakpoint_impl(self, proxy):
+        """Create breakpoint impl instance."""
+        return _BreakpointImpl(proxy)
 
     class Parser(parser.Parser):
         """Parser for GDB output."""
@@ -43,68 +107,3 @@ class Gdb:
             self.add_trans(self.running, re_jump, self._paused_jump)
 
             self.state = self.running
-
-    class Breakpoint(base.BaseBreakpoint):
-        """Query breakpoints from the side channel proxy."""
-
-        def __init__(self, proxy):
-            """ctor."""
-            self.proxy = proxy
-            self.logger = logging.getLogger("Gdb.Breakpoint")
-
-        def _resolve_file(self, fname):
-            """Resolve filename full path into its debugger presentation."""
-            resp = self.proxy.query(f"handle-command info source {fname}")
-            self.logger.debug(resp)
-            pattern = re.compile(r"Current source file is ([^\r\n]+)")
-            match = pattern.search(resp)
-            if match:
-                self.logger.info(match.group(1))
-                return match.group(1)
-            return fname
-
-        def query(self, fname: str):
-            """Query actual breakpoints for the given file name."""
-            self.logger.info("Query breakpoints for %s", fname)
-            fname_sym = self._resolve_file(fname)
-            if fname != fname_sym:
-                self.logger.info("Map file path %s to %s", fname, fname_sym)
-            response = self.proxy.query("handle-command info breakpoints")
-            if not response:
-                return {}
-
-            return self._parse_response(response, fname_sym)
-
-        def _parse_response(self, response: str, fname_sym: str):
-            # Select lines in the current file with enabled breakpoints.
-            pos_pattern = re.compile(r"([^:]+):(\d+)")
-            enb_pattern = re.compile(r"\sy\s+0x")
-            breaks: Dict[str, List[str]] = {}
-            for line in response.splitlines():
-                try:
-                    if enb_pattern.search(line):    # Is enabled?
-                        fields = re.split(r"\s+", line)
-                        # file.cpp:line
-                        match = pos_pattern.fullmatch(fields[-1])
-                        if not match:
-                            continue
-                        is_end_match = fname_sym.endswith(match.group(1))
-                        is_end_match_full_path = fname_sym.endswith(
-                            os.path.realpath(match.group(1)))
-                        if (match and
-                                (is_end_match or is_end_match_full_path)):
-                            line = match.group(2)
-                            # If a breakpoint has multiple locations, GDB only
-                            # allows to disable by the breakpoint number, not
-                            # location number.  For instance, 1.4 -> 1
-                            br_id = fields[0].split('.')[0]
-                            try:
-                                breaks[line].append(br_id)
-                            except KeyError:
-                                breaks[line] = [br_id]
-                except IndexError:
-                    continue
-                except ValueError:
-                    self.logger.exception('Exception')
-
-            return breaks
