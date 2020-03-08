@@ -5,6 +5,7 @@ import os
 import re
 from typing import Dict, List
 from gdb import parser
+from gdb.backend import base
 
 
 class Gdb:
@@ -43,16 +44,13 @@ class Gdb:
 
             self.state = self.running
 
-    class Breakpoint:
+    class Breakpoint(base.BaseBreakpoint):
         """Query breakpoints from the side channel proxy."""
 
         def __init__(self, proxy):
             """ctor."""
             self.proxy = proxy
             self.logger = logging.getLogger("Gdb.Breakpoint")
-
-        def dummy(self):
-            """Treat the linter."""
 
         def _resolve_file(self, fname):
             """Resolve filename full path into its debugger presentation."""

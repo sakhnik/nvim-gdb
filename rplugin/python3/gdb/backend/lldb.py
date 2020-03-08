@@ -4,6 +4,7 @@ import json
 import logging
 import re
 from gdb import parser
+from gdb.backend import base
 
 
 class Lldb:
@@ -46,16 +47,13 @@ class Lldb:
 
             self.state = self.running
 
-    class Breakpoint:
+    class Breakpoint(base.BaseBreakpoint):
         """Query breakpoints from the side channel."""
 
         def __init__(self, proxy):
             """ctor."""
             self.proxy = proxy
             self.logger = logging.getLogger("Gdb.Breakpoint")
-
-        def dummy(self):
-            """Treat the linter."""
 
         def query(self, fname: str):
             """Query actual breakpoints for the given file."""

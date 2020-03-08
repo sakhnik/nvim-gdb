@@ -1,4 +1,6 @@
-'''.'''
+"""."""
+
+from typing import Union
 
 from gdb.common import Common
 from gdb.cursor import Cursor
@@ -15,11 +17,12 @@ from gdb.backend.bashdb import BashDB
 
 
 class App(Common):
-    '''Main application class.'''
+    """Main application class."""
 
-    def __init__(self, common, backendStr, proxyCmd, clientCmd):
+    def __init__(self, common, backendStr: str, proxyCmd: str, clientCmd: str):
+        """ctor."""
         super().__init__(common)
-        self._last_command = None
+        self._last_command: Union[str, None] = None
 
         # Create new tab for the debugging view and split horizontally
         self.vim.command('tabnew'
@@ -46,7 +49,8 @@ class App(Common):
         self.proxy = Proxy(common, self.client)
 
         # Initialize breakpoint tracking
-        self.breakpoint = Breakpoint(common, self.proxy, self.backend)
+        breakpoint_impl = self.backend.Breakpoint(self.proxy)
+        self.breakpoint = Breakpoint(common, self.proxy, breakpoint_impl)
 
         # Initialize the keymaps subsystem
         self.keymaps = Keymaps(common)

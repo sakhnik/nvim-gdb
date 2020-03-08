@@ -3,23 +3,21 @@
 from typing import Dict, List
 from gdb.common import Common
 from gdb.proxy import Proxy
-from gdb.backend.gdb import Gdb
+from gdb.backend.base import BaseBreakpoint
 
 
 class Breakpoint(Common):
     """Handle breakpoint signs."""
 
-    def __init__(self, common: Common, proxy: Proxy, backend: Gdb):
+    def __init__(self, common: Common, proxy: Proxy, impl: BaseBreakpoint):
         """ctor."""
         super().__init__(common)
         self.proxy = proxy
-        self.backend = backend
+        # Backend class to query breakpoints
+        self.impl = impl
         # Discovered breakpoints so far: {file -> {line -> [id]}}
         self.breaks: Dict[str, Dict[str, List[str]]] = {}
         self.max_sign_id = 0
-
-        # Backend class to query breakpoints
-        self.impl = self.backend.Breakpoint(self.proxy)
 
     def clear_signs(self):
         """Clear all breakpoint signs."""

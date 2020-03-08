@@ -4,6 +4,7 @@ import re
 import logging
 from typing import Dict, List
 from gdb import parser
+from gdb.backend import base
 
 
 class Pdb:
@@ -36,16 +37,13 @@ class Pdb:
                            self._query_b)
             self.state = self.paused
 
-    class Breakpoint:
+    class Breakpoint(base.BaseBreakpoint):
         """Query breakpoints via the side channel."""
 
         def __init__(self, proxy):
             """ctor."""
             self.proxy = proxy
             self.logger = logging.getLogger("Pdb.Breakpoint")
-
-        def dummy(self):
-            """Thread the linter."""
 
         def query(self, fname: str):
             """Query actual breakpoints for the given file."""
