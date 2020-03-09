@@ -4,6 +4,22 @@ import abc
 from typing import List
 
 
+class ParserHandler(abc.ABC):
+    """The result of parsing."""
+
+    @abc.abstractmethod
+    def continue_program(self):
+        """Handle the program continued execution. Hide the cursor."""
+
+    @abc.abstractmethod
+    def jump_to_source(self, fname: str, line: int):
+        """Handle the program breaked. Show the source code."""
+
+    @abc.abstractmethod
+    def query_breakpoints(self):
+        """It's high time to query actual breakpoints."""
+
+
 class BaseParser(abc.ABC):
     """Abstract base class for parsing debugger output."""
 
@@ -35,7 +51,7 @@ class BaseBackend(abc.ABC):
     """Abstract base class for a debugger backend."""
 
     @abc.abstractmethod
-    def create_parser_impl(self, common, cursor, win) -> BaseParser:
+    def create_parser_impl(self, common, handler: ParserHandler) -> BaseParser:
         """Create a Parser implementation instance."""
 
     @abc.abstractmethod

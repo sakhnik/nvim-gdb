@@ -9,6 +9,7 @@ from gdb.win import Win
 from gdb.keymaps import Keymaps
 from gdb.proxy import Proxy
 from gdb.breakpoint import Breakpoint
+from gdb.parser import ParserAdapter
 
 from gdb.backend import base
 from gdb.backend.gdb import Gdb
@@ -61,8 +62,8 @@ class App(Common):
                        self.breakpoint, self.keymaps)
 
         # Initialize the parser
-        self.parser = self.backend.create_parser_impl(common,
-                                                      self.cursor, self.win)
+        parser_adapter = ParserAdapter(common, self.cursor, self.win)
+        self.parser = self.backend.create_parser_impl(common, parser_adapter)
 
         # Set initial keymaps in the terminal window.
         self.keymaps.dispatch_set_t()

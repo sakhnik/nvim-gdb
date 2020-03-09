@@ -3,13 +3,13 @@
 import re
 import logging
 from typing import Dict, List
-from gdb import parser
+from gdb.backend import parser_impl
 from gdb.backend import base
 
 
-class _ParserImpl(parser.Parser):
-    def __init__(self, common, cursor, backend):
-        super().__init__(common, cursor, backend)
+class _ParserImpl(parser_impl.ParserImpl):
+    def __init__(self, common, handler):
+        super().__init__(common, handler)
         self.add_trans(self.paused,
                        re.compile(r'[\r\n]> ([^(]+)\((\d+)\)[^(]+\(\)'),
                        self._paused_jump)
@@ -58,9 +58,9 @@ class _BreakpointImpl(base.BaseBreakpoint):
 class Pdb(base.BaseBackend):
     """PDB parser and FSM."""
 
-    def create_parser_impl(self, common, cursor, win):
+    def create_parser_impl(self, common, handler):
         """Create parser implementation instance."""
-        return _ParserImpl(common, cursor, win)
+        return _ParserImpl(common, handler)
 
     def create_breakpoint_impl(self, proxy):
         """Create breakpoint implementation instance."""

@@ -4,13 +4,13 @@ import logging
 import os
 import re
 from typing import Dict, List
-from gdb import parser
+from gdb.backend import parser_impl
 from gdb.backend import base
 
 
-class _ParserImpl(parser.Parser):
-    def __init__(self, common, cursor, win):
-        super().__init__(common, cursor, win)
+class _ParserImpl(parser_impl.ParserImpl):
+    def __init__(self, common, handler):
+        super().__init__(common, handler)
 
         re_prompt = re.compile(r'\x1a\x1a\x1a$')
         re_jump = re.compile(r'[\r\n]\x1a\x1a([^:]+):(\d+):\d+')
@@ -94,9 +94,9 @@ class _BreakpointImpl(base.BaseBreakpoint):
 class Gdb(base.BaseBackend):
     """GDB parser and FSM."""
 
-    def create_parser_impl(self, common, cursor, win):
+    def create_parser_impl(self, common, handler):
         """Create parser implementation instance."""
-        return _ParserImpl(common, cursor, win)
+        return _ParserImpl(common, handler)
 
     def create_breakpoint_impl(self, proxy):
         """Create breakpoint implementation instance."""

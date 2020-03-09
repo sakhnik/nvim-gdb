@@ -3,13 +3,13 @@
 import json
 import logging
 import re
-from gdb import parser
+from gdb.backend import parser_impl
 from gdb.backend import base
 
 
-class _ParserImpl(parser.Parser):
-    def __init__(self, common, cursor, win):
-        super().__init__(common, cursor, win)
+class _ParserImpl(parser_impl.ParserImpl):
+    def __init__(self, common, handler):
+        super().__init__(common, handler)
 
         re_prompt = re.compile(r'\s\(lldb\) $')
         self.add_trans(self.paused,
@@ -53,9 +53,9 @@ class _BreakpointImpl(base.BaseBreakpoint):
 class Lldb(base.BaseBackend):
     """LLDB parser and FSM."""
 
-    def create_parser_impl(self, common, cursor, win):
+    def create_parser_impl(self, common, handler):
         """Create parser implementation instance."""
-        return _ParserImpl(common, cursor, win)
+        return _ParserImpl(common, handler)
 
     def create_breakpoint_impl(self, proxy):
         """Create breakpoint implementation instance."""
