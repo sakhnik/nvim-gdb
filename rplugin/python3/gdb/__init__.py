@@ -1,25 +1,28 @@
-'''Plugin entry point.'''
+"""Plugin entry point."""
 
 # pylint: disable=broad-except
 import re
+from contextlib import contextmanager
+import logging
+import logging.config
+from typing import Dict
 import pynvim   # type: ignore
 from gdb.common import BaseCommon, Common
 from gdb.app import App
 from gdb.config import Config
 from gdb.logger import LOGGING_CONFIG
-from contextlib import contextmanager
-import logging
-import logging.config
 
 
 @pynvim.plugin
 class Gdb(Common):
-    '''Plugin implementation.'''
+    """Plugin implementation."""
+
     def __init__(self, vim):
+        """ctor."""
         logging.config.dictConfig(LOGGING_CONFIG)
         common = BaseCommon(vim, None)
         super().__init__(common)
-        self.apps = {}
+        self.apps: Dict[int, App] = {}
         self.ansi_escaper = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
 
     def _get_app(self):
@@ -27,7 +30,7 @@ class Gdb(Common):
 
     @pynvim.function('GdbInit', sync=True)
     def gdb_init(self, args):
-        '''Command GdbInit.'''
+        """Handle the command GdbInit."""
         # Prepare configuration: keymaps, hooks, parameters etc.
         common = BaseCommon(self.vim, Config(self))
         app = App(common, *args)
@@ -39,7 +42,8 @@ class Gdb(Common):
 
     @contextmanager
     def _saved_hidden(self):
-        # Prevent "ghost" [noname] buffers when leaving debug when 'hidden' is on
+        # Prevent "ghost" [noname] buffers when leaving the debugger
+        # and 'hidden' is on
         hidden = self.vim.eval("&hidden")
         if hidden:
             self.vim.command("set nohidden")
@@ -50,9 +54,9 @@ class Gdb(Common):
 
     @pynvim.function('GdbCleanup', sync=True)
     def gdb_cleanup(self, args):
-        '''Command GdbCleanup.'''
+        """Handle the command GdbCleanup."""
         tab = int(args[0])
-        self.logger.info(f"Cleanup tab={tab}")
+        self.logger.info("Cleanup tab=%d", tab)
         try:
             app = self.apps.pop(tab, None)
             if app:
@@ -68,8 +72,8 @@ class Gdb(Common):
 
     @pynvim.function('GdbHandleEvent', sync=True)
     def gdb_handle_event(self, args):
-        '''Command GdbHandleEvent.'''
-        self.logger.info(f"GdbHandleEvent {' '.join(args)}")
+        """Handle the command GdbHandleEvent."""
+        self.logger.info("GdbHandleEvent %s", ' '.join(args))
         try:
             app = self._get_app()
             if app:
@@ -79,26 +83,26 @@ class Gdb(Common):
             self.logger.exception("GdbHandleEvent Exception")
 
     @pynvim.function('GdbHandleTabClosed', sync=True)
-    def gdb_handle_tab_closed(self, args):
-        '''Function GdbHandleTabClosed.'''
+    def gdb_handle_tab_closed(self, _):
+        """Handle the function GdbHandleTabClosed."""
         self.logger.info("GdbHandleTabClosed")
         active_tabs = {t.handle for t in self.vim.tabpages}
-        managed_tabs = {t for t in self.apps.keys()}
+        managed_tabs = {t for t, _ in self.apps.items()}
         closed_tabs = managed_tabs.difference(active_tabs)
-        for t in closed_tabs:
-            self.gdb_cleanup([t])
+        for tab in closed_tabs:
+            self.gdb_cleanup([tab])
 
     @pynvim.function('GdbHandleVimLeavePre', sync=True)
-    def gdb_handle_vim_leave_pre(self, args):
-        '''Function GdbHandleVimLeavePre.'''
+    def gdb_handle_vim_leave_pre(self, _):
+        """Handle function GdbHandleVimLeavePre."""
         self.logger.info("GdbHandleVimLeavePre")
         # Make sure a copy of the list is made.
-        for t in [t for t in self.apps.keys()]:
-            self.gdb_cleanup([t])
+        for tab in [t for t, _ in self.apps.items()]:
+            self.gdb_cleanup([tab])
 
     @pynvim.function('GdbSend', sync=True)
     def gdb_send(self, args):
-        '''Command GdbSend.'''
+        """Handle command GdbSend."""
         try:
             app = self._get_app()
             if app:
@@ -108,7 +112,7 @@ class Gdb(Common):
 
     @pynvim.function('GdbBreakpointToggle', sync=True)
     def gdb_breakpoint_toggle(self, _):
-        '''Command GdbBreakpointToggle.'''
+        """Handle command GdbBreakpointToggle."""
         try:
             app = self._get_app()
             if app:
@@ -118,7 +122,7 @@ class Gdb(Common):
 
     @pynvim.function('GdbBreakpointClearAll', sync=True)
     def gdb_breakpoint_clear_all(self, _):
-        '''Command GdbBreakpointClearAll.'''
+        """Handle command GdbBreakpointClearAll."""
         try:
             app = self._get_app()
             if app:
@@ -128,8 +132,7 @@ class Gdb(Common):
 
     @pynvim.function('GdbParserFeed')
     def gdb_parser_feed(self, args):
-        '''Command GdbParserFeed.'''
-
+        """Handle command GdbParserFeed."""
         try:
             tab = args[0]
             app = self.apps.get(tab, None)
@@ -143,7 +146,7 @@ class Gdb(Common):
 
     @pynvim.function('GdbCallAsync')
     def gdb_call_async(self, args):
-        '''Command GdbCallAsync.'''
+        """Handle command GdbCallAsync."""
         try:
             obj = self._get_app()
             if obj:
@@ -155,14 +158,15 @@ class Gdb(Common):
 
     @pynvim.function('GdbCall', sync=True)
     def gdb_call(self, args):
-        '''
+        """Make a custom call to the App.
+
         Reads a period separated list of words and invokes the corresponding
         method on the `App` class.
             e.g.
                 self.gdb_call(['custom_command'] + args)
                   maps to
                 self.app.custom_command(args)
-        '''
+        """
         try:
             obj = self._get_app()
             if obj:
@@ -177,17 +181,17 @@ class Gdb(Common):
 
     @pynvim.function('GdbCustomCommand', sync=True)
     def gdb_custom_command(self, args):
-        '''Command GdbCustomCommand.'''
+        """Handle command GdbCustomCommand."""
         return self.gdb_call(["custom_command"] + args)
 
     @pynvim.function('GdbCreateWatch', sync=True)
     def gdb_create_watch(self, args):
-        '''Command GdbCreateWatch.'''
+        """Handle command GdbCreateWatch."""
         return self.gdb_call(["create_watch"] + args)
 
     @pynvim.function('GdbTestPeek', sync=True)
     def gdb_test_peek(self, args):
-        '''Command GdbTestPeek.'''
+        """Handle command GdbTestPeek."""
         try:
             obj = self._get_app()
             if obj:
@@ -198,19 +202,19 @@ class Gdb(Common):
                 return obj
         except Exception:
             self.logger.exception('GdbTestPeek Exception')
-            return None
+        return None
 
     @pynvim.function('GdbTestPeekConfig', sync=True)
     def gdb_test_peek_config(self, _):
-        '''Command GdbTestPeekConfig.'''
+        """Handle command GdbTestPeekConfig."""
         try:
             app = self._get_app()
             if app:
-                config = {k: v for k, v in app.config.config.items()}
+                config = dict(app.config.config)
                 for key, val in config.items():
                     if callable(val):
                         config[key] = str(val)
                 return config
         except Exception:
             self.logger.exception('GdbTestPeekConfig Exception')
-            return None
+        return None
