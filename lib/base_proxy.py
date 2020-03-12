@@ -16,9 +16,9 @@ import pty
 import select
 import signal
 import socket
-import sys
 import termios
 import tty
+from typing import Union
 
 import stream_filter
 
@@ -26,9 +26,8 @@ import stream_filter
 class BaseProxy:
     """This class does the actual work of the pseudo terminal."""
 
-    def __init__(self, app_name):
+    def __init__(self, app_name: str):
         """Create a spawned process."""
-
         parser = argparse.ArgumentParser(
             description="Run %s through a filtering proxy." % app_name)
         parser.add_argument('cmd', metavar='ARGS', nargs='+',
@@ -37,20 +36,21 @@ class BaseProxy:
                             help='Local socket to receive commands.')
         args = parser.parse_args()
 
-        self.server_address = args.address
+        self.server_address: str = args.address
         self.argv = args.cmd
-        logging.basicConfig(level=logging.DEBUG,
-                format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-                handlers=[logging.NullHandler()])
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+            handlers=[logging.NullHandler()])
         self.logger = logging.getLogger(type(self).__name__)
+        self.logger.info("Starting proxy: %s", app_name)
 
+        self.sock: Union[socket.socket, None] = None
         if self.server_address:
             # Create a UDS socket
             self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
             self.sock.bind(self.server_address)
             self.sock.settimeout(0.5)
-        else:
-            self.sock = None
 
         # Create the filter
         self.filter = [(stream_filter.Filter(), lambda _: None)]
@@ -63,8 +63,7 @@ class BaseProxy:
             os.execvp(self.argv[0], self.argv)
 
     def run(self):
-        '''The entry point'''
-
+        """Run the proxy, the entry point."""
         old_handler = signal.signal(signal.SIGWINCH,
                                     lambda signum, frame: self._set_pty_size())
 
@@ -98,8 +97,8 @@ class BaseProxy:
                     pass
 
     def set_filter(self, filt, handler):
-        '''Push a new filter with given handler.'''
-        self.logger.info(f"set_filter {str(filt)} {str(handler)}")
+        """Push a new filter with given handler."""
+        self.logger.info("set_filter %s %s", str(filt), str(handler))
         if len(self.filter) == 1:
             self.logger.info("filter accepted")
             # Only one command at a time. Should be an assertion here,
@@ -113,20 +112,20 @@ class BaseProxy:
 
     @abc.abstractmethod
     def filter_command(self, command):
-        '''Preprocess received commands and make them to be suitable
-           for a specific backend.'''
+        """Preprocess received commands.
+
+        Make them to be suitable for a specific backend.
+        """
 
     def _set_pty_size(self):
         """Set the window size of the child pty."""
         assert self.master_fd is not None
-
         buf = array.array('h', [0, 0, 0, 0])
         fcntl.ioctl(pty.STDOUT_FILENO, termios.TIOCGWINSZ, buf, True)
         fcntl.ioctl(self.master_fd, termios.TIOCSWINSZ, buf)
 
     def _process(self):
         """Run the main loop."""
-
         while True:
             try:
                 sockets = [self.master_fd]
@@ -136,33 +135,37 @@ class BaseProxy:
                 if len(self.filter) == 1:
                     sockets.append(pty.STDIN_FILENO)
                 rfds, _, _ = select.select(sockets, [], [], 0.25)
+                self._process_reads(rfds)
             except select.error as ex:
                 if ex[0] == errno.EAGAIN:   # Interrupted system call.
                     continue
                 raise
 
-            if not rfds:
-                self._timeout()
-            else:
-                # Handle one packet at a time to mitigate the side channel
-                # breaking into user input.
-                if self.master_fd in rfds:
-                    data = os.read(self.master_fd, 1024)
-                    self.master_read(data)
-                elif pty.STDIN_FILENO in rfds:
-                    data = os.read(pty.STDIN_FILENO, 1024)
-                    self.stdin_read(data)
-                elif self.sock in rfds:
-                    data, self.last_addr = self.sock.recvfrom(65536)
-                    if data[-1] == b'\n':
-                        self.logger.warning("The command ending with <nl>. "
-                                 "The StreamProxy filter known to fail.")
-                    self.logger.info(f"Got command '{data.decode('utf-8')}'")
-                    command = self.filter_command(data)
-                    self.logger.info(f"Translated command '{command.decode('utf-8')}'")
-                    if command:
-                        self.write_master(command)
-                        self.write_master(b'\n')
+    def _process_reads(self, rfds):
+        if not rfds:
+            self._timeout()
+        else:
+            # Handle one packet at a time to mitigate the side channel
+            # breaking into user input.
+            if self.master_fd in rfds:
+                data = os.read(self.master_fd, 1024)
+                self.master_read(data)
+            elif pty.STDIN_FILENO in rfds:
+                data = os.read(pty.STDIN_FILENO, 1024)
+                self.stdin_read(data)
+            elif self.sock in rfds:
+                data, self.last_addr = self.sock.recvfrom(65536)
+                if data[-1] == b'\n':
+                    self.logger.warning(
+                        "The command ending with <nl>. "
+                        "The StreamProxy filter known to fail.")
+                self.logger.info("Got command '%s'", data.decode('utf-8'))
+                command = self.filter_command(data)
+                self.logger.info("Translated command '%s'",
+                                 command.decode('utf-8'))
+                if command:
+                    self.write_master(command)
+                    self.write_master(b'\n')
 
     @staticmethod
     def _write(fdesc, data):
@@ -185,11 +188,11 @@ class BaseProxy:
         data, filtered = filt.filter(data)
         self._write(pty.STDOUT_FILENO, data)
         if filtered:
-            self.logger.info(f"Filter matched {len(filtered)} bytes")
+            self.logger.info("Filter matched %d bytes", len(filtered))
             self.filter.pop()
             assert callable(handler)
             res = handler(filtered)
-            self.logger.debug(f"Sending to {self.last_addr}: {res}")
+            self.logger.debug("Sending to %s: %s", self.last_addr, res)
             self.sock.sendto(res, 0, self.last_addr)
 
     def write_master(self, data):

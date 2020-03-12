@@ -1,4 +1,4 @@
-'''.'''
+"""."""
 
 
 LOGGING_CONFIG = {
@@ -13,13 +13,13 @@ LOGGING_CONFIG = {
         'null': {
             'class': 'logging.NullHandler',
         },
-        #'file': {
-        #    'level': 'INFO',
-        #    'formatter': 'standard',
-        #    'class': 'logging.FileHandler',
-        #    'filename': '/tmp/nvimgdb.log',
-        #    #'mode': 'a',
-        #},
+        # 'file': {
+        #     'level': 'INFO',
+        #     'formatter': 'standard',
+        #     'class': 'logging.FileHandler',
+        #     'filename': '/tmp/nvimgdb.log',
+        #     #'mode': 'a',
+        # },
     },
     'loggers': {
         '': {  # root logger
