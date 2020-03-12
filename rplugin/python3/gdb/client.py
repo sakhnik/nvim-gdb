@@ -1,4 +1,4 @@
-'''.'''
+"""."""
 
 import os
 from gdb.common import Common
@@ -6,7 +6,8 @@ from gdb.sockdir import SockDir
 
 
 class Client(Common):
-    '''The class to maintain connection to the debugger client.'''
+    """The class to maintain connection to the debugger client."""
+
     @staticmethod
     def _get_plugin_dir():
         path = os.path.realpath(__file__)
@@ -14,7 +15,8 @@ class Client(Common):
             path = os.path.dirname(path)
         return path
 
-    def __init__(self, common, proxy_cmd, client_cmd):
+    def __init__(self, common: Common, proxy_cmd: str, client_cmd: str):
+        """ctor."""
         super().__init__(common)
         self.win = self.vim.current.window
         self.client_id = None
@@ -31,11 +33,11 @@ class Client(Common):
         self.client_buf = self.vim.current.buffer
 
     def get_sock_dir(self):
-        '''Access the temporary socket directory.'''
+        """Access the temporary socket directory."""
         return self.sock_dir.get()
 
     def cleanup(self):
-        '''The destructor.'''
+        """dtor."""
         if self.vim.call("bufexists", self.client_buf.handle):
             self.vim.command(f"bd! {self.client_buf.handle}")
         if self.proxy_addr:
@@ -46,7 +48,7 @@ class Client(Common):
         self.sock_dir.cleanup()
 
     def start(self):
-        '''Open a terminal window with the debugger client command.'''
+        """Open a terminal window with the debugger client command."""
         # Go to the yet-to-be terminal window
         self.vim.current.window = self.win
         self.client_id = self.vim.call("nvimgdb#TermOpen", self.command,
@@ -54,20 +56,21 @@ class Client(Common):
         # Allow detaching the terminal from its window
         self.vim.command("set bufhidden=hide")
         # Finsih the debugging session when the terminal is closed
-        self.vim.command(f"au TermClose <buffer> call GdbCleanup({self.vim.current.tabpage.handle})")
+        self.vim.command("au TermClose <buffer> call"
+                         f" GdbCleanup({self.vim.current.tabpage.handle})")
 
     def interrupt(self):
-        '''Interrupt running program by sending ^c.'''
+        """Interrupt running program by sending ^c."""
         self.vim.call("jobsend", self.client_id, "\x03")
 
     def send_line(self, data):
-        '''Execute one command on the debugger interpreter.'''
+        """Execute one command on the debugger interpreter."""
         self.vim.call("jobsend", self.client_id, data + "\n")
 
     def get_buf(self):
-        '''Get the client terminal buffer.'''
+        """Get the client terminal buffer."""
         return self.client_buf
 
     def get_proxy_addr(self):
-        '''Get the side-channel address.'''
+        """Get the side-channel address."""
         return self.proxy_addr

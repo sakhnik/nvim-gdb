@@ -1,14 +1,18 @@
-'''Calculate current configuration from the defaults, Vim variables
-    overrides and overloads.'''
+"""Configuration.
+
+Calculate current configuration from the defaults, Vim variables.
+Apply overrides and overloads.
+"""
 
 import copy
 import re
+from typing import Dict, Any
 from gdb.keymaps import Keymaps
 from gdb.common import Common
 
 
 class Config(Common):
-    '''Resolved configuration.'''
+    """Resolved configuration."""
 
     # Default configuration
     default = {
@@ -31,11 +35,11 @@ class Config(Common):
         'set_scroll_off': 5
         }
 
-    def __init__(self, common):
-        '''Prepare actual configuration with overrides resolved.'''
+    def __init__(self, common: Common):
+        """Prepare actual configuration with overrides resolved."""
         super().__init__(common)
 
-        self.key_to_func = {}
+        self.key_to_func: Dict[str, str] = {}
 
         # Make a copy of the supplied configuration if defined
         self.config = self._copy_user_config()
@@ -49,8 +53,8 @@ class Config(Common):
 
         self._define_signs()
 
-    def _filter_funcref(self, def_conf, key, val):
-        '''Turn a string into a funcref looking up a Vim function.'''
+    def _filter_funcref(self, def_conf: Dict[str, Any], key: str, val):
+        """Turn a string into a funcref looking up a Vim function."""
         # Lookup the key in the default config.
         def_val = def_conf.get(key, None)
         # Check whether the key should be a function.
@@ -102,8 +106,8 @@ class Config(Common):
                     self._check_keymap_conflicts(key_val, key, False)
                     self.config[key] = key_val
 
-    def _check_keymap_conflicts(self, key, func, verbose):
-        '''Check for keymap configuration sanity.'''
+    def _check_keymap_conflicts(self, key: str, func: str, verbose: bool):
+        """Check for keymap configuration sanity."""
         if re.match('^key_.*', func):
             prev_func = self.key_to_func.get(key, None)
             if prev_func and prev_func != func:
@@ -118,16 +122,16 @@ class Config(Common):
     def _define_signs(self):
         # Define the sign for current line the debugged program is executing.
         self.vim.call('sign_define', 'GdbCurrentLine',
-                {'text': self.config["sign_current_line"]})
+                      {'text': self.config["sign_current_line"]})
         # Define signs for the breakpoints.
         breaks = self.config["sign_breakpoint"]
         for i, brk in enumerate(breaks):
             self.vim.call('sign_define', f'GdbBreakpoint{i+1}', {'text': brk})
 
-    def get(self, key):
-        '''Get the configuration value by key.'''
+    def get(self, key: str):
+        """Get the configuration value by key."""
         return self.config[key]
 
-    def get_or(self, key, val):
-        '''Get the configuration value by key or return the val if missing.'''
+    def get_or(self, key: str, val):
+        """Get the configuration value by key or return the val if missing."""
         return self.config.get(key, val)
