@@ -1,19 +1,27 @@
 """Base implementation for all parsers."""
 
 import re
-from typing import List, Tuple, Callable, Union
+import sys
+from typing import Any, List, Tuple, Callable, Union
 
 from gdb.common import Common
 from gdb.backend.base import BaseParser, ParserHandler
+
+
+if sys.version_info >= (3, 7):
+    MatcherType = Union[re.Pattern]
+    MatchType = Union[re.Match]
+else:
+    MatcherType = Union[Any]
+    MatchType = Union[Any]
 
 
 class ParserImpl(Common, BaseParser):
     """Common FSM implementation for the integrated backends."""
 
     # [(matcher, matchingFunc)]
-    matcher_type = Union[re.Pattern]
-    transition_type = Callable[[re.Match], None]
-    state_list_type = List[Tuple[matcher_type, transition_type]]
+    transition_type = Callable[[MatchType], None]
+    state_list_type = List[Tuple[MatcherType, transition_type]]
 
     def __init__(self, common: Common, handler: ParserHandler):
         """ctor."""
@@ -28,7 +36,7 @@ class ParserImpl(Common, BaseParser):
         self.buffer = '\n'
 
     @staticmethod
-    def add_trans(state: state_list_type, matcher: matcher_type,
+    def add_trans(state: state_list_type, matcher: MatcherType,
                   func: transition_type):
         """Add a new transition for a given state."""
         state.append((matcher, func))
@@ -53,7 +61,7 @@ class ParserImpl(Common, BaseParser):
         self.handler.continue_program()
         return self.running
 
-    def _paused_jump(self, match: re.Match):
+    def _paused_jump(self, match: MatchType):
         fname = match.group(1)
         line = match.group(2)
         self.logger.info("_paused_jump %s:%s", fname, line)
