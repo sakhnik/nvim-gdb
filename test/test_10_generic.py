@@ -101,3 +101,18 @@ def test_eval(eng, backend):
     eng.feed('vt(')
     eng.feed(':GdbEvalRange\n')
     assert eng.eval('GdbTestPeek("_last_command")') == 'print Lib::Baz'
+
+
+def test_navigate(eng, backend):
+    '''Test navigating to another file.'''
+    eng.feed(backend['launch'])
+    assert eng.wait_paused() is None
+    eng.feed(backend['tbreak_main'])
+    eng.feed('run\n', 1000)
+    eng.feed('<esc>')
+    eng.feed('<c-w>w')
+    eng.feed('/Lib::Baz\n')
+    eng.feed('<f4>')
+    eng.feed('<f11>')
+
+    assert {'cur': 'lib.hpp:7'} == eng.get_signs()

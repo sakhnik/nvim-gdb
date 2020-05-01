@@ -48,6 +48,7 @@ class Engine:
                     sname = signs['name']
                     if sname == 'GdbCurrentLine':
                         bname = os.path.basename(self.eval(f"bufname({bnum})"))
+                        assert "cur" not in ret
                         ret["cur"] = f'{bname}:{signs["lnum"]}'
                     if sname.startswith('GdbBreakpoint'):
                         num = int(sname[len('GdbBreakpoint'):])
