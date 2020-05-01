@@ -115,5 +115,4 @@ def test_navigate(eng, backend):
     eng.feed('<f4>')
     eng.feed('<f11>')
 
-    eng.feed(':e src/test.cpp')
     assert {'cur': 'lib.hpp:7'} == eng.get_signs()
