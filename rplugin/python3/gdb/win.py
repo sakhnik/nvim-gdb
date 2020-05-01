@@ -84,6 +84,8 @@ class Win(Common):
             with self._saved_mode(), self._saved_win():
                 if self.jump_win != self.vim.current.window:
                     self.vim.current.window = self.jump_win
+                # Hide the current line sign when navigating away.
+                self.cursor.hide()
                 self.vim.command("noswap e %s" % file)
                 self.query_breakpoints()
 
