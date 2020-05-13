@@ -173,6 +173,7 @@ allows overriding the given keys. For example, the default config is: >
       \ 'key_frameup':    '<c-p>',
       \ 'key_framedown':  '<c-n>',
       \ 'key_eval':       '<f9>',
+      \ 'key_quit':       None,
       \ 'set_tkeymaps':   'function("GdbCallAsync", "keymaps.set_t")',
       \ 'set_keymaps':    'function("GdbCallAsync", "keymaps.set")',
       \ 'unset_keymaps':  'function("GdbCallAsync", "keymaps.unset")',

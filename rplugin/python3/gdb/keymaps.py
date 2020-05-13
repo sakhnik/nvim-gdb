@@ -28,6 +28,7 @@ class Keymaps(Common):
         ('n', 'key_framedown', ':GdbFrameDown'),
         ('n', 'key_eval', ':GdbEvalWord'),
         ('v', 'key_eval', ':GdbEvalRange'),
+        ('n', 'key_quit', ':GdbDebugStop'),
     }
 
     def set(self):
@@ -58,6 +59,7 @@ class Keymaps(Common):
         ('key_next', ':GdbNext'),
         ('key_step', ':GdbStep'),
         ('key_finish', ':GdbFinish'),
+        ('key_quit', ':GdbDebugStop'),
     }
 
     def set_t(self):
