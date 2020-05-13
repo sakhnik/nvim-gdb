@@ -16,7 +16,7 @@ from stream_filter import StreamFilter
 class PdbProxy(BaseProxy):
     """A proxy for the PDB backend."""
 
-    PROMPT = re.compile(rb"\n\(Pdb\) ")
+    PROMPT = re.compile(rb"\n\(Pdb\+?\+?\) ")
 
     def __init__(self):
         """ctor."""
