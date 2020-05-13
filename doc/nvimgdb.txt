@@ -1,4 +1,4 @@
-*nvimgdb.txt*  GDB, LLDB, PDB and BASHDB integration into neovim
+*nvimgdb.txt*  GDB, LLDB, PDB/PDB++ and BASHDB integration into neovim
 
 NvimGdb is a plugin to facilitate debugging native and interpreted programs.
 
@@ -20,9 +20,9 @@ CONTENTS                                                     *NvimgdbContents*
 ==============================================================================
 Section 1: Usage                                                *NvimgdbUsage*
 
-This plugin will facilitate debugging programs with GDB, LLDB, PDB or BASHDB.
-It will automatically show debugged source code, breakpoints, and define
-convenient keymaps similar to Qt Creator and Microsoft Visual Studio.
+This plugin will facilitate debugging programs with GDB, LLDB, PDB/PDB++ or
+BASHDB. It will automatically show debugged source code, breakpoints, and
+define convenient keymaps similar to Qt Creator and Microsoft Visual Studio.
 
 To start debugging, execute `:GdbStart` command with GDB launch string as
 parameter: >
@@ -173,6 +173,7 @@ allows overriding the given keys. For example, the default config is: >
       \ 'key_frameup':    '<c-p>',
       \ 'key_framedown':  '<c-n>',
       \ 'key_eval':       '<f9>',
+      \ 'key_quit':       None,
       \ 'set_tkeymaps':   'function("GdbCallAsync", "keymaps.set_t")',
       \ 'set_keymaps':    'function("GdbCallAsync", "keymaps.set")',
       \ 'unset_keymaps':  'function("GdbCallAsync", "keymaps.unset")',

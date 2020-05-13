@@ -11,10 +11,10 @@ class _ParserImpl(parser_impl.ParserImpl):
     def __init__(self, common, handler):
         super().__init__(common, handler)
         self.add_trans(self.paused,
-                       re.compile(r'[\r\n]> ([^(]+)\((\d+)\)[^(]+\(\)'),
+                       re.compile(r'[\r\n ]> ([^(]+)\((\d+)\)[^(]+\(\)'),
                        self._paused_jump)
         self.add_trans(self.paused,
-                       re.compile(r'[\r\n]\(Pdb\) $'),
+                       re.compile(r'[\r\n]\(Pdb\+?\+?\) $'),
                        self._query_b)
         self.state = self.paused
 

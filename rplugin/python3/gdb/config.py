@@ -25,6 +25,7 @@ class Config(Common):
         'key_frameup': '<c-p>',
         'key_framedown': '<c-n>',
         'key_eval': '<f9>',
+        'key_quit': None,
         'set_tkeymaps': Keymaps.set_t,
         'set_keymaps': Keymaps.set,
         'unset_keymaps': Keymaps.unset,
