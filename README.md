@@ -10,8 +10,8 @@ Branch | Status | Description
 # GDB for neovim
 
 [Gdb](https://www.gnu.org/software/gdb/), [LLDB](https://lldb.llvm.org/),
-[PDB](https://docs.python.org/3/library/pdb.html) and [BASHDB](http://bashdb.sourceforge.net/)
-integration with NeoVim.
+[pdb](https://docs.python.org/3/library/pdb.html)/[pdb++](https://github.com/pdbpp/pdbpp)
+and [BASHDB](http://bashdb.sourceforge.net/) integration with NeoVim.
 
 ## Table of contents
 
@@ -109,7 +109,7 @@ Try `:GdbCreateWatch info locals` in GDB, for istance.
 ## Development
 
 The goal is to have a thin wrapper around
-GDB, LLDB, PDB and BASHDB, just like the official
+GDB, LLDB, pdb/pdb++ and BASHDB, just like the official
 [TUI](https://sourceware.org/gdb/onlinedocs/gdb/TUI.html). NeoVim will enhance
 debugging with syntax highlighting and source code navigation.
 
