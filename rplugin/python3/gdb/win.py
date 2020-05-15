@@ -1,6 +1,7 @@
 """."""
 
 from contextlib import contextmanager
+import pynvim
 from gdb.common import Common
 from gdb.cursor import Cursor
 from gdb.client import Client
@@ -21,9 +22,18 @@ class Win(Common):
         self.client = client
         self.breakpoint = break_point
         self.keymaps = keymaps
+        self.buffers = set()
 
         # Create the default jump window
         self._ensure_jump_window()
+
+    def cleanup(self):
+        """Cleanup the windows and buffers."""
+        for buf in self.buffers:
+            try:
+                self.vim.command(f"silent bdelete {buf.handle}")
+            except pynvim.api.common.NvimError as ex:
+                self.logger.warning("Skip cleaning up the buffer: %s", ex)
 
     def _has_jump_win(self):
         """Check whether the jump window is displayed."""
@@ -59,6 +69,8 @@ class Win(Common):
             with self._saved_win():
                 self.vim.command(self.config.get("codewin_command"))
                 self.jump_win = self.vim.current.window
+                # Remember the '[No name]' buffer for later cleanup
+                self.buffers.add(self.vim.current.buffer)
 
     def jump(self, file: str, line: int):
         """Show the file and the current line in the jump window."""
@@ -77,8 +89,7 @@ class Win(Common):
         if target_buf == self.client.get_buf().handle:
             with self._saved_win():
                 self.vim.current.window = self.jump_win
-                self.vim.command("noswapfile view " + file)
-                target_buf = self.vim.call("bufnr", file)
+                target_buf = self._open_file("noswapfile view " + file)
 
         if self.jump_win.buffer.handle != target_buf:
             with self._saved_mode(), self._saved_win():
@@ -86,7 +97,7 @@ class Win(Common):
                     self.vim.current.window = self.jump_win
                 # Hide the current line sign when navigating away.
                 self.cursor.hide()
-                self.vim.command("noswap e %s" % file)
+                target_buf = self._open_file(f"noswap e {file}")
                 self.query_breakpoints()
 
         # Goto the proper line and set the cursor on it
@@ -94,6 +105,16 @@ class Win(Common):
         self.cursor.set(target_buf, line)
         self.cursor.show()
         self.vim.command("redraw")
+
+    def _open_file(self, cmd):
+        open_buffers = self.vim.buffers
+        self.vim.command(cmd)
+        new_buffer = self.vim.current.buffer
+        if new_buffer not in open_buffers:
+            # A new buffer was open specifically for debugging,
+            # remember it to close later.
+            self.buffers.add(new_buffer)
+        return new_buffer.handle
 
     def query_breakpoints(self):
         """Show actual breakpoints in the current window."""

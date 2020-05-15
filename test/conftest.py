@@ -54,12 +54,16 @@ def post(eng):
 
     while eng.eval("tabpagenr('$')") > 1:
         eng.exe('tabclose $')
+    num_bufs = eng.count_buffers()
+
     yield True
 
     eng.exe("GdbDebugStop")
     assert eng.eval("tabpagenr('$')") == 1
     assert {} == eng.get_signs()
     assert 0 == eng.count_termbuffers()
+    # Check that no new buffers have left
+    assert num_bufs == eng.count_buffers()
 
 
 @pytest.fixture(scope="function", params=BACKENDS.values())
