@@ -87,6 +87,9 @@ class App(Common):
         # Clean up the current line sign
         self.cursor.hide()
 
+        # Clean up the windows and buffers
+        self.win.cleanup()
+
         # Close connection to the side channel
         self.proxy.cleanup()
 
