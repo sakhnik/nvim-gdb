@@ -87,7 +87,7 @@ class ParserImpl(Common, BaseParser):
     def feed(self, lines: List[str]):
         """Process a line of the debugger output through the FSM."""
         for line in lines:
-            self.logger.debug(line)
+            self.logger.debug("'%s'", line)
             if line:
                 self.buffer += line
             else:
