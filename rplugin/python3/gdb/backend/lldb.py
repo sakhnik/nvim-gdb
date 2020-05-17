@@ -40,9 +40,14 @@ class _BreakpointImpl(base.BaseBreakpoint):
         resp = self.proxy.query(f"handle-command nvim-gdb-info-breakpoints {fname}")
         if not resp:
             return {}
+        # LLDB may mess the input (like space + back space).
+        start = resp.find('{')
+        if start == -1:
+            self.logger.warning("Couldn't find '{' in the reponse: %s", resp)
+            return {}
         # We expect the proxies to send breakpoints for a given file
         # as a map of lines to array of breakpoint ids set in those lines.
-        breaks = json.loads(resp)
+        breaks = json.loads(resp[start:])
         err = breaks.get('_error', None)
         if err:
             # self.vim.command(f"echo \"Can't get breakpoints: {err}\"")
