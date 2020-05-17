@@ -45,3 +45,8 @@ def info_breakpoints(debugger, fname, _3, _4):
     """Query breakpoints."""
     breaks = _get_breaks(debugger, fname)
     print(breaks)
+
+
+def __lldb_init_module(debugger, _2):
+    debugger.HandleCommand('command script add -f' +
+            ' lldb_commands.info_breakpoints nvim-gdb-info-breakpoints')
