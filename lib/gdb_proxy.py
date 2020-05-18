@@ -16,20 +16,13 @@ from stream_filter import StreamFilter
 class GdbProxy(BaseProxy):
     """The PTY proxy for GDB."""
 
-    PROMPT = re.compile(b"\x1a\x1a\x1a")
-    CSEQ = re.compile(rb'\[[^m]*m')
-
     def __init__(self):
         """ctor."""
         super().__init__("GDB")
+        self.prompt = re.compile(b"\x1a\x1a\x1a")
 
-    def process_handle_command(self, cmd, response):
-        """Process output of custom command."""
-        self.logger.info("Process handle command %s bytes", len(response))
-        # Assuming the prompt occupies the last line
-        result = response[(len(cmd) + 1):response.rfind(b'\n')].strip()
-        # Get rid of control sequences
-        return self.CSEQ.sub(b'', result)
+    def get_prompt(self):
+        return self.prompt
 
     def filter_command(self, command):
         """Prepare a requested command for execution."""
@@ -37,7 +30,7 @@ class GdbProxy(BaseProxy):
         if tokens[0] == 'handle-command':
             cmd = b'server ' + command[len('handle-command '):]
             res = self.set_filter(
-                StreamFilter(self.PROMPT),
+                StreamFilter(self.get_prompt()),
                 lambda resp: self.process_handle_command(cmd, resp))
             return cmd if res else b''
         return command
