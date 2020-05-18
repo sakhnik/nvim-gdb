@@ -313,17 +313,13 @@ Section 9: Development                                    *NvimgdbDevelopment*
   to ensure the original keymaps are preserved and restored after debugging
   session: https://vi.stackexchange.com/questions/7734/how-to-save-and-restore-a-mapping
 
-- LLDB is run in a wrapper that initializes the interpreter, and sources a
-  python script. The script opens a unix domain socket and receives side
-  commands from it in a background thread.
-
-- PDB and BASHDB is like GDB run via a proxy application. Although, they don't
-  have a stock distinctive prefix to bypass the history.
+- LLDB, PDB and BASHDB like GDB run via a proxy application. Although, they
+  don't have a stock distinctive prefix to bypass the history.
 
 - Breakpoints are queried from GDB, LLDB and PDB on every pause using the
-  established side channels: the pty proxy for GDB, PDB and BASHDB, and Python
-  script running inside the LLDB. The communication is done via unix domain
-  sockets (see rplugin/python3/gdb/breakpoint.py).
+  established side channels: the pty proxy for GDB, LLDB, PDB and BASHDB.
+  The communication is done via unix domain sockets (see
+  rplugin/python3/gdb/breakpoint.py).
 
 ==============================================================================
 Section 10: Trivia                                             *NvimgdbTrivia*

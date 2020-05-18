@@ -13,6 +13,7 @@ import fcntl
 import logging
 import os
 import pty
+import re
 import select
 import signal
 import socket
@@ -25,6 +26,9 @@ import stream_filter
 
 class BaseProxy:
     """This class does the actual work of the pseudo terminal."""
+
+    CSEQ_STR = rb'\[[^a-zA-Z]*[a-zA-Z]'
+    CSEQ = re.compile(CSEQ_STR)
 
     def __init__(self, app_name: str):
         """Create a spawned process."""
@@ -111,11 +115,30 @@ class BaseProxy:
         return False
 
     @abc.abstractmethod
-    def filter_command(self, command):
-        """Preprocess received commands.
+    def get_prompt(self):
+        """Get a compiled regex to match the debugger prompt.
 
-        Make them to be suitable for a specific backend.
+        The implementations should implement this.
         """
+
+    def process_handle_command(self, cmd, response):
+        """Process output of custom command."""
+        self.logger.info("Process handle command %s bytes", len(response))
+        # Assuming the prompt occupies the last line
+        result = response[(len(cmd) + 1):response.rfind(b'\n')].strip()
+        # Get rid of control sequences
+        return self.CSEQ.sub(b'', result)
+
+    def filter_command(self, command):
+        """Prepare a requested command for execution."""
+        tokens = re.split(r'\s+', command.decode('utf-8'))
+        if tokens[0] == 'handle-command':
+            cmd = command[len('handle-command '):]
+            res = self.set_filter(
+                stream_filter.StreamFilter(self.get_prompt()),
+                lambda resp: self.process_handle_command(cmd, resp))
+            return cmd if res else b''
+        return command
 
     def _set_pty_size(self):
         """Set the window size of the child pty."""

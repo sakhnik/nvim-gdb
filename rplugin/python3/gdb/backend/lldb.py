@@ -11,7 +11,7 @@ class _ParserImpl(parser_impl.ParserImpl):
     def __init__(self, common, handler):
         super().__init__(common, handler)
 
-        re_prompt = re.compile(r'\s\(lldb\) $')
+        re_prompt = re.compile(r'\s\(lldb\) (\(lldb\) )?$')
         self.add_trans(self.paused,
                        re.compile(r'[\r\n]Process \d+ resuming'),
                        self._paused_continue)
@@ -33,16 +33,21 @@ class _ParserImpl(parser_impl.ParserImpl):
 class _BreakpointImpl(base.BaseBreakpoint):
     def __init__(self, proxy):
         self.proxy = proxy
-        self.logger = logging.getLogger("Gdb.Breakpoint")
+        self.logger = logging.getLogger("Lldb.Breakpoint")
 
     def query(self, fname: str):
         self.logger.info("Query breakpoints for %s", fname)
-        resp = self.proxy.query(f"info-breakpoints {fname}\n")
+        resp = self.proxy.query(f"handle-command nvim-gdb-info-breakpoints {fname}")
         if not resp:
+            return {}
+        # LLDB may mess the input (like space + back space).
+        start = resp.find('{')
+        if start == -1:
+            self.logger.warning("Couldn't find '{' in the reponse: %s", resp)
             return {}
         # We expect the proxies to send breakpoints for a given file
         # as a map of lines to array of breakpoint ids set in those lines.
-        breaks = json.loads(resp)
+        breaks = json.loads(resp[start:])
         err = breaks.get('_error', None)
         if err:
             # self.vim.command(f"echo \"Can't get breakpoints: {err}\"")
