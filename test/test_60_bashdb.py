@@ -8,12 +8,11 @@ if "bashdb" not in config.BACKEND_NAMES:
     pytest.skip("skipping bashdb tests", allow_module_level=True)
 
 
-def test_smoke(eng, post, terminal_end):
+def test_smoke(eng, post):
     '''Test a generic use case.'''
     assert post
-    assert terminal_end
     eng.feed(' db')
-    eng.feed('\n', 1500)
+    eng.feed('\n', 2000)
 
     assert {'cur': 'main.sh:22'} == eng.get_signs()
 
@@ -31,7 +30,7 @@ def test_smoke(eng, post, terminal_end):
     eng.feed('<f11>')
     assert {'cur': 'main.sh:7'} == eng.get_signs()
 
-    eng.feed('<c-p>', 200)
+    eng.feed('<c-p>', 300)
     assert {'cur': 'main.sh:18'} == eng.get_signs()
 
     eng.feed('<c-n>')
@@ -44,12 +43,11 @@ def test_smoke(eng, post, terminal_end):
     assert eng.wait_signs({}, 1500) is None
 
 
-def test_break(eng, post, terminal_end):
+def test_break(eng, post):
     '''Test toggling breakpoints.'''
     assert post
-    assert terminal_end
     eng.feed(' db')
-    eng.feed('\n', 1500)
+    eng.feed('\n', 2000)
     eng.feed('<esc>')
 
     eng.feed('<esc><c-w>k')
