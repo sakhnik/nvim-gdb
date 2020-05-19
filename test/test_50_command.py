@@ -38,14 +38,14 @@ WATCH_TESTS = {
     'lldb': ('frame var i', ['(int) i = 0']),
 }
 
-def test_watch_backend(eng, backend):
+def test_watch_backend(eng, backend_express):
     '''Watch window with custom command in C++.'''
-    eng.feed(backend['launch'])
+    eng.feed(backend_express['launch'])
     assert eng.wait_paused() is None
-    eng.feed(backend['tbreak_main'])
+    eng.feed(backend_express['tbreak_main'])
     eng.feed('run\n', 1000)
     eng.feed('<esc>')
-    cmd, res = WATCH_TESTS[backend["name"]]
+    cmd, res = WATCH_TESTS[backend_express["name"]]
     eng.feed(f':GdbCreateWatch {cmd}\n')
     eng.feed(':GdbNext\n')
     out = eng.eval(f"getbufline('{cmd}', 1)")

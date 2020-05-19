@@ -74,6 +74,13 @@ def backend(post, request, terminal_end):
     yield request.param
 
 
+@pytest.fixture(scope="function", params=BACKENDS.values())
+def backend_express(post, request):
+    '''Parametrized tests with C++ backends. Express.'''
+    assert post
+    yield request.param
+
+
 @pytest.fixture(scope="function")
 def two_backends(post):
     '''Use two C++ backends at once.'''
