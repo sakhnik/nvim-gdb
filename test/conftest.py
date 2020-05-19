@@ -37,6 +37,17 @@ if "lldb" in config.BACKEND_NAMES:
 
 
 @pytest.fixture(scope="function")
+def terminal_end(eng):
+    '''Check that the terminal last line is visible.'''
+    yield True
+    cursor_line = eng.eval("GdbTestPeek('client', 'win', 'cursor')")[0]
+    last_line = eng.eval("GdbTestPeek('client', 'win', 'buffer', 'api', "
+                         "'line_count')")
+    win_height = eng.eval("GdbTestPeek('client', 'win', 'height')")
+    assert cursor_line >= last_line - win_height
+
+
+@pytest.fixture(scope="function")
 def post(eng):
     '''Prepare and check tabpages for every test.
        Quit debugging and do post checks.'''
@@ -47,13 +58,6 @@ def post(eng):
 
     yield True
 
-    # Check that the terminal last line is visible.
-    cursor_line = eng.eval("GdbTestPeek('client', 'win', 'cursor')")[0]
-    last_line = eng.eval("GdbTestPeek('client', 'win', 'buffer', 'api', "
-                         "'line_count')")
-    win_height = eng.eval("GdbTestPeek('client', 'win', 'height')")
-    assert cursor_line >= last_line - win_height
-
     eng.exe("GdbDebugStop")
     assert eng.eval("tabpagenr('$')") == 1
     assert {} == eng.get_signs()
@@ -63,8 +67,16 @@ def post(eng):
 
 
 @pytest.fixture(scope="function", params=BACKENDS.values())
-def backend(post, request):
+def backend(post, request, terminal_end):
     '''Parametrized tests with C++ backends.'''
+    assert post
+    assert terminal_end
+    yield request.param
+
+
+@pytest.fixture(scope="function", params=BACKENDS.values())
+def backend_express(post, request):
+    '''Parametrized tests with C++ backends. Express.'''
     assert post
     yield request.param
 

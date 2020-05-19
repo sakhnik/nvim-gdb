@@ -1,7 +1,7 @@
  
 Branch | Status | Description
 -------| -------|------------
-[master](https://github.com/sakhnik/nvim-gdb/tree/master) | [![Travis Build Status](https://travis-ci.org/sakhnik/nvim-gdb.svg)](https://travis-ci.org/sakhnik/nvim-gdb) | Modern version implemented as a remote Python plugin
+[master](https://github.com/sakhnik/nvim-gdb/tree/master) | [![Travis Build Status](https://travis-ci.org/sakhnik/nvim-gdb.svg?branch=master)](https://travis-ci.org/sakhnik/nvim-gdb) | Modern version implemented as a remote Python plugin
 [moonscript](https://github.com/sakhnik/nvim-gdb/tree/moonscript) | [![Travis Build Status](https://travis-ci.org/sakhnik/nvim-gdb.svg?branch=moonscript)](https://travis-ci.org/sakhnik/nvim-gdb) | Experimental version implemented in Moonscript and some VimL
 [legacy](https://github.com/sakhnik/nvim-gdb/tree/legacy) | [![Travis Build Status](https://travis-ci.org/sakhnik/nvim-gdb.svg?branch=legacy)](https://travis-ci.org/sakhnik/nvim-gdb) | The original version mostly in VimL and some Python
 
