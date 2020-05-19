@@ -1,8 +1,5 @@
 '''Test custom command.'''
 
-import time
-
-
 TESTS = {
     'gdb': [("GdbCustomCommand('print i')", '$1 = 0'),
             ("GdbCustomCommand('info locals')", 'i = 0')],
@@ -50,4 +47,3 @@ def test_watch_backend(eng, backend_express):
     eng.feed(':GdbNext\n')
     out = eng.eval(f"getbufline('{cmd}', 1)")
     assert out == res
-    time.sleep(1)
