@@ -81,7 +81,7 @@ class BaseProxy:
         except OSError as os_err:
             self.logger.exception("Exception")
             # Avoid printing I/O Error that happens on every GDB quit
-            if os_err.errno != 5:
+            if os_err.errno != errno.EIO:
                 raise
         except Exception:
             self.logger.exception("Exception")
