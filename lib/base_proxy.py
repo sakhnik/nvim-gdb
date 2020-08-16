@@ -81,7 +81,7 @@ class BaseProxy:
         except OSError as os_err:
             self.logger.exception("Exception")
             # Avoid printing I/O Error that happens on every GDB quit
-            if os_err.errno != 5:
+            if os_err.errno != errno.EIO:
                 raise
         except Exception:
             self.logger.exception("Exception")
@@ -159,8 +159,8 @@ class BaseProxy:
                     sockets.append(pty.STDIN_FILENO)
                 rfds, _, _ = select.select(sockets, [], [], 0.25)
                 self._process_reads(rfds)
-            except select.error as ex:
-                if ex[0] == errno.EAGAIN:   # Interrupted system call.
+            except OSError as ex:
+                if ex.errno == errno.EAGAIN:   # Interrupted system call.
                     continue
                 raise
 
