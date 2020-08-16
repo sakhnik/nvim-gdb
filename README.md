@@ -36,17 +36,14 @@ Or type `<leader>db` to start debugging a BASH script.
 
 Check the prerequisites in the script [test/prerequisites.sh](https://github.com/sakhnik/nvim-gdb/blob/master/test/prerequisites.sh).
 
-If you use vim-plug, add the following line to your vimrc file for the mainstream version:
+If you use vim-plug, add the following line to your vimrc file:
 
 ```vim
-Plug 'sakhnik/nvim-gdb', { 'do': ':!./install.sh \| UpdateRemotePlugins' }
+Plug 'sakhnik/nvim-gdb', { 'do': ':!./install.sh' }
 ```
 
-or for the original VimL version:
-
-```vim
-Plug 'sakhnik/nvim-gdb', { 'branch': 'legacy' }
-```
+**NOTE**: Make sure to run `:UpdateRemotePlugins` and restart the editor
+before using the plugin.
 
 You can use any other plugin manager too:
 
