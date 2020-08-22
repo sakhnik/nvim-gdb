@@ -1,10 +1,5 @@
  
-Branch | Status | Description
--------| -------|------------
-[master](https://github.com/sakhnik/nvim-gdb/tree/master) | [![Travis Build Status](https://travis-ci.org/sakhnik/nvim-gdb.svg?branch=master)](https://travis-ci.org/sakhnik/nvim-gdb) | Modern version implemented as a remote Python plugin
-[moonscript](https://github.com/sakhnik/nvim-gdb/tree/moonscript) | [![Travis Build Status](https://travis-ci.org/sakhnik/nvim-gdb.svg?branch=moonscript)](https://travis-ci.org/sakhnik/nvim-gdb) | Experimental version implemented in Moonscript and some VimL
-[legacy](https://github.com/sakhnik/nvim-gdb/tree/legacy) | [![Travis Build Status](https://travis-ci.org/sakhnik/nvim-gdb.svg?branch=legacy)](https://travis-ci.org/sakhnik/nvim-gdb) | The original version mostly in VimL and some Python
-
+[![Travis Build Status](https://travis-ci.org/sakhnik/nvim-gdb.svg?branch=master)](https://travis-ci.org/sakhnik/nvim-gdb)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/f2a7dc2640f84b2a8983ac6da004c7ac)](https://www.codacy.com/app/sakhnik/nvim-gdb?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=sakhnik/nvim-gdb&amp;utm_campaign=Badge_Grade)
 
 # GDB for neovim
