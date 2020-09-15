@@ -46,14 +46,16 @@ class Win(Common):
         return self.vim.current.buffer == self.jump_win.buffer
 
     @contextmanager
-    def _saved_win(self):
+    def _saved_win(self, dispatch_keymaps):
         # We're going to jump to another window and return.
-        # There is no need to change keymaps forth and back.
-        self.keymaps.set_dispatch_active(False)
+        # There may be no need to change keymaps forth and back.
+        if not dispatch_keymaps:
+            self.keymaps.set_dispatch_active(False)
         prev_win = self.vim.current.window
         yield
         self.vim.current.window = prev_win
-        self.keymaps.set_dispatch_active(True)
+        if not dispatch_keymaps:
+            self.keymaps.set_dispatch_active(True)
 
     @contextmanager
     def _saved_mode(self):
@@ -66,7 +68,7 @@ class Win(Common):
         """Ensure that the jump window is available."""
         if not self._has_jump_win():
             # The jump window needs to be created first
-            with self._saved_win():
+            with self._saved_win(False):
                 self.vim.command(self.config.get("codewin_command"))
                 self.jump_win = self.vim.current.window
                 # Remember the '[No name]' buffer for later cleanup
@@ -87,12 +89,12 @@ class Win(Common):
         # The terminal buffer may contain the name of the source file
         # (in pdb, for instance).
         if target_buf == self.client.get_buf().handle:
-            with self._saved_win():
+            with self._saved_win(True):
                 self.vim.current.window = self.jump_win
                 target_buf = self._open_file("noswapfile view " + file)
 
         if self.jump_win.buffer.handle != target_buf:
-            with self._saved_mode(), self._saved_win():
+            with self._saved_mode(), self._saved_win(True):
                 if self.jump_win != self.vim.current.window:
                     self.vim.current.window = self.jump_win
                 # Hide the current line sign when navigating away.
