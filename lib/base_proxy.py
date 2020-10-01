@@ -42,10 +42,12 @@ class BaseProxy:
 
         self.server_address: str = args.address
         self.argv = args.cmd
+        #log_handler = logging.FileHandler("/tmp/proxy.log")
+        log_handler = logging.NullHandler()
         logging.basicConfig(
             level=logging.DEBUG,
             format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-            handlers=[logging.NullHandler()])
+            handlers=[log_handler])
         self.logger = logging.getLogger(type(self).__name__)
         self.logger.info("Starting proxy: %s", app_name)
 
