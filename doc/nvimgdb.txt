@@ -179,6 +179,7 @@ allows overriding the given keys. For example, the default config is: >
       \ 'unset_keymaps':  'function("GdbCallAsync", "keymaps.unset")',
       \ 'sign_current_line': '▶',
       \ 'sign_breakpoint': [ '●', '●²', '●³', '●⁴', '●⁵', '●⁶', '●⁷', '●⁸', '●⁹', '●ⁿ' ],
+      \ 'sign_breakpoint_priority': 10,
       \ 'codewin_command': 'new'
       \ }
 <
@@ -186,10 +187,10 @@ The key `codewin_command` defines a Vim command to create a new empty window
 for the code view. It should produce one focused window, and could be used to
 build desired layout.
 
-The keys starting with `sign_` define how the signs for the currently executed
-line and breakpoints look like. The default values assume a modern terminal
-capable of rendering the Unicode superscript numbers, and fonts supporting
-those symbols. It's possible to use other symbols too: >
+The key `sign_current_line` and `sign_breakpoint` define how the signs for the
+currently executed line and breakpoints look like. The default values assume a
+modern terminal capable of rendering the Unicode superscript numbers, and
+fonts supporting those symbols. It's possible to use other symbols too: >
 
     let g:nvimgdb_config_override = {
       \ 'sign_current_line': '>',
@@ -198,6 +199,10 @@ those symbols. It's possible to use other symbols too: >
 <
 In this case the currently executed line will be signed with `>`, whereas a
 single breakpoint with `*` and a duplicate breakpoint with `#`.
+
+The key `sign_breakpoint_priority` defines the sign priority for the
+breakpoint. The sign priority for the current line is always one greater than
+breakpoint's.
 
 The keys starting with `key_` define a key mapping for the respective command.
 The key `set_tkeymaps` allows specifying a hook function, which will be called

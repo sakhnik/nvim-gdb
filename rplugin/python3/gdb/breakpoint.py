@@ -36,11 +36,12 @@ class Breakpoint(Common):
                 idx = count if count < max_count else max_count - 1
                 return f"GdbBreakpoint{idx}"
 
+            priority = self.config.get('sign_breakpoint_priority')
             for line, ids in self.breaks.get(bpath, {}).items():
                 sign_id += 1
                 sign_name = _get_sign_name(len(ids))
                 self.vim.call('sign_place', sign_id, 'NvimGdb', sign_name, buf,
-                              {'lnum': line, 'priority': 10})
+                              {'lnum': line, 'priority': priority})
             self.max_sign_id = sign_id
 
     def query(self, buf_num: int, fname: str):
