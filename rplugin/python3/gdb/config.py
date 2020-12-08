@@ -32,6 +32,7 @@ class Config(Common):
         'sign_current_line': '▶',
         'sign_breakpoint': ['●', '●²', '●³', '●⁴', '●⁵', '●⁶', '●⁷', '●⁸',
                             '●⁹', '●ⁿ'],
+        'sign_breakpoint_priority': 10,
         'codewin_command': 'new',
         'set_scroll_off': 5
         }
