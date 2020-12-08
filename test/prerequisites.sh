@@ -36,4 +36,4 @@ else
     echo "(cached a.out)"
 fi
 
-nvim --headless -u init.vim +UpdateRemotePlugins +qa
+./nvim --headless +UpdateRemotePlugins +qa
