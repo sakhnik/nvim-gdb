@@ -8,7 +8,7 @@ export NVIM_LISTEN_ADDRESS=$temp_dir/sock
 >visual.log
 
 # Run the test suite with a visible neovim
-nvim -n -u init.vim --listen "$NVIM_LISTEN_ADDRESS" &
+./nvim -n --listen "$NVIM_LISTEN_ADDRESS" &
 
 cleanup()
 {

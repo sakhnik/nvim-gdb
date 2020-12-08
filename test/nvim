@@ -1,0 +1,3 @@
+#!/bin/bash
+
+nvim -u NONE "+source init.vim" "$@"
