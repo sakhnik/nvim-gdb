@@ -32,7 +32,7 @@ def test_smoke(eng, post, terminal_end):
     assert {'cur': 'main.py:10'} == eng.get_signs()
 
     eng.feed('<f5>')
-    assert eng.wait_signs({'cur': 'main.py:1'}, 1500) is None
+    assert eng.wait_signs({'cur': 'main.py:1'}) is None
 
 
 def test_break(eng, post, terminal_end):

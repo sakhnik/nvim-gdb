@@ -9,7 +9,7 @@ def test_smoke(eng, backend):
     eng.feed('run\n')
     eng.feed('<esc>')
 
-    assert eng.wait_signs({'cur': 'test.cpp:17'}, 2000) is None
+    assert eng.wait_signs({'cur': 'test.cpp:17'}) is None
 
     eng.feed('<f10>')
     assert {'cur': 'test.cpp:19'} == eng.get_signs()
