@@ -9,7 +9,7 @@ def test_smoke(eng, post, terminal_end):
     assert post
     assert terminal_end
     eng.feed(' dp')
-    eng.feed('\n', 300)
+    eng.feed('\n', 1000)
     eng.feed('tbreak _main\n')
     eng.feed('cont\n')
     eng.feed('<esc>')
@@ -40,7 +40,7 @@ def test_break(eng, post, terminal_end):
     assert post
     assert terminal_end
     eng.feed(' dp')
-    eng.feed('\n', 300)
+    eng.feed('\n', 1000)
     eng.feed('<esc>')
 
     eng.feed('<esc><c-w>k')
@@ -60,7 +60,7 @@ def test_navigation(eng, post, terminal_end):
     assert post
     assert terminal_end
     eng.feed(' dp')
-    eng.feed('\n', 300)
+    eng.feed('\n', 1000)
     eng.feed('<esc>')
 
     eng.feed('<esc><c-w>w')
@@ -87,7 +87,7 @@ def test_until(eng, post, terminal_end):
     assert post
     assert terminal_end
     eng.feed(' dp')
-    eng.feed('\n', 300)
+    eng.feed('\n', 1000)
     eng.feed('tbreak _main\n')
     eng.feed('cont\n')
     eng.feed('<esc>')
@@ -111,7 +111,7 @@ def test_eval(eng, post, terminal_end):
     assert post
     assert terminal_end
     eng.feed(' dp')
-    eng.feed('\n', 300)
+    eng.feed('\n', 1000)
     eng.feed('tbreak _main\n')
     eng.feed('cont\n')
     eng.feed('<esc>')
@@ -132,7 +132,7 @@ def test_expand(eng, post):
     eng.feed(':e main.py\n')    # Open a file to activate %
     eng.feed(' dp')
     # Substitute main.py by % and launch
-    eng.feed('<c-w><c-w><c-w>%\n', 300)
+    eng.feed('<c-w><c-w><c-w>%\n', 1000)
     # Ensure a debugging session has started
     assert {'cur': 'main.py:1'} == eng.get_signs()
     # Clean up the main tabpage

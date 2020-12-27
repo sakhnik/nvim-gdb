@@ -4,3 +4,4 @@ a.out
 __pycache__/
 .mypy_cache/
 *.pyc
+.nvimlog
