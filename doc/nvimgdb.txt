@@ -87,11 +87,13 @@ Section 2: Commands                                          *NvimgdbCommands*
                                                                     *:GdbNext*
                                                                     *:GdbStep*
                                                                   *:GdbFinish*
+                                                                   *:GdbFrame*
                                                                    *:GdbUntil*
 :GdbContinue            Continue execution
 :GdbNext                Step over next statement
 :GdbStep                Step into next statement
 :GdbFinish              Step out current stack frame
+:GdbFrame               Jump to the current point of execution
 :GdbUntil [line]        (lldb,gdb) Continue execution until [line]
                         (pdb) Continue execution until the next
                         line number

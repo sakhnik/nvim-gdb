@@ -35,6 +35,7 @@ function! nvimgdb#GlobalInit()
   command! GdbDebugStop call GdbCleanup(nvim_get_current_tabpage())
   command! GdbBreakpointToggle call GdbBreakpointToggle()
   command! GdbBreakpointClearAll call GdbBreakpointClearAll()
+  command! GdbFrame call GdbSend('f')
   command! GdbRun call GdbSend('run')
   command! GdbUntil call GdbSend('until {}', line('.'))
   command! GdbContinue call GdbSend('c')
@@ -80,6 +81,7 @@ function! nvimgdb#GlobalCleanup()
   delcommand GdbDebugStop
   delcommand GdbBreakpointToggle
   delcommand GdbBreakpointClearAll
+  delcommand GdbFrame
   delcommand GdbRun
   delcommand GdbUntil
   delcommand GdbContinue
