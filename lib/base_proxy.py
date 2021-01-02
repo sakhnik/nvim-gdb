@@ -27,9 +27,6 @@ import stream_filter
 class BaseProxy:
     """This class does the actual work of the pseudo terminal."""
 
-    CSEQ_STR = rb'\[[^a-zA-Z]*[a-zA-Z]'
-    CSEQ = re.compile(CSEQ_STR)
-
     def __init__(self, app_name: str):
         """Create a spawned process."""
         parser = argparse.ArgumentParser(
@@ -128,8 +125,7 @@ class BaseProxy:
         self.logger.info("Process handle command %s bytes", len(response))
         # Assuming the prompt occupies the last line
         result = response[(len(cmd) + 1):response.rfind(b'\n')].strip()
-        # Get rid of control sequences
-        return self.CSEQ.sub(b'', result)
+        return result
 
     def filter_command(self, command):
         """Prepare a requested command for execution."""

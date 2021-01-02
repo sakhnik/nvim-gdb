@@ -10,6 +10,7 @@ to a user.
 import re
 
 from base_proxy import BaseProxy
+import cseq
 
 
 class LldbProxy(BaseProxy):
@@ -19,7 +20,7 @@ class LldbProxy(BaseProxy):
         """ctor."""
         super().__init__("LLDB")
         self.prompt = re.compile(rb"\(lldb\) " +
-            b"((" + self.CSEQ_STR + rb")+\(lldb\) (" + self.CSEQ_STR + rb")+)?")
+            b"((" + cseq.CSEQ_STR + rb")+\(lldb\) (" + cseq.CSEQ_STR + rb")+)?")
 
     def get_prompt(self):
         return self.prompt

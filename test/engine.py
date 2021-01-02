@@ -92,7 +92,7 @@ class Engine:
             time.sleep(0.1)
         return result
 
-    def wait_signs(self, expected, deadline=1000):
+    def wait_signs(self, expected, deadline=2000):
         '''Wait until signs are placed as expected.'''
         return self.wait_equal(self.get_signs, expected, deadline)
 

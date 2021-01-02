@@ -1,5 +1,6 @@
 """Filter the stream from within given pair of tokens."""
 
+import cseq
 
 class Filter:
     """Pass-through filter."""
@@ -39,6 +40,8 @@ class StreamFilter(Filter):
         filtered = None
         if not self.matcher:
             return data, None
+        # Get rid of control sequences
+        data = cseq.CSEQ.sub(b'', data)
         self.buffer.extend(data)
         # Note that we are scanning over the buffer again and again
         # if this causes noticeable performance issue, consider maintaining
