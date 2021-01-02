@@ -18,7 +18,7 @@ class PdbProxy(BaseProxy):
     def __init__(self):
         """ctor."""
         super().__init__("PDB")
-        self.prompt = re.compile(rb"\(Pdb\+?\+?\) ")
+        self.prompt = re.compile(rb"[\n\r]\(Pdb\+?\+?\) ")
 
     def get_prompt(self):
         return self.prompt
