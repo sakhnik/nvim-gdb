@@ -1,6 +1,6 @@
 """Filter the stream from within given pair of tokens."""
 
-import re
+import cseq
 
 class Filter:
     """Pass-through filter."""
@@ -22,9 +22,6 @@ class Filter:
 class StreamFilter(Filter):
     """Stream filter class: conceal output from now to the finish matcher."""
 
-    CSEQ_STR = rb'\[[^a-zA-Z]*[a-zA-Z]'
-    CSEQ = re.compile(CSEQ_STR)
-
     def __init__(self, finish_re):
         """Initialize the filter with start and finish tokens."""
         self.buffer = bytearray()
@@ -44,7 +41,7 @@ class StreamFilter(Filter):
         if not self.matcher:
             return data, None
         # Get rid of control sequences
-        data = self.CSEQ.sub(b'', data)
+        data = cseq.CSEQ.sub(b'', data)
         self.buffer.extend(data)
         # Note that we are scanning over the buffer again and again
         # if this causes noticeable performance issue, consider maintaining
