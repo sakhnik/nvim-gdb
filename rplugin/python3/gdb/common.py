@@ -1,6 +1,7 @@
 """Common base for every class."""
 
 import logging
+import pynvim
 
 
 class BaseCommon:
@@ -8,9 +9,9 @@ class BaseCommon:
 
     def __init__(self, vim, config):
         """Construct to propagate context."""
-        self.vim = vim
+        self.vim: pynvim.Nvim = vim
         self.config = config
-        self.logger = logging.getLogger(type(self).__name__)
+        self.logger: logging.Logger = logging.getLogger(type(self).__name__)
 
     def treat_the_linter(self):
         """Let the linter be happy."""
