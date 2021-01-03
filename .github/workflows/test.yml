@@ -6,6 +6,7 @@ jobs:
   build:
 
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
