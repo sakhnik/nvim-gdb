@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+echo $PATH
+
 # Check the prerequisites
 echo -n "Check for neovim     " && command -v nvim
 echo -n "Check for python3    " && command -v python3
