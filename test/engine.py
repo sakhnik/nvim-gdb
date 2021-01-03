@@ -96,7 +96,7 @@ class Engine:
         '''Wait until signs are placed as expected.'''
         return self.wait_equal(self.get_signs, expected, deadline)
 
-    def wait_paused(self, deadline=4000):
+    def wait_paused(self, deadline=5000):
         '''Wait until the parser FSM goes into the paused state.'''
         return self.wait_equal(
             lambda: self.eval("GdbCall('parser.is_paused')"),
