@@ -26,4 +26,5 @@ jobs:
         pip install pytest
     - name: Run tests
       run: |
+        echo "$HOME/bin" >> $GITHUB_PATH
         ./test/all.sh
