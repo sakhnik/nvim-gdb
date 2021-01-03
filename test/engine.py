@@ -22,8 +22,10 @@ class Engine:
             # before executing)
             self.eval("0")
 
-        # Trusty builds on GitHub seem to be more prone to races.
-        self.feed_delay = 0.02 if not os.environ.get('GITHUB_WORKFLOW') else 0.1
+        # Builds on GitHub seem to be more prone to races.
+        is_github = os.environ.get('GITHUB_WORKFLOW')
+        self.feed_delay = 0.02 if not is_github else 0.1
+        self.launch_delay = 3000 if not is_github else 10000
 
     def close(self):
         '''Close.'''
@@ -96,8 +98,8 @@ class Engine:
         '''Wait until signs are placed as expected.'''
         return self.wait_equal(self.get_signs, expected, deadline)
 
-    def wait_paused(self, deadline=5000):
+    def wait_paused(self):
         '''Wait until the parser FSM goes into the paused state.'''
         return self.wait_equal(
             lambda: self.eval("GdbCall('parser.is_paused')"),
-            True, deadline)
+            True, self.launch_delay)
