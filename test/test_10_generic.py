@@ -24,10 +24,12 @@ def test_smoke(eng, backend):
     assert eng.wait_signs({'cur': 'test.cpp:10'}) is None
 
     eng.feed('<f12>')
-    signs = eng.get_signs()
-    assert len(signs) == 1
-    # different for different compilers
-    assert signs["cur"] in {'test.cpp:17', 'test.cpp:19'}
+
+    def _cond(signs):
+        # different for different compilers
+        return len(signs) == 1 and \
+            signs["cur"] in {'test.cpp:17', 'test.cpp:19'}
+    assert eng.wait_for(eng.get_signs, _cond) is None
 
     eng.feed('<f5>')
     assert eng.wait_signs({}) is None
