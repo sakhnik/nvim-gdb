@@ -12,16 +12,16 @@ def test_smoke(eng, backend):
     assert eng.wait_signs({'cur': 'test.cpp:17'}) is None
 
     eng.feed('<f10>')
-    assert {'cur': 'test.cpp:19'} == eng.get_signs()
+    assert eng.wait_signs({'cur': 'test.cpp:19'}) is None
 
     eng.feed('<f11>')
-    assert {'cur': 'test.cpp:10'} == eng.get_signs()
+    assert eng.wait_signs({'cur': 'test.cpp:10'}) is None
 
     eng.feed('<c-p>')
     assert eng.wait_signs({'cur': 'test.cpp:19'}) is None
 
     eng.feed('<c-n>')
-    assert {'cur': 'test.cpp:10'} == eng.get_signs()
+    assert eng.wait_signs({'cur': 'test.cpp:10'}) is None
 
     eng.feed('<f12>')
     signs = eng.get_signs()
@@ -41,7 +41,7 @@ def test_breaks(eng, backend):
     eng.feed(":e src/test.cpp\n")
     eng.feed(':5<cr>')
     eng.feed('<f8>', 100)
-    assert {'break': {1: [5]}} == eng.get_signs()
+    assert eng.wait_signs({'break': {1: [5]}}) is None
 
     eng.exe("GdbRun")
     assert eng.wait_signs({'cur': 'test.cpp:5', 'break': {1: [5]}}) is None
@@ -81,7 +81,7 @@ def test_program_exit(eng, backend):
     eng.feed('run\n', 1000)
     eng.feed('<esc>')
     eng.feed('<f5>')
-    assert {} == eng.get_signs()
+    assert eng.wait_signs({}) is None
 
 
 def test_eval(eng, backend):
@@ -114,8 +114,7 @@ def test_navigate(eng, backend):
     eng.feed('/Lib::Baz\n')
     eng.feed('<f4>')
     eng.feed('<f11>')
-
-    assert {'cur': 'lib.hpp:7'} == eng.get_signs()
+    assert eng.wait_signs({'cur': 'lib.hpp:7'}) is None
 
     eng.feed('<f10>')
-    assert {'cur': 'lib.hpp:8'} == eng.get_signs()
+    assert eng.wait_signs({'cur': 'lib.hpp:8'}) is None
