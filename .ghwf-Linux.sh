@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-source .travis-common
+source .ghwf-common
 
 curl -LO "$NVIM_RELEASE_URL/nvim.appimage"
 chmod +x nvim.appimage

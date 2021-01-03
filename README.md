@@ -1,5 +1,5 @@
  
-[![Travis Build Status](https://travis-ci.org/sakhnik/nvim-gdb.svg?branch=master)](https://travis-ci.org/sakhnik/nvim-gdb)
+[![Test](https://github.com/sakhnik/nvim-gdb/workflows/Test/badge.svg?branch=master)](https://github.com/sakhnik/nvim-gdb/actions?query=workflow%3ATest+branch%3Amaster)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/f2a7dc2640f84b2a8983ac6da004c7ac)](https://www.codacy.com/app/sakhnik/nvim-gdb?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=sakhnik/nvim-gdb&amp;utm_campaign=Badge_Grade)
 
 # GDB for neovim

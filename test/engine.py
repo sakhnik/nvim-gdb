@@ -22,8 +22,8 @@ class Engine:
             # before executing)
             self.eval("0")
 
-        # Trusty builds on Travis seem to be more prone to races.
-        self.feed_delay = 0.02 if not os.environ.get('TRAVIS') else 0.1
+        # Trusty builds on GitHub seem to be more prone to races.
+        self.feed_delay = 0.02 if not os.environ.get('GITHUB_WORKFLOW') else 0.1
 
     def close(self):
         '''Close.'''
