@@ -86,6 +86,7 @@ class ParserImpl(Common, BaseParser):
         therefore parsing should be done asynchronously after a bit of delay.
         """
         for line in lines:
+            self.logger.debug("'%s'", line)
             if line:
                 self.buffer += line
                 self.byte_count += len(line)

@@ -14,30 +14,30 @@ def test_smoke(eng, post):
     eng.feed(' db')
     eng.feed('\n', 2000)
 
-    assert {'cur': 'main.sh:22'} == eng.get_signs()
+    assert eng.wait_signs({'cur': 'main.sh:22'}) is None
 
     eng.feed('tbreak Main\n')
     eng.feed('<esc>')
     eng.feed('<f5>')
-    assert {'cur': 'main.sh:16'} == eng.get_signs()
+    assert eng.wait_signs({'cur': 'main.sh:16'}) is None
 
     eng.feed('<f10>')
-    assert {'cur': 'main.sh:17'} == eng.get_signs()
+    assert eng.wait_signs({'cur': 'main.sh:17'}) is None
 
     eng.feed('<f10>')
-    assert {'cur': 'main.sh:18'} == eng.get_signs()
+    assert eng.wait_signs({'cur': 'main.sh:18'}) is None
 
     eng.feed('<f11>')
-    assert {'cur': 'main.sh:7'} == eng.get_signs()
+    assert eng.wait_signs({'cur': 'main.sh:7'}) is None
 
     eng.feed('<c-p>', 300)
-    assert {'cur': 'main.sh:18'} == eng.get_signs()
+    assert eng.wait_signs({'cur': 'main.sh:18'}) is None
 
     eng.feed('<c-n>')
-    assert {'cur': 'main.sh:7'} == eng.get_signs()
+    assert eng.wait_signs({'cur': 'main.sh:7'}) is None
 
     eng.feed('<f12>', 200)
-    assert {'cur': 'main.sh:17'} == eng.get_signs()
+    assert eng.wait_signs({'cur': 'main.sh:17'}) is None
 
     eng.feed('<f5>')
     assert eng.wait_signs({}) is None
@@ -53,10 +53,10 @@ def test_break(eng, post):
     eng.feed('<esc><c-w>k')
     eng.feed(':4<cr>')
     eng.feed('<f8>')
-    assert {'cur': 'main.sh:22', 'break': {1: [4]}} == eng.get_signs()
+    assert eng.wait_signs({'cur': 'main.sh:22', 'break': {1: [4]}}) is None
 
     eng.exe('GdbContinue', 300)
-    assert {'cur': 'main.sh:4', 'break': {1: [4]}} == eng.get_signs()
+    assert eng.wait_signs({'cur': 'main.sh:4', 'break': {1: [4]}}) is None
 
     eng.feed('<f8>')
     assert eng.wait_signs({'cur': 'main.sh:4'}) is None

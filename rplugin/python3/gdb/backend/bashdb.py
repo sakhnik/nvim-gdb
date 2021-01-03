@@ -15,8 +15,10 @@ class _ParserImpl(parser_impl.ParserImpl):
         re_prompt = re.compile(r'[\r\n]bashdb<\(?\d+\)?> $')
         re_term = re.compile(r'[\r\n]Debugged program terminated ')
         self.add_trans(self.paused, re_jump, self._paused_jump)
-        self.add_trans(self.paused, re_prompt, self._query_b)
         self.add_trans(self.paused, re_term, self._handle_terminated)
+        # Make sure the prompt is matched in the last turn to exhaust
+        # every other possibility while parsing delayed.
+        self.add_trans(self.paused, re_prompt, self._query_b)
         self.state = self.paused
 
     def _handle_terminated(self, _):
