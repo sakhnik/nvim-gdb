@@ -34,6 +34,8 @@ class ParserImpl(Common, BaseParser):
         # Current state (either self.running or self.paused)
         self.state: ParserImpl.state_list_type = self.paused
         self.buffer = '\n'
+        # Monotonously increasing processed byte counter
+        self.byte_count = 1
 
     @staticmethod
     def add_trans(state: state_list_type, matcher: MatcherType,
@@ -77,24 +79,44 @@ class ParserImpl(Common, BaseParser):
         self.handler.query_breakpoints()
         return self.paused
 
-    def _search(self):
+    def feed(self, lines: List[str]):
+        """Process a line of the debugger output through the FSM.
+
+        It may be hard to guess when the backend started waiting for input,
+        therefore parsing should be done asynchronously after a bit of delay.
+        """
+        for line in lines:
+            if line:
+                self.buffer += line
+                self.byte_count += len(line)
+            else:
+                self.buffer += '\n'
+                self.byte_count += 1
+
+        # Unfortunately, we can't just use self.vim.loop.call_later()
+        # because nvim won't execute commands from that context.
+        # So it's necessary to use nvim's timers.
+        cur_tab = self.vim.current.tabpage.handle
+        handler = f"GdbParserDelayElapsed({cur_tab}, {self.byte_count})"
+        self.vim.command(f"call timer_start(50, {{id -> {handler}}})")
+
+    def _search(self, ignore_tail_bytes):
         # If there is a matcher matching the line, call its handler.
         for matcher, func in self.state:
             match = matcher.search(self.buffer)
             if match:
+                if len(self.buffer) - match.end() < ignore_tail_bytes:
+                    # Wait a bit longer, the next timer is pending
+                    return False
                 self.buffer = self.buffer[match.end():]
                 self.state = func(match)
                 self.logger.info("new state: %s", self._get_state_name())
                 return True
         return False
 
-    def feed(self, lines: List[str]):
-        """Process a line of the debugger output through the FSM."""
-        for line in lines:
-            self.logger.debug("'%s'", line)
-            if line:
-                self.buffer += line
-            else:
-                self.buffer += '\n'
-            while self._search():
-                pass
+    def delay_elapsed(self, byte_count):
+        # Detect whether new input has been received before the previous
+        # delay elapsed.
+        ignore_tail_bytes = self.byte_count - byte_count
+        while self._search(ignore_tail_bytes):
+            pass

@@ -144,6 +144,17 @@ class Gdb(Common):
         except Exception:
             self.logger.exception('GdbParserFeed Exception')
 
+    @pynvim.function('GdbParserDelayElapsed')
+    def gdb_parser_delay_elapsed(self, args):
+        """Handle command GdbParserDelayElapsed."""
+        try:
+            tab = args[0]
+            app = self.apps.get(tab, None)
+            if app:
+                app.parser.delay_elapsed(args[1])
+        except Exception:
+            self.logger.exception('GdbParserDelayElapsed Exception')
+
     @pynvim.function('GdbCallAsync')
     def gdb_call_async(self, args):
         """Handle command GdbCallAsync."""
