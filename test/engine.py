@@ -82,24 +82,25 @@ class Engine:
         return len(terms)
 
     @staticmethod
-    def wait_equal(action, expected, deadline=0):
+    def wait_for(action, condition, deadline=2000):
         '''Wait until the action returns the expected value.'''
         deadline *= 0.001
         start = time.time()
         result = None
         while time.time() - start <= deadline:
             result = action()
-            if result == expected:
+            if condition(result):
                 return None
             time.sleep(0.1)
         return result
 
     def wait_signs(self, expected, deadline=2000):
         '''Wait until signs are placed as expected.'''
-        return self.wait_equal(self.get_signs, expected, deadline)
+        return self.wait_for(self.get_signs,
+                lambda res: res == expected, deadline)
 
     def wait_paused(self):
         '''Wait until the parser FSM goes into the paused state.'''
-        return self.wait_equal(
+        return self.wait_for(
             lambda: self.eval("GdbCall('parser.is_paused')"),
-            True, self.launch_delay)
+            lambda res: res, self.launch_delay)
