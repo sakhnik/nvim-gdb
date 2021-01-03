@@ -10,5 +10,15 @@ ln -sf "$PWD/nvim.appimage" "$HOME/bin/nvim"
 sudo apt-get update
 sudo apt-get install gdb lldb
 
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-homebrew install bashdb
+# Install bashdb
+ver=$(curl -sL "https://sourceforge.net/projects/bashdb/rss" \
+    | grep -oP '(?<=bashdb-)[0-9.-]+(?=\.tar\.bz2)' | head -1)
+
+wget -qc "https://phoenixnap.dl.sourceforge.net/project/bashdb/bashdb/${ver}/bashdb-${ver}.tar.bz2"
+tar -xvf bashdb-${ver}.tar.bz2
+cd bashdb-${ver}
+./configure
+make
+sudo make install
+
+command -v bashdb
