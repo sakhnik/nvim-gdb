@@ -24,7 +24,7 @@ jobs:
         ./install.sh
         pip install pynvim
         pip install pytest
+        echo "$HOME/bin" >> $GITHUB_PATH
     - name: Run tests
       run: |
-        echo "$HOME/bin" >> $GITHUB_PATH
         ./test/all.sh
