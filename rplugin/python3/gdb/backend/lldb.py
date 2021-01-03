@@ -20,11 +20,8 @@ class _ParserImpl(parser_impl.ParserImpl):
                        self._paused_jump)
         self.add_trans(self.paused, re_prompt, self._query_b)
         self.add_trans(self.running,
-                       re.compile(r'[\r\n]Breakpoint \d+:'),
-                       self._query_b)
-        self.add_trans(self.running,
                        re.compile(r'[\r\n]Process \d+ stopped'),
-                       self._query_b)
+                       self._paused)
         self.add_trans(self.running, re_prompt, self._query_b)
 
         self.state = self.running
