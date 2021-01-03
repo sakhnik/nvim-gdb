@@ -68,6 +68,10 @@ class ParserImpl(Common, BaseParser):
         self.handler.jump_to_source(fname, int(line))
         return self.paused
 
+    def _paused(self, _):
+        self.logger.info('_paused')
+        return self.paused
+
     def _query_b(self, _):
         self.logger.info('_query_b')
         self.handler.query_breakpoints()
