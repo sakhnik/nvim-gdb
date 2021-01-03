@@ -7,4 +7,5 @@ chmod +x nvim.appimage
 mkdir -p "$HOME/bin"
 ln -sf "$PWD/nvim.appimage" "$HOME/bin/nvim"
 
-sudo apt install gdb lldb
+sudo apt-get update
+sudo apt-get install gdb lldb
