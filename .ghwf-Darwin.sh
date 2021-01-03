@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-source .travis-common
+source .ghwf-common
 
 mkdir -p "$HOME/bin"
 
