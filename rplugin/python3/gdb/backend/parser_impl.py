@@ -36,6 +36,8 @@ class ParserImpl(Common, BaseParser):
         self.buffer = '\n'
         # Monotonously increasing processed byte counter
         self.byte_count = 1
+        # Ordered byte counters to ensure parsing in the right order
+        self.parsing_progress = []
 
     @staticmethod
     def add_trans(state: state_list_type, matcher: MatcherType,
@@ -93,15 +95,20 @@ class ParserImpl(Common, BaseParser):
             else:
                 self.buffer += '\n'
                 self.byte_count += 1
+        self.parsing_progress.append(self.byte_count)
+        self.delay_parsing(self.byte_count)
 
+    def delay_parsing(self, byte_count):
         # Unfortunately, we can't just use self.vim.loop.call_later()
         # because nvim won't execute commands from that context.
         # So it's necessary to use nvim's timers.
         cur_tab = self.vim.current.tabpage.handle
-        handler = f"GdbParserDelayElapsed({cur_tab}, {self.byte_count})"
+        handler = f"GdbParserDelayElapsed({cur_tab}, {byte_count})"
         self.vim.command(f"call timer_start(50, {{id -> {handler}}})")
 
     def _search(self, ignore_tail_bytes):
+        if len(self.buffer) <= ignore_tail_bytes:
+            return False
         # If there is a matcher matching the line, call its handler.
         for matcher, func in self.state:
             match = matcher.search(self.buffer)
@@ -110,14 +117,21 @@ class ParserImpl(Common, BaseParser):
                     # Wait a bit longer, the next timer is pending
                     return False
                 self.buffer = self.buffer[match.end():]
+                self.logger.debug("prev state: %s", self._get_state_name())
                 self.state = func(match)
                 self.logger.info("new state: %s", self._get_state_name())
                 return True
         return False
 
     def delay_elapsed(self, byte_count):
+        if self.parsing_progress[0] != byte_count:
+            # Another parsing is already in progress, return to this mark later
+            self.delay_parsing(byte_count)
+            return
         # Detect whether new input has been received before the previous
         # delay elapsed.
         ignore_tail_bytes = self.byte_count - byte_count
         while self._search(ignore_tail_bytes):
             pass
+        # Pop the current mark allowing parsing the next chunk
+        self.parsing_progress = self.parsing_progress[1:]

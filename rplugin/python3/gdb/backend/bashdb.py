@@ -19,7 +19,20 @@ class _ParserImpl(parser_impl.ParserImpl):
         # Make sure the prompt is matched in the last turn to exhaust
         # every other possibility while parsing delayed.
         self.add_trans(self.paused, re_prompt, self._query_b)
-        self.state = self.paused
+
+        # Let's start the backend in the running state for the tests
+        # to be able to determine when the launch finished.
+        # It'll transition to the paused state once and will remain there.
+        self.add_trans(self.running, re_jump, self._running_jump)
+        self.add_trans(self.running, re_prompt, self._query_b)
+        self.state = self.running
+
+    def _running_jump(self, match):
+        fname = match.group(1)
+        line = match.group(2)
+        self.logger.info("_running_jump %s:%s", fname, line)
+        self.handler.jump_to_source(fname, int(line))
+        return self.running
 
     def _handle_terminated(self, _):
         self.handler.continue_program()
