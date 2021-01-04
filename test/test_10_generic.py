@@ -68,7 +68,7 @@ def test_until(eng, backend):
     assert eng.wait_paused() is None
     eng.feed(backend['tbreak_main'])
     eng.feed('run\n', 1000)
-    eng.feed('<esc>')
+    eng.feed('<esc><esc><esc>')
     eng.feed('<c-w>w', 300)
     eng.feed(':21<cr>')
     eng.feed('<f4>')
