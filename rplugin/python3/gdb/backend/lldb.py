@@ -13,14 +13,14 @@ class _ParserImpl(parser_impl.ParserImpl):
 
         re_prompt = re.compile(r'\s\(lldb\) (\(lldb\) )?$')
         self.add_trans(self.paused,
-                       re.compile(r'[\r\n]Process \d+ resuming'),
+                       re.compile(r'Process \d+ resuming'),
                        self._paused_continue)
         self.add_trans(self.paused,
                        re.compile(r' at ([^:]+):(\d+)'),
                        self._paused_jump)
         self.add_trans(self.paused, re_prompt, self._query_b)
         self.add_trans(self.running,
-                       re.compile(r'[\r\n]Process \d+ stopped'),
+                       re.compile(r'Process \d+ stopped'),
                        self._paused)
         self.add_trans(self.running, re_prompt, self._query_b)
 
