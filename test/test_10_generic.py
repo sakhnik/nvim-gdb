@@ -113,7 +113,7 @@ def test_navigate(eng, backend):
     eng.feed('run\n', 1000)
     eng.feed('<esc>')
     eng.feed('<c-w>w')
-    eng.feed('/Lib::Baz\n')
+    eng.feed('/Lib::Baz\n', 300)
     eng.feed('<f4>')
     eng.feed('<f11>')
     assert eng.wait_signs({'cur': 'lib.hpp:7'}) is None
