@@ -22,13 +22,15 @@ def test_backend(eng, backend):
 def test_pdb(eng, post):
     '''Custom command in PDB.'''
     assert post
-    eng.feed(' dp')
-    eng.feed('\n', 300)
+    eng.feed(' dp\n')
+    assert eng.wait_paused() is None
     eng.feed('b _foo\n')
     eng.feed('cont\n')
-    assert eng.eval("GdbCustomCommand('print(num)')") == "0"
+    def _print_num():
+        return eng.eval("GdbCustomCommand('print(num)')")
+    eng.wait_for(_print_num, lambda res: res == "0")
     eng.feed('cont\n')
-    assert eng.eval("GdbCustomCommand('print(num)')") == "1"
+    eng.wait_for(_print_num, lambda res: res == "1")
 
 WATCH_TESTS = {
     'gdb': ('info locals', ['i = 0']),
@@ -45,5 +47,5 @@ def test_watch_backend(eng, backend_express):
     cmd, res = WATCH_TESTS[backend_express["name"]]
     eng.feed(f':GdbCreateWatch {cmd}\n')
     eng.feed(':GdbNext\n')
-    out = eng.eval(f"getbufline('{cmd}', 1)")
-    assert out == res
+    eng.wait_for(lambda: eng.eval(f"getbufline('{cmd}', 1)"),
+            lambda out: out == res)
