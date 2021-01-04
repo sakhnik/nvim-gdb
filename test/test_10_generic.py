@@ -68,8 +68,8 @@ def test_until(eng, backend):
     assert eng.wait_paused() is None
     eng.feed(backend['tbreak_main'])
     eng.feed('run\n', 1000)
-    eng.feed('<esc>')
-    eng.feed('<c-w>w')
+    eng.feed('<esc><esc><esc>')
+    eng.feed('<c-w>w', 300)
     eng.feed(':21<cr>')
     eng.feed('<f4>')
     assert eng.wait_signs({'cur': 'test.cpp:21'}) is None
@@ -113,7 +113,7 @@ def test_navigate(eng, backend):
     eng.feed('run\n', 1000)
     eng.feed('<esc>')
     eng.feed('<c-w>w')
-    eng.feed('/Lib::Baz\n')
+    eng.feed('/Lib::Baz\n', 300)
     eng.feed('<f4>')
     eng.feed('<f11>')
     assert eng.wait_signs({'cur': 'lib.hpp:7'}) is None

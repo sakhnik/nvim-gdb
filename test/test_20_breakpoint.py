@@ -44,18 +44,18 @@ def test_navigate(eng, backend):
     eng.feed(":10<cr>")
     eng.feed("<f8>")
 
-    assert {'break': {1: [5, 10]}} == eng.get_signs()
+    assert eng.wait_signs({'break': {1: [5, 10]}}) is None
 
     # Go to another file
     eng.feed(":e src/lib.hpp\n")
     assert {} == eng.get_signs()
     eng.feed(":8\n")
     eng.feed("<f8>")
-    assert {'break': {1: [8]}} == eng.get_signs()
+    assert eng.wait_signs({'break': {1: [8]}}) is None
 
     # Return to the first file
     eng.feed(":e src/test.cpp\n")
-    assert {'break': {1: [5, 10]}}, eng.get_signs()
+    assert eng.wait_signs({'break': {1: [5, 10]}}) is None
 
 
 def test_clear_all(eng, backend):
@@ -69,7 +69,7 @@ def test_clear_all(eng, backend):
     eng.feed(":10<cr>")
     eng.feed("<f8>")
 
-    assert {'break': {1: [5, 10, 17]}} == eng.get_signs()
+    assert eng.wait_signs({'break': {1: [5, 10, 17]}}) is None
 
     eng.feed(":GdbBreakpointClearAll\n")
     assert eng.wait_signs({}) is None
