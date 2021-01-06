@@ -61,3 +61,7 @@ class BaseBackend(abc.ABC):
     @abc.abstractmethod
     def translate_command(self, command: str) -> str:
         """Adapt command for the debugger if necessary."""
+
+    @abc.abstractmethod
+    def get_error_formats(self):
+        """Return the list of errorformats for backtrace, breakpoints."""

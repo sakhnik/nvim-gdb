@@ -110,3 +110,7 @@ class Gdb(base.BaseBackend):
     def translate_command(self, command):
         """Adapt command if necessary."""
         return self.command_map.get(command, command)
+
+    def get_error_formats(self):
+        """Return the list of errorformats for backtrace, breakpoints."""
+        return ["%m\ at\ %f:%l%.%#", "%m\ %f:%l%.%#"]

@@ -72,3 +72,20 @@ class Lldb(base.BaseBackend):
     def translate_command(self, command):
         """Adapt command if necessary."""
         return self.command_map.get(command, command)
+
+    def get_error_formats(self):
+        """Return the list of errorformats for backtrace, breakpoints."""
+        # breakpoint list doesn't give full path
+        return ["%m\ at\ %f:%l%.%#", "%m\ at\ %f:%l%.%#"]
+
+        # (lldb) breakpoint list
+        # Current breakpoints:
+        # 1: name = 'main', locations = 1
+        #   1.1: where = a.out`main + 15 at test.cpp:17:14, address = a.out[0x00000000000011e6], unresolved, hit count = 0
+        #
+        # 2: name = 'Foo', locations = 1
+        #   2.1: where = a.out`Foo(unsigned int) + 11 at test.cpp:10:5, address = a.out[0x00000000000011b6], unresolved, hit count = 0
+        #
+        # 3: name = 'Bar', locations = 1
+        #   3.1: where = a.out`Bar(unsigned int) + 7 at test.cpp:5:16, address = a.out[0x00000000000011a4], unresolved, hit count = 0
+        #
