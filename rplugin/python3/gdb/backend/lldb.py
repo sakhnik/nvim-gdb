@@ -11,7 +11,7 @@ class _ParserImpl(parser_impl.ParserImpl):
     def __init__(self, common, handler):
         super().__init__(common, handler)
 
-        re_prompt = re.compile(r'\s\(lldb\) (\(lldb\) )?$')
+        re_prompt = re.compile(r'\s\(lldb\) $')
         self.add_trans(self.paused,
                        re.compile(r'Process \d+ resuming'),
                        self._paused_continue)
@@ -30,11 +30,11 @@ class _ParserImpl(parser_impl.ParserImpl):
 class _BreakpointImpl(base.BaseBreakpoint):
     def __init__(self, proxy):
         self.proxy = proxy
-        self.logger = logging.getLogger("Lldb.Breakpoint")
+        self.logger = logging.getLogger("Gdb.Breakpoint")
 
     def query(self, fname: str):
         self.logger.info("Query breakpoints for %s", fname)
-        resp = self.proxy.query(f"handle-command nvim-gdb-info-breakpoints {fname}")
+        resp = self.proxy.query(f"info-breakpoints {fname}\n")
         if not resp:
             return {}
         # LLDB may mess the input (like space + back space).
