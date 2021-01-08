@@ -1,12 +1,17 @@
-'''The program injected into LLDB to implement custom commands.'''
+"""The program injected into LLDB to provide a side channel
+to the plugin."""
 
+import threading
 import os
+import socket
+import sys
 import re
 import json
+import lldb  # type: ignore
 
 
 # Get list of enabled breakpoints for a given source file
-def _get_breaks(debugger, fname):
+def _get_breaks(fname, debugger: lldb.SBDebugger):
     breaks = {}
 
     # Ensure target is the actually selected one
@@ -41,12 +46,49 @@ def _get_breaks(debugger, fname):
     return json.dumps(breaks)
 
 
-def info_breakpoints(debugger, fname, _3, _4):
-    """Query breakpoints."""
-    breaks = _get_breaks(debugger, fname)
-    print(breaks)
+def _server(server_address: str, debugger_id: int):
+    sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+    sock.bind(server_address)
+
+    debugger = lldb.SBDebugger_FindDebuggerWithID(debugger_id)
+
+    try:
+        while True:
+            data, addr = sock.recvfrom(65536)
+            command = re.split(r"\s+", data.decode("utf-8"))
+            if command[0] == "info-breakpoints":
+                fname = command[1]
+                # response_addr = command[3]
+                breaks = _get_breaks(fname, debugger)
+                sock.sendto(breaks.encode("utf-8"), 0, addr)
+            elif command[0] == "handle-command":
+                # pylint: disable=broad-except
+                try:
+                    command_to_handle = " ".join(command[1:])
+                    if sys.version_info < (3, 0):
+                        command_to_handle = command_to_handle.encode("ascii")
+                    return_object = lldb.SBCommandReturnObject()
+                    debugger.GetCommandInterpreter().HandleCommand(
+                        command_to_handle, return_object
+                    )
+                    result = ""
+                    if return_object.GetError():
+                        result += return_object.GetError()
+                    if return_object.GetOutput():
+                        result += return_object.GetOutput()
+                    result = b"" if result is None else result.encode("utf-8")
+                    sock.sendto(result.strip(), 0, addr)
+                except Exception as ex:
+                    print("Exception: " + trackback.format_exc())
+    finally:
+        try:
+            os.unlink(server_address)
+        except OSError:
+            pass
 
 
-def __lldb_init_module(debugger, _2):
-    debugger.HandleCommand('command script add -f' +
-            ' lldb_commands.info_breakpoints nvim-gdb-info-breakpoints')
+def init(debugger: lldb.SBDebugger, command: str, _3, _4):
+    """Entry point."""
+    server_address = command
+    thrd = threading.Thread(target=_server, args=(server_address, debugger.GetID()))
+    thrd.start()
