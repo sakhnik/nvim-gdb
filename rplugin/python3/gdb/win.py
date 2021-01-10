@@ -100,7 +100,6 @@ class Win(Common):
                 # Hide the current line sign when navigating away.
                 self.cursor.hide()
                 target_buf = self._open_file(f"noswap e {file}")
-                self.query_breakpoints()
 
         # Goto the proper line and set the cursor on it
         self.jump_win.cursor = (line, 0)
