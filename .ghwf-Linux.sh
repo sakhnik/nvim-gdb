@@ -7,8 +7,11 @@ chmod +x nvim.appimage
 mkdir -p "$HOME/bin"
 ln -sf "$PWD/nvim.appimage" "$HOME/bin/nvim"
 
+# Make sure to install a recent version of LLDB
+bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
+
 sudo apt-get update
-sudo apt-get install gdb lldb
+sudo apt-get install gdb
 
 # Install bashdb
 ver=$(curl -sL "https://sourceforge.net/projects/bashdb/rss" \
