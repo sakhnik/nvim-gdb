@@ -46,6 +46,35 @@ def _get_breaks(fname, debugger: lldb.SBDebugger):
     return json.dumps(breaks)
 
 
+# Get list of all enabled breakpoints suitable for quickfix
+def _get_all_breaks(debugger: lldb.SBDebugger):
+    breaks = []
+
+    # Ensure target is the actually selected one
+    target = debugger.GetSelectedTarget()
+
+    # Consider every breakpoint while skipping over the disabled ones
+    for bidx in range(target.GetNumBreakpoints()):
+        bpt = target.GetBreakpointAtIndex(bidx)
+        if not bpt.IsEnabled():
+            continue
+        bid = str(bpt.GetID())
+
+        # Consider every location of a breakpoint
+        for lidx in range(bpt.GetNumLocations()):
+            loc = bpt.GetLocationAtIndex(lidx)
+            lineentry = loc.GetAddress().GetLineEntry()
+            filespec = lineentry.GetFileSpec()
+            filename = filespec.GetFilename()
+            if not filename:
+                continue
+            path = os.path.join(filespec.GetDirectory(), filename)
+
+            breaks.append(f"{path}:{lineentry.GetLine()} breakpoint {bid}")
+
+    return "\n".join(breaks)
+
+
 def _server(server_address: str, debugger_id: int):
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
     sock.bind(server_address)
@@ -64,6 +93,11 @@ def _server(server_address: str, debugger_id: int):
             elif command[0] == "handle-command":
                 # pylint: disable=broad-except
                 try:
+                    if command[1] == 'nvim-gdb-info-breakpoints':
+                        # Fake a command info-breakpoins for GdbCopenBreakpoins
+                        resp = _get_all_breaks(debugger)
+                        sock.sendto(resp.encode("utf-8"), 0, addr)
+                        return
                     command_to_handle = " ".join(command[1:])
                     if sys.version_info < (3, 0):
                         command_to_handle = command_to_handle.encode("ascii")

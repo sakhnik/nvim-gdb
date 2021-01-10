@@ -67,7 +67,7 @@ class Lldb(base.BaseBackend):
         'delete_breakpoints': 'breakpoint delete',
         'breakpoint': 'b',
         'until {}': 'thread until {}',
-        'info breakpoints': 'breakpoint list',
+        'info breakpoints': 'nvim-gdb-info-breakpoints',
     }
 
     def translate_command(self, command):
@@ -76,17 +76,6 @@ class Lldb(base.BaseBackend):
 
     def get_error_formats(self):
         """Return the list of errorformats for backtrace, breakpoints."""
-        # breakpoint list doesn't give full path
-        return ["%m\ at\ %f:%l%.%#", "%m\ at\ %f:%l%.%#"]
-
-        # (lldb) breakpoint list
-        # Current breakpoints:
-        # 1: name = 'main', locations = 1
-        #   1.1: where = a.out`main + 15 at test.cpp:17:14, address = a.out[0x00000000000011e6], unresolved, hit count = 0
-        #
-        # 2: name = 'Foo', locations = 1
-        #   2.1: where = a.out`Foo(unsigned int) + 11 at test.cpp:10:5, address = a.out[0x00000000000011b6], unresolved, hit count = 0
-        #
-        # 3: name = 'Bar', locations = 1
-        #   3.1: where = a.out`Bar(unsigned int) + 7 at test.cpp:5:16, address = a.out[0x00000000000011a4], unresolved, hit count = 0
-        #
+        # Breakpoint list is queried specifically with a custom command
+        # nvim-gdb-info-breakpoints, which is only implemented in the proxy.
+        return ["%m\ at\ %f:%l%.%#", "%f:%l\ %m%.%#"]
