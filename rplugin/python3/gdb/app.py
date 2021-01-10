@@ -218,3 +218,13 @@ class App(Common):
             return
         if self.win.is_jump_window_active():
             self.keymaps.dispatch_unset()
+
+    def copen(self, kind):
+        """Load backtrace or breakpoints into the quickfix."""
+        cmd = ''
+        if kind == "backtrace":
+            cmd = self.backend.translate_command('bt')
+        elif kind == "breakpoints":
+            cmd = self.backend.translate_command('info breakpoints')
+        self.vim.command(f"cexpr GdbCustomCommand('{cmd}')")
+        self.vim.command("exe 'normal <c-o>' | copen")

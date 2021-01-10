@@ -83,6 +83,7 @@ class Pdb(base.BaseBackend):
         'breakpoint': 'break',
         'finish': 'return',
         'print {}': 'print({})',
+        'info breakpoints': 'break',
     }
 
     def translate_command(self, command):

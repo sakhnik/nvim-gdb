@@ -85,6 +85,7 @@ class BashDB(base.BaseBackend):
     command_map = {
         'delete_breakpoints': 'delete',
         'breakpoint': 'break',
+        'info breakpoints': 'info breakpoints',
     }
 
     def translate_command(self, command):

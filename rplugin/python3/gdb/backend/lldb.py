@@ -67,6 +67,7 @@ class Lldb(base.BaseBackend):
         'delete_breakpoints': 'breakpoint delete',
         'breakpoint': 'b',
         'until {}': 'thread until {}',
+        'info breakpoints': 'breakpoint list',
     }
 
     def translate_command(self, command):
