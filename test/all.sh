@@ -28,16 +28,10 @@ END
     cat $runvis
 
     if [[ $(uname) == Darwin ]]; then
-        script -t script-timing.log script-out.log $runvis
+        "$runvis"
     else
-        script=$tmpDir/script.sh
-        cat >$script <<END
-#!/bin/bash
-script -c "$runvis" -t script-timing.log script-out.log
-END
-        chmod +x $script
-        cat $script
-        $script
+        # Still not quite working, script-out.log isn't collected
+        script -c "$runvis" -t script-timing.log script-out.log
     fi
 else
     ./run -vv ..
