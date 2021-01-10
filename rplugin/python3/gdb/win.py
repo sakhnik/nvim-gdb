@@ -74,6 +74,14 @@ class Win(Common):
                 # Remember the '[No name]' buffer for later cleanup
                 self.buffers.add(self.vim.current.buffer)
 
+    def goto_jump_window(self):
+        """Place the cursor to the jump window."""
+        # Ensure the jump window is available
+        with self._saved_mode():
+            self._ensure_jump_window()
+            if self.jump_win != self.vim.current.window:
+                self.vim.current.window = self.jump_win
+
     def jump(self, file: str, line: int):
         """Show the file and the current line in the jump window."""
         self.logger.info("jump(%s:%d)", file, line)

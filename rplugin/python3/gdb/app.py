@@ -226,5 +226,6 @@ class App(Common):
             cmd = self.backend.translate_command('bt')
         elif kind == "breakpoints":
             cmd = self.backend.translate_command('info breakpoints')
+        self.win.goto_jump_window()
         self.vim.command(f"cexpr GdbCustomCommand('{cmd}')")
         self.vim.command("exe 'normal <c-o>' | copen")
