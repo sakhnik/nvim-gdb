@@ -28,7 +28,7 @@ END
     cat $runvis
 
     if [[ $(uname) == Darwin ]]; then
-        "$runvis"
+        script -t stript-timing.log script-out.log "$runvis"
     else
         # Still not quite working, script-out.log isn't collected
         script -c "$runvis" -t script-timing.log script-out.log
