@@ -11,9 +11,7 @@ import lldb  # type: ignore
 
 
 # Get list of enabled breakpoints for a given source file
-def _get_breaks(fname, debugger: lldb.SBDebugger):
-    breaks = {}
-
+def _enum_breaks(debugger: lldb.SBDebugger):
     # Ensure target is the actually selected one
     target = debugger.GetSelectedTarget()
 
@@ -34,13 +32,20 @@ def _get_breaks(fname, debugger: lldb.SBDebugger):
                 continue
             path = os.path.join(filespec.GetDirectory(), filename)
 
-            # See whether the breakpoint is in the file in question
-            if fname == path:
-                line = lineentry.GetLine()
-                try:
-                    breaks[line].append(bid)
-                except KeyError:
-                    breaks[line] = [bid]
+            yield path, lineentry.GetLine(), bid
+
+
+# Get list of enabled breakpoints for a given source file
+def _get_breaks(fname, debugger: lldb.SBDebugger):
+    breaks = {}
+
+    for path, line, bid in _enum_breaks(debugger):
+        # See whether the breakpoint is in the file in question
+        if fname == path:
+            try:
+                breaks[line].append(bid)
+            except KeyError:
+                breaks[line] = [bid]
 
     # Return the filtered breakpoints
     return json.dumps(breaks)
@@ -50,27 +55,8 @@ def _get_breaks(fname, debugger: lldb.SBDebugger):
 def _get_all_breaks(debugger: lldb.SBDebugger):
     breaks = []
 
-    # Ensure target is the actually selected one
-    target = debugger.GetSelectedTarget()
-
-    # Consider every breakpoint while skipping over the disabled ones
-    for bidx in range(target.GetNumBreakpoints()):
-        bpt = target.GetBreakpointAtIndex(bidx)
-        if not bpt.IsEnabled():
-            continue
-        bid = str(bpt.GetID())
-
-        # Consider every location of a breakpoint
-        for lidx in range(bpt.GetNumLocations()):
-            loc = bpt.GetLocationAtIndex(lidx)
-            lineentry = loc.GetAddress().GetLineEntry()
-            filespec = lineentry.GetFileSpec()
-            filename = filespec.GetFilename()
-            if not filename:
-                continue
-            path = os.path.join(filespec.GetDirectory(), filename)
-
-            breaks.append(f"{path}:{lineentry.GetLine()} breakpoint {bid}")
+    for path, line, bid in _enum_breaks(debugger):
+        breaks.append(f"{path}:{line} breakpoint {bid}")
 
     return "\n".join(breaks)
 

@@ -91,7 +91,7 @@ class Engine:
             result = action()
             if condition(result):
                 return None
-            time.sleep(0.1)
+            time.sleep(0.2)
         return result
 
     def wait_signs(self, expected, deadline=2000):
