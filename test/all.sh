@@ -17,22 +17,4 @@ cd "$tmpDir/src/test"
 
 ./prerequisites.sh
 
-if [[ $# -gt 0 ]]; then
-
-    runvis=$tmpDir/run.sh 
-    cat >$runvis <<END
-#!/bin/bash
-./run-visual -vv ..
-END
-    chmod +x $runvis
-    cat $runvis
-
-    if [[ $(uname) == Darwin ]]; then
-        script -t stript-timing.log script-out.log "$runvis"
-    else
-        # Still not quite working, script-out.log isn't collected
-        script -c "$runvis" -t script-timing.log script-out.log
-    fi
-else
-    ./run -vv ..
-fi
+ENGINE_LOG=engine-$(uname).log ./run -vv ..

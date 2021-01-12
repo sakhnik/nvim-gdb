@@ -2,7 +2,9 @@
 import os
 import time
 import re
+import threading
 from pynvim import attach
+from spy_ui import SpyUI
 
 
 # Neovim proxy
@@ -15,8 +17,18 @@ class Engine:
         if addr:
             self.nvim = attach('socket', path=addr)
         else:
-            args = ["/usr/bin/env", "./nvim", "--embed", "--headless", "-n"]
+            logfile = os.environ.get("ENGINE_LOG")
+            if not logfile:
+                logfile = "engine.log"
+            self.screen = ""
+            self.logf = open(logfile, "w")
+
+            args = ["/usr/bin/env", "./nvim", "--embed", "--headless", "-n",
+                    "--listen", "localhost:44444"]
             self.nvim = attach('child', argv=args)
+            self.spy_ui = None
+            self.t = threading.Thread(target=self.run_ui)
+            self.t.start()
             # Dummy request to make sure the embedded Nvim proceeds
             # See in neovim bd8d43c6fef868 (startup: wait for embedder
             # before executing)
@@ -29,12 +41,40 @@ class Engine:
 
     def close(self):
         '''Close.'''
+        self.logf.close()
+        self.logf = None
+        self.spy_ui.close()
+        try:
+            self.nvim.command(":qa!")
+        except:
+            pass
         self.nvim.close()
+        self.t.join()
+
+    def log_screen(self):
+        if not self.spy_ui:
+            return
+        screen = self.spy_ui.screen
+        if screen != self.screen:
+            self.screen = screen
+            self.logf.write(screen)
+            self.logf.write("\n")
+
+    def log(self, msg):
+        self.logf.write(msg)
+
+    def run_ui(self):
+        """Capture neovim UI."""
+        self.spy_ui = SpyUI()
+        self.spy_ui.run()
 
     def exe(self, cmd, delay=100):
         """Execute a Vim command."""
+        self.log_screen()
+        self.log(f"exe «{cmd}»\n")
         self.nvim.command(cmd)
         time.sleep(delay * 0.001)
+        self.log_screen()
 
     def get_signs(self):
         """Get pointer position and list of breakpoints."""
@@ -64,11 +104,16 @@ class Engine:
     def feed(self, keys, delay=100):
         """Send a Vim keystroke to NeoVim."""
         time.sleep(self.feed_delay)
+        self.log_screen()
+        self.log(f"feed «{keys}»\n")
         self.nvim.input(keys)
         time.sleep(delay * 0.001)
+        self.log_screen()
 
     def eval(self, expr):
         """Evaluate a Vim expression."""
+        self.log_screen()
+        self.log(f"eval «{expr}»\n")
         return self.nvim.eval(expr)
 
     def count_buffers(self):
