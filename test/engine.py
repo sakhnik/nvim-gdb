@@ -71,7 +71,7 @@ class Engine:
     def exe(self, cmd, delay=100):
         """Execute a Vim command."""
         self.log_screen()
-        self.log(f"exe «{cmd}»\n")
+        self.log(f"exe «{self._quote_keys(cmd)}»\n")
         self.nvim.command(cmd)
         time.sleep(delay * 0.001)
         self.log_screen()
@@ -105,7 +105,7 @@ class Engine:
         """Send a Vim keystroke to NeoVim."""
         time.sleep(self.feed_delay)
         self.log_screen()
-        self.log(f"feed «{keys}»\n")
+        self.log(f"feed «{self._quote_keys(keys)}»\n")
         self.nvim.input(keys)
         time.sleep(delay * 0.001)
         self.log_screen()
@@ -149,3 +149,7 @@ class Engine:
         return self.wait_for(
             lambda: self.eval("GdbCall('parser.is_paused')"),
             lambda res: res, self.launch_delay)
+
+    def _quote_keys(self, keys):
+        return keys.replace('\n', '\\n').replace('\r', '\\r') \
+            .replace('\t', '\\t').replace('\b', '\\b')
