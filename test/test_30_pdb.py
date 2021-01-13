@@ -128,4 +128,4 @@ def test_expand(eng, post):
     # Ensure a debugging session has started
     assert eng.wait_signs({'cur': 'main.py:1'}) is None
     # Clean up the main tabpage
-    eng.feed('gt:new\n<c-w>ogt')
+    eng.feed('<esc>gt:new\n<c-w>ogt')
