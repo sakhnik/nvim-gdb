@@ -4,6 +4,7 @@
 
 import pytest
 import config
+import os
 from engine import Engine
 
 
@@ -48,13 +49,20 @@ def terminal_end(eng):
 
 
 @pytest.fixture(scope="function")
-def post(eng):
+def post(eng, request):
     '''Prepare and check tabpages for every test.
        Quit debugging and do post checks.'''
 
     while eng.eval("tabpagenr('$')") > 1:
         eng.exe('tabclose $')
     num_bufs = eng.count_buffers()
+
+    eng.log("\n")
+    eng.log("=" * 80 + "\n")
+    fname = os.path.basename(request.fspath)
+    func = request.function.__qualname__
+    eng.log(f"Running {fname}::{func}\n")
+    eng.log("\n")
 
     yield True
 
