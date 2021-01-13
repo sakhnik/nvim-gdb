@@ -30,6 +30,7 @@ def test_bt_backend(eng, backend):
     assert eng.wait_paused() is None
     eng.feed('b Bar\n')
     eng.feed('run\n')
+    assert eng.wait_signs({'cur': 'test.cpp:5', 'break': {1: [5]}}) is None
     eng.feed('<esc>')
     eng.feed(':GdbCopenBacktrace\n')
     time.sleep(0.3)
@@ -73,6 +74,7 @@ def test_bt_pdb(eng, post):
     assert eng.wait_paused() is None
     eng.feed('b _bar\n')
     eng.feed('cont\n')
+    assert eng.wait_signs({'cur': 'main.py:5', 'break': {1: [4]}}) is None
     eng.feed('<esc>')
     eng.feed(':GdbCopenBacktrace\n')
     time.sleep(0.3)
@@ -117,6 +119,7 @@ def test_bt_bashdb(eng, post):
     assert eng.wait_paused() is None
     eng.feed('b Bar\n')
     eng.feed('cont\n')
+    assert eng.wait_signs({'cur': 'main.sh:3', 'break': {1: [3]}}) is None
     eng.feed('<esc>')
     eng.feed(':GdbCopenBacktrace\n')
     time.sleep(0.3)
