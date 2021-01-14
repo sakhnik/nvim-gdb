@@ -1,6 +1,8 @@
 '''Test loading backtrace and breakpoints into the quickfix.'''
 
 import time
+import pytest
+import config
 
 
 def test_breaks_backend(eng, backend):
@@ -90,6 +92,8 @@ def test_bt_pdb(eng, post):
     assert eng.eval("line('.')") == 5
 
 
+@pytest.mark.skipif("bashdb" not in config.BACKEND_NAMES,
+                    reason="No bashdb")
 def test_breaks_bashdb(eng, post):
     '''Breakpoint quickfix in BashDB.'''
     assert post
@@ -112,6 +116,8 @@ def test_breaks_bashdb(eng, post):
     assert eng.eval("line('.')") == 3
 
 
+@pytest.mark.skipif("bashdb" not in config.BACKEND_NAMES,
+                    reason="No bashdb")
 def test_bt_bashdb(eng, post):
     '''Breakpoint quickfix in BashDB.'''
     assert post
