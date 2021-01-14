@@ -98,12 +98,19 @@ See `:help nvimgdb` for the complete online documentation. Most notable commands
 You can create a watch window evaluating a backend command on every step.
 Try `:GdbCreateWatch info locals` in GDB, for istance.
 
+You can open the list of breakpoints or backtrace locations into the quickfix.
+Try `:GdbCopenBacktrace` or `:GdbCopenBreakpoints`.
+
 ## Development
 
 The goal is to have a thin wrapper around
 GDB, LLDB, pdb/pdb++ and BASHDB, just like the official
 [TUI](https://sourceware.org/gdb/onlinedocs/gdb/TUI.html). NeoVim will enhance
 debugging with syntax highlighting and source code navigation.
+
+The project uses GitHub actions to run the test suite on every commit automatically.
+The plugin, proxy and screen logs can be downloaded as the artifacts to be analyzed
+locally.
 
 ## References
 
