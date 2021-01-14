@@ -26,20 +26,16 @@ class Engine:
 
         self.screen = ""
 
-        addr = os.environ.get('NVIM_LISTEN_ADDRESS')
-        if addr:
-            self.nvim = attach('socket', path=addr)
-        else:
-            args = ["/usr/bin/env", "./nvim", "--embed", "--headless", "-n",
-                    "--listen", "localhost:44444"]
-            self.nvim = attach('child', argv=args)
-            self.spy_ui = None
-            self.thrd = threading.Thread(target=self.run_ui)
-            self.thrd.start()
-            # Dummy request to make sure the embedded Nvim proceeds
-            # See in neovim bd8d43c6fef868 (startup: wait for embedder
-            # before executing)
-            self.eval("0")
+        args = ["/usr/bin/env", "./nvim", "--embed", "--headless", "-n",
+                "--listen", "localhost:44444"]
+        self.nvim = attach('child', argv=args)
+        self.spy_ui = None
+        self.thrd = threading.Thread(target=self.run_ui)
+        self.thrd.start()
+        # Dummy request to make sure the embedded Nvim proceeds
+        # See in neovim bd8d43c6fef868 (startup: wait for embedder
+        # before executing)
+        self.eval("0")
 
         # Builds on GitHub seem to be more prone to races.
         is_github = os.environ.get('GITHUB_WORKFLOW')
