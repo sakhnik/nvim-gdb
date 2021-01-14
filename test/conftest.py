@@ -57,12 +57,10 @@ def post(eng, request):
         eng.exe('tabclose $')
     num_bufs = eng.count_buffers()
 
-    eng.log("\n")
-    eng.log("=" * 80 + "\n")
+    eng.logger.info("\n" + "=" * 80 + "\n")
     fname = os.path.basename(request.fspath)
     func = request.function.__qualname__
-    eng.log(f"Running {fname}::{func}\n")
-    eng.log("\n")
+    eng.logger.info("Running %s::%s", fname, func)
 
     yield True
 

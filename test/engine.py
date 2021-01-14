@@ -1,8 +1,9 @@
 """Neovim abstraction for tests."""
+
+import logging
 import os
-import time
-import re
 import threading
+import time
 from pynvim import attach
 from spy_ui import SpyUI
 
@@ -13,22 +14,28 @@ class Engine:
 
     def __init__(self):
         """Construct an engine."""
+        self.logger = logging.getLogger("Engine")
+        self.logger.setLevel(logging.DEBUG)
+        lhandl = logging.NullHandler() if not os.environ.get('CI') \
+            else logging.FileHandler("engine.log")
+        fmt = "%(asctime)s [%(levelname)s]: %(message)s"
+        lhandl.setFormatter(logging.Formatter(fmt))
+        self.logger.addHandler(lhandl)
+
+        self.logger.info("Starting test nvim engine")
+
+        self.screen = ""
+
         addr = os.environ.get('NVIM_LISTEN_ADDRESS')
         if addr:
             self.nvim = attach('socket', path=addr)
         else:
-            logfile = os.environ.get("ENGINE_LOG")
-            if not logfile:
-                logfile = "engine.log"
-            self.screen = ""
-            self.logf = open(logfile, "w")
-
             args = ["/usr/bin/env", "./nvim", "--embed", "--headless", "-n",
                     "--listen", "localhost:44444"]
             self.nvim = attach('child', argv=args)
             self.spy_ui = None
-            self.t = threading.Thread(target=self.run_ui)
-            self.t.start()
+            self.thrd = threading.Thread(target=self.run_ui)
+            self.thrd.start()
             # Dummy request to make sure the embedded Nvim proceeds
             # See in neovim bd8d43c6fef868 (startup: wait for embedder
             # before executing)
@@ -41,27 +48,22 @@ class Engine:
 
     def close(self):
         '''Close.'''
-        self.logf.close()
-        self.logf = None
         self.spy_ui.close()
         try:
             self.nvim.command(":qa!")
-        except:
+        except OSError:
             pass
         self.nvim.close()
-        self.t.join()
+        self.thrd.join()
 
     def log_screen(self):
+        """Log the current Spy UI screen if it has changed."""
         if not self.spy_ui:
             return
         screen = self.spy_ui.screen
         if screen != self.screen:
             self.screen = screen
-            self.logf.write(screen)
-            self.logf.write("\n")
-
-    def log(self, msg):
-        self.logf.write(msg)
+            self.logger.info("\n%s", screen)
 
     def run_ui(self):
         """Capture neovim UI."""
@@ -71,7 +73,7 @@ class Engine:
     def exe(self, cmd, delay=100):
         """Execute a Vim command."""
         self.log_screen()
-        self.log(f"exe «{self._quote_keys(cmd)}»\n")
+        self.logger.info("exe «%s»", self._quote_keys(cmd))
         self.nvim.command(cmd)
         time.sleep(delay * 0.001)
         self.log_screen()
@@ -107,7 +109,7 @@ class Engine:
         """Send a Vim keystroke to NeoVim."""
         time.sleep(self.feed_delay)
         self.log_screen()
-        self.log(f"feed «{self._quote_keys(keys)}»\n")
+        self.logger.info("feed «%s»", self._quote_keys(keys))
         self.nvim.input(keys)
         time.sleep(delay * 0.001)
         self.log_screen()
@@ -115,7 +117,7 @@ class Engine:
     def eval(self, expr):
         """Evaluate a Vim expression."""
         self.log_screen()
-        self.log(f"eval «{expr}»\n")
+        self.logger.info("eval «%s»", expr)
         return self.nvim.eval(expr)
 
     def count_buffers(self):
@@ -124,8 +126,9 @@ class Engine:
 
     def count_termbuffers(self):
         """Determine how many terminal buffers are there."""
-        terms = [b for b in self.nvim.buffers \
-                if b.api.is_loaded() and b.api.get_option('buftype') == 'terminal']
+        terms = [b for b in self.nvim.buffers
+                 if b.api.is_loaded() and
+                 b.api.get_option('buftype') == 'terminal']
         return len(terms)
 
     @staticmethod
@@ -144,7 +147,7 @@ class Engine:
     def wait_signs(self, expected, deadline=2000):
         '''Wait until signs are placed as expected.'''
         return self.wait_for(self.get_signs,
-                lambda res: res == expected, deadline)
+                             lambda res: res == expected, deadline)
 
     def wait_paused(self):
         '''Wait until the parser FSM goes into the paused state.'''
@@ -152,6 +155,7 @@ class Engine:
             lambda: self.eval("GdbCall('parser.is_paused')"),
             lambda res: res, self.launch_delay)
 
-    def _quote_keys(self, keys):
+    @staticmethod
+    def _quote_keys(keys):
         return keys.replace('\n', '\\n').replace('\r', '\\r') \
             .replace('\t', '\\t').replace('\b', '\\b')

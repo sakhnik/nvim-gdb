@@ -37,5 +37,5 @@ jobs:
       if: ${{ always() }}
       uses: actions/upload-artifact@v2
       with:
-        name: test-logs
+        name: logs-${{ matrix.os }}
         path: test/*.log
