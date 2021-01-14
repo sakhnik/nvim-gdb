@@ -1,7 +1,8 @@
 """BashDB specifics."""
 
-import re
 import logging
+import os
+import re
 from typing import Dict, List
 from gdb.backend import parser_impl
 from gdb.backend import base
@@ -58,7 +59,11 @@ class _BreakpointImpl(base.BaseBreakpoint):
                 fields = re.split(r"\s+", line)
                 if fields[3] == 'y':    # Is enabled?
                     match = pattern.fullmatch(fields[-1])   # file.cpp:line
-                    if match and match.group(1) == fname:
+                    if not match:
+                        continue
+                    bpfname = match.group(1)
+                    if (bpfname == fname or os.path.realpath(fname) ==
+                            os.path.realpath(bpfname)):
                         line = match.group(2)
                         br_id = fields[0]
                         try:
