@@ -73,6 +73,11 @@ def post(eng, request):
     # Check that no new buffers have left
     assert num_bufs == eng.count_buffers()
 
+    for b in eng.nvim.buffers:
+        if b.number == 1 or not eng.nvim.api.buf_is_loaded(b.handle):
+            continue
+        eng.nvim.command(f"bdelete! {b.number}")
+        # api.buf_delete(b.handle, {'force': True})
 
 @pytest.fixture(scope="function", params=BACKENDS.values())
 def backend(post, request, terminal_end):

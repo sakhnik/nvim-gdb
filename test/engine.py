@@ -81,14 +81,16 @@ class Engine:
 
         ret = {}
 
-        for bnum in self.eval('nvim_list_bufs()'):
-            out = self.eval(f'sign_getplaced({bnum}, {{"group": "NvimGdb"}})')
+        for buf in self.nvim.buffers:
+            if not buf.valid or not self.nvim.api.buf_is_loaded(buf.handle):
+                continue
+            out = self.eval(f'sign_getplaced({buf.number}, {{"group": "NvimGdb"}})')
             breaks = {}
             for bsigns in out:
                 for signs in bsigns['signs']:
                     sname = signs['name']
                     if sname == 'GdbCurrentLine':
-                        bname = os.path.basename(self.eval(f"bufname({bnum})"))
+                        bname = os.path.basename(buf.name)
                         assert "cur" not in ret
                         ret["cur"] = f'{bname}:{signs["lnum"]}'
                     if sname.startswith('GdbBreakpoint'):

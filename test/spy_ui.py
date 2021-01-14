@@ -103,7 +103,7 @@ class SpyUI:
                 for c in range(left, right):
                     self.grid[r][c] = self.grid[rfrom][c]
         else:
-            for r in range(bot - 1, top - row - 1, -1):
+            for r in range(bot - 1, top - rows - 1, -1):
                 rfrom = r + rows
                 for c in range(left, right):
                     self.grid[r][c] = self.grid[rfrom][c]
