@@ -117,15 +117,15 @@ Section 2: Commands                                          *NvimgdbCommands*
                        evaluated using `GdbCustomCommand()` on every debug
                        prompt when the event `NvimGdbQuery` fires.
 
-                                                        *:GdbCopenBreakpoints*
-:GdbCopenBreakpoints
+                                                        *:GdbLopenBreakpoints*
+:GdbLopenBreakpoints
                        Fetch breakpoint locations and load them into the
-                       `quickfix`.
+                       `location-list`.
 
-                                                          *:GdbCopenBacktrace*
-:GdbCopenBacktrace
+                                                          *:GdbLopenBacktrace*
+:GdbLopenBacktrace
                        Fetch backtrace locations and load them into the
-                       `quickfix`.
+                       `location-list`.
 
 ==============================================================================
 Section 3: Mappings                                          *NvimgdbMappings*

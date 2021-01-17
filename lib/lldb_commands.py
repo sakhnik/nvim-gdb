@@ -51,7 +51,7 @@ def _get_breaks(fname, debugger: lldb.SBDebugger):
     return json.dumps(breaks)
 
 
-# Get list of all enabled breakpoints suitable for quickfix
+# Get list of all enabled breakpoints suitable for location list
 def _get_all_breaks(debugger: lldb.SBDebugger):
     breaks = []
 
@@ -80,7 +80,7 @@ def _server(server_address: str, debugger_id: int):
                 # pylint: disable=broad-except
                 try:
                     if command[1] == 'nvim-gdb-info-breakpoints':
-                        # Fake a command info-breakpoins for GdbCopenBreakpoins
+                        # Fake a command info-breakpoins for GdbLopenBreakpoins
                         resp = _get_all_breaks(debugger)
                         sock.sendto(resp.encode("utf-8"), 0, addr)
                         return

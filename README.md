@@ -98,8 +98,8 @@ See `:help nvimgdb` for the complete online documentation. Most notable commands
 You can create a watch window evaluating a backend command on every step.
 Try `:GdbCreateWatch info locals` in GDB, for istance.
 
-You can open the list of breakpoints or backtrace locations into the quickfix.
-Try `:GdbCopenBacktrace` or `:GdbCopenBreakpoints`.
+You can open the list of breakpoints or backtrace locations into the location list.
+Try `:GdbLopenBacktrace` or `:GdbLopenBreakpoints`.
 
 ## Development
 
