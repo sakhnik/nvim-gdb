@@ -219,7 +219,7 @@ class App(Common):
         if self.win.is_jump_window_active():
             self.keymaps.dispatch_unset()
 
-    def lopen(self, kind):
+    def lopen(self, kind, mods):
         """Load backtrace or breakpoints into the location list."""
         cmd = ''
         if kind == "backtrace":
@@ -228,4 +228,4 @@ class App(Common):
             cmd = self.backend.translate_command('info breakpoints')
         self.win.goto_jump_window()
         self.vim.command(f"lexpr GdbCustomCommand('{cmd}')")
-        self.vim.command("exe 'normal <c-o>' | lopen")
+        self.vim.command(f"exe 'normal <c-o>' | {mods} lopen")
