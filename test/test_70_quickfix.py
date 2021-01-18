@@ -13,8 +13,9 @@ def test_breaks_backend(eng, backend):
     eng.feed('b Foo\n')
     eng.feed('b Bar\n')
     eng.feed('<esc>')
-    eng.feed(':GdbLopenBreakpoints\n')
+    eng.feed(':aboveleft GdbLopenBreakpoints\n')
     time.sleep(0.3)
+    eng.feed('<c-w>k')
     eng.feed(':ll\n')
     assert eng.wait_for(lambda: eng.eval("line('.')"),
                         lambda r: r == 17) is None
@@ -34,8 +35,9 @@ def test_bt_backend(eng, backend):
     eng.feed('run\n')
     assert eng.wait_signs({'cur': 'test.cpp:5', 'break': {1: [5]}}) is None
     eng.feed('<esc>')
-    eng.feed(':GdbLopenBacktrace\n')
+    eng.feed(':belowright GdbLopenBacktrace\n')
     time.sleep(0.3)
+    eng.feed('<c-w>k')
     eng.feed(':ll\n')
     assert eng.wait_for(lambda: eng.eval("line('.')"),
                         lambda r: r == 5) is None
@@ -58,6 +60,7 @@ def test_breaks_pdb(eng, post):
     eng.feed('<esc>')
     eng.feed(':GdbLopenBreakpoints\n')
     time.sleep(0.3)
+    eng.feed('<c-w>k')
     eng.feed(':ll\n')
     assert eng.wait_for(lambda: eng.eval("line('.')"),
                         lambda r: r == 14) is None
@@ -80,6 +83,7 @@ def test_bt_pdb(eng, post):
     eng.feed('<esc>')
     eng.feed(':GdbLopenBacktrace\n')
     time.sleep(0.3)
+    eng.feed('<c-w>k')
     eng.feed(':lnext\n')
     eng.feed(':lnext\n')
     assert eng.wait_for(lambda: eng.eval("line('.')"),
@@ -105,6 +109,7 @@ def test_breaks_bashdb(eng, post):
     eng.feed('<esc>')
     eng.feed(':GdbLopenBreakpoints\n')
     time.sleep(0.3)
+    eng.feed('<c-w>k')
     eng.feed(':ll\n')
     assert eng.wait_for(lambda: eng.eval("line('.')"),
                         lambda r: r == 16) is None
@@ -129,6 +134,7 @@ def test_bt_bashdb(eng, post):
     eng.feed('<esc>')
     eng.feed(':GdbLopenBacktrace\n')
     time.sleep(0.3)
+    eng.feed('<c-w>k')
     eng.feed(':ll\n')
     assert eng.wait_for(lambda: eng.eval("line('.')"),
                         lambda r: r == 3) is None

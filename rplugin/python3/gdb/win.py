@@ -62,7 +62,7 @@ class Win(Common):
         mode = self.vim.api.get_mode()
         yield
         if mode['mode'] in "ti":
-            self.vim.command("startinsert")
+            self.vim.command("startinsert!")
 
     def _ensure_jump_window(self):
         """Ensure that the jump window is available."""
@@ -73,14 +73,6 @@ class Win(Common):
                 self.jump_win = self.vim.current.window
                 # Remember the '[No name]' buffer for later cleanup
                 self.buffers.add(self.vim.current.buffer)
-
-    def goto_jump_window(self):
-        """Place the cursor to the jump window."""
-        # Ensure the jump window is available
-        with self._saved_mode():
-            self._ensure_jump_window()
-            if self.jump_win != self.vim.current.window:
-                self.vim.current.window = self.jump_win
 
     def jump(self, file: str, line: int):
         """Show the file and the current line in the jump window."""
@@ -142,3 +134,12 @@ class Win(Common):
             # Query the breakpoints for the shown file
             self.breakpoint.query(buf_num, fname)
             self.vim.command("redraw")
+
+    def lopen(self, cmd, mods):
+        """Populate the location list with the result of debugger cmd."""
+        with self._saved_mode(), self._saved_win(False):
+            self._ensure_jump_window()
+            if self.jump_win != self.vim.current.window:
+                self.vim.current.window = self.jump_win
+            self.vim.command(f"lexpr GdbCustomCommand('{cmd}')")
+            self.vim.command(f"exe 'normal <c-o>' | {mods} lopen")
