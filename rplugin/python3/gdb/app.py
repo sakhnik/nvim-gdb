@@ -22,7 +22,8 @@ from gdb.backend.bashdb import BashDB
 class App(Common):
     """Main application class."""
 
-    def __init__(self, common, efmmgr, backendStr: str, proxyCmd: str, clientCmd: str):
+    def __init__(self, common, efmmgr, backendStr: str, proxyCmd: str,
+                 clientCmd: str):
         """ctor."""
         super().__init__(common)
         self.efmmgr = efmmgr

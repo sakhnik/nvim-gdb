@@ -141,5 +141,6 @@ class Win(Common):
             self._ensure_jump_window()
             if self.jump_win != self.vim.current.window:
                 self.vim.current.window = self.jump_win
-            self.vim.command(f"lgetexpr GdbCall('get_for_llist', '{kind}', '{cmd}')")
+            lgetexpr = f"lgetexpr GdbCall('get_for_llist', '{kind}', '{cmd}')"
+            self.vim.command(lgetexpr)
             self.vim.command(f"exe 'normal <c-o>' | {mods} lopen")

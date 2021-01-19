@@ -20,7 +20,6 @@ LOGGING_CONFIG = {
             'formatter': 'standard',
             'class': 'logging.FileHandler',
             'filename': 'nvimgdb.log',
-            #'mode': 'a',
         },
     },
     'loggers': {
