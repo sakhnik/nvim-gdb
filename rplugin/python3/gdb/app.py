@@ -227,8 +227,17 @@ class App(Common):
             cmd = self.backend.translate_command('bt')
         elif kind == "breakpoints":
             cmd = self.backend.translate_command('info breakpoints')
-        self.win.lopen(cmd, mods)
+        else:
+            self.logger.warning("Unknown lopen kind %s", kind)
+            return
+        self.win.lopen(cmd, kind, mods)
 
-    def get_for_llist(self, cmd):
+    def get_for_llist(self, kind, cmd):
         output = self.custom_command(cmd)
-        return re.split(r'[\r\n]+', output)
+        lines = re.split(r'[\r\n]+', output)
+        if kind == "backtrace":
+            return lines
+        elif kind == "breakpoints":
+            return self.backend.llist_filter_breakpoints(lines)
+        else:
+            self.logger.warning("Unknown lopen kind %s", kind)

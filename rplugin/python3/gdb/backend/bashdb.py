@@ -117,3 +117,8 @@ class BashDB(base.BaseBackend):
         #         breakpoint already hit 1 time
         # 3   breakpoint keep y   /tmp/nvim-gdb/test/main.sh:3
         # 4   breakpoint keep y   /tmp/nvim-gdb/test/main.sh:8
+
+    @staticmethod
+    def llist_filter_breakpoints(locations):
+        """Filter out service lines in the breakpoint list capture."""
+        return [s for s  in locations if not s.startswith("Num")]

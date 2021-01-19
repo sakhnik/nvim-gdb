@@ -109,3 +109,8 @@ class Pdb(base.BaseBackend):
         #  /tmp/nvim-gdb/test/main.py(11)_foo()
         #-> return num + _bar(num - 1)
         #> /tmp/nvim-gdb/test/main.py(5)_bar()
+
+    @staticmethod
+    def llist_filter_breakpoints(locations):
+        """Filter out service lines in the breakpoint list capture."""
+        return [s for s  in locations if not s.startswith("Num")]

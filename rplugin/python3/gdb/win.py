@@ -135,11 +135,11 @@ class Win(Common):
             self.breakpoint.query(buf_num, fname)
             self.vim.command("redraw")
 
-    def lopen(self, cmd, mods):
+    def lopen(self, cmd, kind, mods):
         """Populate the location list with the result of debugger cmd."""
         with self._saved_mode(), self._saved_win(False):
             self._ensure_jump_window()
             if self.jump_win != self.vim.current.window:
                 self.vim.current.window = self.jump_win
-            self.vim.command(f"lgetexpr GdbCall('get_for_llist', '{cmd}')")
+            self.vim.command(f"lgetexpr GdbCall('get_for_llist', '{kind}', '{cmd}')")
             self.vim.command(f"exe 'normal <c-o>' | {mods} lopen")

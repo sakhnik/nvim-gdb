@@ -65,3 +65,8 @@ class BaseBackend(abc.ABC):
     @abc.abstractmethod
     def get_error_formats(self):
         """Return the list of errorformats for backtrace, breakpoints."""
+
+    @staticmethod
+    def llist_filter_breakpoints(locations):
+        """Filter out service lines in the breakpoint list capture."""
+        return locations
