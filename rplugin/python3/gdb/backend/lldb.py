@@ -78,4 +78,4 @@ class Lldb(base.BaseBackend):
         """Return the list of errorformats for backtrace, breakpoints."""
         # Breakpoint list is queried specifically with a custom command
         # nvim-gdb-info-breakpoints, which is only implemented in the proxy.
-        return ["%m\ at\ %f:%l%.%#", "%f:%l\ %m%.%#"]
+        return ["%m\ at\ %f:%l", "%f:%l\ %m"]

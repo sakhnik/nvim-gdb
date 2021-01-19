@@ -99,9 +99,9 @@ class BashDB(base.BaseBackend):
 
     def get_error_formats(self):
         """Return the list of errorformats for backtrace, breakpoints."""
-        return ["%m\ in\ file\ `%f'\ at\ line\ %l%.%#",
-                "%m\ called\ from\ file\ `%f'\ at\ line\ %l%.%#",
-                "%m\ %f:%l%.%#"]
+        return ["%m\ in\ file\ `%f'\ at\ line\ %l",
+                "%m\ called\ from\ file\ `%f'\ at\ line\ %l",
+                "%m\ %f:%l"]
 
         # bashdb<18> bt
         # ->0 in file `main.sh' at line 8

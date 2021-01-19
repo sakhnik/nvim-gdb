@@ -1,5 +1,6 @@
 """."""
 
+import re
 from typing import Union, Dict, Type
 
 from gdb.common import Common
@@ -227,3 +228,7 @@ class App(Common):
         elif kind == "breakpoints":
             cmd = self.backend.translate_command('info breakpoints')
         self.win.lopen(cmd, mods)
+
+    def get_for_llist(self, cmd):
+        output = self.custom_command(cmd)
+        return re.split(r'[\r\n]+', output)

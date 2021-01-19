@@ -114,4 +114,4 @@ class Gdb(base.BaseBackend):
 
     def get_error_formats(self):
         """Return the list of errorformats for backtrace, breakpoints."""
-        return ["%m\ at\ %f:%l%.%#", "%m\ %f:%l%.%#"]
+        return ["%m\ at\ %f:%l", "%m\ %f:%l"]

@@ -92,7 +92,7 @@ class Pdb(base.BaseBackend):
 
     def get_error_formats(self):
         """Return the list of errorformats for backtrace, breakpoints."""
-        return ["%m\ at\ %f:%l%.%#", "%[>\ ]%#%f(%l)%m"]
+        return ["%m\ at\ %f:%l", "%[>\ ]%#%f(%l)%m"]
 
         #(Pdb) break
         #Num Type         Disp Enb   Where
