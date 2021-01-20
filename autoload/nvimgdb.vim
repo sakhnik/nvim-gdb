@@ -48,6 +48,8 @@ function! nvimgdb#GlobalInit()
   command! GdbEvalWord call GdbSend('print {}', expand('<cword>'))
   command! -range GdbEvalRange call GdbSend('print {}', s:GetExpression(<f-args>))
   command! -nargs=1 GdbCreateWatch call GdbCreateWatch(<q-args>)
+  command! GdbLopenBacktrace call GdbCallAsync('lopen', 'backtrace', '<mods>')
+  command! GdbLopenBreakpoints call GdbCallAsync('lopen', 'breakpoints', '<mods>')
 
   augroup NvimGdb
     au!
@@ -94,4 +96,6 @@ function! nvimgdb#GlobalCleanup()
   delcommand GdbEvalWord
   delcommand GdbEvalRange
   delcommand GdbCreateWatch
+  delcommand GdbLopenBacktrace
+  delcommand GdbLopenBreakpoints
 endfunction

@@ -62,7 +62,7 @@ class Win(Common):
         mode = self.vim.api.get_mode()
         yield
         if mode['mode'] in "ti":
-            self.vim.command("startinsert")
+            self.vim.command("startinsert!")
 
     def _ensure_jump_window(self):
         """Ensure that the jump window is available."""
@@ -100,7 +100,6 @@ class Win(Common):
                 # Hide the current line sign when navigating away.
                 self.cursor.hide()
                 target_buf = self._open_file(f"noswap e {file}")
-                self.query_breakpoints()
 
         # Goto the proper line and set the cursor on it
         self.jump_win.cursor = (line, 0)
@@ -135,3 +134,13 @@ class Win(Common):
             # Query the breakpoints for the shown file
             self.breakpoint.query(buf_num, fname)
             self.vim.command("redraw")
+
+    def lopen(self, cmd, kind, mods):
+        """Populate the location list with the result of debugger cmd."""
+        with self._saved_mode(), self._saved_win(False):
+            self._ensure_jump_window()
+            if self.jump_win != self.vim.current.window:
+                self.vim.current.window = self.jump_win
+            lgetexpr = f"lgetexpr GdbCall('get_for_llist', '{kind}', '{cmd}')"
+            self.vim.command(lgetexpr)
+            self.vim.command(f"exe 'normal <c-o>' | {mods} lopen")

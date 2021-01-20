@@ -1,5 +1,7 @@
 """."""
 
+import os
+
 
 LOGGING_CONFIG = {
     'version': 1,
@@ -13,18 +15,17 @@ LOGGING_CONFIG = {
         'null': {
             'class': 'logging.NullHandler',
         },
-        # 'file': {
-        #     'level': 'INFO',
-        #     'formatter': 'standard',
-        #     'class': 'logging.FileHandler',
-        #     'filename': '/tmp/nvimgdb.log',
-        #     #'mode': 'a',
-        # },
+        'file': {
+            'level': 'DEBUG',
+            'formatter': 'standard',
+            'class': 'logging.FileHandler',
+            'filename': 'nvimgdb.log',
+        },
     },
     'loggers': {
         '': {  # root logger
-            'handlers': ['null'],
-            'level': 'INFO',
+            'handlers': ['file' if os.environ.get('CI') else 'null'],
+            'level': 'DEBUG',
             'propagate': False
         },
     }

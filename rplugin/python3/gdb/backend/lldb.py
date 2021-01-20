@@ -67,8 +67,15 @@ class Lldb(base.BaseBackend):
         'delete_breakpoints': 'breakpoint delete',
         'breakpoint': 'b',
         'until {}': 'thread until {}',
+        'info breakpoints': 'nvim-gdb-info-breakpoints',
     }
 
     def translate_command(self, command):
         """Adapt command if necessary."""
         return self.command_map.get(command, command)
+
+    def get_error_formats(self):
+        """Return the list of errorformats for backtrace, breakpoints."""
+        # Breakpoint list is queried specifically with a custom command
+        # nvim-gdb-info-breakpoints, which is only implemented in the proxy.
+        return ["%m\ at\ %f:%l", "%f:%l\ %m"]

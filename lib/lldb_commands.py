@@ -11,9 +11,7 @@ import lldb  # type: ignore
 
 
 # Get list of enabled breakpoints for a given source file
-def _get_breaks(fname, debugger: lldb.SBDebugger):
-    breaks = {}
-
+def _enum_breaks(debugger: lldb.SBDebugger):
     # Ensure target is the actually selected one
     target = debugger.GetSelectedTarget()
 
@@ -34,16 +32,33 @@ def _get_breaks(fname, debugger: lldb.SBDebugger):
                 continue
             path = os.path.join(filespec.GetDirectory(), filename)
 
-            # See whether the breakpoint is in the file in question
-            if fname == path:
-                line = lineentry.GetLine()
-                try:
-                    breaks[line].append(bid)
-                except KeyError:
-                    breaks[line] = [bid]
+            yield path, lineentry.GetLine(), bid
+
+
+# Get list of enabled breakpoints for a given source file
+def _get_breaks(fname, debugger: lldb.SBDebugger):
+    breaks = {}
+
+    for path, line, bid in _enum_breaks(debugger):
+        # See whether the breakpoint is in the file in question
+        if fname == path:
+            try:
+                breaks[line].append(bid)
+            except KeyError:
+                breaks[line] = [bid]
 
     # Return the filtered breakpoints
     return json.dumps(breaks)
+
+
+# Get list of all enabled breakpoints suitable for location list
+def _get_all_breaks(debugger: lldb.SBDebugger):
+    breaks = []
+
+    for path, line, bid in _enum_breaks(debugger):
+        breaks.append(f"{path}:{line} breakpoint {bid}")
+
+    return "\n".join(breaks)
 
 
 def _server(server_address: str, debugger_id: int):
@@ -64,6 +79,11 @@ def _server(server_address: str, debugger_id: int):
             elif command[0] == "handle-command":
                 # pylint: disable=broad-except
                 try:
+                    if command[1] == 'nvim-gdb-info-breakpoints':
+                        # Fake a command info-breakpoins for GdbLopenBreakpoins
+                        resp = _get_all_breaks(debugger)
+                        sock.sendto(resp.encode("utf-8"), 0, addr)
+                        return
                     command_to_handle = " ".join(command[1:])
                     if sys.version_info < (3, 0):
                         command_to_handle = command_to_handle.encode("ascii")

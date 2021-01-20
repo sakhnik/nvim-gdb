@@ -14,10 +14,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -26,6 +28,14 @@ jobs:
         pip install pynvim
         pip install pytest
         echo "$HOME/bin" >> $GITHUB_PATH
+
     - name: Run tests
       run: |
         ./test/all.sh
+
+    - name: Archive script logs
+      if: ${{ always() }}
+      uses: actions/upload-artifact@v2
+      with:
+        name: logs-${{ matrix.os }}
+        path: test/*.log

@@ -4,6 +4,7 @@
 
 import pytest
 import config
+import os
 from engine import Engine
 
 
@@ -48,13 +49,18 @@ def terminal_end(eng):
 
 
 @pytest.fixture(scope="function")
-def post(eng):
+def post(eng, request):
     '''Prepare and check tabpages for every test.
        Quit debugging and do post checks.'''
 
     while eng.eval("tabpagenr('$')") > 1:
         eng.exe('tabclose $')
     num_bufs = eng.count_buffers()
+
+    eng.logger.info("\n" + "=" * 80 + "\n")
+    fname = os.path.basename(request.fspath)
+    func = request.function.__qualname__
+    eng.logger.info("Running %s::%s", fname, func)
 
     yield True
 
@@ -65,6 +71,11 @@ def post(eng):
     # Check that no new buffers have left
     assert num_bufs == eng.count_buffers()
 
+    for b in eng.nvim.buffers:
+        if b.number == 1 or not eng.nvim.api.buf_is_loaded(b.handle):
+            continue
+        eng.nvim.command(f"bdelete! {b.number}")
+        # api.buf_delete(b.handle, {'force': True})
 
 @pytest.fixture(scope="function", params=BACKENDS.values())
 def backend(post, request, terminal_end):

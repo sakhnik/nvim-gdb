@@ -37,7 +37,7 @@ class ParserImpl(Common, BaseParser):
         # Monotonously increasing processed byte counter
         self.byte_count = 1
         # Ordered byte counters to ensure parsing in the right order
-        self.parsing_progress = []
+        self.parsing_progress: List[int] = []
 
     @staticmethod
     def add_trans(state: state_list_type, matcher: MatcherType,
