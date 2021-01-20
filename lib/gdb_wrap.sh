@@ -27,6 +27,7 @@ gdb_init=$(mktemp /tmp/gdb_init.XXXXXX)
 cat >"$gdb_init" <<EOF
 set confirm off
 set pagination off
+set filename-display absolute
 python gdb.prompt_hook = lambda p: p + ("" if p.endswith("\x1a\x1a\x1a") else "\x1a\x1a\x1a")
 EOF
 
