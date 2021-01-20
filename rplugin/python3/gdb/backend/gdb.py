@@ -34,27 +34,12 @@ class _BreakpointImpl(base.BaseBreakpoint):
         self.proxy = proxy
         self.logger = logging.getLogger("Gdb.Breakpoint")
 
-    def _resolve_file(self, fname):
-        """Resolve filename full path into its debugger presentation."""
-        resp = self.proxy.query(f"handle-command info source {fname}")
-        self.logger.debug(resp)
-        pattern = re.compile(r"Current source file is ([^\r\n]+)")
-        match = pattern.search(resp)
-        if match:
-            self.logger.info(match.group(1))
-            return match.group(1)
-        return fname
-
     def query(self, fname: str):
         self.logger.info("Query breakpoints for %s", fname)
-        fname_sym = self._resolve_file(fname)
-        if fname != fname_sym:
-            self.logger.info("Map file path %s to %s", fname, fname_sym)
         response = self.proxy.query("handle-command info breakpoints")
         if not response:
             return {}
-
-        return self._parse_response(response, fname_sym)
+        return self._parse_response(response, fname)
 
     def _parse_response(self, response: str, fname_sym: str):
         # Select lines in the current file with enabled breakpoints.

@@ -298,14 +298,6 @@ Section 7.1 GDB                                                   *NvimgdbGDB*
   program that launches gdb in a pseudo terminal, listens a unix socket for
   commands, and processes the output of GDB to filter out service commands.
 
-- The compiler may embed relative paths to the source code files. Thus, the
-  plugin may struggle to find them on the file system when identifying
-  breakpoints. So consider working from within the same directory that was
-  used to compile. Or alternatively, configure GCC to embed full paths: >
-
-      gcc -fdebug-prefix-map=..=$(readlink -f ..)
-<
-
 ==============================================================================
 Section 8: Limitations                                    *NvimgdbLimitations*
 
