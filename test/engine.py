@@ -40,7 +40,7 @@ class Engine:
         # Builds on GitHub seem to be more prone to races.
         is_github = os.environ.get('GITHUB_WORKFLOW')
         self.feed_delay = 0.02 if not is_github else 0.5
-        self.launch_delay = 3000 if not is_github else 10000
+        self.launch_delay = 3000 if not is_github else 20000
 
     def close(self):
         '''Close.'''
