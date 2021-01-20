@@ -1,5 +1,6 @@
 """."""
 
+import re
 from typing import Union, Dict, Type
 
 from gdb.common import Common
@@ -21,9 +22,11 @@ from gdb.backend.bashdb import BashDB
 class App(Common):
     """Main application class."""
 
-    def __init__(self, common, backendStr: str, proxyCmd: str, clientCmd: str):
+    def __init__(self, common, efmmgr, backendStr: str, proxyCmd: str,
+                 clientCmd: str):
         """ctor."""
         super().__init__(common)
+        self.efmmgr = efmmgr
         self._last_command: Union[str, None] = None
 
         # Create new tab for the debugging view and split horizontally
@@ -69,6 +72,9 @@ class App(Common):
         self.keymaps.dispatch_set_t()
         self.keymaps.dispatch_set()
 
+        # Setup 'errorformat' for the given backend.
+        self.efmmgr.setup(self.backend.get_error_formats())
+
         # Start insert mode in the GDB window
         self.vim.feedkeys("i")
 
@@ -80,6 +86,9 @@ class App(Common):
     def cleanup(self, tab):
         """Finish up the debugging session."""
         self.vim.command("doautocmd User NvimGdbCleanup")
+
+        # Remove from 'errorformat' for the given backend.
+        self.efmmgr.teardown(self.backend.get_error_formats())
 
         # Clean up the breakpoint signs
         self.breakpoint.reset_signs()
@@ -211,3 +220,25 @@ class App(Common):
             return
         if self.win.is_jump_window_active():
             self.keymaps.dispatch_unset()
+
+    def lopen(self, kind, mods):
+        """Load backtrace or breakpoints into the location list."""
+        cmd = ''
+        if kind == "backtrace":
+            cmd = self.backend.translate_command('bt')
+        elif kind == "breakpoints":
+            cmd = self.backend.translate_command('info breakpoints')
+        else:
+            self.logger.warning("Unknown lopen kind %s", kind)
+            return
+        self.win.lopen(cmd, kind, mods)
+
+    def get_for_llist(self, kind, cmd):
+        output = self.custom_command(cmd)
+        lines = re.split(r'[\r\n]+', output)
+        if kind == "backtrace":
+            return lines
+        elif kind == "breakpoints":
+            return self.backend.llist_filter_breakpoints(lines)
+        else:
+            self.logger.warning("Unknown lopen kind %s", kind)

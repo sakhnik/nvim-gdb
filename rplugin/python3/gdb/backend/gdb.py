@@ -105,8 +105,18 @@ class Gdb(base.BaseBackend):
     command_map = {
         'delete_breakpoints': 'delete',
         'breakpoint': 'break',
+        'info breakpoints': 'info breakpoints',
     }
 
     def translate_command(self, command):
         """Adapt command if necessary."""
         return self.command_map.get(command, command)
+
+    def get_error_formats(self):
+        """Return the list of errorformats for backtrace, breakpoints."""
+        return ["%m\ at\ %f:%l", "%m\ %f:%l"]
+
+    @staticmethod
+    def llist_filter_breakpoints(locations):
+        """Filter out service lines in the breakpoint list capture."""
+        return [s for s  in locations if not s.startswith("Num")]

@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -ex
 
 cd "$(dirname "${BASH_SOURCE[0]}")"/..
 rootDir="$(pwd -P)"
@@ -9,7 +9,7 @@ tmpDir="$(mktemp -d /tmp/nvim-gdb-test.XXXXXX)"
 ln -sf "$rootDir" "$tmpDir/src"
 cleanup() {
     unlink "$tmpDir/src";
-    rmdir "$tmpDir"
+    rm -rf "$tmpDir"
 }
 trap cleanup EXIT
 
@@ -17,8 +17,4 @@ cd "$tmpDir/src/test"
 
 ./prerequisites.sh
 
-if [[ $# -gt 0 ]]; then
-    ./run-visual -vv ..
-else
-    ./run -vv ..
-fi
+ENGINE_LOG=engine-$(uname).log ./run -vv ..

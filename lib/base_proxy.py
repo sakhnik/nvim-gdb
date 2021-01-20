@@ -39,8 +39,8 @@ class BaseProxy:
 
         self.server_address: str = args.address
         self.argv = args.cmd
-        log_handler = logging.NullHandler()
-        #log_handler = logging.FileHandler("/tmp/proxy.log")
+        log_handler = logging.NullHandler() if not os.environ.get('CI') \
+                else logging.FileHandler("proxy.log")
         logging.basicConfig(
             level=logging.DEBUG,
             format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -205,7 +205,7 @@ class BaseProxy:
 
     def write_stdout(self, data):
         """Write to stdout for the child process."""
-        #self.logger.debug("%s", data)
+        self.logger.debug("%s", data)
         filt, handler = self.filter[-1]
         data, filtered = filt.filter(data)
         self._write(pty.STDOUT_FILENO, data)
