@@ -17,4 +17,4 @@ cd "$tmpDir/src/test"
 
 ./prerequisites.sh
 
-ENGINE_LOG=engine-$(uname).log ./run -vv ..
+./run -vv .. 2>&1 | tee pytest.log
