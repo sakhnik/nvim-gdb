@@ -29,6 +29,8 @@ class App(Common):
         self.efmmgr = efmmgr
         self._last_command: Union[str, None] = None
 
+        self.vim.command('lua require("nvimgdb").new()')
+
         # Create new tab for the debugging view and split horizontally
         self.vim.command('tabnew'
                          ' | setlocal nowinfixwidth'
@@ -104,6 +106,8 @@ class App(Common):
 
         # Close the debugger backend
         self.client.cleanup()
+
+        self.vim.command("lua require('nvimgdb').cleanup()")
 
         # Close the windows and the tab
         for tabpage in self.vim.tabpages:
