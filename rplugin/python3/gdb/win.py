@@ -67,7 +67,7 @@ class Win(Common):
         if not self._has_jump_win():
             # The jump window needs to be created first
             with self._saved_win(False):
-                self.vim.command(self.config.get("codewin_command"))
+                self.vim.command(self.vim.exec_lua("return nvimgdb.i().config:get('codewin_command')"))
                 self.jump_win = self.vim.current.window
                 # Remember the '[No name]' buffer for later cleanup
                 self.buffers.add(self.vim.current.buffer)

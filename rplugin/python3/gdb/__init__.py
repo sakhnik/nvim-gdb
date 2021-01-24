@@ -9,7 +9,6 @@ from typing import Dict
 import pynvim   # type: ignore
 from gdb.common import BaseCommon, Common
 from gdb.app import App
-from gdb.config import Config
 from gdb.logger import LOGGING_CONFIG
 from gdb.efmmgr import EfmMgr
 
@@ -21,7 +20,7 @@ class Gdb(Common):
     def __init__(self, vim):
         """ctor."""
         logging.config.dictConfig(LOGGING_CONFIG)
-        common = BaseCommon(vim, None)
+        common = BaseCommon(vim)
         super().__init__(common)
         self.apps: Dict[int, App] = {}
         self.ansi_escaper = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
@@ -34,7 +33,7 @@ class Gdb(Common):
     def gdb_init(self, args):
         """Handle the command GdbInit."""
         # Prepare configuration: keymaps, hooks, parameters etc.
-        common = BaseCommon(self.vim, Config(self))
+        common = BaseCommon(self.vim)
         if not self.apps:
             self.vim.exec_lua("nvimgdb = require'nvimgdb'")
             self.efmmgr = EfmMgr(common)
@@ -220,19 +219,4 @@ class Gdb(Common):
                 return obj
         except Exception:
             self.logger.exception('GdbTestPeek Exception')
-        return None
-
-    @pynvim.function('GdbTestPeekConfig', sync=True)
-    def gdb_test_peek_config(self, _):
-        """Handle command GdbTestPeekConfig."""
-        try:
-            app = self._get_app()
-            if app:
-                config = dict(app.config.config)
-                for key, val in config.items():
-                    if callable(val):
-                        config[key] = str(val)
-                return config
-        except Exception:
-            self.logger.exception('GdbTestPeekConfig Exception')
         return None

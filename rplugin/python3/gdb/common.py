@@ -7,10 +7,9 @@ import pynvim
 class BaseCommon:
     """Common base part of all classes."""
 
-    def __init__(self, vim, config):
+    def __init__(self, vim):
         """Construct to propagate context."""
         self.vim: pynvim.Nvim = vim
-        self.config = config
         self.logger: logging.Logger = logging.getLogger(type(self).__name__)
 
     def treat_the_linter(self):
@@ -25,4 +24,4 @@ class Common(BaseCommon):
 
     def __init__(self, common):
         """ctor."""
-        super().__init__(common.vim, common.config)
+        super().__init__(common.vim)

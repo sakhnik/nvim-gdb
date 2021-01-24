@@ -32,11 +32,11 @@ class Breakpoint(Common):
             bpath = self.vim.call("expand", f'#{buf}:p')
 
             def _get_sign_name(count):
-                max_count = len(self.config.get('sign_breakpoint'))
+                max_count = len(self.vim.exec_lua("return nvimgdb.i().config:get('sign_breakpoint')"))
                 idx = count if count < max_count else max_count - 1
                 return f"GdbBreakpoint{idx}"
 
-            priority = self.config.get('sign_breakpoint_priority')
+            priority = self.vim.exec_lua("return nvimgdb.i().config:get('sign_breakpoint_priority')")
             for line, ids in self.breaks.get(bpath, {}).items():
                 sign_id += 1
                 sign_name = _get_sign_name(len(ids))

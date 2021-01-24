@@ -118,8 +118,8 @@ function C._check_keymap_conflicts(self, key, func, verbose)
         prev_func = self.key_to_func[key]
         if prev_func ~= nil and prev_func ~= func then
             if verbose then
-                vim.cmd([[echo 'Overriding conflicting keymap "]] .. key .. [[" for ]]
-                    .. func .. [[ (was ]] .. prev_func .. [[)']])
+                print('Overriding conflicting keymap "' .. key .. '" for '
+                    .. func .. ' (was ' .. prev_func .. ')')
             end
             self.key_to_func[self.config[func]] = nil
             self.config[prev_func] = nil

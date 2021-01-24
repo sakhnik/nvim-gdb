@@ -28,7 +28,7 @@ class Cursor(Common):
         old_sign_id = self.sign_id
         self.sign_id = 4999 + (4998 - old_sign_id if old_sign_id != -1 else 0)
         if self.line != -1 and self.buf != -1:
-            priority = self.config.get('sign_breakpoint_priority') + 1
+            priority = self.vim.exec_lua("return nvimgdb.i().config:get('sign_breakpoint_priority') + 1")
             self.vim.call('sign_place', self.sign_id, 'NvimGdb',
                           'GdbCurrentLine', self.buf,
                           {'lnum': self.line, 'priority': priority})

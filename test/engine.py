@@ -116,6 +116,12 @@ class Engine:
         self.logger.info("eval «%s»", expr)
         return self.nvim.eval(expr)
 
+    def exec_lua(self, expr):
+        """Execute lua statement."""
+        self.log_screen()
+        self.logger.info("exec_lua «%s»", expr)
+        return self.nvim.exec_lua(expr)
+
     def count_buffers(self):
         """Determine how many buffers are there."""
         self.eval('len(filter(nvim_list_bufs(), "nvim_buf_is_loaded(v:val)"))')
