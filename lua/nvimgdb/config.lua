@@ -1,3 +1,4 @@
+Keymaps = require 'nvimgdb.keymaps'
 
 local C = {}
 C.__index = C
@@ -14,9 +15,9 @@ local default = {
     ['key_framedown']       = '<c-n>',
     ['key_eval']            = '<f9>',
     ['key_quit']            = nil,
-    ['set_tkeymaps']        = nil, --Keymaps.set_t,
-    ['set_keymaps']         = nil, --Keymaps.set,
-    ['unset_keymaps']       = nil, --Keymaps.unset,
+    ['set_tkeymaps']        = Keymaps.set_t,
+    ['set_keymaps']         = Keymaps.set,
+    ['unset_keymaps']       = Keymaps.unset,
     ['sign_current_line']   = '▶',
     ['sign_breakpoint']     = {'●', '●²', '●³', '●⁴', '●⁵', '●⁶', '●⁷', '●⁸', '●⁹', '●ⁿ'},
     ['sign_breakpoint_priority'] = 10,

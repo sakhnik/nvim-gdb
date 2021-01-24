@@ -1,4 +1,5 @@
-local Config = require'nvimgdb.config'
+local Config = require 'nvimgdb.config'
+local Keymaps = require 'nvimgdb.keymaps'
 
 local instances = {}
 
@@ -9,6 +10,7 @@ C.__index = C
 function C.new()
     local self = setmetatable({}, C)
     self.config = Config.new()
+    self.keymaps = Keymaps.new(self.config)
     instances[vim.api.nvim_get_current_tabpage()] = self
     return self
 end
