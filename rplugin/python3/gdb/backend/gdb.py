@@ -1,5 +1,8 @@
 """GDB specifics."""
 
+from gdb.proxy import Proxy
+from gdb.parser import ParserAdapter
+from gdb.common import Common
 import logging
 import os
 import re
@@ -9,7 +12,7 @@ from gdb.backend import base
 
 
 class _ParserImpl(parser_impl.ParserImpl):
-    def __init__(self, common, handler):
+    def __init__(self, common: Common, handler: ParserAdapter):
         super().__init__(common, handler)
 
         re_prompt = re.compile(r'\x1a\x1a\x1a$')
@@ -29,19 +32,19 @@ class _ParserImpl(parser_impl.ParserImpl):
 
 
 class _BreakpointImpl(base.BaseBreakpoint):
-    def __init__(self, proxy):
+    def __init__(self, proxy: Proxy):
         """ctor."""
         self.proxy = proxy
         self.logger = logging.getLogger("Gdb.Breakpoint")
 
-    def query(self, fname: str):
+    def query(self, fname: str) -> Dict[str, List[str]]:
         self.logger.info("Query breakpoints for %s", fname)
         response = self.proxy.query("handle-command info breakpoints")
         if not response:
             return {}
         return self._parse_response(response, fname)
 
-    def _parse_response(self, response: str, fname_sym: str):
+    def _parse_response(self, response: str, fname_sym: str) -> Dict[str, List[str]]:
         # Select lines in the current file with enabled breakpoints.
         pos_pattern = re.compile(r"([^:]+):(\d+)")
         enb_pattern = re.compile(r"\sy\s+0x")
@@ -79,11 +82,11 @@ class _BreakpointImpl(base.BaseBreakpoint):
 class Gdb(base.BaseBackend):
     """GDB parser and FSM."""
 
-    def create_parser_impl(self, common, handler):
+    def create_parser_impl(self, common: Common, handler: ParserAdapter):
         """Create parser implementation instance."""
         return _ParserImpl(common, handler)
 
-    def create_breakpoint_impl(self, proxy):
+    def create_breakpoint_impl(self, proxy: Proxy):
         """Create breakpoint implementation instance."""
         return _BreakpointImpl(proxy)
 
@@ -93,7 +96,7 @@ class Gdb(base.BaseBackend):
         'info breakpoints': 'info breakpoints',
     }
 
-    def translate_command(self, command):
+    def translate_command(self, command: str) -> str:
         """Adapt command if necessary."""
         return self.command_map.get(command, command)
 
