@@ -15,7 +15,8 @@ end
 
 -- Access the current instance of the debugger.
 function C.i()
-    return instances[vim.api.nvim_get_current_tabpage()]
+    inst = instances[vim.api.nvim_get_current_tabpage()]
+    return inst
 end
 
 -- Cleanup the current instance.

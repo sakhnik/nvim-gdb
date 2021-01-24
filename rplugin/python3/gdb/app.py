@@ -29,13 +29,14 @@ class App(Common):
         self.efmmgr = efmmgr
         self._last_command: Union[str, None] = None
 
-        self.vim.command('lua require("nvimgdb").new()')
-
         # Create new tab for the debugging view and split horizontally
         self.vim.command('tabnew'
                          ' | setlocal nowinfixwidth'
                          ' | setlocal nowinfixheight'
                          ' | silent wincmd o')
+
+        # TODO: read the configuration before creating a new tabpage
+        self.vim.command('lua nvimgdb.new()')
 
         # Get the selected backend module
         backend_maps: Dict[str, Type[base.BaseBackend]] = {
@@ -207,7 +208,7 @@ class App(Common):
                 and self.win.is_jump_window_active():
             # Make sure the cursor stay visible at all times
 
-            scroll_off = self.config.get_or('set_scroll_off', None)
+            scroll_off = self.config.get('set_scroll_off')
             if scroll_off is not None:
                 self.vim.command("if !&scrolloff"
                                  f" | setlocal scrolloff={str(scroll_off)}"

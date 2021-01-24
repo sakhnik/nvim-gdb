@@ -36,6 +36,7 @@ class Gdb(Common):
         # Prepare configuration: keymaps, hooks, parameters etc.
         common = BaseCommon(self.vim, Config(self))
         if not self.apps:
+            self.vim.exec_lua("nvimgdb = require'nvimgdb'")
             self.efmmgr = EfmMgr(common)
         app = App(common, self.efmmgr, *args)
         self.apps[self.vim.current.tabpage.handle] = app

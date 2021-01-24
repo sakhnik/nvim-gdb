@@ -121,8 +121,12 @@ class Config(Common):
 
     def get(self, key: str):
         """Get the configuration value by key."""
-        return self.config[key]
+        if key in {'set_keymaps', 'set_tkeymaps', 'unset_keymaps'}:
+            return self.config[key]
+        return self.vim.exec_lua(f"return nvimgdb.i().config:get('{key}')")
 
     def get_or(self, key: str, val):
         """Get the configuration value by key or return the val if missing."""
-        return self.config.get(key, val)
+        if key in {'set_keymaps', 'set_tkeymaps', 'unset_keymaps'}:
+            return self.config.get(key, val)
+        return self.vim.exec_lua(f"return nvimgdb.i().config:get_or('{key}', '{val}')")
