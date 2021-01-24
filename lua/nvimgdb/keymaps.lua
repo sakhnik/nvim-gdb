@@ -84,17 +84,17 @@ end
 
 function C.dispatch_set(self)
     -- Call the hook to set the keymaps.
-    self._dispatch 'set_keymaps'
+    self:_dispatch 'set_keymaps'
 end
 
 function C.dispatch_unset(self)
     -- Call the hook to unset the keymaps.
-    self._dispatch 'unset_keymaps'
+    self:_dispatch 'unset_keymaps'
 end
 
 function C.dispatch_set_t(self)
     -- Call the hook to set the terminal keymaps.
-    self._dispatch 'set_tkeymaps'
+    self:_dispatch 'set_tkeymaps'
 end
 
 return C

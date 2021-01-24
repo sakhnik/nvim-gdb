@@ -7,7 +7,6 @@ from gdb.common import Common
 from gdb.cursor import Cursor
 from gdb.client import Client
 from gdb.win import Win
-from gdb.keymaps import Keymaps
 from gdb.proxy import Proxy
 from gdb.breakpoint import Breakpoint
 from gdb.parser import ParserAdapter
@@ -60,20 +59,16 @@ class App(Common):
         breakpoint_impl = self.backend.create_breakpoint_impl(self.proxy)
         self.breakpoint = Breakpoint(common, self.proxy, breakpoint_impl)
 
-        # Initialize the keymaps subsystem
-        self.keymaps = Keymaps(common)
-
         # Initialize the windowing subsystem
-        self.win = Win(common, self.cursor, self.client,
-                       self.breakpoint, self.keymaps)
+        self.win = Win(common, self.cursor, self.client, self.breakpoint)
 
         # Initialize the parser
         parser_adapter = ParserAdapter(common, self.cursor, self.win)
         self.parser = self.backend.create_parser_impl(common, parser_adapter)
 
         # Set initial keymaps in the terminal window.
-        self.keymaps.dispatch_set_t()
-        self.keymaps.dispatch_set()
+        self.vim.exec_lua("nvimgdb.i().keymaps:dispatch_set_t()")
+        self.vim.exec_lua("nvimgdb.i().keymaps:dispatch_set()")
 
         # Setup 'errorformat' for the given backend.
         self.efmmgr.setup(self.backend.get_error_formats())
@@ -138,7 +133,7 @@ class App(Common):
         in that window.
         """
         self.vim.command("vnew | set readonly buftype=nowrite")
-        self.keymaps.dispatch_set()
+        self.vim.exec_lua("nvimgdb.i().keymaps:dispatch_set()")
         buf = self.vim.current.buffer
         buf.name = cmd
 
@@ -213,7 +208,7 @@ class App(Common):
                 self.vim.command("if !&scrolloff"
                                  f" | setlocal scrolloff={str(scroll_off)}"
                                  " | endif")
-            self.keymaps.dispatch_set()
+            self.vim.exec_lua("nvimgdb.i().keymaps:dispatch_set()")
             # Ensure breakpoints are shown if are queried dynamically
             self.win.query_breakpoints()
 
@@ -224,7 +219,7 @@ class App(Common):
             self.vim.command("$")
             return
         if self.win.is_jump_window_active():
-            self.keymaps.dispatch_unset()
+            self.vim.exec_lua("nvimgdb.i().keymaps:dispatch_unset()")
 
     def lopen(self, kind, mods):
         """Load backtrace or breakpoints into the location list."""

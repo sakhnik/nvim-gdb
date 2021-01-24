@@ -10,6 +10,7 @@ C.__index = C
 function C.new()
     local self = setmetatable({}, C)
     self.config = Config.new()
+    -- Initialize the keymaps subsystem
     self.keymaps = Keymaps.new(self.config)
     instances[vim.api.nvim_get_current_tabpage()] = self
     return self

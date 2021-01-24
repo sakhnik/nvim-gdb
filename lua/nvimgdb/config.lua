@@ -34,7 +34,7 @@ local function filter_funcref(key, val)
         return val
     end
     -- Finally, turn the value into a Vim function call.
-    return function() vim.call(val) end
+    return function(_) vim.call(val) end
 end
 
 local function copy_user_config()

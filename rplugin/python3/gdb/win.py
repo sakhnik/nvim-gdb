@@ -6,14 +6,13 @@ from gdb.common import Common
 from gdb.cursor import Cursor
 from gdb.client import Client
 from gdb.breakpoint import Breakpoint
-from gdb.keymaps import Keymaps
 
 
 class Win(Common):
     """Jump window management."""
 
     def __init__(self, common: Common, cursor: Cursor, client: Client,
-                 break_point: Breakpoint, keymaps: Keymaps):
+                 break_point: Breakpoint):
         """ctor."""
         super().__init__(common)
         # window number that will be displaying the current file
@@ -21,7 +20,6 @@ class Win(Common):
         self.cursor = cursor
         self.client = client
         self.breakpoint = break_point
-        self.keymaps = keymaps
         self.buffers = set()
 
         # Create the default jump window
@@ -50,12 +48,12 @@ class Win(Common):
         # We're going to jump to another window and return.
         # There may be no need to change keymaps forth and back.
         if not dispatch_keymaps:
-            self.keymaps.set_dispatch_active(False)
+            self.vim.exec_lua("nvimgdb.i().keymaps:set_dispatch_active(false)")
         prev_win = self.vim.current.window
         yield
         self.vim.current.window = prev_win
         if not dispatch_keymaps:
-            self.keymaps.set_dispatch_active(True)
+            self.vim.exec_lua("nvimgdb.i().keymaps:set_dispatch_active(true)")
 
     @contextmanager
     def _saved_mode(self):
