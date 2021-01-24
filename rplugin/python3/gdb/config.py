@@ -53,8 +53,6 @@ class Config(Common):
         # Remove undefined keys
         self.config = {key: val for key, val in self.config.items() if val}
 
-        self._define_signs()
-
     def _filter_funcref(self, def_conf: Dict[str, Any], key: str, val):
         """Turn a string into a funcref looking up a Vim function."""
         # Lookup the key in the default config.
@@ -120,15 +118,6 @@ class Config(Common):
                 del self.key_to_func[self.config[func]]
                 self.config[prev_func] = None
             self.key_to_func[key] = func
-
-    def _define_signs(self):
-        # Define the sign for current line the debugged program is executing.
-        self.vim.call('sign_define', 'GdbCurrentLine',
-                      {'text': self.config["sign_current_line"]})
-        # Define signs for the breakpoints.
-        breaks = self.config["sign_breakpoint"]
-        for i, brk in enumerate(breaks):
-            self.vim.call('sign_define', f'GdbBreakpoint{i+1}', {'text': brk})
 
     def get(self, key: str):
         """Get the configuration value by key."""

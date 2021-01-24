@@ -1,3 +1,5 @@
+local Config = require'nvimgdb.config'
+
 local instances = {}
 
 local C = {}
@@ -6,6 +8,7 @@ C.__index = C
 -- Create a new instance of the debugger in the current tabpage.
 function C.new()
     local self = setmetatable({}, C)
+    self.config = Config.new()
     instances[vim.api.nvim_get_current_tabpage()] = self
     return self
 end
