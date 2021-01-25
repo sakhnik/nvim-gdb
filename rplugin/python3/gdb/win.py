@@ -3,7 +3,6 @@
 from contextlib import contextmanager
 import pynvim
 from gdb.common import Common
-from gdb.cursor import Cursor
 from gdb.client import Client
 from gdb.breakpoint import Breakpoint
 
@@ -11,13 +10,12 @@ from gdb.breakpoint import Breakpoint
 class Win(Common):
     """Jump window management."""
 
-    def __init__(self, common: Common, cursor: Cursor, client: Client,
+    def __init__(self, common: Common, client: Client,
                  break_point: Breakpoint):
         """ctor."""
         super().__init__(common)
         # window number that will be displaying the current file
         self.jump_win = None
-        self.cursor = cursor
         self.client = client
         self.breakpoint = break_point
         self.buffers = set()
@@ -96,13 +94,13 @@ class Win(Common):
                 if self.jump_win != self.vim.current.window:
                     self.vim.current.window = self.jump_win
                 # Hide the current line sign when navigating away.
-                self.cursor.hide()
+                self.vim.exec_lua("nvimgdb.i().cursor:hide()")
                 target_buf = self._open_file(f"noswap e {file}")
 
         # Goto the proper line and set the cursor on it
         self.jump_win.cursor = (line, 0)
-        self.cursor.set(target_buf, line)
-        self.cursor.show()
+        self.vim.exec_lua(f"nvimgdb.i().cursor:set({target_buf}, {line})")
+        self.vim.exec_lua(f"nvimgdb.i().cursor:show()")
         self.vim.command("redraw")
 
     def _open_file(self, cmd):

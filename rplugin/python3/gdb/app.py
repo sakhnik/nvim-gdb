@@ -4,7 +4,6 @@ import re
 from typing import Union, Dict, Type
 
 from gdb.common import Common
-from gdb.cursor import Cursor
 from gdb.client import Client
 from gdb.win import Win
 from gdb.proxy import Proxy
@@ -46,9 +45,6 @@ class App(Common):
         }
         self.backend = backend_maps[backendStr]()
 
-        # Initialize current line tracking
-        self.cursor = Cursor(common)
-
         # Go to the other window and spawn gdb client
         self.client = Client(common, proxyCmd, clientCmd)
 
@@ -60,10 +56,10 @@ class App(Common):
         self.breakpoint = Breakpoint(common, self.proxy, breakpoint_impl)
 
         # Initialize the windowing subsystem
-        self.win = Win(common, self.cursor, self.client, self.breakpoint)
+        self.win = Win(common, self.client, self.breakpoint)
 
         # Initialize the parser
-        parser_adapter = ParserAdapter(common, self.cursor, self.win)
+        parser_adapter = ParserAdapter(common, self.win)
         self.parser = self.backend.create_parser_impl(common, parser_adapter)
 
         # Set initial keymaps in the terminal window.
@@ -91,9 +87,6 @@ class App(Common):
         # Clean up the breakpoint signs
         self.breakpoint.reset_signs()
 
-        # Clean up the current line sign
-        self.cursor.hide()
-
         # Clean up the windows and buffers
         self.win.cleanup()
 
@@ -103,7 +96,7 @@ class App(Common):
         # Close the debugger backend
         self.client.cleanup()
 
-        self.vim.command("lua require('nvimgdb').cleanup()")
+        self.vim.command(f"lua require('nvimgdb').cleanup({tab})")
 
         # Close the windows and the tab
         for tabpage in self.vim.tabpages:
@@ -186,14 +179,14 @@ class App(Common):
         """Actions to execute when a tabpage is entered."""
         # Restore the signs as they may have been spoiled
         if self.parser.is_paused():
-            self.cursor.show()
+            self.vim.exec_lua("nvimgdb.i().cursor:show()")
         # Ensure breakpoints are shown if are queried dynamically
         self.win.query_breakpoints()
 
     def on_tab_leave(self):
         """Actions to execute when a tabpage is left."""
         # Hide the signs
-        self.cursor.hide()
+        self.vim.exec_lua("nvimgdb.i().cursor:hide()")
         self.breakpoint.clear_signs()
 
     def on_buf_enter(self):

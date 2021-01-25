@@ -7,15 +7,14 @@ from gdb.backend.base import ParserHandler
 class ParserAdapter(Common, ParserHandler):
     """Common FSM implementation for the integrated backends."""
 
-    def __init__(self, common, cursor, win):
+    def __init__(self, common, win):
         """ctor."""
         Common.__init__(self, common)
-        self.cursor = cursor
         self.win = win
 
     def continue_program(self):
         """Handle the program continued execution. Hide the cursor."""
-        self.cursor.hide()
+        self.vim.exec_lua("nvimgdb.i().cursor:hide()")
         self.vim.command("doautocmd User NvimGdbContinue")
 
     def jump_to_source(self, fname: str, line: int):
