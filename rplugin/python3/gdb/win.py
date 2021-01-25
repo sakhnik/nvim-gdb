@@ -1,6 +1,7 @@
 """."""
 
 from contextlib import contextmanager
+from typing import Optional
 import pynvim
 from gdb.common import Common
 from gdb.client import Client
@@ -15,7 +16,7 @@ class Win(Common):
         """ctor."""
         super().__init__(common)
         # window number that will be displaying the current file
-        self.jump_win = None
+        self.jump_win: Optional[int] = None
         self.client = client
         self.breakpoint = break_point
         self.buffers = set()
@@ -31,11 +32,11 @@ class Win(Common):
             except pynvim.api.common.NvimError as ex:
                 self.logger.warning("Skip cleaning up the buffer: %s", ex)
 
-    def _has_jump_win(self):
+    def _has_jump_win(self) -> bool:
         """Check whether the jump window is displayed."""
         return self.jump_win in self.vim.current.tabpage.windows
 
-    def is_jump_window_active(self):
+    def is_jump_window_active(self) -> bool:
         """Check whether the current buffer is displayed in the jump window."""
         if not self._has_jump_win():
             return False

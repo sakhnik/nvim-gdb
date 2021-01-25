@@ -1,5 +1,8 @@
 """PDB specifics."""
 
+from gdb.common import Common
+from gdb.parser import ParserAdapter
+from gdb.proxy import Proxy
 import re
 import logging
 from typing import Dict, List
@@ -8,7 +11,7 @@ from gdb.backend import base
 
 
 class _ParserImpl(parser_impl.ParserImpl):
-    def __init__(self, common, handler):
+    def __init__(self, common: Common, handler: ParserAdapter):
         super().__init__(common, handler)
 
         re_jump = re.compile(r'[\r\n ]> ([^(]+)\((\d+)\)[^(]+\(\)')
@@ -32,7 +35,7 @@ class _ParserImpl(parser_impl.ParserImpl):
 
 
 class _BreakpointImpl(base.BaseBreakpoint):
-    def __init__(self, proxy):
+    def __init__(self, proxy: Proxy):
         """ctor."""
         self.proxy = proxy
         self.logger = logging.getLogger("Pdb.Breakpoint")
@@ -70,11 +73,11 @@ class _BreakpointImpl(base.BaseBreakpoint):
 class Pdb(base.BaseBackend):
     """PDB parser and FSM."""
 
-    def create_parser_impl(self, common, handler):
+    def create_parser_impl(self, common: Common, handler: ParserAdapter):
         """Create parser implementation instance."""
         return _ParserImpl(common, handler)
 
-    def create_breakpoint_impl(self, proxy):
+    def create_breakpoint_impl(self, proxy: Proxy):
         """Create breakpoint implementation instance."""
         return _BreakpointImpl(proxy)
 

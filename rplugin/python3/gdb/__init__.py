@@ -26,7 +26,7 @@ class Gdb(Common):
         self.ansi_escaper = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
         self.efmmgr = None
 
-    def _get_app(self):
+    def _get_app(self) -> int:
         return self.apps.get(self.vim.current.tabpage.handle, None)
 
     @pynvim.function('GdbInit', sync=True)
