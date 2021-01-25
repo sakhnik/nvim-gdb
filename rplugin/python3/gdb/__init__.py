@@ -10,7 +10,6 @@ import pynvim   # type: ignore
 from gdb.common import BaseCommon, Common
 from gdb.app import App
 from gdb.logger import LOGGING_CONFIG
-from gdb.efmmgr import EfmMgr
 
 
 @pynvim.plugin
@@ -24,7 +23,6 @@ class Gdb(Common):
         super().__init__(common)
         self.apps: Dict[int, App] = {}
         self.ansi_escaper = re.compile(r'\x1B[@-_][0-?]*[ -/]*[@-~]')
-        self.efmmgr = None
 
     def _get_app(self) -> int:
         return self.apps.get(self.vim.current.tabpage.handle, None)
@@ -36,8 +34,7 @@ class Gdb(Common):
         common = BaseCommon(self.vim)
         if not self.apps:
             self.vim.exec_lua("nvimgdb = require'nvimgdb'")
-            self.efmmgr = EfmMgr(common)
-        app = App(common, self.efmmgr, *args)
+        app = App(common, *args)
         self.apps[self.vim.current.tabpage.handle] = app
         app.start()
         if len(self.apps) == 1:
@@ -68,8 +65,6 @@ class Gdb(Common):
                     if len(self.apps) == 0:
                         # Cleanup commands, autocommands etc
                         self.vim.call("nvimgdb#GlobalCleanup")
-                        self.efmmgr.cleanup()
-                        self.efmmgr = None
                     app.cleanup(tab)
                 # TabEnter isn't fired automatically when a tab is closed
                 self.gdb_handle_event(["on_tab_enter"])

@@ -20,11 +20,10 @@ from gdb.backend.bashdb import BashDB
 class App(Common):
     """Main application class."""
 
-    def __init__(self, common, efmmgr, backendStr: str, proxyCmd: str,
+    def __init__(self, common, backendStr: str, proxyCmd: str,
                  clientCmd: str):
         """ctor."""
         super().__init__(common)
-        self.efmmgr = efmmgr
         self._last_command: Union[str, None] = None
 
         # Create new tab for the debugging view and split horizontally
@@ -67,7 +66,7 @@ class App(Common):
         self.vim.exec_lua("nvimgdb.i().keymaps:dispatch_set()")
 
         # Setup 'errorformat' for the given backend.
-        self.efmmgr.setup(self.backend.get_error_formats())
+        self.vim.lua.nvimgdb.efmmgr.setup(self.backend.get_error_formats())
 
         # Start insert mode in the GDB window
         self.vim.feedkeys("i")
@@ -82,7 +81,7 @@ class App(Common):
         self.vim.command("doautocmd User NvimGdbCleanup")
 
         # Remove from 'errorformat' for the given backend.
-        self.efmmgr.teardown(self.backend.get_error_formats())
+        self.vim.lua.nvimgdb.efmmgr.teardown(self.backend.get_error_formats())
 
         # Clean up the breakpoint signs
         self.breakpoint.reset_signs()

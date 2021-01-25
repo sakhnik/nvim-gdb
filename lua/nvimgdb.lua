@@ -1,4 +1,4 @@
--- vim:sw=2 ts=2 et
+-- vim: set sw=2 ts=2 et:
 
 local log = require 'nvimgdb.log'
 local Config = require 'nvimgdb.config'
@@ -8,6 +8,7 @@ local Cursor = require 'nvimgdb.cursor'
 local instances = {}
 
 local C = {}
+C.efmmgr = require 'nvimgdb.efmmgr'
 C.__index = C
 
 -- Create a new instance of the debugger in the current tabpage.
@@ -55,6 +56,9 @@ function C.cleanup(tab)
   self.cursor:hide()
 
   instances[tab] = nil
+  if #instances == 0 then
+    C.efmmgr.cleanup()
+  end
 end
 
 return C
