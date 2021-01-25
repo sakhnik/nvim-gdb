@@ -12,15 +12,19 @@ C.efmmgr = require 'nvimgdb.efmmgr'
 C.__index = C
 
 -- Create a new instance of the debugger in the current tabpage.
-function C.new()
+function C.new(backend_name)
   local tab = vim.api.nvim_get_current_tabpage()
-  log.info("New session " .. tab)
+  log.info("New session " .. backend_name .. " -> " .. tab)
   local self = setmetatable({}, C)
   self.config = Config.new()
+  -- Get the selected backend module
+  self.backend = require "nvimgdb.backend".choose(backend_name)
   -- Initialize the keymaps subsystem
   self.keymaps = Keymaps.new(self.config)
   -- Initialize current line tracking
   self.cursor = Cursor.new(self.config)
+  -- Setup 'errorformat' for the given backend.
+  C.efmmgr.setup(self.backend.get_error_formats())
   instances[tab] = self
   return self
 end
@@ -51,6 +55,9 @@ end
 function C.cleanup(tab)
   log.info("Cleanup session " .. tab)
   self = instances[tab]
+
+  -- Remove from 'errorformat' for the given backend.
+  C.efmmgr.teardown(self.backend.get_error_formats())
 
   -- Clean up the current line sign
   self.cursor:hide()

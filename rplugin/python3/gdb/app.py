@@ -33,7 +33,7 @@ class App(Common):
                          ' | silent wincmd o')
 
         # TODO: read the configuration before creating a new tabpage
-        self.vim.command('lua nvimgdb.new()')
+        self.vim.exec_lua(f"nvimgdb.new('{backendStr}')")
 
         # Get the selected backend module
         backend_maps: Dict[str, Type[base.BaseBackend]] = {
@@ -65,9 +65,6 @@ class App(Common):
         self.vim.exec_lua("nvimgdb.i().keymaps:dispatch_set_t()")
         self.vim.exec_lua("nvimgdb.i().keymaps:dispatch_set()")
 
-        # Setup 'errorformat' for the given backend.
-        self.vim.lua.nvimgdb.efmmgr.setup(self.backend.get_error_formats())
-
         # Start insert mode in the GDB window
         self.vim.feedkeys("i")
 
@@ -79,9 +76,6 @@ class App(Common):
     def cleanup(self, tab):
         """Finish up the debugging session."""
         self.vim.command("doautocmd User NvimGdbCleanup")
-
-        # Remove from 'errorformat' for the given backend.
-        self.vim.lua.nvimgdb.efmmgr.teardown(self.backend.get_error_formats())
 
         # Clean up the breakpoint signs
         self.breakpoint.reset_signs()
