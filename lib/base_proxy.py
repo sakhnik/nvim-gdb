@@ -34,7 +34,7 @@ class BaseProxy:
         parser.add_argument('cmd', metavar='ARGS', nargs='+',
                             help='%s command with arguments' % app_name)
         parser.add_argument('-a', '--address', metavar='ADDR',
-                            help='Local socket to receive commands.')
+                            help='A file to dump the side channel UDP port.')
         args = parser.parse_args()
 
         self.server_address: str = args.address
@@ -51,9 +51,12 @@ class BaseProxy:
         self.sock: Union[socket.socket, None] = None
         if self.server_address:
             # Create a UDS socket
-            self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-            self.sock.bind(self.server_address)
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.sock.bind(('127.0.0.1', 0))
             self.sock.settimeout(0.5)
+            _, port = self.sock.getsockname()
+            with open(self.server_address, 'w') as f:
+                f.write(f"{port}")
 
         # Create the filter
         self.filter = [(stream_filter.Filter(), lambda _: None)]
@@ -93,7 +96,6 @@ class BaseProxy:
             signal.signal(signal.SIGWINCH, old_handler)
 
             if self.server_address:
-                # Make sure the socket does not already exist
                 try:
                     os.unlink(self.server_address)
                 except OSError:

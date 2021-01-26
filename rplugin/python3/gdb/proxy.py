@@ -13,10 +13,10 @@ class Proxy(Common):
         """ctor."""
         super().__init__(common)
         self.proxy_addr = client.get_proxy_addr()
-        self.sock_addr = os.path.join(client.get_sock_dir(), "client")
+        self.server_addr = os.path.join(client.get_sock_dir(), "server")
 
-        self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-        self.sock.bind(self.sock_addr)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sock.bind(('127.0.0.1', 0))
         self.sock.settimeout(0.5)
         # Will connect to the socket later, when the first query is needed
         # to be issued.
@@ -26,15 +26,14 @@ class Proxy(Common):
         """destructor."""
         if self.sock:
             self.sock.close()
-        try:
-            os.remove(self.sock_addr)
-        except FileNotFoundError:
-            pass
 
     def _ensure_connected(self) -> bool:
         if not self.connected:
             try:
-                self.sock.connect(self.proxy_addr)
+                server_port = None
+                with open(self.server_addr, "r") as f:
+                    server_port = int(f.readline())
+                self.sock.connect(('127.0.0.1', server_port))
                 self.connected = True
             except OSError as msg:
                 self.vim.command("echo 'Breakpoint: not connected"

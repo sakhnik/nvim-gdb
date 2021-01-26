@@ -62,8 +62,11 @@ def _get_all_breaks(debugger: lldb.SBDebugger):
 
 
 def _server(server_address: str, debugger_id: int):
-    sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-    sock.bind(server_address)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.bind(('127.0.0.1', 0))
+    _, port = sock.getsockname()
+    with open(server_address, 'w') as f:
+        f.write(f"{port}")
 
     debugger = lldb.SBDebugger_FindDebuggerWithID(debugger_id)
 
