@@ -1,12 +1,8 @@
 -- vim: set sw=2 ts=2 et:
 
 local log = require 'nvimgdb.log'
-local Config = require 'nvimgdb.config'
-local Keymaps = require 'nvimgdb.keymaps'
-local Cursor = require 'nvimgdb.cursor'
-local Client = require 'nvimgdb.client'
 
-local instances = {}
+local apps = {}
 
 local C = {}
 C.efmmgr = require 'nvimgdb.efmmgr'
@@ -16,27 +12,9 @@ C.__index = C
 function C.new(backend_name, proxy_cmd, client_cmd)
   local tab = vim.api.nvim_get_current_tabpage()
   log.info("New session " .. backend_name .. " -> " .. tab)
-  local self = setmetatable({}, C)
-
-  self.config = Config.new()
-
-  -- Get the selected backend module
-  self.backend = require "nvimgdb.backend".choose(backend_name)
-
-  -- Go to the other window and spawn gdb client
-  self.client = Client.new(proxy_cmd, client_cmd)
-
-  -- Initialize the keymaps subsystem
-  self.keymaps = Keymaps.new(self.config)
-
-  -- Initialize current line tracking
-  self.cursor = Cursor.new(self.config)
-
-  -- Setup 'errorformat' for the given backend.
-  C.efmmgr.setup(self.backend.get_error_formats())
-
-  instances[tab] = self
-  return self
+  local app = require'nvimgdb.app'.new(backend_name, proxy_cmd, client_cmd)
+  apps[tab] = app
+  return app
 end
 
 Trap = {}
@@ -54,7 +32,7 @@ end
 -- Access the current instance of the debugger.
 function C.i()
   local tab = vim.api.nvim_get_current_tabpage()
-  local inst = instances[tab]
+  local inst = apps[tab]
   if inst == nil then
     return Trap.new("tabpage " .. tab)
   end
@@ -64,19 +42,12 @@ end
 -- Cleanup the current instance.
 function C.cleanup(tab)
   log.info("Cleanup session " .. tab)
-  self = instances[tab]
+  app = apps[tab]
 
-  -- Remove from 'errorformat' for the given backend.
-  C.efmmgr.teardown(self.backend.get_error_formats())
+  app:cleanup()
 
-  -- Clean up the current line sign
-  self.cursor:hide()
-
-  -- Close the debugger backend
-  self.client:cleanup()
-
-  instances[tab] = nil
-  if #instances == 0 then
+  apps[tab] = nil
+  if #apps == 0 then
     C.efmmgr.cleanup()
   end
 end
