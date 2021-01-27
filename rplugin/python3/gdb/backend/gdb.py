@@ -1,6 +1,5 @@
 """GDB specifics."""
 
-from gdb.proxy import Proxy
 from gdb.parser import ParserAdapter
 from gdb.common import Common
 import logging
@@ -32,14 +31,14 @@ class _ParserImpl(parser_impl.ParserImpl):
 
 
 class _BreakpointImpl(base.BaseBreakpoint):
-    def __init__(self, proxy: Proxy):
+    def __init__(self, vim):
         """ctor."""
-        self.proxy = proxy
+        self.vim = vim
         self.logger = logging.getLogger("Gdb.Breakpoint")
 
     def query(self, fname: str) -> Dict[str, List[str]]:
         self.logger.info("Query breakpoints for %s", fname)
-        response = self.proxy.query("handle-command info breakpoints")
+        response = self.vim.exec_lua("return nvimgdb.i().proxy:query('handle-command info breakpoints')")
         if not response:
             return {}
         return self._parse_response(response, fname)
@@ -86,9 +85,9 @@ class Gdb(base.BaseBackend):
         """Create parser implementation instance."""
         return _ParserImpl(common, handler)
 
-    def create_breakpoint_impl(self, proxy: Proxy):
+    def create_breakpoint_impl(self, vim):
         """Create breakpoint implementation instance."""
-        return _BreakpointImpl(proxy)
+        return _BreakpointImpl(vim)
 
     command_map = {
         'delete_breakpoints': 'delete',

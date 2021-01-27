@@ -41,13 +41,13 @@ class _ParserImpl(parser_impl.ParserImpl):
 
 
 class _BreakpointImpl(base.BaseBreakpoint):
-    def __init__(self, proxy):
-        self.proxy = proxy
+    def __init__(self, vim):
+        self.vim = vim
         self.logger = logging.getLogger("BashDB.Breakpoint")
 
     def query(self, fname: str):
         self.logger.info("Query breakpoints for %s", fname)
-        response = self.proxy.query("handle-command info breakpoints")
+        response = self.vim.exec_lua("return nvimgdb.i().proxy:query('handle-command info breakpoints')")
         if not response:
             return {}
 
@@ -83,9 +83,9 @@ class BashDB(base.BaseBackend):
         """Create parser implementation instance."""
         return _ParserImpl(common, handler)
 
-    def create_breakpoint_impl(self, proxy):
+    def create_breakpoint_impl(self, vim):
         """Create breakpoint impl instance."""
-        return _BreakpointImpl(proxy)
+        return _BreakpointImpl(vim)
 
     command_map = {
         'delete_breakpoints': 'delete',

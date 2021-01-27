@@ -5,7 +5,6 @@ from typing import Union, Dict, Type
 
 from gdb.common import Common
 from gdb.win import Win
-from gdb.proxy import Proxy
 from gdb.breakpoint import Breakpoint
 from gdb.parser import ParserAdapter
 
@@ -43,12 +42,9 @@ class App(Common):
         }
         self.backend = backend_maps[backendStr]()
 
-        # Initialize connection to the side channel
-        self.proxy = Proxy(common)
-
         # Initialize breakpoint tracking
-        breakpoint_impl = self.backend.create_breakpoint_impl(self.proxy)
-        self.breakpoint = Breakpoint(common, self.proxy, breakpoint_impl)
+        breakpoint_impl = self.backend.create_breakpoint_impl(self.vim)
+        self.breakpoint = Breakpoint(common, breakpoint_impl)
 
         # Initialize the windowing subsystem
         self.win = Win(common, self.breakpoint)
@@ -79,9 +75,6 @@ class App(Common):
         # Clean up the windows and buffers
         self.win.cleanup()
 
-        # Close connection to the side channel
-        self.proxy.cleanup()
-
         self.vim.exec_lua(f"nvimgdb.cleanup({tab})")
 
         # Close the windows and the tab
@@ -103,7 +96,7 @@ class App(Common):
 
     def custom_command(self, cmd):
         """Execute a custom debugger command and return its output."""
-        return self.proxy.query("handle-command " + cmd)
+        return self.vim.exec_lua(f"return nvimgdb.i().proxy:query('handle-command {cmd}')")
 
     def create_watch(self, cmd):
         """Create a window to watch for a debugger expression.

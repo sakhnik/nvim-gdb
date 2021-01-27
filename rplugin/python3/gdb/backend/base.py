@@ -55,7 +55,7 @@ class BaseBackend(abc.ABC):
         """Create a Parser implementation instance."""
 
     @abc.abstractmethod
-    def create_breakpoint_impl(self, proxy) -> BaseBreakpoint:
+    def create_breakpoint_impl(self, vim) -> BaseBreakpoint:
         """Create a BaseBreakpoint implementation instance."""
 
     @abc.abstractmethod

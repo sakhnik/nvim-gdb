@@ -5,7 +5,6 @@ import logging
 import re
 from gdb.backend import parser_impl
 from gdb.backend import base
-from gdb.proxy import Proxy
 from typing import Optional, List, Any
 
 
@@ -30,13 +29,13 @@ class _ParserImpl(parser_impl.ParserImpl):
 
 
 class _BreakpointImpl(base.BaseBreakpoint):
-    def __init__(self, proxy: Proxy):
-        self.proxy = proxy
+    def __init__(self, vim):
+        self.vim = vim
         self.logger = logging.getLogger("Lldb.Breakpoint")
 
     def query(self, fname: str):
         self.logger.info("Query breakpoints for %s", fname)
-        resp = self.proxy.query(f"info-breakpoints {fname}\n")
+        resp = self.vim.exec_lua(f"return nvimgdb.i().proxy:query('info-breakpoints {fname}')")
         if not resp:
             return {}
         # LLDB may mess the input (like space + back space).
@@ -61,9 +60,9 @@ class Lldb(base.BaseBackend):
         """Create parser implementation instance."""
         return _ParserImpl(common, handler)
 
-    def create_breakpoint_impl(self, proxy: Proxy) -> base.BaseBreakpoint:
+    def create_breakpoint_impl(self, vim) -> base.BaseBreakpoint:
         """Create breakpoint implementation instance."""
-        return _BreakpointImpl(proxy)
+        return _BreakpointImpl(vim)
 
     command_map = {
         'delete_breakpoints': 'breakpoint delete',

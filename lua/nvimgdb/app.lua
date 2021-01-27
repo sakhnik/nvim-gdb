@@ -16,6 +16,9 @@ function C.new(backend_name, proxy_cmd, client_cmd)
   -- Go to the other window and spawn gdb client
   self.client = require'nvimgdb.client'.new(proxy_cmd, client_cmd)
 
+  -- Initialize connection to the side channel
+  self.proxy = require'nvimgdb.proxy'.new(self.client)
+
   -- Initialize the keymaps subsystem
   self.keymaps = require'nvimgdb.keymaps'.new(self.config)
 
@@ -35,6 +38,9 @@ function C:cleanup()
 
   -- Clean up the current line sign
   self.cursor:hide()
+
+  -- Close connection to the side channel
+  self.proxy:cleanup()
 
   -- Close the debugger backend
   self.client:cleanup()

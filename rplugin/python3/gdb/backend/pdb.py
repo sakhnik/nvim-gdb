@@ -2,7 +2,6 @@
 
 from gdb.common import Common
 from gdb.parser import ParserAdapter
-from gdb.proxy import Proxy
 import re
 import logging
 from typing import Dict, List
@@ -35,16 +34,16 @@ class _ParserImpl(parser_impl.ParserImpl):
 
 
 class _BreakpointImpl(base.BaseBreakpoint):
-    def __init__(self, proxy: Proxy):
+    def __init__(self, vim):
         """ctor."""
-        self.proxy = proxy
+        self.vim = vim
         self.logger = logging.getLogger("Pdb.Breakpoint")
 
     def query(self, fname: str):
         """Query actual breakpoints for the given file."""
         self.logger.info("Query breakpoints for %s", fname)
 
-        response = self.proxy.query("handle-command break")
+        response = self.vim.exec_lua("return nvimgdb.i().proxy:query('handle-command break')")
 
         # Num Type         Disp Enb   Where
         # 1   breakpoint   keep yes   at /tmp/nvim-gdb/test/main.py:8
@@ -77,9 +76,9 @@ class Pdb(base.BaseBackend):
         """Create parser implementation instance."""
         return _ParserImpl(common, handler)
 
-    def create_breakpoint_impl(self, proxy: Proxy):
+    def create_breakpoint_impl(self, vim):
         """Create breakpoint implementation instance."""
-        return _BreakpointImpl(proxy)
+        return _BreakpointImpl(vim)
 
     command_map = {
         'delete_breakpoints': 'clear',
