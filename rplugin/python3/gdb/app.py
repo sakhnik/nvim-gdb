@@ -4,7 +4,6 @@ import re
 from typing import Union, Dict, Type
 
 from gdb.common import Common
-from gdb.client import Client
 from gdb.win import Win
 from gdb.proxy import Proxy
 from gdb.breakpoint import Breakpoint
@@ -33,7 +32,7 @@ class App(Common):
                          ' | silent wincmd o')
 
         # TODO: read the configuration before creating a new tabpage
-        self.vim.exec_lua(f"nvimgdb.new('{backendStr}')")
+        self.vim.exec_lua(f"nvimgdb.new('{backendStr}', '{proxyCmd}', '{clientCmd}')")
 
         # Get the selected backend module
         backend_maps: Dict[str, Type[base.BaseBackend]] = {
@@ -44,18 +43,15 @@ class App(Common):
         }
         self.backend = backend_maps[backendStr]()
 
-        # Go to the other window and spawn gdb client
-        self.client = Client(common, proxyCmd, clientCmd)
-
         # Initialize connection to the side channel
-        self.proxy = Proxy(common, self.client)
+        self.proxy = Proxy(common)
 
         # Initialize breakpoint tracking
         breakpoint_impl = self.backend.create_breakpoint_impl(self.proxy)
         self.breakpoint = Breakpoint(common, self.proxy, breakpoint_impl)
 
         # Initialize the windowing subsystem
-        self.win = Win(common, self.client, self.breakpoint)
+        self.win = Win(common, self.breakpoint)
 
         # Initialize the parser
         parser_adapter = ParserAdapter(common, self.win)
@@ -70,7 +66,7 @@ class App(Common):
 
     def start(self):
         """Spawn the debugger, the parser should be ready by now."""
-        self.client.start()
+        self.vim.exec_lua("nvimgdb.i().client:start()")
         self.vim.command("doautocmd User NvimGdbStart")
 
     def cleanup(self, tab):
@@ -86,10 +82,7 @@ class App(Common):
         # Close connection to the side channel
         self.proxy.cleanup()
 
-        # Close the debugger backend
-        self.client.cleanup()
-
-        self.vim.command(f"lua require('nvimgdb').cleanup({tab})")
+        self.vim.exec_lua(f"nvimgdb.cleanup({tab})")
 
         # Close the windows and the tab
         for tabpage in self.vim.tabpages:
@@ -103,10 +96,10 @@ class App(Common):
         """Send a command to the debugger."""
         if args:
             command = self._get_command(args[0]).format(*args[1:])
-            self.client.send_line(command)
+            self.vim.exec_lua(f"nvimgdb.i().client:send_line('{command}')")
             self._last_command = command  # Remember the command for testing
         else:
-            self.client.interrupt()
+            self.vim.exec_lua("nvimgdb.i().client:interrupt()")
 
     def custom_command(self, cmd):
         """Execute a custom debugger command and return its output."""
@@ -146,7 +139,7 @@ class App(Common):
         """Toggle breakpoint in the cursor line."""
         if self.parser.is_running():
             # pause first
-            self.client.interrupt()
+            self.vim.exec_lua("nvimgdb.i().client:interrupt()")
         buf = self.vim.current.buffer
         file_name = self.vim.call("expand", '#%d:p' % buf.handle)
         line_nr = self.vim.call("line", ".")
@@ -155,16 +148,16 @@ class App(Common):
         if breaks:
             # There already is a breakpoint on this line: remove
             del_br = self._get_command('delete_breakpoints')
-            self.client.send_line(f"{del_br} {breaks[-1]}")
+            self.vim.exec_lua(f"nvimgdb.i().client:send_line('{del_br} {breaks[-1]}')")
         else:
             set_br = self._get_command('breakpoint')
-            self.client.send_line(f"{set_br} {file_name}:{line_nr}")
+            self.vim.exec_lua(f"nvimgdb.i().client:send_line('{set_br} {file_name}:{line_nr}')")
 
     def breakpoint_clear_all(self):
         """Clear all breakpoints."""
         if self.parser.is_running():
             # pause first
-            self.client.interrupt()
+            self.vim.exec_lua("nvimgdb.i().client:interrupt()")
         # The breakpoint signs will be requeried later automatically
         self.send('delete_breakpoints')
 

@@ -4,20 +4,17 @@ from contextlib import contextmanager
 from typing import Optional
 import pynvim
 from gdb.common import Common
-from gdb.client import Client
 from gdb.breakpoint import Breakpoint
 
 
 class Win(Common):
     """Jump window management."""
 
-    def __init__(self, common: Common, client: Client,
-                 break_point: Breakpoint):
+    def __init__(self, common: Common, break_point: Breakpoint):
         """ctor."""
         super().__init__(common)
         # window number that will be displaying the current file
         self.jump_win: Optional[int] = None
-        self.client = client
         self.breakpoint = break_point
         self.buffers = set()
 
@@ -85,7 +82,7 @@ class Win(Common):
 
         # The terminal buffer may contain the name of the source file
         # (in pdb, for instance).
-        if target_buf == self.client.get_buf().handle:
+        if target_buf == self.vim.exec_lua("return nvimgdb.i().client:get_buf()"):
             with self._saved_win(True):
                 self.vim.current.window = self.jump_win
                 target_buf = self._open_file("noswapfile view " + file)

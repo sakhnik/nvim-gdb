@@ -3,17 +3,15 @@
 import os
 import socket
 from gdb.common import Common
-from gdb.client import Client
 
 
 class Proxy(Common):
     """Proxy to the side channel."""
 
-    def __init__(self, common: Common, client: Client):
+    def __init__(self, common: Common):
         """ctor."""
         super().__init__(common)
-        self.proxy_addr = client.get_proxy_addr()
-        self.server_addr = os.path.join(client.get_sock_dir(), "server")
+        self.proxy_addr = self.vim.exec_lua("return nvimgdb.i().client:get_proxy_addr()")
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.bind(('127.0.0.1', 0))
@@ -31,7 +29,7 @@ class Proxy(Common):
         if not self.connected:
             try:
                 server_port = None
-                with open(self.server_addr, "r") as f:
+                with open(self.proxy_addr, "r") as f:
                     server_port = int(f.readline())
                 self.sock.connect(('127.0.0.1', server_port))
                 self.connected = True
