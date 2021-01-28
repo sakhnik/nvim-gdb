@@ -31,7 +31,7 @@ end
 
 -- Check whether the jump window is displayed."""
 function C:_has_jump_win()
-  wins = vim.api.nvim_tabpage_list_wins(vim.api.nvim_get_current_tabpage())
+  local wins = vim.api.nvim_tabpage_list_wins(vim.api.nvim_get_current_tabpage())
   for _, w in ipairs(wins) do
     if w == self.jump_win then
       return true
@@ -52,9 +52,9 @@ function C:_with_saved_win(dispatch_keymaps, func)
   -- We're going to jump to another window and return.
   -- There may be no need to change keymaps forth and back.
   if not dispatch_keymaps then
-      self.keymaps:set_dispatch_active(false)
+    self.keymaps:set_dispatch_active(false)
   end
-  prev_win = vim.api.nvim_get_current_win()
+  local prev_win = vim.api.nvim_get_current_win()
   func()
   vim.api.nvim_set_current_win(prev_win)
   if not dispatch_keymaps then
@@ -87,7 +87,7 @@ end
 function C:jump(file, line)
   log.info("jump(" .. file .. ":" .. line .. ")")
   -- Check whether the file is already loaded or load it
-  target_buf = vim.fn.bufnr(file, 1)
+  local target_buf = vim.fn.bufnr(file, 1)
 
   -- Ensure the jump window is available
   self:_with_saved_mode(function()
@@ -136,9 +136,9 @@ local function contains(it, list)
 end
 
 function C:_open_file(cmd)
-  open_buffers = vim.api.nvim_list_bufs()
+  local open_buffers = vim.api.nvim_list_bufs()
   vim.cmd(cmd)
-  new_buffer = vim.api.nvim_get_current_buf()
+  local new_buffer = vim.api.nvim_get_current_buf()
   if not contains(new_buffer, open_buffers) then
     -- A new buffer was open specifically for debugging,
     -- remember it to close later.
@@ -154,10 +154,10 @@ function C:query_breakpoints()
   end
 
   -- Get the source code buffer number
-  buf_num = vim.api.nvim_win_get_buf(self.jump_win)
+  local buf_num = vim.api.nvim_win_get_buf(self.jump_win)
 
   -- Get the source code file name
-  fname = vim.fn.expand('#' .. buf_num .. ':p')
+  local fname = vim.fn.expand('#' .. buf_num .. ':p')
 
   -- If no file name or a weird name with spaces, ignore it (to avoid
   -- misinterpretation)
@@ -176,7 +176,7 @@ function C:lopen(cmd, kind, mods)
       if self.jump_win ~= vim.api.nvim_get_current_win() then
         vim.api.nvim_set_current_win(self.jump_win)
       end
-      lgetexpr = "lgetexpr GdbCall('get_for_llist', '" .. kind .. "', '" .. cmd .. "')"
+      local lgetexpr = "lgetexpr GdbCall('get_for_llist', '" .. kind .. "', '" .. cmd .. "')"
       vim.cmd(lgetexpr)
       vim.cmd("exe 'normal <c-o>' | " .. mods .. " lopen")
     end)

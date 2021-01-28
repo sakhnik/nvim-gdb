@@ -14,7 +14,7 @@ end
 -- Add 'efm' for some backend.
 function efmmgr.setup(formats)
   for _, f in ipairs(formats) do
-    c = counters[f]
+    local c = counters[f]
     if c == nil then
       c = 0
       vim.cmd("set efm+=" .. f)
@@ -26,7 +26,7 @@ end
 -- Remove 'efm' entries for some backend.
 function efmmgr.teardown(formats)
   for _, f in ipairs(formats) do
-    c = counters[f] - 1
+    local c = counters[f] - 1
     if c <= 0 then
       vim.cmd("set efm-=" .. f)
       c = nil

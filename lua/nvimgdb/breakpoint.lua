@@ -28,12 +28,12 @@ end
 
 function C:_set_signs(buf)
   if buf ~= -1 then
-    sign_id = 5000 - 1
+    local sign_id = 5000 - 1
     -- Breakpoints need full path to the buffer (at least in lldb)
-    bpath = vim.fn.expand('#' .. tostring(buf) .. ':p')
+    local bpath = vim.fn.expand('#' .. tostring(buf) .. ':p')
 
     local function _get_sign_name(idx)
-      max_count = #self.config:get('sign_breakpoint')
+      local max_count = #self.config:get('sign_breakpoint')
       if idx > max_count then
         idx = max_count
       end
@@ -41,11 +41,11 @@ function C:_set_signs(buf)
     end
 
     local priority = self.config:get('sign_breakpoint_priority')
-    for_file = self.breaks[bpath]
+    local for_file = self.breaks[bpath]
     if for_file ~= nil then
       for line, ids in pairs(for_file) do
         sign_id = sign_id + 1
-        sign_name = _get_sign_name(#ids)
+        local sign_name = _get_sign_name(#ids)
         vim.fn.sign_place(sign_id, 'NvimGdb', sign_name, buf,
                       {['lnum'] = line, ['priority'] = priority})
       end
@@ -70,11 +70,11 @@ end
 
 -- Get breakpoints for the given position in a file.
 function C:get_for_file(fname, line)
-  breaks = self.breaks[fname]
+  local breaks = self.breaks[fname]
   if breaks == nil then
     return {}
   end
-  ids = breaks[tostring(line)]   -- make sure the line is a string
+  local ids = breaks[tostring(line)]   -- make sure the line is a string
   if ids == nil then
     return {}
   end

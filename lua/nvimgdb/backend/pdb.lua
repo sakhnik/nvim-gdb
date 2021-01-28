@@ -8,22 +8,22 @@ function C.query_breakpoints(fname, proxy)
   -- Query actual breakpoints for the given file.
   log.info("Query breakpoints for " .. fname)
 
-  response = proxy:query('handle-command break')
+  local response = proxy:query('handle-command break')
 
   -- Num Type         Disp Enb   Where
   -- 1   breakpoint   keep yes   at /tmp/nvim-gdb/test/main.py:8
 
-  breaks = {}
+  local breaks = {}
   for line in response:gmatch('[^\r\n]+') do
-    tokens = {}
+    local tokens = {}
     for token in line:gmatch('[^%s]+') do
       tokens[#tokens+1] = token
     end
-    bid = tokens[1]
+    local bid = tokens[1]
     if tokens[2] == 'breakpoint' and tokens[4] == 'yes' then
-      bpfname, line = tokens[#tokens]:match("^([^:]+):(.+)$")
+      local bpfname, line = tokens[#tokens]:match("^([^:]+):(.+)$")
       if fname == bpfname then
-        list = breaks[line]
+        local list = breaks[line]
         if list == nil then
           breaks[line] = {bid}
         else

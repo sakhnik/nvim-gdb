@@ -17,7 +17,7 @@ function C.new(backend_name, proxy_cmd, client_cmd)
   return app
 end
 
-Trap = {}
+local Trap = {}
 Trap.__index = function(obj, key)
   return Trap.new(key)
 end
@@ -42,7 +42,7 @@ end
 -- Cleanup the current instance.
 function C.cleanup(tab)
   log.info("Cleanup session " .. tab)
-  app = apps[tab]
+  local app = apps[tab]
 
   app:cleanup()
 

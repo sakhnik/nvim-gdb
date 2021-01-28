@@ -1,7 +1,7 @@
 -- Handle configuration settings
 -- vim:sw=2 ts=2 et
 
-Keymaps = require 'nvimgdb.keymaps'
+local Keymaps = require 'nvimgdb.keymaps'
 
 local C = {}
 C.__index = C
@@ -31,7 +31,7 @@ local default = {
 -- Turn a string into a funcref looking up a Vim function.
 local function filter_funcref(key, val)
   -- Lookup the key in the default config.
-  def_val = default[key]
+  local def_val = default[key]
   -- Check whether the key should be a function.
   if type(def_val) ~= "function" then
     return val
@@ -42,13 +42,13 @@ end
 
 local function copy_user_config()
   -- Make a copy of the supplied configuration if defined
-  config = vim.g.nvimgdb_config
+  local config = vim.g.nvimgdb_config
   if config == nil then
     return nil
   end
 
   for key, val in pairs(config) do
-    filtered_val = filter_funcref(key, val)
+    local filtered_val = filter_funcref(key, val)
     if filtered_val ~= nil then
       config[key] = filtered_val
     end
@@ -90,10 +90,10 @@ end
 
 function C._apply_overrides(self)
   -- If there is config override defined, add it
-  override = vim.g.nvimgdb_config_override
+  local override = vim.g.nvimgdb_config_override
   if override ~= nil then
     for key, val in pairs(override) do
-      key_val = filter_funcref(key, val)
+      local key_val = filter_funcref(key, val)
       if key_val ~= nil then
         self:_check_keymap_conflicts(key_val, key, true)
         self.config[key] = key_val
@@ -104,9 +104,9 @@ function C._apply_overrides(self)
   -- See whether a global override for a specific configuration
   -- key exists. If so, update the config.
   for key, _ in pairs(default) do
-    val = loadstring('return vim.g.nvimgdb_' .. key)()
+    local val = loadstring('return vim.g.nvimgdb_' .. key)()
     if val ~= nil then
-      key_val = filter_funcref(key, val)
+      local key_val = filter_funcref(key, val)
       if key_val ~= nil then
         self:_check_keymap_conflicts(key_val, key, false)
         self.config[key] = key_val
@@ -118,7 +118,7 @@ end
 function C._check_keymap_conflicts(self, key, func, verbose)
   -- Check for keymap configuration sanity.
   if func:match('^key_.*') ~= nil then
-    prev_func = self.key_to_func[key]
+    local prev_func = self.key_to_func[key]
     if prev_func ~= nil and prev_func ~= func then
       if verbose then
         print('Overriding conflicting keymap "' .. key .. '" for '
@@ -146,7 +146,7 @@ end
 
 -- Get the configuration value by key or return the val if missing.
 function C.get_or(self, key, val)
-  v = self:get(key)
+  local v = self:get(key)
   if v == nil then v = val end
   return v
 end

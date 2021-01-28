@@ -4,7 +4,7 @@
 local log = require'nvimgdb.log'
 local uv = vim.loop
 
-C = {}
+local C = {}
 C.__index = C
 
 -- Proxy to the side channel.
@@ -32,12 +32,12 @@ function C:_ensure_connected()
   if self.server_port ~= nil then
     return true
   end
-  lines = io.lines(self.proxy_addr)
+  local lines = io.lines(self.proxy_addr)
   if lines == nil then
     log.warn(self.proxy_addr .. ' not available yet')
     return false
   end
-  line = assert(lines())
+  local line = assert(lines())
   self.server_port = tonumber(line)
   return true
 end
@@ -54,8 +54,8 @@ function C:query(request)
     return ''
   end
 
-  o_err = nil
-  o_resp = nil
+  local o_err = nil
+  local o_resp = nil
 
   assert(uv.udp_send(self.sock, request, '127.0.0.1', self.server_port, function(err)
     if err ~= nil then

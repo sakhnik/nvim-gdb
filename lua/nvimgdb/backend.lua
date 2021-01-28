@@ -1,7 +1,7 @@
 -- vim: set et ts=2 sw=2:
 
 -- Choose appropriate backend
-backend = {}
+local backend = {}
 
 function backend.choose(name)
   if name == "gdb" then

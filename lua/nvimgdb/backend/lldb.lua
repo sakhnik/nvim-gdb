@@ -6,14 +6,14 @@ local C = {}
 
 function C.query_breakpoints(fname, proxy) 
   log.info("Query breakpoints for " .. fname)
-  resp = proxy:query('info-breakpoints ' .. fname)
+  local resp = proxy:query('info-breakpoints ' .. fname)
   if resp == nil or resp == '' then
     return {}
   end
   -- We expect the proxies to send breakpoints for a given file
   -- as a map of lines to array of breakpoint ids set in those lines.
-  breaks = vim.fn.json_decode(resp)
-  err = breaks._error
+  local breaks = vim.fn.json_decode(resp)
+  local err = breaks._error
   if err ~= nil then
     log.error("Can't get breakpoints: " .. err)
     return {}

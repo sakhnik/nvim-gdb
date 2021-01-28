@@ -6,24 +6,24 @@ local log = require'nvimgdb.log'
 
 function C.query_breakpoints(fname, proxy)
   log.info("Query breakpoints for " .. fname)
-  response = proxy:query('handle-command info breakpoints')
+  local response = proxy:query('handle-command info breakpoints')
   if response == nil or response == "" then
     return {}
   end
 
   -- Select lines in the current file with enabled breakpoints.
-  breaks = {}
+  local breaks = {}
   for line in response:gmatch("[^\r\n]+") do
-    fields = {}
+    local fields = {}
     for field in line:gmatch("[^%s]+") do
       fields[#fields + 1] = field
     end
     if fields[4] == 'y' then    -- Is enabled?
-      bpfname, line = fields[#fields]:match("^([^:]+):(%d+)$")  -- file.cpp:line
+      local bpfname, line = fields[#fields]:match("^([^:]+):(%d+)$")  -- file.cpp:line
       if bpfname ~= nil then
         if bpfname == fname or vim.loop.fs_realpath(fname) == vim.loop.fs_realpath(bpfname) then
-          br_id = fields[1]
-          list = breaks[line]
+          local br_id = fields[1]
+          local list = breaks[line]
           if list == nil then
             breaks[line] = {br_id}
           else

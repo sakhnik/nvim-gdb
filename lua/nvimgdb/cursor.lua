@@ -26,14 +26,14 @@ function C.show(self)
   -- To avoid flicker when removing/adding the sign column(due to
   -- the change in line width), we switch ids for the line sign
   -- and only remove the old line sign after marking the new one.
-  old_sign_id = self.sign_id
+  local old_sign_id = self.sign_id
   if old_sign_id == -1 or old_sign_id == 4998 then
     self.sign_id = 4999
   else
     self.sign_id = 4998
   end
   if self.line ~= -1 and self.buf ~= -1 then
-    priority = self.config:get('sign_breakpoint_priority') + 1
+    local priority = self.config:get('sign_breakpoint_priority') + 1
     vim.fn.sign_place(self.sign_id, 'NvimGdb', 'GdbCurrentLine', self.buf,
       {['lnum'] = self.line, ['priority'] = priority})
   end

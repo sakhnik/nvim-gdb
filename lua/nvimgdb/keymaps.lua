@@ -34,8 +34,8 @@ local default = {
 function C.set(self)
   -- Set buffer-local keymaps.
   for _, tuple in ipairs(default) do
-    mode, key, cmd = unpack(tuple)
-    keystroke = self.config:get(key)
+    local mode, key, cmd = unpack(tuple)
+    local keystroke = self.config:get(key)
     if keystroke ~= nil then
       vim.api.nvim_buf_set_keymap(vim.api.nvim_get_current_buf(), mode,
         keystroke, cmd .. '<cr>', {['silent'] = true})
@@ -46,8 +46,8 @@ end
 function C.unset(self)
   -- Unset buffer-local keymaps.
   for _, tuple in ipairs(default) do
-    mode, key = unpack(tuple)
-    keystroke = self.config:get(key)
+    local mode, key = unpack(tuple)
+    local keystroke = self.config:get(key)
     if keystroke ~= nil then
       vim.api.nvim_buf_del_keymap(vim.api.nvim_get_current_buf(), mode, keystroke)
     end
@@ -66,8 +66,8 @@ local default_t = {
 function C.set_t(self)
   -- Set term-local keymaps.
   for _, tuple in ipairs(default_t) do
-    key, cmd = unpack(tuple)
-    keystroke = self.config:get(key)
+    local key, cmd = unpack(tuple)
+    local keystroke = self.config:get(key)
     if keystroke ~= nil then
       vim.api.nvim_buf_set_keymap(vim.api.nvim_get_current_buf(), 't',
         keystroke, [[<c-\><c-n>]] .. cmd .. [[<cr>i]], {['silent'] = true})

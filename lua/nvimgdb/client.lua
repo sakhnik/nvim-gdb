@@ -7,7 +7,7 @@ local C = {}
 C.__index = C
 
 local function _get_plugin_dir()
-  path = debug.getinfo(1).source:match("@(.*/)")
+  local path = debug.getinfo(1).source:match("@(.*/)")
   return uv.fs_realpath(path .. '/../..')
 end
 
@@ -45,7 +45,7 @@ function C:start()
   -- Open a terminal window with the debugger client command.
   -- Go to the yet-to-be terminal window
   vim.api.nvim_set_current_win(self.win)
-  cur_tabpage = vim.api.nvim_get_current_tabpage()
+  local cur_tabpage = vim.api.nvim_get_current_tabpage()
   self.client_id = vim.fn["nvimgdb#TermOpen"](self.command, cur_tabpage)
   -- Allow detaching the terminal from its window
   vim.o.bufhidden = "hide"
