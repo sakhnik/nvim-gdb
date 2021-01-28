@@ -28,6 +28,9 @@ function C.new(backend_name, proxy_cmd, client_cmd)
   -- Initialize current line tracking
   self.cursor = require'nvimgdb.cursor'.new(self.config)
 
+  -- Initialize the windowing subsystem
+  self.win = require'nvimgdb.win'.new(self.config, self.keymaps, self.cursor, self.client, self.breakpoint)
+
   -- Setup 'errorformat' for the given backend.
   C.efmmgr.setup(self.backend.get_error_formats())
 
@@ -44,6 +47,9 @@ function C:cleanup()
 
   -- Clean up the current line sign
   self.cursor:hide()
+
+  -- Clean up the windows and buffers
+  self.win:cleanup()
 
   -- Close connection to the side channel
   self.proxy:cleanup()

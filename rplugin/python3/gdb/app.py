@@ -4,7 +4,6 @@ import re
 from typing import Union, Dict, Type
 
 from gdb.common import Common
-from gdb.win import Win
 from gdb.parser import ParserAdapter
 
 from gdb.backend import base
@@ -41,11 +40,8 @@ class App(Common):
         }
         self.backend = backend_maps[backendStr]()
 
-        # Initialize the windowing subsystem
-        self.win = Win(common)
-
         # Initialize the parser
-        parser_adapter = ParserAdapter(common, self.win)
+        parser_adapter = ParserAdapter(common)
         self.parser = self.backend.create_parser_impl(common, parser_adapter)
 
         # Set initial keymaps in the terminal window.
@@ -63,9 +59,6 @@ class App(Common):
     def cleanup(self, tab):
         """Finish up the debugging session."""
         self.vim.command("doautocmd User NvimGdbCleanup")
-
-        # Clean up the windows and buffers
-        self.win.cleanup()
 
         self.vim.exec_lua(f"nvimgdb.cleanup({tab})")
 
@@ -152,7 +145,7 @@ class App(Common):
         if self.parser.is_paused():
             self.vim.exec_lua("nvimgdb.i().cursor:show()")
         # Ensure breakpoints are shown if are queried dynamically
-        self.win.query_breakpoints()
+        self.vim.exec_lua("nvimgdb.i().win:query_breakpoints()")
 
     def on_tab_leave(self):
         """Actions to execute when a tabpage is left."""
@@ -164,7 +157,7 @@ class App(Common):
         """Actions to execute when a buffer is entered."""
         # Apply keymaps to the jump window only.
         if self.vim.current.buffer.options['buftype'] != 'terminal' \
-                and self.win.is_jump_window_active():
+                and self.vim.exec_lua("return nvimgdb.i().win:is_jump_window_active()"):
             # Make sure the cursor stay visible at all times
 
             scroll_off = self.vim.exec_lua("return nvimgdb.i().config:get('set_scroll_off')")
@@ -174,7 +167,7 @@ class App(Common):
                                  " | endif")
             self.vim.exec_lua("nvimgdb.i().keymaps:dispatch_set()")
             # Ensure breakpoints are shown if are queried dynamically
-            self.win.query_breakpoints()
+            self.vim.exec_lua("nvimgdb.i().win:query_breakpoints()")
 
     def on_buf_leave(self):
         """Actions to execute when a buffer is left."""
@@ -182,7 +175,7 @@ class App(Common):
             # Move the cursor to the end of the buffer
             self.vim.command("$")
             return
-        if self.win.is_jump_window_active():
+        if self.vim.exec_lua("return nvimgdb.i().win:is_jump_window_active()"):
             self.vim.exec_lua("nvimgdb.i().keymaps:dispatch_unset()")
 
     def lopen(self, kind, mods):
@@ -195,7 +188,7 @@ class App(Common):
         else:
             self.logger.warning("Unknown lopen kind %s", kind)
             return
-        self.win.lopen(cmd, kind, mods)
+        self.vim.exec_lua(f"nvimgdb.i().win:lopen('{cmd}', '{kind}', '{mods}')")
 
     def get_for_llist(self, kind, cmd):
         output = self.custom_command(cmd)
