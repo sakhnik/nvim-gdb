@@ -4,7 +4,6 @@ import re
 from typing import Union, Dict, Type
 
 from gdb.common import Common
-from gdb.parser import ParserAdapter
 
 from gdb.backend import base
 from gdb.backend.gdb import Gdb
@@ -39,10 +38,6 @@ class App(Common):
             "pdb": Pdb,
         }
         self.backend = backend_maps[backendStr]()
-
-        # Initialize the parser
-        parser_adapter = ParserAdapter(common)
-        self.parser = self.backend.create_parser_impl(common, parser_adapter)
 
         # Set initial keymaps in the terminal window.
         self.vim.exec_lua("nvimgdb.i().keymaps:dispatch_set_t()")
@@ -115,7 +110,7 @@ class App(Common):
 
     def breakpoint_toggle(self):
         """Toggle breakpoint in the cursor line."""
-        if self.parser.is_running():
+        if self.vim.exec_lua("return nvimgdb.i().parser:is_running()"):
             # pause first
             self.vim.exec_lua("nvimgdb.i().client:interrupt()")
         buf = self.vim.current.buffer
@@ -133,7 +128,7 @@ class App(Common):
 
     def breakpoint_clear_all(self):
         """Clear all breakpoints."""
-        if self.parser.is_running():
+        if self.vim.exec_lua("return nvimgdb.i().parser:is_running()"):
             # pause first
             self.vim.exec_lua("nvimgdb.i().client:interrupt()")
         # The breakpoint signs will be requeried later automatically
@@ -142,7 +137,7 @@ class App(Common):
     def on_tab_enter(self):
         """Actions to execute when a tabpage is entered."""
         # Restore the signs as they may have been spoiled
-        if self.parser.is_paused():
+        if self.vim.exec_lua("return nvimgdb.i().parser:is_paused()"):
             self.vim.exec_lua("nvimgdb.i().cursor:show()")
         # Ensure breakpoints are shown if are queried dynamically
         self.vim.exec_lua("nvimgdb.i().win:query_breakpoints()")

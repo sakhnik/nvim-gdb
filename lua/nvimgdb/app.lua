@@ -31,6 +31,10 @@ function C.new(backend_name, proxy_cmd, client_cmd)
   -- Initialize the windowing subsystem
   self.win = require'nvimgdb.win'.new(self.config, self.keymaps, self.cursor, self.client, self.breakpoint)
 
+  -- Initialize the parser
+  parser_actions = require'nvimgdb.parser_actions'.new(self.cursor, self.win)
+  self.parser = self.backend.create_parser(parser_actions)
+
   -- Setup 'errorformat' for the given backend.
   C.efmmgr.setup(self.backend.get_error_formats())
 

@@ -7,7 +7,7 @@ endfunction
 
 function! nvimgdb#TermOpen(command, tab)
   return termopen(a:command,
-    \ {'on_stdout': {j,d,e -> GdbParserFeed(a:tab, d)},
+    \ {'on_stdout': {j,d,e -> luaeval("nvimgdb.parser_feed(_A[1], _A[2])", [a:tab, d])},
     \  'on_exit': {j,c,e -> execute('if c == 0 | silent! close! | endif')},
     \ })
 endfunction

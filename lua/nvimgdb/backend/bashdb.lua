@@ -1,8 +1,50 @@
 -- BashDB specifics
 -- vim: set et ts=2 sw=2:
 
-local C = {}
 local log = require'nvimgdb.log'
+local ParserImpl = require'nvimgdb.parser_impl'
+
+local C = {}
+
+function C.create_parser(actions)
+  local P = {}
+  P.__index = P
+  setmetatable(P, {__index = ParserImpl})
+
+  local self = setmetatable({}, P)
+  self:_init(actions)
+
+  local re_jump = '[\r\n]%(([^:]+):(%d+)%):[\r\n]'
+  local re_prompt = '[\r\n]bashdb<%(?%d+%)?> $'
+  local re_term = '[\r\n]Debugged program terminated '
+  self.add_trans(self.paused, re_jump, self._paused_jump)
+
+  function P:_handle_terminated(_)
+    self.actions:continue_program()
+    return self.paused
+  end
+
+  self.add_trans(self.paused, re_term, self._handle_terminated)
+  -- Make sure the prompt is matched in the last turn to exhaust
+  -- every other possibility while parsing delayed.
+  self.add_trans(self.paused, re_prompt, self._query_b)
+
+  -- Let's start the backend in the running state for the tests
+  -- to be able to determine when the launch finished.
+  -- It'll transition to the paused state once and will remain there.
+
+  function P:_running_jump(fname, line)
+    log.info("_running_jump " .. fname .. ":" .. line)
+    self.actions:jump_to_source(fname, tonumber(line))
+    return self.running
+  end
+
+  self.add_trans(self.running, re_jump, self._running_jump)
+  self.add_trans(self.running, re_prompt, self._query_b)
+  self.state = self.running
+
+  return self
+end
 
 function C.query_breakpoints(fname, proxy)
   log.info("Query breakpoints for " .. fname)

@@ -131,31 +131,6 @@ class Gdb(Common):
         except Exception:
             self.logger.exception('GdbBreakpointClearAll Exception')
 
-    @pynvim.function('GdbParserFeed')
-    def gdb_parser_feed(self, args):
-        """Handle command GdbParserFeed."""
-        try:
-            tab = args[0]
-            app = self.apps.get(tab, None)
-            if app:
-                content = args[1]
-                for i, ele in enumerate(content):
-                    content[i] = self.ansi_escaper.sub('', ele)
-                app.parser.feed(content)
-        except Exception:
-            self.logger.exception('GdbParserFeed Exception')
-
-    @pynvim.function('GdbParserDelayElapsed')
-    def gdb_parser_delay_elapsed(self, args):
-        """Handle command GdbParserDelayElapsed."""
-        try:
-            tab = args[0]
-            app = self.apps.get(tab, None)
-            if app:
-                app.parser.delay_elapsed(args[1])
-        except Exception:
-            self.logger.exception('GdbParserDelayElapsed Exception')
-
     @pynvim.function('GdbCallAsync')
     def gdb_call_async(self, args):
         """Handle command GdbCallAsync."""
