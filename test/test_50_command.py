@@ -9,9 +9,6 @@ TESTS = {
              ("GdbCustomCommand('frame var i')", "(int) i = 0")],
 }
 
-# TODO: restore this
-pytest.skip("skipping command tests", allow_module_level=True)
-
 def test_backend(eng, backend):
     '''Custom command in C++.'''
     eng.feed(backend['launch'])
