@@ -1,9 +1,41 @@
 -- PDB specifics
 -- vim: set et ts=2 sw=2:
 
-c = {}
+local C = {}
+local log = require'nvimgdb.log'
 
-function c.get_error_formats()
+function C.query_breakpoints(fname, proxy)
+  -- Query actual breakpoints for the given file.
+  log.info("Query breakpoints for " .. fname)
+
+  response = proxy:query('handle-command break')
+
+  -- Num Type         Disp Enb   Where
+  -- 1   breakpoint   keep yes   at /tmp/nvim-gdb/test/main.py:8
+
+  breaks = {}
+  for line in response:gmatch('[^\r\n]+') do
+    tokens = {}
+    for token in line:gmatch('[^%s]+') do
+      tokens[#tokens+1] = token
+    end
+    bid = tokens[1]
+    if tokens[2] == 'breakpoint' and tokens[4] == 'yes' then
+      bpfname, line = tokens[#tokens]:match("^([^:]+):(.+)$")
+      if fname == bpfname then
+        list = breaks[line]
+        if list == nil then
+          breaks[line] = {bid}
+        else
+          list[#list + 1] = bid
+        end
+      end
+    end
+  end
+  return breaks
+end
+
+function C.get_error_formats()
   -- Return the list of errorformats for backtrace, breakpoints.
   return {[[%m\ at\ %f:%l]], [[%[>\ ]%#%f(%l)%m]]}
 
@@ -24,4 +56,4 @@ function c.get_error_formats()
   -- > /tmp/nvim-gdb/test/main.py(5)_bar()
 end
 
-return c
+return C

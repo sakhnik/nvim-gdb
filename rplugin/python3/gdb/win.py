@@ -4,18 +4,16 @@ from contextlib import contextmanager
 from typing import Optional
 import pynvim
 from gdb.common import Common
-from gdb.breakpoint import Breakpoint
 
 
 class Win(Common):
     """Jump window management."""
 
-    def __init__(self, common: Common, break_point: Breakpoint):
+    def __init__(self, common: Common):
         """ctor."""
         super().__init__(common)
         # window number that will be displaying the current file
         self.jump_win: Optional[int] = None
-        self.breakpoint = break_point
         self.buffers = set()
 
         # Create the default jump window
@@ -126,7 +124,7 @@ class Win(Common):
         # misinterpretation)
         if fname and fname.find(' ') == -1:
             # Query the breakpoints for the shown file
-            self.breakpoint.query(buf_num, fname)
+            self.vim.exec_lua(f"nvimgdb.i().breakpoint:query({buf_num}, '{fname}')")
             self.vim.command("redraw")
 
     def lopen(self, cmd, kind, mods):

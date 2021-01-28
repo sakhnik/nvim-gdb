@@ -55,16 +55,8 @@ class BaseBackend(abc.ABC):
         """Create a Parser implementation instance."""
 
     @abc.abstractmethod
-    def create_breakpoint_impl(self, vim) -> BaseBreakpoint:
-        """Create a BaseBreakpoint implementation instance."""
-
-    @abc.abstractmethod
     def translate_command(self, command: str) -> str:
         """Adapt command for the debugger if necessary."""
-
-    @abc.abstractmethod
-    def get_error_formats(self):
-        """Return the list of errorformats for backtrace, breakpoints."""
 
     @staticmethod
     def llist_filter_breakpoints(locations):

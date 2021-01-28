@@ -5,7 +5,6 @@ from typing import Union, Dict, Type
 
 from gdb.common import Common
 from gdb.win import Win
-from gdb.breakpoint import Breakpoint
 from gdb.parser import ParserAdapter
 
 from gdb.backend import base
@@ -42,12 +41,8 @@ class App(Common):
         }
         self.backend = backend_maps[backendStr]()
 
-        # Initialize breakpoint tracking
-        breakpoint_impl = self.backend.create_breakpoint_impl(self.vim)
-        self.breakpoint = Breakpoint(common, breakpoint_impl)
-
         # Initialize the windowing subsystem
-        self.win = Win(common, self.breakpoint)
+        self.win = Win(common)
 
         # Initialize the parser
         parser_adapter = ParserAdapter(common, self.win)
@@ -68,9 +63,6 @@ class App(Common):
     def cleanup(self, tab):
         """Finish up the debugging session."""
         self.vim.command("doautocmd User NvimGdbCleanup")
-
-        # Clean up the breakpoint signs
-        self.breakpoint.reset_signs()
 
         # Clean up the windows and buffers
         self.win.cleanup()
@@ -136,7 +128,7 @@ class App(Common):
         buf = self.vim.current.buffer
         file_name = self.vim.call("expand", '#%d:p' % buf.handle)
         line_nr = self.vim.call("line", ".")
-        breaks = self.breakpoint.get_for_file(file_name, line_nr)
+        breaks = self.vim.exec_lua(f"return nvimgdb.i().breakpoint:get_for_file('{file_name}', '{line_nr}')")
 
         if breaks:
             # There already is a breakpoint on this line: remove
@@ -166,7 +158,7 @@ class App(Common):
         """Actions to execute when a tabpage is left."""
         # Hide the signs
         self.vim.exec_lua("nvimgdb.i().cursor:hide()")
-        self.breakpoint.clear_signs()
+        self.vim.exec_lua("nvimgdb.i().breakpoint:clear_signs()")
 
     def on_buf_enter(self):
         """Actions to execute when a buffer is entered."""

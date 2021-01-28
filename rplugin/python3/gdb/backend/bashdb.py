@@ -40,52 +40,12 @@ class _ParserImpl(parser_impl.ParserImpl):
         return self.paused
 
 
-class _BreakpointImpl(base.BaseBreakpoint):
-    def __init__(self, vim):
-        self.vim = vim
-        self.logger = logging.getLogger("BashDB.Breakpoint")
-
-    def query(self, fname: str):
-        self.logger.info("Query breakpoints for %s", fname)
-        response = self.vim.exec_lua("return nvimgdb.i().proxy:query('handle-command info breakpoints')")
-        if not response:
-            return {}
-
-        # Select lines in the current file with enabled breakpoints.
-        pattern = re.compile(r"([^:]+):(\d+)")
-        breaks: Dict[str, List[str]] = {}
-        for line in response.splitlines():
-            try:
-                fields = re.split(r"\s+", line)
-                if fields[3] == 'y':    # Is enabled?
-                    match = pattern.fullmatch(fields[-1])   # file.cpp:line
-                    if not match:
-                        continue
-                    bpfname = match.group(1)
-                    if (bpfname == fname or os.path.realpath(fname) ==
-                            os.path.realpath(bpfname)):
-                        line = match.group(2)
-                        br_id = fields[0]
-                        try:
-                            breaks[line].append(br_id)
-                        except KeyError:
-                            breaks[line] = [br_id]
-            except (ValueError, IndexError):
-                continue
-
-        return breaks
-
-
 class BashDB(base.BaseBackend):
     """BashDB FSM."""
 
     def create_parser_impl(self, common, handler):
         """Create parser implementation instance."""
         return _ParserImpl(common, handler)
-
-    def create_breakpoint_impl(self, vim):
-        """Create breakpoint impl instance."""
-        return _BreakpointImpl(vim)
 
     command_map = {
         'delete_breakpoints': 'delete',
@@ -96,27 +56,6 @@ class BashDB(base.BaseBackend):
     def translate_command(self, command):
         """Adapt command if necessary."""
         return self.command_map.get(command, command)
-
-    def get_error_formats(self):
-        """Return the list of errorformats for backtrace, breakpoints."""
-        return ["%m\ in\ file\ `%f'\ at\ line\ %l",
-                "%m\ called\ from\ file\ `%f'\ at\ line\ %l",
-                "%m\ %f:%l"]
-
-        # bashdb<18> bt
-        # ->0 in file `main.sh' at line 8
-        # ##1 Foo("1") called from file `main.sh' at line 18
-        # ##2 Main() called from file `main.sh' at line 22
-        # ##3 source("main.sh") called from file `/sbin/bashdb' at line 107
-        # ##4 main("main.sh") called from file `/sbin/bashdb' at line 0
-        # bashdb<22> info breakpoints
-        # Num Type       Disp Enb What
-        # 1   breakpoint keep y   /tmp/nvim-gdb/test/main.sh:16
-        #         breakpoint already hit 1 time
-        # 2   breakpoint keep y   /tmp/nvim-gdb/test/main.sh:7
-        #         breakpoint already hit 1 time
-        # 3   breakpoint keep y   /tmp/nvim-gdb/test/main.sh:3
-        # 4   breakpoint keep y   /tmp/nvim-gdb/test/main.sh:8
 
     @staticmethod
     def llist_filter_breakpoints(locations):

@@ -19,6 +19,9 @@ function C.new(backend_name, proxy_cmd, client_cmd)
   -- Initialize connection to the side channel
   self.proxy = require'nvimgdb.proxy'.new(self.client)
 
+  -- Initialize breakpoint tracking
+  self.breakpoint = require'nvimgdb.breakpoint'.new(self.config, self.proxy, self.backend.query_breakpoints)
+
   -- Initialize the keymaps subsystem
   self.keymaps = require'nvimgdb.keymaps'.new(self.config)
 
@@ -35,6 +38,9 @@ end
 function C:cleanup()
   -- Remove from 'errorformat' for the given backend.
   C.efmmgr.teardown(self.backend.get_error_formats())
+
+  -- Clean up the breakpoint signs
+  self.breakpoint:reset_signs()
 
   -- Clean up the current line sign
   self.cursor:hide()

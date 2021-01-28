@@ -1,9 +1,42 @@
 -- BashDB specifics
 -- vim: set et ts=2 sw=2:
 
-c = {}
+local C = {}
+local log = require'nvimgdb.log'
 
-function c.get_error_formats()
+function C.query_breakpoints(fname, proxy)
+  log.info("Query breakpoints for " .. fname)
+  response = proxy:query('handle-command info breakpoints')
+  if response == nil or response == "" then
+    return {}
+  end
+
+  -- Select lines in the current file with enabled breakpoints.
+  breaks = {}
+  for line in response:gmatch("[^\r\n]+") do
+    fields = {}
+    for field in line:gmatch("[^%s]+") do
+      fields[#fields + 1] = field
+    end
+    if fields[4] == 'y' then    -- Is enabled?
+      bpfname, line = fields[#fields]:match("^([^:]+):(%d+)$")  -- file.cpp:line
+      if bpfname ~= nil then
+        if bpfname == fname or vim.loop.fs_realpath(fname) == vim.loop.fs_realpath(bpfname) then
+          br_id = fields[1]
+          list = breaks[line]
+          if list == nil then
+            breaks[line] = {br_id}
+          else
+            list[#list + 1] = br_id
+          end
+        end
+      end
+    end
+  end
+  return breaks
+end
+
+function C.get_error_formats()
   -- Return the list of errorformats for backtrace, breakpoints.
   return {[[%m\ in\ file\ `%f'\ at\ line\ %l]],
           [[%m\ called\ from\ file\ `%f'\ at\ line\ %l]],
@@ -25,4 +58,4 @@ function c.get_error_formats()
   -- 4   breakpoint keep y   /tmp/nvim-gdb/test/main.sh:8
 end
 
-return c
+return C
