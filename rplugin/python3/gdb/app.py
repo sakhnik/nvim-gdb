@@ -5,12 +5,6 @@ from typing import Union, Dict, Type
 
 from gdb.common import Common
 
-from gdb.backend import base
-from gdb.backend.gdb import Gdb
-from gdb.backend.pdb import Pdb
-from gdb.backend.lldb import Lldb
-from gdb.backend.bashdb import BashDB
-
 
 class App(Common):
     """Main application class."""
@@ -29,15 +23,6 @@ class App(Common):
 
         # TODO: read the configuration before creating a new tabpage
         self.vim.exec_lua(f"nvimgdb.new('{backendStr}', '{proxyCmd}', '{clientCmd}')")
-
-        # Get the selected backend module
-        backend_maps: Dict[str, Type[base.BaseBackend]] = {
-            "gdb": Gdb,
-            "bashdb": BashDB,
-            "lldb": Lldb,
-            "pdb": Pdb,
-        }
-        self.backend = backend_maps[backendStr]()
 
         # Set initial keymaps in the terminal window.
         self.vim.exec_lua("nvimgdb.i().keymaps:dispatch_set_t()")
@@ -191,6 +176,6 @@ class App(Common):
         if kind == "backtrace":
             return lines
         elif kind == "breakpoints":
-            return self.backend.llist_filter_breakpoints(lines)
+            return lines
         else:
             self.logger.warning("Unknown lopen kind %s", kind)
