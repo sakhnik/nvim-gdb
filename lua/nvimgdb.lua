@@ -10,9 +10,10 @@ C.__index = C
 
 -- Create a new instance of the debugger in the current tabpage.
 function C.new(backend_name, proxy_cmd, client_cmd)
-  local tab = vim.api.nvim_get_current_tabpage()
-  log.info("New session " .. backend_name .. " -> " .. tab)
+  log.info("New session " .. backend_name)
   local app = require'nvimgdb.app'.new(backend_name, proxy_cmd, client_cmd)
+  local tab = vim.api.nvim_get_current_tabpage()
+  log.info({"Tabpage", tab})
   apps[tab] = app
   return app
 end
@@ -44,7 +45,7 @@ function C.cleanup(tab)
   log.info("Cleanup session " .. tab)
   local app = apps[tab]
 
-  app:cleanup()
+  app:cleanup(tab)
 
   apps[tab] = nil
   if #apps == 0 then

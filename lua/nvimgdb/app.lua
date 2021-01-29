@@ -10,6 +10,12 @@ function C.new(backend_name, proxy_cmd, client_cmd)
 
   self.config = require'nvimgdb.config'.new()
 
+  -- Create new tab for the debugging view and split horizontally
+  vim.cmd('tabnew')
+  vim.wo.winfixwidth = false
+  vim.wo.winfixheight = false
+  vim.cmd('silent wincmd o')
+
   -- Get the selected backend module
   self.backend = require "nvimgdb.backend".choose(backend_name)
 
@@ -38,11 +44,26 @@ function C.new(backend_name, proxy_cmd, client_cmd)
   -- Setup 'errorformat' for the given backend.
   C.efmmgr.setup(self.backend.get_error_formats())
 
+  -- Start insert mode in the GDB window
+  vim.fn.feedkeys("i")
+
   return self
 end
 
--- Cleanup the current instance.
-function C:cleanup()
+-- Spawn the debugger, the parser should be ready by now.
+function C:start()
+  -- Set initial keymaps in the terminal window.
+  self.keymaps:dispatch_set_t()
+  self.keymaps:dispatch_set()
+
+  self.client:start()
+  vim.cmd("doautocmd User NvimGdbStart")
+end
+
+-- Finish up the debugging session.
+function C:cleanup(tab)
+  vim.cmd("doautocmd User NvimGdbCleanup")
+
   -- Remove from 'errorformat' for the given backend.
   C.efmmgr.teardown(self.backend.get_error_formats())
 
@@ -60,6 +81,14 @@ function C:cleanup()
 
   -- Close the debugger backend
   self.client:cleanup()
+
+  -- Close the windows and the tab
+  for _, tabpage in ipairs(vim.api.nvim_list_tabpages()) do
+    if tabpage == tab then
+      vim.cmd("tabclose! " .. vim.api.nvim_tabpage_get_number(tabpage))
+      break
+    end
+  end
 end
 
 return C

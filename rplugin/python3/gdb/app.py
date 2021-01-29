@@ -15,37 +15,7 @@ class App(Common):
         super().__init__(common)
         self._last_command: Union[str, None] = None
 
-        # Create new tab for the debugging view and split horizontally
-        self.vim.command('tabnew'
-                         ' | setlocal nowinfixwidth'
-                         ' | setlocal nowinfixheight'
-                         ' | silent wincmd o')
-
-        # TODO: read the configuration before creating a new tabpage
         self.vim.exec_lua(f"nvimgdb.new('{backendStr}', '{proxyCmd}', '{clientCmd}')")
-
-        # Set initial keymaps in the terminal window.
-        self.vim.exec_lua("nvimgdb.i().keymaps:dispatch_set_t()")
-        self.vim.exec_lua("nvimgdb.i().keymaps:dispatch_set()")
-
-        # Start insert mode in the GDB window
-        self.vim.feedkeys("i")
-
-    def start(self):
-        """Spawn the debugger, the parser should be ready by now."""
-        self.vim.exec_lua("nvimgdb.i().client:start()")
-        self.vim.command("doautocmd User NvimGdbStart")
-
-    def cleanup(self, tab):
-        """Finish up the debugging session."""
-        self.vim.command("doautocmd User NvimGdbCleanup")
-
-        self.vim.exec_lua(f"nvimgdb.cleanup({tab})")
-
-        # Close the windows and the tab
-        for tabpage in self.vim.tabpages:
-            if tabpage.handle == tab:
-                self.vim.command(f"tabclose! {tabpage.number}")
 
     def _get_command(self, cmd):
         return self.vim.exec_lua(f"return nvimgdb.i().backend:translate_command('{cmd}')")

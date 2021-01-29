@@ -34,9 +34,10 @@ class Gdb(Common):
         common = BaseCommon(self.vim)
         if not self.apps:
             self.vim.exec_lua("nvimgdb = require'nvimgdb'")
+
         app = App(common, *args)
         self.apps[self.vim.current.tabpage.handle] = app
-        app.start()
+        self.vim.exec_lua("nvimgdb.i():start()")
         if len(self.apps) == 1:
             # Initialize the UI commands, autocommands etc
             self.vim.call("nvimgdb#GlobalInit")
@@ -65,7 +66,7 @@ class Gdb(Common):
                     if len(self.apps) == 0:
                         # Cleanup commands, autocommands etc
                         self.vim.call("nvimgdb#GlobalCleanup")
-                    app.cleanup(tab)
+                    self.vim.exec_lua(f"nvimgdb.cleanup({tab})")
                 # TabEnter isn't fired automatically when a tab is closed
                 self.gdb_handle_event(["on_tab_enter"])
         except Exception:
