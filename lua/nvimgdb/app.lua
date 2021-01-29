@@ -10,6 +10,9 @@ function C.new(backend_name, proxy_cmd, client_cmd)
 
   self.config = require'nvimgdb.config'.new()
 
+  -- The last executed debugger command for testing
+  self._last_command = nil
+
   -- Create new tab for the debugging view and split horizontally
   vim.cmd('tabnew')
   vim.wo.winfixwidth = false
@@ -88,6 +91,17 @@ function C:cleanup(tab)
       vim.cmd("tabclose! " .. vim.api.nvim_tabpage_get_number(tabpage))
       break
     end
+  end
+end
+
+-- Send a command to the debugger.
+function C:send(cmd, a1, a2, a3)
+  if cmd ~= nil then
+    local command = self.backend:translate_command(cmd):format(a1, a2, a3)
+    self.client:send_line(command)
+    self._last_command = command  -- Remember the command for testing
+  else
+    self.client:interrupt()
   end
 end
 

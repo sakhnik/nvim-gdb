@@ -54,7 +54,7 @@ end
 C.command_map = {
   ['delete_breakpoints'] = 'breakpoint delete',
   ['breakpoint'] = 'b',
-  ['until {}'] = 'thread until {}',
+  ['until %s'] = 'thread until %s',
   ['info breakpoints'] = 'nvim-gdb-info-breakpoints',
 }
 

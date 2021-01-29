@@ -97,12 +97,12 @@ def test_eval(eng, backend):
     eng.feed('<f10>')
 
     eng.feed('^<f9>')
-    assert eng.eval('GdbTestPeek("_last_command")') == 'print Foo'
+    assert eng.exec_lua('return nvimgdb.i()._last_command') == 'print Foo'
 
     eng.feed('/Lib::Baz\n')
     eng.feed('vt(')
     eng.feed(':GdbEvalRange\n')
-    assert eng.eval('GdbTestPeek("_last_command")') == 'print Lib::Baz'
+    assert eng.exec_lua('return nvimgdb.i()._last_command') == 'print Lib::Baz'
 
 
 def test_navigate(eng, backend):

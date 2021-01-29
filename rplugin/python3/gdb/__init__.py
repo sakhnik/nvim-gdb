@@ -102,16 +102,6 @@ class Gdb(Common):
         for tab in [t for t, _ in self.apps.items()]:
             self.gdb_cleanup([tab])
 
-    @pynvim.function('GdbSend', sync=True)
-    def gdb_send(self, args):
-        """Handle command GdbSend."""
-        try:
-            app = self._get_app()
-            if app:
-                app.send(*args)
-        except Exception:
-            self.logger.exception("GdbSend Exception")
-
     @pynvim.function('GdbBreakpointToggle', sync=True)
     def gdb_breakpoint_toggle(self, _):
         """Handle command GdbBreakpointToggle."""
@@ -176,18 +166,3 @@ class Gdb(Common):
     def gdb_create_watch(self, args):
         """Handle command GdbCreateWatch."""
         return self.gdb_call(["create_watch"] + args)
-
-    @pynvim.function('GdbTestPeek', sync=True)
-    def gdb_test_peek(self, args):
-        """Handle command GdbTestPeek."""
-        try:
-            obj = self._get_app()
-            if obj:
-                for i, arg in enumerate(args):
-                    obj = getattr(obj, arg)
-                    if callable(obj):
-                        return obj(*args[i+1:])
-                return obj
-        except Exception:
-            self.logger.exception('GdbTestPeek Exception')
-        return None

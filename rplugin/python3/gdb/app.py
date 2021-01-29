@@ -20,15 +20,6 @@ class App(Common):
     def _get_command(self, cmd):
         return self.vim.exec_lua(f"return nvimgdb.i().backend:translate_command('{cmd}')")
 
-    def send(self, *args):
-        """Send a command to the debugger."""
-        if args:
-            command = self._get_command(args[0]).format(*args[1:])
-            self.vim.exec_lua(f"nvimgdb.i().client:send_line('{command}')")
-            self._last_command = command  # Remember the command for testing
-        else:
-            self.vim.exec_lua("nvimgdb.i().client:interrupt()")
-
     def custom_command(self, cmd):
         """Execute a custom debugger command and return its output."""
         return self.vim.exec_lua(f"return nvimgdb.i().proxy:query('handle-command {cmd}')")
@@ -87,7 +78,7 @@ class App(Common):
             # pause first
             self.vim.exec_lua("nvimgdb.i().client:interrupt()")
         # The breakpoint signs will be requeried later automatically
-        self.send('delete_breakpoints')
+        self.vim.exec_lua("nvimgdb.i():send('delete_breakpoints')")
 
     def on_tab_enter(self):
         """Actions to execute when a tabpage is entered."""

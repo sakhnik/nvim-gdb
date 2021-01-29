@@ -77,7 +77,7 @@ C.command_map = {
   ['delete_breakpoints'] = 'clear',
   ['breakpoint'] = 'break',
   ['finish'] = 'return',
-  ['print {}'] = 'print({})',
+  ['print %s'] = 'print(%s)',
   ['info breakpoints'] = 'break',
 }
 
