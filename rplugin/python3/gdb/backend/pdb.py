@@ -11,18 +11,6 @@ from gdb.backend import base
 class Pdb(base.BaseBackend):
     """PDB parser and FSM."""
 
-    command_map = {
-        'delete_breakpoints': 'clear',
-        'breakpoint': 'break',
-        'finish': 'return',
-        'print {}': 'print({})',
-        'info breakpoints': 'break',
-    }
-
-    def translate_command(self, command):
-        """Adapt command if necessary."""
-        return self.command_map.get(command, command)
-
     @staticmethod
     def llist_filter_breakpoints(locations):
         """Filter out service lines in the breakpoint list capture."""

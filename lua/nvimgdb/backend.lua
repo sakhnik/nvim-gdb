@@ -5,13 +5,13 @@ local backend = {}
 
 function backend.choose(name)
   if name == "gdb" then
-    return require "nvimgdb.backend.gdb"
+    return require "nvimgdb.backend.gdb".new()
   elseif name == "lldb" then
-    return require "nvimgdb.backend.lldb"
+    return require "nvimgdb.backend.lldb".new()
   elseif name == "pdb" then
-    return require "nvimgdb.backend.pdb"
+    return require "nvimgdb.backend.pdb".new()
   elseif name == "bashdb" then
-    return require "nvimgdb.backend.bashdb"
+    return require "nvimgdb.backend.bashdb".new()
   end
 end
 

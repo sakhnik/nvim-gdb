@@ -63,7 +63,7 @@ class App(Common):
                 self.vim.command(f"tabclose! {tabpage.number}")
 
     def _get_command(self, cmd):
-        return self.backend.translate_command(cmd)
+        return self.vim.exec_lua(f"return nvimgdb.i().backend:translate_command('{cmd}')")
 
     def send(self, *args):
         """Send a command to the debugger."""
@@ -177,9 +177,9 @@ class App(Common):
         """Load backtrace or breakpoints into the location list."""
         cmd = ''
         if kind == "backtrace":
-            cmd = self.backend.translate_command('bt')
+            cmd = self.vim.exec_lua("return nvimgdb.i().backend:translate_command('bt')")
         elif kind == "breakpoints":
-            cmd = self.backend.translate_command('info breakpoints')
+            cmd = self.vim.exec_lua("return nvimgdb.i().backend:translate_command('info breakpoints')")
         else:
             self.logger.warning("Unknown lopen kind %s", kind)
             return

@@ -2,9 +2,17 @@
 -- vim: set et ts=2 sw=2:
 
 local log = require'nvimgdb.log'
+local Common = require'nvimgdb.backend.common'
 local ParserImpl = require'nvimgdb.parser_impl'
 
 local C = {}
+C.__index = C
+setmetatable(C, {__index = Common})
+
+function C.new()
+  local self = setmetatable({}, C)
+  return self
+end
 
 function C.create_parser(actions)
   local P = {}
@@ -77,6 +85,12 @@ function C.query_breakpoints(fname, proxy)
   end
   return breaks
 end
+
+C.command_map = {
+  ['delete_breakpoints'] = 'delete',
+  ['breakpoint'] = 'break',
+  ['info breakpoints'] = 'info breakpoints',
+}
 
 function C.get_error_formats()
   -- Return the list of errorformats for backtrace, breakpoints.
