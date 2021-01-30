@@ -37,9 +37,6 @@ If you use vim-plug, add the following line to your vimrc file:
 Plug 'sakhnik/nvim-gdb', { 'do': ':!./install.sh' }
 ```
 
-**NOTE**: Make sure to run `:UpdateRemotePlugins` and restart the editor
-before using the plugin.
-
 You can use any other plugin manager too:
 
   * vundle
