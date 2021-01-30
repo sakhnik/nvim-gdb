@@ -20,13 +20,15 @@ end
 
 local Trap = {}
 Trap.__index = function(obj, key)
-  return Trap.new(key)
+  return (function(...)
+    log.warn(arg)
+    return Trap.new(key)
+  end)
 end
 
 function Trap.new(key)
   log.warn("Missing key " .. key)
-  local self = {}
-  setmetatable(self, Trap)
+  local self = setmetatable({}, Trap)
   return self
 end
 
@@ -35,6 +37,7 @@ function C.i()
   local tab = vim.api.nvim_get_current_tabpage()
   local inst = apps[tab]
   if inst == nil then
+    -- TODO don't report on on_tab_enter/on_tab_leave
     return Trap.new("tabpage " .. tab)
   end
   return inst

@@ -92,6 +92,9 @@ function C:cleanup(tab)
       break
     end
   end
+
+  -- TabEnter isn't fired automatically when a tab is closed
+  nvimgdb.i():on_tab_enter()
 end
 
 -- Send a command to the debugger.
@@ -171,6 +174,23 @@ function C:breakpoint_clear_all()
   end
   -- The breakpoint signs will be requeried later automatically
   self:send('delete_breakpoints')
+end
+
+-- Actions to execute when a tabpage is entered.
+function C:on_tab_enter()
+  -- Restore the signs as they may have been spoiled
+  if self.parser:is_paused() then
+    self.cursor:show()
+  end
+  -- Ensure breakpoints are shown if are queried dynamically
+  self.win:query_breakpoints()
+end
+
+-- Actions to execute when a tabpage is left.
+function C:on_tab_leave()
+  -- Hide the signs
+  self.cursor:hide()
+  self.breakpoint:clear_signs()
 end
 
 return C

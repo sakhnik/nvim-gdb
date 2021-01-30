@@ -67,8 +67,6 @@ class Gdb(Common):
                         # Cleanup commands, autocommands etc
                         self.vim.call("nvimgdb#GlobalCleanup")
                     self.vim.exec_lua(f"nvimgdb.cleanup({tab})")
-                # TabEnter isn't fired automatically when a tab is closed
-                self.gdb_handle_event(["on_tab_enter"])
         except Exception:
             self.logger.exception("FIXME GdbCleanup Exception")
 

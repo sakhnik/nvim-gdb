@@ -17,20 +17,6 @@ class App(Common):
 
         self.vim.exec_lua(f"nvimgdb.new('{backendStr}', '{proxyCmd}', '{clientCmd}')")
 
-    def on_tab_enter(self):
-        """Actions to execute when a tabpage is entered."""
-        # Restore the signs as they may have been spoiled
-        if self.vim.exec_lua("return nvimgdb.i().parser:is_paused()"):
-            self.vim.exec_lua("nvimgdb.i().cursor:show()")
-        # Ensure breakpoints are shown if are queried dynamically
-        self.vim.exec_lua("nvimgdb.i().win:query_breakpoints()")
-
-    def on_tab_leave(self):
-        """Actions to execute when a tabpage is left."""
-        # Hide the signs
-        self.vim.exec_lua("nvimgdb.i().cursor:hide()")
-        self.vim.exec_lua("nvimgdb.i().breakpoint:clear_signs()")
-
     def on_buf_enter(self):
         """Actions to execute when a buffer is entered."""
         # Apply keymaps to the jump window only.
