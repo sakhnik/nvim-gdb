@@ -50,7 +50,7 @@ function C:start()
   -- Allow detaching the terminal from its window
   vim.o.bufhidden = "hide"
   -- Finish the debugging session when the terminal is closed
-  vim.cmd("au TermClose <buffer> call GdbCleanup(" .. cur_tabpage .. ")")
+  vim.cmd("au TermClose <buffer> lua nvimgdb.cleanup(" .. cur_tabpage .. ")")
 end
 
 function C:interrupt()

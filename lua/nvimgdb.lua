@@ -3,6 +3,7 @@
 local log = require 'nvimgdb.log'
 
 local apps = {}
+local apps_size = 0
 
 local C = {}
 C.efmmgr = require 'nvimgdb.efmmgr'
@@ -15,7 +16,13 @@ function C.new(backend_name, proxy_cmd, client_cmd)
   local tab = vim.api.nvim_get_current_tabpage()
   log.info({"Tabpage", tab})
   apps[tab] = app
-  return app
+  apps_size = apps_size + 1
+  if apps_size == 1 then
+    -- Initialize the UI commands, autocommands etc
+    log.info("Calling nvimgdb#GlobalInit()")
+    vim.fn["nvimgdb#GlobalInit"]()
+  end
+  app:start()
 end
 
 local Trap = {}
@@ -43,16 +50,37 @@ function C.i()
   return inst
 end
 
+local function with_saved_hidden(func)
+  -- Prevent "ghost" [noname] buffers when leaving the debugger
+  -- and 'hidden' is on
+  local hidden = vim.o.hidden
+  if hidden then
+    vim.o.hidden = false
+  end
+  func()
+  -- sets hidden back to user default
+  if hidden then
+    vim.o.hidden = true
+  end
+end
+
 -- Cleanup the current instance.
 function C.cleanup(tab)
   log.info("Cleanup session " .. tab)
   local app = apps[tab]
 
-  app:cleanup(tab)
-
-  apps[tab] = nil
-  if #apps == 0 then
-    C.efmmgr.cleanup()
+  if app ~= nil then
+    apps[tab] = nil
+    apps_size = apps_size - 1
+    with_saved_hidden(function()
+      if apps_size == 0 then
+        -- Cleanup commands, autocommands etc
+        log.info("Calling nvimgdb#GlobalCleanup()")
+        vim.fn["nvimgdb#GlobalCleanup"]()
+        C.efmmgr.cleanup()
+      end
+      app:cleanup(tab)
+    end)
   end
 end
 
@@ -64,6 +92,29 @@ function C.parser_feed(tab, content)
       content[i] = ele:gsub('\x1B[@-_][0-?]*[ -/]*[@-~]', '')
     end
     app.parser:feed(content)
+  end
+end
+
+-- Handle the function GdbHandleTabClosed.
+function C.on_tab_closed()
+  log.info("Handle TabClosed")
+  local active_tabs = vim.api.nvim_list_tabpages()
+  local active_tabs_set = {}
+  for _, tab in ipairs(active_tabs) do
+    active_tabs_set[tab] = true
+  end
+  for tab, app in pairs(apps) do
+    if active_tabs_set[tab] == nil then
+      C.cleanup(tab)
+    end
+  end
+end
+
+function C.on_vim_leave_pre()
+  -- Handle function GdbHandleVimLeavePre.
+  log.info("Handle VimLeavePre")
+  for tab, _ in pairs(apps) do
+    C.gdb_cleanup(tab)
   end
 end
 

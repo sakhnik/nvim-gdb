@@ -34,7 +34,7 @@ do
     return table.concat(vim.tbl_flatten{...}, path_sep)
   end
   --local logfilename = path_join(vim.fn.stdpath('cache'), 'lsp.log')
-  local logfilename = 'nvimgdb2.log'
+  local logfilename = 'nvimgdb.log'
 
   --- Returns the log filename.
   --@returns (string) log filename

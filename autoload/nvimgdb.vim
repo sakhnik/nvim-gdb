@@ -32,7 +32,7 @@ endfunction
 
 "Shared global state initialization (commands, keymaps etc)
 function! nvimgdb#GlobalInit()
-  command! GdbDebugStop call GdbCleanup(nvim_get_current_tabpage())
+  command! GdbDebugStop lua nvimgdb.cleanup(vim.api.nvim_get_current_tabpage())
   command! GdbBreakpointToggle lua nvimgdb.i():breakpoint_toggle()
   command! GdbBreakpointClearAll lua nvimgdb.i():breakpoint_clear_all()
   command! GdbFrame lua nvimgdb.i():send('f')
@@ -61,8 +61,8 @@ function! nvimgdb#GlobalInit()
     au TabLeave * lua nvimgdb.i():on_tab_leave()
     au BufEnter * lua nvimgdb.i():on_buf_enter()
     au BufLeave * lua nvimgdb.i():on_buf_leave()
-    au TabClosed * call GdbHandleTabClosed()
-    au VimLeavePre * call GdbHandleVimLeavePre()
+    au TabClosed * lua nvimgdb.on_tab_closed()
+    au VimLeavePre * lua nvimgdb.on_vim_leave_pre()
   augroup END
 
   " Define custom events
