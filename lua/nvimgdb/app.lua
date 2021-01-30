@@ -193,4 +193,33 @@ function C:on_tab_leave()
   self.breakpoint:clear_signs()
 end
 
+-- Actions to execute when a buffer is entered.
+function C:on_buf_enter()
+  -- Apply keymaps to the jump window only.
+  if vim.bo.buftype ~= 'terminal' and self.win:is_jump_window_active() then
+    -- Make sure the cursor stay visible at all times
+    local scroll_off = self.config:get('set_scroll_off')
+    if scroll_off ~= nil then
+      vim.cmd("if !&scrolloff" ..
+              " | setlocal scrolloff=" .. scroll_off ..
+              " | endif")
+    end
+    self.keymaps:dispatch_set()
+    -- Ensure breakpoints are shown if are queried dynamically
+    self.win:query_breakpoints()
+  end
+end
+
+-- Actions to execute when a buffer is left.
+function C:on_buf_leave()
+  if vim.bo.buftype == 'terminal' then
+    -- Move the cursor to the end of the buffer
+    vim.cmd("$")
+    return
+  end
+  if self.win:is_jump_window_active() then
+    self.keymaps:dispatch_unset()
+  end
+end
+
 return C

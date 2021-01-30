@@ -59,8 +59,8 @@ function! nvimgdb#GlobalInit()
     au!
     au TabEnter * lua nvimgdb.i():on_tab_enter()
     au TabLeave * lua nvimgdb.i():on_tab_leave()
-    au BufEnter * call GdbHandleEvent("on_buf_enter")
-    au BufLeave * call GdbHandleEvent("on_buf_leave")
+    au BufEnter * lua nvimgdb.i():on_buf_enter()
+    au BufLeave * lua nvimgdb.i():on_buf_leave()
     au TabClosed * call GdbHandleTabClosed()
     au VimLeavePre * call GdbHandleVimLeavePre()
   augroup END
