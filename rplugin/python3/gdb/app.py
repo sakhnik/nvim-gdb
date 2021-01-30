@@ -20,10 +20,6 @@ class App(Common):
     def _get_command(self, cmd):
         return self.vim.exec_lua(f"return nvimgdb.i().backend:translate_command('{cmd}')")
 
-    def custom_command(self, cmd):
-        """Execute a custom debugger command and return its output."""
-        return self.vim.exec_lua(f"return nvimgdb.i().proxy:query('handle-command {cmd}')")
-
     def create_watch(self, cmd):
         """Create a window to watch for a debugger expression.
 
@@ -132,7 +128,7 @@ class App(Common):
         self.vim.exec_lua(f"nvimgdb.i().win:lopen('{cmd}', '{kind}', '{mods}')")
 
     def get_for_llist(self, kind, cmd):
-        output = self.custom_command(cmd)
+        output = self.vim.exec_lua(f"return nvimgdb.i():custom_command('{cmd}')")
         lines = re.split(r'[\r\n]+', output)
         if kind == "backtrace":
             return lines

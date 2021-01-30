@@ -105,4 +105,9 @@ function C:send(cmd, a1, a2, a3)
   end
 end
 
+-- Execute a custom debugger command and return its output.
+function C:custom_command(cmd)
+  return self.proxy:query('handle-command ' .. cmd)
+end
+
 return C

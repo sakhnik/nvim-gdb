@@ -51,6 +51,10 @@ function! nvimgdb#GlobalInit()
   command! GdbLopenBacktrace call GdbCallAsync('lopen', 'backtrace', '<mods>')
   command! GdbLopenBreakpoints call GdbCallAsync('lopen', 'breakpoints', '<mods>')
 
+  function! GdbCustomCommand(cmd)
+    return luaeval("nvimgdb.i():custom_command(_A[1])", [a:cmd])
+  endfunction
+
   augroup NvimGdb
     au!
     au TabEnter * call GdbHandleEvent("on_tab_enter")
@@ -78,6 +82,8 @@ function! nvimgdb#GlobalCleanup()
   call nvimgdb#ClearAugroup("NvimGdb")
   " Cleanup custom events
   call nvimgdb#ClearAugroup("NvimGdbInternal")
+
+  delfunction GdbCustomCommand
 
   " Cleanup user commands and keymaps
   delcommand GdbDebugStop
