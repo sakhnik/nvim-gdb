@@ -94,7 +94,7 @@ function C:cleanup(tab)
   end
 
   -- TabEnter isn't fired automatically when a tab is closed
-  nvimgdb.i():on_tab_enter()
+  nvimgdb.i(0):on_tab_enter()
 end
 
 -- Send a command to the debugger.

@@ -26,26 +26,28 @@ function C.new(backend_name, proxy_cmd, client_cmd)
 end
 
 local Trap = {}
-Trap.__index = function(obj, key)
-  return (function(...)
-    log.warn(arg)
-    return Trap.new(key)
-  end)
-end
+setmetatable(Trap, {__index = function(t, k)
+  return function(...)
+    log.warn({"Missing key", k, {...}})
+    return t
+  end
+end})
 
-function Trap.new(key)
-  log.warn("Missing key " .. key)
-  local self = setmetatable({}, Trap)
-  return self
-end
+local SilentTrap = {}
+setmetatable(SilentTrap, {__index = function(t, k)
+  return function(...) return t end
+end})
 
 -- Access the current instance of the debugger.
-function C.i()
+function C.i(silent)
   local tab = vim.api.nvim_get_current_tabpage()
   local inst = apps[tab]
   if inst == nil then
-    -- TODO don't report on on_tab_enter/on_tab_leave
-    return Trap.new("tabpage " .. tab)
+    if silent ~= nil then
+      return SilentTrap.foo()
+    else
+      return Trap.tabpage(tab, silent)
+    end
   end
   return inst
 end
