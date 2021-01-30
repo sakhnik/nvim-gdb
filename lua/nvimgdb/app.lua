@@ -110,4 +110,35 @@ function C:custom_command(cmd)
   return self.proxy:query('handle-command ' .. cmd)
 end
 
+--[[Create a window to watch for a debugger expression.
+
+The output of the expression or command will be displayed
+in that window.
+]]
+function C:create_watch(cmd)
+  vim.cmd("vnew | set readonly buftype=nowrite")
+  self.keymaps:dispatch_set()
+  local buf = vim.api.nvim_get_current_buf()
+  vim.api.nvim_buf_set_name(buf, cmd)
+
+  local cur_tabpage = vim.api.nvim_get_current_tabpage()
+  local augroup_name = "NvimGdbTab" .. cur_tabpage .. "_" .. buf
+
+  vim.cmd("augroup " .. augroup_name)
+  vim.cmd("autocmd!")
+  vim.cmd("autocmd User NvimGdbQuery" ..
+          " call nvim_buf_set_lines(" .. buf .. ", 0, -1, 0," ..
+          " split(GdbCustomCommand('" .. cmd .. "'), '\\n'))")
+  vim.cmd("augroup END")
+
+  -- Destroy the autowatch automatically when the window is gone.
+  vim.cmd("autocmd BufWinLeave <buffer> call" ..
+          " nvimgdb#ClearAugroup('" .. augroup_name .. "')")
+  -- Destroy the watch buffer.
+  vim.cmd("autocmd BufWinLeave <buffer> call timer_start(100," ..
+          " { -> execute('bwipeout! " .. buf .. "') })")
+  -- Return the cursor to the previous window
+  vim.cmd("wincmd l")
+end
+
 return C

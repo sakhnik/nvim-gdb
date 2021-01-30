@@ -20,36 +20,6 @@ class App(Common):
     def _get_command(self, cmd):
         return self.vim.exec_lua(f"return nvimgdb.i().backend:translate_command('{cmd}')")
 
-    def create_watch(self, cmd):
-        """Create a window to watch for a debugger expression.
-
-        The output of the expression or command will be displayed
-        in that window.
-        """
-        self.vim.command("vnew | set readonly buftype=nowrite")
-        self.vim.exec_lua("nvimgdb.i().keymaps:dispatch_set()")
-        buf = self.vim.current.buffer
-        buf.name = cmd
-
-        cur_tabpage = self.vim.current.tabpage.number
-        augroup_name = f"NvimGdbTab{cur_tabpage}_{buf.number}"
-
-        self.vim.command(f"augroup {augroup_name}")
-        self.vim.command("autocmd!")
-        self.vim.command("autocmd User NvimGdbQuery"
-                         f" call nvim_buf_set_lines({buf.number}, 0, -1, 0,"
-                         f" split(GdbCustomCommand('{cmd}'), '\\n'))")
-        self.vim.command("augroup END")
-
-        # Destroy the autowatch automatically when the window is gone.
-        self.vim.command("autocmd BufWinLeave <buffer> call"
-                         f" nvimgdb#ClearAugroup('{augroup_name}')")
-        # Destroy the watch buffer.
-        self.vim.command("autocmd BufWinLeave <buffer> call timer_start(100,"
-                         f" {{ -> execute('bwipeout! {buf.number}') }})")
-        # Return the cursor to the previous window
-        self.vim.command("wincmd l")
-
     def breakpoint_toggle(self):
         """Toggle breakpoint in the cursor line."""
         if self.vim.exec_lua("return nvimgdb.i().parser:is_running()"):

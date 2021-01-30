@@ -156,8 +156,3 @@ class Gdb(Common):
         except Exception:
             self.logger.exception('GdbCall Exception')
         return None
-
-    @pynvim.function('GdbCreateWatch', sync=True)
-    def gdb_create_watch(self, args):
-        """Handle command GdbCreateWatch."""
-        return self.gdb_call(["create_watch"] + args)
