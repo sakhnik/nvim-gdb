@@ -222,4 +222,27 @@ function C:on_buf_leave()
   end
 end
 
+-- Load backtrace or breakpoints into the location list.
+function C:lopen(kind, mods)
+  local cmd = ''
+  if kind == "backtrace" then
+    cmd = self.backend:translate_command('bt')
+  elseif kind == "breakpoints" then
+    cmd = self.backend:translate_command('info breakpoints')
+  else
+    log.warn({"Unknown lopen kind", kind})
+    return
+  end
+  self.win:lopen(cmd, kind, mods)
+end
+
+function C:get_for_llist(kind, cmd)
+  local output = self:custom_command(cmd)
+  local lines = {}
+  for line in output:gmatch("[^\r\n]+") do
+    lines[#lines + 1] = line
+  end
+  return lines
+end
+
 return C
