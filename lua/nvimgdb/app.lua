@@ -163,4 +163,14 @@ function C:breakpoint_toggle()
   end
 end
 
+function C:breakpoint_clear_all()
+  -- Clear all breakpoints.
+  if self.parser:is_running() then
+    -- pause first
+    self.client:interrupt()
+  end
+  -- The breakpoint signs will be requeried later automatically
+  self:send('delete_breakpoints')
+end
+
 return C

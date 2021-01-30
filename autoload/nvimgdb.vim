@@ -34,7 +34,7 @@ endfunction
 function! nvimgdb#GlobalInit()
   command! GdbDebugStop call GdbCleanup(nvim_get_current_tabpage())
   command! GdbBreakpointToggle lua nvimgdb.i():breakpoint_toggle()
-  command! GdbBreakpointClearAll call GdbBreakpointClearAll()
+  command! GdbBreakpointClearAll lua nvimgdb.i():breakpoint_clear_all()
   command! GdbFrame lua nvimgdb.i():send('f')
   command! GdbRun lua nvimgdb.i():send('run')
   command! GdbUntil lua nvimgdb.i():send('until %s', vim.fn.line('.'))

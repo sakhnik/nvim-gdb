@@ -17,14 +17,6 @@ class App(Common):
 
         self.vim.exec_lua(f"nvimgdb.new('{backendStr}', '{proxyCmd}', '{clientCmd}')")
 
-    def breakpoint_clear_all(self):
-        """Clear all breakpoints."""
-        if self.vim.exec_lua("return nvimgdb.i().parser:is_running()"):
-            # pause first
-            self.vim.exec_lua("nvimgdb.i().client:interrupt()")
-        # The breakpoint signs will be requeried later automatically
-        self.vim.exec_lua("nvimgdb.i():send('delete_breakpoints')")
-
     def on_tab_enter(self):
         """Actions to execute when a tabpage is entered."""
         # Restore the signs as they may have been spoiled
