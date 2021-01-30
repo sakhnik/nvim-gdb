@@ -141,4 +141,26 @@ function C:create_watch(cmd)
   vim.cmd("wincmd l")
 end
 
+-- Toggle breakpoint in the cursor line.
+function C:breakpoint_toggle()
+  if self.parser:is_running() then
+    -- pause first
+    self.client:interrupt()
+  end
+  local buf = vim.api.nvim_get_current_buf()
+  local file_name = vim.fn.expand('#' .. buf .. ':p')
+  local line_nr = vim.fn.line(".")
+  local breaks = self.breakpoint:get_for_file(file_name, tostring(line_nr))
+
+  if #breaks > 0 then
+    -- There already is a breakpoint on this line: remove
+    -- TODO Retest and fix garbage output in GDB
+    local del_br = self.backend:translate_command('delete_breakpoints')
+    self.client:send_line(del_br .. ' ' .. breaks[#breaks])
+  else
+    local set_br = self.backend:translate_command('breakpoint')
+    self.client:send_line(set_br .. ' ' .. file_name .. ':' .. line_nr)
+  end
+end
+
 return C

@@ -33,7 +33,7 @@ endfunction
 "Shared global state initialization (commands, keymaps etc)
 function! nvimgdb#GlobalInit()
   command! GdbDebugStop call GdbCleanup(nvim_get_current_tabpage())
-  command! GdbBreakpointToggle call GdbBreakpointToggle()
+  command! GdbBreakpointToggle lua nvimgdb.i():breakpoint_toggle()
   command! GdbBreakpointClearAll call GdbBreakpointClearAll()
   command! GdbFrame lua nvimgdb.i():send('f')
   command! GdbRun lua nvimgdb.i():send('run')

@@ -17,27 +17,6 @@ class App(Common):
 
         self.vim.exec_lua(f"nvimgdb.new('{backendStr}', '{proxyCmd}', '{clientCmd}')")
 
-    def _get_command(self, cmd):
-        return self.vim.exec_lua(f"return nvimgdb.i().backend:translate_command('{cmd}')")
-
-    def breakpoint_toggle(self):
-        """Toggle breakpoint in the cursor line."""
-        if self.vim.exec_lua("return nvimgdb.i().parser:is_running()"):
-            # pause first
-            self.vim.exec_lua("nvimgdb.i().client:interrupt()")
-        buf = self.vim.current.buffer
-        file_name = self.vim.call("expand", '#%d:p' % buf.handle)
-        line_nr = self.vim.call("line", ".")
-        breaks = self.vim.exec_lua(f"return nvimgdb.i().breakpoint:get_for_file('{file_name}', '{line_nr}')")
-
-        if breaks:
-            # There already is a breakpoint on this line: remove
-            del_br = self._get_command('delete_breakpoints')
-            self.vim.exec_lua(f"nvimgdb.i().client:send_line('{del_br} {breaks[-1]}')")
-        else:
-            set_br = self._get_command('breakpoint')
-            self.vim.exec_lua(f"nvimgdb.i().client:send_line('{set_br} {file_name}:{line_nr}')")
-
     def breakpoint_clear_all(self):
         """Clear all breakpoints."""
         if self.vim.exec_lua("return nvimgdb.i().parser:is_running()"):

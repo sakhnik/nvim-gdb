@@ -102,16 +102,6 @@ class Gdb(Common):
         for tab in [t for t, _ in self.apps.items()]:
             self.gdb_cleanup([tab])
 
-    @pynvim.function('GdbBreakpointToggle', sync=True)
-    def gdb_breakpoint_toggle(self, _):
-        """Handle command GdbBreakpointToggle."""
-        try:
-            app = self._get_app()
-            if app:
-                app.breakpoint_toggle()
-        except Exception:
-            self.logger.exception('GdbBreakpointToggle Exception')
-
     @pynvim.function('GdbBreakpointClearAll', sync=True)
     def gdb_breakpoint_clear_all(self, _):
         """Handle command GdbBreakpointClearAll."""
