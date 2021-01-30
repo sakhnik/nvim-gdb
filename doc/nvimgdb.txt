@@ -331,7 +331,7 @@ Section 9: Development                                    *NvimgdbDevelopment*
 - Breakpoints are queried from GDB, LLDB and PDB on every pause using the
   established side channels: the pty proxy for GDB, LLDB, PDB and BASHDB.
   The communication is done via unix domain sockets (see
-  rplugin/python3/gdb/breakpoint.py).
+  lua/nvimgdb/breakpoint.lua).
 
 ==============================================================================
 Section 10: Trivia                                             *NvimgdbTrivia*
