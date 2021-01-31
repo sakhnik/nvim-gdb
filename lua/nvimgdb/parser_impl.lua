@@ -83,6 +83,9 @@ function C:feed(lines)
     log.debug(line)
     if line == nil or line == '' then
       line = '\n'
+    else
+      -- Filter out control sequences
+      line = line:gsub('\x1B[@-_][0-?]*[ -/]*[@-~]', '')
     end
     self.buffer = self.buffer .. line
     self.byte_count = self.byte_count + #line

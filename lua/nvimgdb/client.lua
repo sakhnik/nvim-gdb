@@ -41,20 +41,20 @@ function C:cleanup()
   assert(os.remove(self.sock_dir))
 end
 
-function C:start()
+function C:start(parser)
   -- Open a terminal window with the debugger client command.
   -- Go to the yet-to-be terminal window
   vim.api.nvim_set_current_win(self.win)
-  local cur_tabpage = vim.api.nvim_get_current_tabpage()
   local cur_window = vim.api.nvim_get_current_win()
   self.client_id = vim.fn.termopen(self.command,
-    {on_stdout = function(j,d,e) nvimgdb.parser_feed(cur_tabpage, d) end,
+    {on_stdout = function(j,d,e) parser:feed(d) end,
      on_exit = function(j,c,e) if c == 0 then vim.api.nvim_win_close(cur_window, true) end end,
     })
 
   -- Allow detaching the terminal from its window
   vim.o.bufhidden = "hide"
   -- Finish the debugging session when the terminal is closed
+  local cur_tabpage = vim.api.nvim_get_current_tabpage()
   vim.cmd("au TermClose <buffer> lua nvimgdb.cleanup(" .. cur_tabpage .. ")")
 end
 

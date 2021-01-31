@@ -86,17 +86,6 @@ function C.cleanup(tab)
   end
 end
 
-function C.parser_feed(tab, content)
-  local app = apps[tab]
-  if app ~= nil then
-    -- TODO feed chunkwise
-    for i, ele in ipairs(content) do
-      content[i] = ele:gsub('\x1B[@-_][0-?]*[ -/]*[@-~]', '')
-    end
-    app.parser:feed(content)
-  end
-end
-
 -- Handle the function GdbHandleTabClosed.
 function C.on_tab_closed()
   log.info("Handle TabClosed")

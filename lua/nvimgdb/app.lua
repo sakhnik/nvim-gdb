@@ -59,7 +59,7 @@ function C:start()
   self.keymaps:dispatch_set_t()
   self.keymaps:dispatch_set()
 
-  self.client:start()
+  self.client:start(self.parser)
   vim.cmd("doautocmd User NvimGdbStart")
 end
 
