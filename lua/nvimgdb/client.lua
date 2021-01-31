@@ -1,6 +1,7 @@
 -- The class to maintain connection to the debugger client.
 -- vim: set et ts=2 sw=2:
 
+local log = require'nvimgdb.log'
 local uv = vim.loop
 
 local C = {}
@@ -65,6 +66,7 @@ end
 
 function C:send_line(data)
   -- Execute one command on the debugger interpreter.
+  log.debug({"send_line", data})
   vim.fn.jobsend(self.client_id, data .. "\n")
 end
 

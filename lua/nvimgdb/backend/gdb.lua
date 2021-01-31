@@ -48,7 +48,7 @@ function C.query_breakpoints(fname, proxy)
   for line in response:gmatch("[^\n\r]+") do
     if line:find("%sy%s+0x") ~= nil then    -- Is enabled?
       local fields = {}
-      for field in line:gmatch("[^s]+") do
+      for field in line:gmatch("[^%s]+") do
         fields[#fields+1] = field
       end
       -- file.cpp:line

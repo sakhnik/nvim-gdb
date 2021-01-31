@@ -157,7 +157,6 @@ function C:breakpoint_toggle()
 
   if #breaks > 0 then
     -- There already is a breakpoint on this line: remove
-    -- TODO Retest and fix garbage output in GDB
     local del_br = self.backend:translate_command('delete_breakpoints')
     self.client:send_line(del_br .. ' ' .. breaks[#breaks])
   else
