@@ -46,7 +46,12 @@ function C:start()
   -- Go to the yet-to-be terminal window
   vim.api.nvim_set_current_win(self.win)
   local cur_tabpage = vim.api.nvim_get_current_tabpage()
-  self.client_id = vim.fn["nvimgdb#TermOpen"](self.command, cur_tabpage)
+  local cur_window = vim.api.nvim_get_current_win()
+  self.client_id = vim.fn.termopen(self.command,
+    {on_stdout = function(j,d,e) nvimgdb.parser_feed(cur_tabpage, d) end,
+     on_exit = function(j,c,e) if c == 0 then vim.api.nvim_win_close(cur_window, true) end end,
+    })
+
   -- Allow detaching the terminal from its window
   vim.o.bufhidden = "hide"
   -- Finish the debugging session when the terminal is closed
