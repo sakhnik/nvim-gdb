@@ -17,6 +17,7 @@ import re
 import select
 import signal
 import socket
+import sys
 import termios
 import tty
 from typing import Union
@@ -37,6 +38,7 @@ class BaseProxy:
                             help='A file to dump the side channel UDP port.')
         args = parser.parse_args()
 
+        self.exitstatus = 0
         self.server_address: str = args.address
         self.argv = args.cmd
         log_handler = logging.NullHandler() if not os.environ.get('CI') \
@@ -64,9 +66,13 @@ class BaseProxy:
         self.last_addr = None
 
         # Spawn the process in a PTY
-        pid, self.master_fd = pty.fork()
-        if pid == pty.CHILD:
-            os.execvp(self.argv[0], self.argv)
+        self.pid, self.master_fd = pty.fork()
+        if self.pid == pty.CHILD:
+            try:
+                os.execvp(self.argv[0], self.argv)
+            except OSError as e:
+                sys.stderr.write(f"Failed to launch: {e}\n")
+                os._exit(1)
 
     def run(self):
         """Run the proxy, the entry point."""
@@ -90,6 +96,15 @@ class BaseProxy:
             raise
         finally:
             tty.tcsetattr(pty.STDIN_FILENO, tty.TCSAFLUSH, mode)
+
+            _, systemstatus = os.waitpid(self.pid, 0)
+            if systemstatus:
+                if os.WIFSIGNALED(systemstatus):
+                    self.exitstatus = os.WTERMSIG(systemstatus) + 128
+                else:
+                    self.exitstatus = os.WEXITSTATUS(systemstatus)
+            else:
+                self.exitstatus = 0
 
             os.close(self.master_fd)
             self.master_fd = None

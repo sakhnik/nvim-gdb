@@ -8,6 +8,7 @@ to a user.
 """
 
 import re
+import sys
 
 from base_proxy import BaseProxy
 from typing import AnyStr
@@ -26,4 +27,6 @@ class LldbProxy(BaseProxy):
 
 
 if __name__ == '__main__':
-    LldbProxy().run()
+    proxy = LldbProxy()
+    proxy.run()
+    sys.exit(proxy.exitstatus)

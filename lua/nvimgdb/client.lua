@@ -46,10 +46,15 @@ function C:start(parser)
   -- Open a terminal window with the debugger client command.
   -- Go to the yet-to-be terminal window
   vim.api.nvim_set_current_win(self.win)
-  local cur_window = vim.api.nvim_get_current_win()
-  self.client_id = vim.fn.termopen(self.command,
-    {on_stdout = function(j,d,e) parser:feed(d) end,
-     on_exit = function(j,c,e) if c == 0 then vim.api.nvim_win_close(cur_window, true) end end,
+  local term_window = vim.api.nvim_get_current_win()
+  local on_exit = function(exit_code)
+    if exit_code == 0 and vim.api.nvim_win_is_valid(term_window) then
+      vim.api.nvim_win_close(term_window, true)
+    end 
+  end
+  self.client_id = vim.fn.termopen(self.command, {
+      on_stdout = function(j, d, e) parser:feed(d) end,
+      on_exit = function(j, c, e) on_exit(c) end,
     })
 
   -- Allow detaching the terminal from its window

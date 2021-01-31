@@ -8,6 +8,7 @@ to a user.
 """
 
 import re
+import sys
 
 from base_proxy import BaseProxy
 
@@ -25,4 +26,6 @@ class BashDbProxy(BaseProxy):
 
 
 if __name__ == '__main__':
-    BashDbProxy().run()
+    proxy = BashDbProxy()
+    proxy.run()
+    sys.exit(proxy.exitstatus)

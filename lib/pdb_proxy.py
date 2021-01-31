@@ -8,6 +8,7 @@ to a user.
 """
 
 import re
+import sys
 
 from base_proxy import BaseProxy
 
@@ -25,4 +26,6 @@ class PdbProxy(BaseProxy):
 
 
 if __name__ == '__main__':
-    PdbProxy().run()
+    proxy = PdbProxy()
+    proxy.run()
+    sys.exit(proxy.exitstatus)
