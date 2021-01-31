@@ -1,2 +1,2 @@
 Store and load breakpoints between sessions
-TODO <leader>dd <esc> gt gt gt gt
+Make test/nvim log spy screens into a file, create a procedure for issue reporting
