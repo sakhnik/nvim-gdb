@@ -86,6 +86,11 @@ function C.cleanup(tab)
   end
 end
 
+-- Peek into the application count for testing
+function C.get_app_count()
+  return apps_size
+end
+
 -- Handle the function GdbHandleTabClosed.
 function C.on_tab_closed()
   log.info("Handle TabClosed")

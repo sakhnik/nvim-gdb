@@ -31,8 +31,9 @@ function C.new(proxy_cmd, client_cmd)
   return self
 end
 
+-- Destructor
 function C:cleanup()
-  if vim.fn.bufexists(self.client_buf) then
+  if vim.api.nvim_buf_is_valid(self.client_buf) and vim.fn.bufexists(self.client_buf) then
     vim.api.nvim_buf_delete(self.client_buf, {["force"] = true})
   end
 
@@ -48,9 +49,11 @@ function C:start(parser)
   vim.api.nvim_set_current_win(self.win)
   local term_window = vim.api.nvim_get_current_win()
   local on_exit = function(exit_code)
-    if exit_code == 0 and vim.api.nvim_win_is_valid(term_window) then
-      vim.api.nvim_win_close(term_window, true)
-    end 
+    -- Actually, there is no need to close the debugger terminal automatically.
+    -- Let the user be able to review the session.
+    --if exit_code == 0 and vim.api.nvim_win_is_valid(term_window) then
+    --  vim.api.nvim_win_close(term_window, true)
+    --end 
   end
   self.client_id = vim.fn.termopen(self.command, {
       on_stdout = function(j, d, e) parser:feed(d) end,
@@ -60,8 +63,10 @@ function C:start(parser)
   -- Allow detaching the terminal from its window
   vim.o.bufhidden = "hide"
   -- Finish the debugging session when the terminal is closed
-  local cur_tabpage = vim.api.nvim_get_current_tabpage()
-  vim.cmd("au TermClose <buffer> lua nvimgdb.cleanup(" .. cur_tabpage .. ")")
+  -- Left the remains of the code intentionally to remind that there is no need
+  -- to close the debugger terminal automatically.
+  --local cur_tabpage = vim.api.nvim_get_current_tabpage()
+  --vim.cmd("au TermClose <buffer> lua nvimgdb.cleanup(" .. cur_tabpage .. ")")
 end
 
 function C:interrupt()
