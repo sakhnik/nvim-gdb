@@ -10,6 +10,7 @@ C.__index = C
 -- Proxy to the side channel.
 function C.new(client)
   local self = setmetatable({}, C)
+  self.client = client
   self.proxy_addr = client:get_proxy_addr()
 
   self.sock = assert(uv.new_udp())
@@ -45,6 +46,10 @@ end
 -- Send a request to the proxy and wait for the response.
 function C:query(request)
   log.info("Query " .. request)
+
+  if not self.client.is_active then
+    return ''
+  end
 
   -- It takes time for the proxy to open a side channel.
   -- So we're connecting to the socket lazily during

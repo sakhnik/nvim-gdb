@@ -16,9 +16,9 @@ function C.new(proxy_cmd, client_cmd)
   local self = setmetatable({}, C)
   self.win = vim.api.nvim_get_current_win()
   self.client_id = nil
+  self.is_active = false
   -- Create a temporary unique directory for all the sockets.
   self.sock_dir = uv.fs_mkdtemp(uv.os_tmpdir() .. '/nvimgdb-sock-XXXXXX')
-  --uv.fs_rmdir(self.sock_dir)
 
   -- Prepare the debugger command to run
   self.command = client_cmd
@@ -47,8 +47,11 @@ function C:start(parser)
   -- Open a terminal window with the debugger client command.
   -- Go to the yet-to-be terminal window
   vim.api.nvim_set_current_win(self.win)
-  local term_window = vim.api.nvim_get_current_win()
+  self.is_active = true
+
+  --local term_window = vim.api.nvim_get_current_win()
   local on_exit = function(exit_code)
+    self.is_active = false
     -- Actually, there is no need to close the debugger terminal automatically.
     -- Let the user be able to review the session.
     --if exit_code == 0 and vim.api.nvim_win_is_valid(term_window) then
