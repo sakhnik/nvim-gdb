@@ -22,7 +22,8 @@ function C.new(backend_name, proxy_cmd, client_cmd)
     log.info("Calling nvimgdb#GlobalInit()")
     vim.fn["nvimgdb#GlobalInit"]()
   end
-  app:start()
+  -- Initialize the rest of the app
+  app:postinit()
 end
 
 local Trap = {}

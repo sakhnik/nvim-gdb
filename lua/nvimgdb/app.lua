@@ -47,20 +47,22 @@ function C.new(backend_name, proxy_cmd, client_cmd)
   -- Setup 'errorformat' for the given backend.
   C.efmmgr.setup(self.backend.get_error_formats())
 
+  -- Spawn the debugger, the parser should be ready by now.
+  self.client:start(self.parser)
+  vim.cmd("doautocmd User NvimGdbStart")
+
   -- Start insert mode in the GDB window
   vim.fn.feedkeys("i")
 
   return self
 end
 
--- Spawn the debugger, the parser should be ready by now.
-function C:start()
+-- The late initialization items that require accessing via tabpage.
+function C:postinit()
   -- Set initial keymaps in the terminal window.
+  assert(vim.api.nvim_get_current_win() == self.client.win)
   self.keymaps:dispatch_set_t()
   self.keymaps:dispatch_set()
-
-  self.client:start(self.parser)
-  vim.cmd("doautocmd User NvimGdbStart")
 end
 
 -- Finish up the debugging session.

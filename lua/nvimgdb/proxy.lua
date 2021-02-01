@@ -15,7 +15,6 @@ function C.new(client)
 
   self.sock = assert(uv.new_udp())
   assert(uv.udp_bind(self.sock, "127.0.0.1", 0))
-  --self.sock.settimeout(0.5)
   -- Will connect to the socket later, when the first query is needed
   -- to be issued.
   self.server_port = nil
