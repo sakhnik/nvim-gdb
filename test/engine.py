@@ -26,8 +26,7 @@ class Engine:
 
         self.screen = ""
 
-        args = ["/usr/bin/env", "./nvim", "--embed", "--headless", "-n",
-                "--listen", "localhost:44444"]
+        args = ["/usr/bin/env", "./nvim", "--embed", "--headless", "-n"]
         self.nvim = attach('child', argv=args)
         self.spy_ui = None
         self.thrd = threading.Thread(target=self.run_ui)

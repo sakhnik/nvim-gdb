@@ -1,2 +1,1 @@
 Store and load breakpoints between sessions
-Make test/nvim log spy screens into a file, create a procedure for issue reporting
