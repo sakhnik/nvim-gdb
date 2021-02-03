@@ -1,5 +1,5 @@
 -- Handle configuration settings
--- vim:sw=2 ts=2 et
+-- vim: et sw=2 ts=2:
 
 local Keymaps = require 'nvimgdb.keymaps'
 
@@ -115,7 +115,7 @@ function C._apply_overrides(self)
   end
 end
 
-function C._check_keymap_conflicts(self, key, func, verbose)
+function C:_check_keymap_conflicts(key, func, verbose)
   -- Check for keymap configuration sanity.
   if func:match('^key_.*') ~= nil then
     local prev_func = self.key_to_func[key]
@@ -140,12 +140,12 @@ function C._define_signs(self)
   end
 end
 
-function C.get(self, key)
+function C:get(key)
   return self.config[key]
 end
 
 -- Get the configuration value by key or return the val if missing.
-function C.get_or(self, key, val)
+function C:get_or(key, val)
   local v = self:get(key)
   if v == nil then v = val end
   return v

@@ -1,3 +1,5 @@
+-- vim: set et ts=2 sw=2:
+
 local log = require 'nvimgdb.log'
 
 local C = {}

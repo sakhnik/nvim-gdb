@@ -1,3 +1,5 @@
+-- vim: set et ts=2 sw=2:
+
 local C = {}
 
 C.command_map = {}

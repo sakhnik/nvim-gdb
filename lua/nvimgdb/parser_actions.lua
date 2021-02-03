@@ -1,4 +1,5 @@
 -- Common FSM implementation for the integrated backends.
+-- vim: set et ts=2 sw=2:
 
 local C = {}
 C.__index = C

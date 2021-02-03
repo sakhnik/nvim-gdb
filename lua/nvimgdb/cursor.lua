@@ -1,5 +1,5 @@
 -- Manipulating the current line sign.
--- vim:sw=2 ts=2 et
+-- vim: set et sw=2 ts=2:
 
 local C = {}
 C.__index = C
@@ -42,7 +42,7 @@ function C.show(self)
   end
 end
 
-function C.set(self, buf, line)
+function C:set(buf, line)
   -- Set the current line sign number.
   self.buf = buf
   self.line = tonumber(line)

@@ -1,5 +1,5 @@
 -- Manipulate keymaps: define and undefined when needed.
--- vim:sw=2 ts=2 et
+-- vim: set et sw=2 ts=2:
 
 local C = {}
 C.__index = C
@@ -12,7 +12,7 @@ function C.new(config)
   return self
 end
 
-function C.set_dispatch_active(self, state)
+function C:set_dispatch_active(state)
   -- Turn on/off keymaps manipulation.
   self.dispatch_active = state
 end
@@ -77,7 +77,7 @@ function C.set_t(self)
     '<esc>', [[<c-\><c-n>G]], {['silent'] = true})
 end
 
-function C._dispatch(self, key)
+function C:_dispatch(key)
   if self.dispatch_active then
     self.config:get_or(key, function(_) end)(self)
   end
