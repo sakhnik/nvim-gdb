@@ -87,9 +87,9 @@ class BaseProxy:
         try:
             self._process()
         except OSError as os_err:
-            self.logger.exception("Exception")
             # Avoid printing I/O Error that happens on every GDB quit
             if os_err.errno != errno.EIO:
+                self.logger.exception("Exception")
                 raise
         except Exception:
             self.logger.exception("Exception")
@@ -159,8 +159,13 @@ class BaseProxy:
         """Set the window size of the child pty."""
         assert self.master_fd is not None
         buf = array.array('h', [0, 0, 0, 0])
-        fcntl.ioctl(pty.STDOUT_FILENO, termios.TIOCGWINSZ, buf, True)
-        fcntl.ioctl(self.master_fd, termios.TIOCSWINSZ, buf)
+        try:
+            fcntl.ioctl(pty.STDOUT_FILENO, termios.TIOCGWINSZ, buf, True)
+            fcntl.ioctl(self.master_fd, termios.TIOCSWINSZ, buf)
+        except OSError as ex:
+            # Avoid printing I/O Error that happens on every GDB quit
+            if ex.errno != errno.EIO:
+                self.logger.exception("Exception")
 
     def _process(self):
         """Run the main loop."""
