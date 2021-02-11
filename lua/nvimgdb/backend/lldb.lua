@@ -34,7 +34,7 @@ function C.create_parser(actions)
   return self
 end
 
-function C.query_breakpoints(fname, proxy) 
+function C.query_breakpoints(fname, proxy)
   log.info("Query breakpoints for " .. fname)
   local resp = proxy:query('info-breakpoints ' .. fname)
   if resp == nil or resp == '' then

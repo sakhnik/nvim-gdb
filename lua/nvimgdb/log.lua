@@ -28,12 +28,6 @@ end
 local log_date_format = "%F %H:%M:%S"
 
 do
-  local path_sep = vim.loop.os_uname().sysname == "Windows" and "\\" or "/"
-  --@private
-  local function path_join(...)
-    return table.concat(vim.tbl_flatten{...}, path_sep)
-  end
-  --local logfilename = path_join(vim.fn.stdpath('cache'), 'lsp.log')
   local logfilename = 'nvimgdb.log'
 
   --- Returns the log filename.

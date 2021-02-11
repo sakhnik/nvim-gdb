@@ -69,13 +69,13 @@ function C.query_breakpoints(fname, proxy)
       fields[#fields + 1] = field
     end
     if fields[4] == 'y' then    -- Is enabled?
-      local bpfname, line = fields[#fields]:match("^([^:]+):(%d+)$")  -- file.cpp:line
+      local bpfname, lnum = fields[#fields]:match("^([^:]+):(%d+)$")  -- file.cpp:line
       if bpfname ~= nil then
         if bpfname == fname or vim.loop.fs_realpath(fname) == vim.loop.fs_realpath(bpfname) then
           local br_id = fields[1]
-          local list = breaks[line]
+          local list = breaks[lnum]
           if list == nil then
-            breaks[line] = {br_id}
+            breaks[lnum] = {br_id}
           else
             list[#list + 1] = br_id
           end

@@ -59,11 +59,11 @@ function C.query_breakpoints(fname, proxy)
     end
     local bid = tokens[1]
     if tokens[2] == 'breakpoint' and tokens[4] == 'yes' then
-      local bpfname, line = tokens[#tokens]:match("^([^:]+):(.+)$")
+      local bpfname, lnum = tokens[#tokens]:match("^([^:]+):(.+)$")
       if fname == bpfname then
-        local list = breaks[line]
+        local list = breaks[lnum]
         if list == nil then
-          breaks[line] = {bid}
+          breaks[lnum] = {bid}
         else
           list[#list + 1] = bid
         end

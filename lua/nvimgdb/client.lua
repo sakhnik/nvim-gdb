@@ -51,16 +51,17 @@ function C:start(parser)
 
   --local term_window = vim.api.nvim_get_current_win()
   local on_exit = function(exit_code)
+    local _ = exit_code
     self.is_active = false
     -- Actually, there is no need to close the debugger terminal automatically.
     -- Let the user be able to review the session.
     --if exit_code == 0 and vim.api.nvim_win_is_valid(term_window) then
     --  vim.api.nvim_win_close(term_window, true)
-    --end 
+    --end
   end
   self.client_id = vim.fn.termopen(self.command, {
-      on_stdout = function(j, d, e) parser:feed(d) end,
-      on_exit = function(j, c, e) on_exit(c) end,
+      on_stdout = function(_, d, _) parser:feed(d) end,
+      on_exit = function(_, c, _) on_exit(c) end,
     })
 
   -- Allow detaching the terminal from its window

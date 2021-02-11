@@ -52,7 +52,7 @@ function C.query_breakpoints(fname, proxy)
         fields[#fields+1] = field
       end
       -- file.cpp:line
-      local bpfname, line = fields[#fields]:match("^([^:]+):(%d+)$")
+      local bpfname, lnum = fields[#fields]:match("^([^:]+):(%d+)$")
       if bpfname ~= nil then
         local is_end_match = fname:sub(-#bpfname) == bpfname  -- ends with
         -- Try with the real path too
@@ -64,9 +64,9 @@ function C.query_breakpoints(fname, proxy)
           -- allows to disable by the breakpoint number, not
           -- location number.  For instance, 1.4 -> 1
           local bid = fields[1]:gmatch("[^.]+")()
-          local list = breaks[line]
+          local list = breaks[lnum]
           if list == nil then
-            breaks[line] = {bid}
+            breaks[lnum] = {bid}
           else
             list[#list + 1] = bid
           end

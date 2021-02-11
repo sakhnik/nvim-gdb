@@ -67,9 +67,9 @@ function C:query(request)
       return
     end
 
-    assert(uv.udp_recv_start(self.sock, function(err, data, addr, flags)
-      if err ~= nil then
-        o_err = err
+    assert(uv.udp_recv_start(self.sock, function(err2, data, --[[addr]]_, --[[flags]]_)
+      if err2 ~= nil then
+        o_err = err2
         return
       end
       if data ~= nil then
