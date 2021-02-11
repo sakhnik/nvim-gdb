@@ -34,7 +34,7 @@ end
 -- Destructor
 function C:cleanup()
   if vim.api.nvim_buf_is_valid(self.client_buf) and vim.fn.bufexists(self.client_buf) then
-    vim.api.nvim_buf_delete(self.client_buf, {["force"] = true})
+    vim.api.nvim_buf_delete(self.client_buf, {force = true})
   end
 
   if self.proxy_addr then

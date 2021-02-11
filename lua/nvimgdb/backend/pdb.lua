@@ -74,9 +74,9 @@ function C.query_breakpoints(fname, proxy)
 end
 
 C.command_map = {
-  ['delete_breakpoints'] = 'clear',
-  ['breakpoint'] = 'break',
-  ['finish'] = 'return',
+  delete_breakpoints = 'clear',
+  breakpoint = 'break',
+  finish = 'return',
   ['print %s'] = 'print(%s)',
   ['info breakpoints'] = 'break',
 }

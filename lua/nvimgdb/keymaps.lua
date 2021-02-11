@@ -38,7 +38,7 @@ function C.set(self)
     local keystroke = self.config:get(key)
     if keystroke ~= nil then
       vim.api.nvim_buf_set_keymap(vim.api.nvim_get_current_buf(), mode,
-        keystroke, cmd .. '<cr>', {['silent'] = true})
+        keystroke, cmd .. '<cr>', {silent = true})
     end
   end
 end
@@ -70,11 +70,11 @@ function C.set_t(self)
     local keystroke = self.config:get(key)
     if keystroke ~= nil then
       vim.api.nvim_buf_set_keymap(vim.api.nvim_get_current_buf(), 't',
-        keystroke, [[<c-\><c-n>]] .. cmd .. [[<cr>i]], {['silent'] = true})
+        keystroke, [[<c-\><c-n>]] .. cmd .. [[<cr>i]], {silent = true})
     end
   end
   vim.api.nvim_buf_set_keymap(vim.api.nvim_get_current_buf(), 't',
-    '<esc>', [[<c-\><c-n>G]], {['silent'] = true})
+    '<esc>', [[<c-\><c-n>G]], {silent = true})
 end
 
 function C:_dispatch(key)

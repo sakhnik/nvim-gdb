@@ -8,24 +8,24 @@ C.__index = C
 
 -- Default configuration
 local default = {
-  ['key_until']           = '<f4>',
-  ['key_continue']        = '<f5>',
-  ['key_next']            = '<f10>',
-  ['key_step']            = '<f11>',
-  ['key_finish']          = '<f12>',
-  ['key_breakpoint']      = '<f8>',
-  ['key_frameup']         = '<c-p>',
-  ['key_framedown']       = '<c-n>',
-  ['key_eval']            = '<f9>',
-  ['key_quit']            = nil,
-  ['set_tkeymaps']        = Keymaps.set_t,
-  ['set_keymaps']         = Keymaps.set,
-  ['unset_keymaps']       = Keymaps.unset,
-  ['sign_current_line']   = '▶',
-  ['sign_breakpoint']     = {'●', '●²', '●³', '●⁴', '●⁵', '●⁶', '●⁷', '●⁸', '●⁹', '●ⁿ'},
-  ['sign_breakpoint_priority'] = 10,
-  ['codewin_command']     = 'new',
-  ['set_scroll_off']      = 5,
+  key_until           = '<f4>',
+  key_continue        = '<f5>',
+  key_next            = '<f10>',
+  key_step            = '<f11>',
+  key_finish          = '<f12>',
+  key_breakpoint      = '<f8>',
+  key_frameup         = '<c-p>',
+  key_framedown       = '<c-n>',
+  key_eval            = '<f9>',
+  key_quit            = nil,
+  set_tkeymaps        = Keymaps.set_t,
+  set_keymaps         = Keymaps.set,
+  unset_keymaps       = Keymaps.unset,
+  sign_current_line   = '▶',
+  sign_breakpoint     = {'●', '●²', '●³', '●⁴', '●⁵', '●⁶', '●⁷', '●⁸', '●⁹', '●ⁿ'},
+  sign_breakpoint_priority = 10,
+  codewin_command     = 'new',
+  set_scroll_off      = 5,
 }
 
 -- Turn a string into a funcref looking up a Vim function.
@@ -133,10 +133,10 @@ end
 
 function C._define_signs(self)
   -- Define the sign for current line the debugged program is executing.
-  vim.fn.sign_define('GdbCurrentLine', {['text'] = self.config.sign_current_line})
+  vim.fn.sign_define('GdbCurrentLine', {text = self.config.sign_current_line})
   -- Define signs for the breakpoints.
   for i, brk in ipairs(self.config.sign_breakpoint) do
-    vim.fn.sign_define('GdbBreakpoint' .. i, {['text'] = brk})
+    vim.fn.sign_define('GdbBreakpoint' .. i, {text = brk})
   end
 end
 

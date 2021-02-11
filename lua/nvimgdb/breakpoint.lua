@@ -21,7 +21,7 @@ end
 function C:clear_signs()
   -- Clear all breakpoint signs.
   for i = 5000, self.max_sign_id do
-    vim.fn.sign_unplace('NvimGdb', {['id'] = i})
+    vim.fn.sign_unplace('NvimGdb', {id = i})
   end
   self.max_sign_id = 0
 end
@@ -47,7 +47,7 @@ function C:_set_signs(buf)
         sign_id = sign_id + 1
         local sign_name = _get_sign_name(#ids)
         vim.fn.sign_place(sign_id, 'NvimGdb', sign_name, buf,
-                      {['lnum'] = line, ['priority'] = priority})
+                      {lnum = line, priority = priority})
       end
       self.max_sign_id = sign_id
     end

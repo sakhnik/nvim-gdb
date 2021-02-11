@@ -87,8 +87,8 @@ function C.query_breakpoints(fname, proxy)
 end
 
 C.command_map = {
-  ['delete_breakpoints'] = 'delete',
-  ['breakpoint'] = 'break',
+  delete_breakpoints = 'delete',
+  breakpoint = 'break',
   ['info breakpoints'] = 'info breakpoints',
 }
 

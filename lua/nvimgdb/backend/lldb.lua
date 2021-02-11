@@ -52,8 +52,8 @@ function C.query_breakpoints(fname, proxy)
 end
 
 C.command_map = {
-  ['delete_breakpoints'] = 'breakpoint delete',
-  ['breakpoint'] = 'b',
+  delete_breakpoints = 'breakpoint delete',
+  breakpoint = 'b',
   ['until %s'] = 'thread until %s',
   ['info breakpoints'] = 'nvim-gdb-info-breakpoints',
 }
