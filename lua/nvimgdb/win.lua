@@ -176,7 +176,7 @@ function C:lopen(cmd, kind, mods)
       if self.jump_win ~= vim.api.nvim_get_current_win() then
         vim.api.nvim_set_current_win(self.jump_win)
       end
-      local lgetexpr = "lgetexpr luaeval('nvimgdb.i():get_for_llist(_A[1], _A[2])', ['" .. kind .. "', '" .. cmd .. "'])"
+      local lgetexpr = "lgetexpr luaeval('NvimGdb.i():get_for_llist(_A[1], _A[2])', ['" .. kind .. "', '" .. cmd .. "'])"
       vim.cmd(lgetexpr)
       vim.cmd("exe 'normal <c-o>' | " .. mods .. " lopen")
     end)

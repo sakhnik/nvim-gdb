@@ -111,11 +111,11 @@ def test_eval(eng, post, terminal_end):
     eng.feed('<f10>')
 
     eng.feed('^<f9>')
-    assert eng.exec_lua('return nvimgdb.i()._last_command') == 'print(_foo)'
+    assert eng.exec_lua('return NvimGdb.i()._last_command') == 'print(_foo)'
 
     eng.feed('viW')
     eng.feed(':GdbEvalRange\n')
-    assert eng.exec_lua('return nvimgdb.i()._last_command') == 'print(_foo(i))'
+    assert eng.exec_lua('return NvimGdb.i()._last_command') == 'print(_foo(i))'
 
 
 def test_expand(eng, post):

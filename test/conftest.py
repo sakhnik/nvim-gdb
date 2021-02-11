@@ -41,9 +41,9 @@ if "lldb" in config.BACKEND_NAMES:
 def terminal_end(eng):
     '''Check that the terminal last line is visible.'''
     yield True
-    cursor_line = eng.exec_lua("return vim.api.nvim_win_get_cursor(nvimgdb.i().client.win)[1]")
-    last_line = eng.exec_lua("return vim.api.nvim_buf_line_count(vim.api.nvim_win_get_buf(nvimgdb.i().client.win))")
-    win_height = eng.exec_lua("return vim.api.nvim_win_get_height(nvimgdb.i().client.win)")
+    cursor_line = eng.exec_lua("return vim.api.nvim_win_get_cursor(NvimGdb.i().client.win)[1]")
+    last_line = eng.exec_lua("return vim.api.nvim_buf_line_count(vim.api.nvim_win_get_buf(NvimGdb.i().client.win))")
+    win_height = eng.exec_lua("return vim.api.nvim_win_get_height(NvimGdb.i().client.win)")
     assert cursor_line >= last_line - win_height
 
 

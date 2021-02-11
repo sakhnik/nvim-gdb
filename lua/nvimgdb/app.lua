@@ -98,7 +98,7 @@ function C:cleanup(tab)
   end
 
   -- TabEnter isn't fired automatically when a tab is closed
-  nvimgdb.i(0):on_tab_enter()
+  NvimGdb.i(0):on_tab_enter()
 end
 
 -- Send a command to the debugger.
@@ -240,6 +240,7 @@ function C:lopen(kind, mods)
 end
 
 function C:get_for_llist(kind, cmd)
+  local _ = kind  -- ignore for now
   local output = self:custom_command(cmd)
   local lines = {}
   for line in output:gmatch("[^\r\n]+") do

@@ -69,7 +69,7 @@ function C:start(parser)
   -- Left the remains of the code intentionally to remind that there is no need
   -- to close the debugger terminal automatically.
   --local cur_tabpage = vim.api.nvim_get_current_tabpage()
-  --vim.cmd("au TermClose <buffer> lua nvimgdb.cleanup(" .. cur_tabpage .. ")")
+  --vim.cmd("au TermClose <buffer> lua NvimGdb.cleanup(" .. cur_tabpage .. ")")
 end
 
 function C:interrupt()

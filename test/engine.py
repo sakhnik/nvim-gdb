@@ -153,7 +153,7 @@ class Engine:
     def wait_paused(self):
         '''Wait until the parser FSM goes into the paused state.'''
         return self.wait_for(
-            lambda: self.exec_lua("return nvimgdb.i().parser:is_paused()"),
+            lambda: self.exec_lua("return NvimGdb.i().parser:is_paused()"),
             lambda res: res, self.launch_delay)
 
     @staticmethod

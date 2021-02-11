@@ -5,7 +5,7 @@ local log = require 'nvimgdb.log'
 local apps = {}
 local apps_size = 0
 
-local C = {}
+C = {}
 C.efmmgr = require 'nvimgdb.efmmgr'
 C.__index = C
 
@@ -35,8 +35,8 @@ setmetatable(Trap, {__index = function(t, k)
 end})
 
 local SilentTrap = {}
-setmetatable(SilentTrap, {__index = function(t, k)
-  return function(...) return t end
+setmetatable(SilentTrap, {__index = function(t, _)
+  return function() return t end
 end})
 
 -- Access the current instance of the debugger.
@@ -100,7 +100,7 @@ function C.on_tab_closed()
   for _, tab in ipairs(active_tabs) do
     active_tabs_set[tab] = true
   end
-  for tab, app in pairs(apps) do
+  for tab, _ in pairs(apps) do
     if active_tabs_set[tab] == nil then
       C.cleanup(tab)
     end
@@ -114,5 +114,8 @@ function C.on_vim_leave_pre()
     C.gdb_cleanup(tab)
   end
 end
+
+-- Make it globally accessible
+NvimGdb = C
 
 return C

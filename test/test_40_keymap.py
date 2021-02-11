@@ -43,7 +43,7 @@ def test_conflict(eng, keymap):
     count = eng.exec_lua("""
         return (function()
             count = 0
-            for key, _ in pairs(nvimgdb.i().config.config) do
+            for key, _ in pairs(NvimGdb.i().config.config) do
                 if key:match("^key_.*") ~= nil then
                     count = count + 1
                 end
@@ -62,7 +62,7 @@ def test_override(eng, keymap):
     assert keymap
     eng.exe("let g:nvimgdb_config_override = {'key_next': '<f2>'}")
     eng.feed(":GdbStart ./dummy-gdb.sh\n")
-    key = eng.exec_lua('return nvimgdb.i().config:get("key_next")')
+    key = eng.exec_lua('return NvimGdb.i().config:get("key_next")')
     assert key == '<f2>'
 
 
@@ -71,7 +71,7 @@ def test_override_priority(eng, keymap):
     assert keymap
     eng.exe("let g:nvimgdb_config_override = {'key_next': '<f8>'}")
     eng.feed(":GdbStart ./dummy-gdb.sh\n")
-    res = eng.exec_lua('return nvimgdb.i().config:get_or("key_breakpoint", 0)')
+    res = eng.exec_lua('return NvimGdb.i().config:get_or("key_breakpoint", 0)')
     assert res == 0
 
 
@@ -80,7 +80,7 @@ def test_override_one(eng, keymap):
     assert keymap
     eng.exe("let g:nvimgdb_key_next = '<f3>'")
     eng.feed(":GdbStart ./dummy-gdb.sh\n")
-    key = eng.exec_lua('return nvimgdb.i().config:get_or("key_next", 0)')
+    key = eng.exec_lua('return NvimGdb.i().config:get_or("key_next", 0)')
     assert key == '<f3>'
 
 
@@ -89,7 +89,7 @@ def test_override_one_priority(eng, keymap):
     assert keymap
     eng.exe("let g:nvimgdb_key_next = '<f8>'")
     eng.feed(":GdbStart ./dummy-gdb.sh\n")
-    res = eng.exec_lua('return nvimgdb.i().config:get_or("key_breakpoint", 0)')
+    res = eng.exec_lua('return NvimGdb.i().config:get_or("key_breakpoint", 0)')
     assert res == 0
 
 
@@ -99,9 +99,9 @@ def test_overall(eng, keymap):
     eng.exe("let g:nvimgdb_config_override = {'key_next': '<f5>'}")
     eng.exe("let g:nvimgdb_key_step = '<f5>'")
     eng.feed(":GdbStart ./dummy-gdb.sh\n")
-    res = eng.exec_lua('return nvimgdb.i().config:get_or("key_continue", 0)')
+    res = eng.exec_lua('return NvimGdb.i().config:get_or("key_continue", 0)')
     assert res == 0
-    res = eng.exec_lua('return nvimgdb.i().config:get_or("key_next", 0)')
+    res = eng.exec_lua('return NvimGdb.i().config:get_or("key_next", 0)')
     assert res == 0
-    key = eng.exec_lua('return nvimgdb.i().config:get_or("key_step", 0)')
+    key = eng.exec_lua('return NvimGdb.i().config:get_or("key_step", 0)')
     assert key == '<f5>'
