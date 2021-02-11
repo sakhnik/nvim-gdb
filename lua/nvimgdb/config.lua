@@ -3,10 +3,12 @@
 
 local Keymaps = require 'nvimgdb.keymaps'
 
+-- @class Config @resolved configuration instance
+-- @field private config ConfDict @configuration entries
 local C = {}
 C.__index = C
 
--- Default configuration
+-- @class ConfDict @default configuration
 local default = {
   key_until           = '<f4>',
   key_continue        = '<f5>',
@@ -29,6 +31,9 @@ local default = {
 }
 
 -- Turn a string into a funcref looking up a Vim function.
+-- @param key string callback name
+-- @param val any parameter value expected to be a function reference
+-- @return function
 local function filter_funcref(key, val)
   -- Lookup the key in the default config.
   local def_val = default[key]
@@ -40,6 +45,7 @@ local function filter_funcref(key, val)
   return function(_) vim.call(val) end
 end
 
+-- @return ConfDict @copy and process the configuration supplied
 local function copy_user_config()
   -- Make a copy of the supplied configuration if defined
   local config = vim.g.nvimgdb_config
@@ -65,10 +71,11 @@ local function copy_user_config()
   return config
 end
 
+-- @return Config @create a new configuration instance
 function C.new()
   local self = setmetatable({}, C)
   -- Prepare actual configuration with overrides resolved.
-  self.key_to_func = {}
+  local key_to_func = {}
 
   -- Make a copy of the supplied configuration if defined
   self.config = copy_user_config()
@@ -80,22 +87,24 @@ function C.new()
   end
 
   for func, key in pairs(self.config) do
-    self:_check_keymap_conflicts(key, func, true)
+    self:_check_keymap_conflicts(key, func, key_to_func, true)
   end
 
-  self:_apply_overrides()
+  self:_apply_overrides(key_to_func)
   self:_define_signs()
   return self
 end
 
-function C._apply_overrides(self)
+-- Apply to the configuration user overrides taken from global variables
+-- @param key_to_func table<string, string> @map of keystrokes to their meaning
+function C:_apply_overrides(key_to_func)
   -- If there is config override defined, add it
   local override = vim.g.nvimgdb_config_override
   if override ~= nil then
     for key, val in pairs(override) do
       local key_val = filter_funcref(key, val)
       if key_val ~= nil then
-        self:_check_keymap_conflicts(key_val, key, true)
+        self:_check_keymap_conflicts(key_val, key, key_to_func, true)
         self.config[key] = key_val
       end
     end
@@ -108,30 +117,35 @@ function C._apply_overrides(self)
     if val ~= nil then
       local key_val = filter_funcref(key, val)
       if key_val ~= nil then
-        self:_check_keymap_conflicts(key_val, key, false)
+        self:_check_keymap_conflicts(key_val, key, key_to_func, false)
         self.config[key] = key_val
       end
     end
   end
 end
 
-function C:_check_keymap_conflicts(key, func, verbose)
-  -- Check for keymap configuration sanity.
+-- Check for keymap configuration sanity.
+-- @param key string @configuration parameter
+-- @param func string @configuration parameter value
+-- @param key_to_func table<string, string> @disambiguation dictionary
+-- @param verbose boolean @produce messages if true
+function C:_check_keymap_conflicts(key, func, key_to_func, verbose)
   if func:match('^key_.*') ~= nil then
-    local prev_func = self.key_to_func[key]
+    local prev_func = key_to_func[key]
     if prev_func ~= nil and prev_func ~= func then
       if verbose then
         print('Overriding conflicting keymap "' .. key .. '" for '
           .. func .. ' (was ' .. prev_func .. ')')
       end
-      self.key_to_func[self.config[func]] = nil
+      key_to_func[self.config[func]] = nil
       self.config[prev_func] = nil
     end
-    self.key_to_func[key] = func
+    key_to_func[key] = func
   end
 end
 
-function C._define_signs(self)
+-- Define the cursor and breakpoint signs
+function C:_define_signs()
   -- Define the sign for current line the debugged program is executing.
   vim.fn.sign_define('GdbCurrentLine', {text = self.config.sign_current_line})
   -- Define signs for the breakpoints.
@@ -140,11 +154,17 @@ function C._define_signs(self)
   end
 end
 
+-- Get the configuration value or return nil
+-- @param key string @configuration parameter
+-- @return string | fun():nil @configuration parameter value
 function C:get(key)
   return self.config[key]
 end
 
 -- Get the configuration value by key or return the val if missing.
+-- @param key string @configuration parameter
+-- @param val string @suggested default value
+-- @return string @parameter value or default value
 function C:get_or(key, val)
   local v = self:get(key)
   if v == nil then v = val end

@@ -88,7 +88,7 @@ end
 vim.tbl_add_reverse_lookup(log.levels)
 
 --- Sets the current log level.
---@param level (string or number) One of `vim.lsp.log.levels`
+--@param level string|number One of `vim.lsp.log.levels`
 function log.set_level(level)
   if type(level) == 'string' then
     current_log_level = assert(log.levels[level:upper()], string.format("Invalid log level: %q", level))
