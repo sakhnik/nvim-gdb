@@ -3,6 +3,8 @@
 -- Choose appropriate backend
 local backend = {}
 
+-- @param name string @backend name
+-- @return BackendGdb
 function backend.choose(name)
   if name == "gdb" then
     return require "nvimgdb.backend.gdb".new()

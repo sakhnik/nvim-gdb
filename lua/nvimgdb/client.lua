@@ -4,6 +4,14 @@
 local log = require'nvimgdb.log'
 local uv = vim.loop
 
+-- @class Client @spawned debgger manager
+-- @field private win number @terminal window handler
+-- @field private client_id number @terminal job handler
+-- @field private is_active boolean @true if the debugger has been launched
+-- @field private sock_dir string @temporary directory for the proxy address
+-- @field private proxy_addr string @path to the file with proxy port
+-- @field private command string @complete command to launch the debugger (including proxy)
+-- @field private client_buf number @terminal buffer handler
 local C = {}
 C.__index = C
 
@@ -12,6 +20,10 @@ local function _get_plugin_dir()
   return uv.fs_realpath(path .. '/../..')
 end
 
+-- Constructor
+-- @param proxy_cmd string @command to launch the proxy
+-- @param client_cmd string @command to launch the debugger
+-- @return Client @new instance
 function C.new(proxy_cmd, client_cmd)
   local self = setmetatable({}, C)
   self.win = vim.api.nvim_get_current_win()
@@ -43,6 +55,8 @@ function C:cleanup()
   assert(os.remove(self.sock_dir))
 end
 
+-- Launch the debugger (when all the parsers are ready)
+-- @param parser Parser @parser to process debugger output
 function C:start(parser)
   -- Open a terminal window with the debugger client command.
   -- Go to the yet-to-be terminal window
@@ -73,23 +87,26 @@ function C:start(parser)
   --vim.cmd("au TermClose <buffer> lua NvimGdb.cleanup(" .. cur_tabpage .. ")")
 end
 
+-- Interrupt running program by sending ^c.
 function C:interrupt()
-  -- Interrupt running program by sending ^c.
   vim.fn.jobsend(self.client_id, "\x03")
 end
 
+-- Execute one command on the debugger interpreter.
+-- @param data string @send a command to the debugger
 function C:send_line(data)
-  -- Execute one command on the debugger interpreter.
   log.debug({"send_line", data})
   vim.fn.jobsend(self.client_id, data .. "\n")
 end
 
 -- Get the client terminal buffer.
+-- @return number @terminal buffer handle
 function C:get_buf()
   return self.client_buf
 end
 
 -- Get the side-channel address.
+-- @return string @file with proxy port
 function C:get_proxy_addr()
   return self.proxy_addr
 end

@@ -1,6 +1,8 @@
 -- Common FSM implementation for the integrated backends.
 -- vim: set et ts=2 sw=2:
 
+-- @class ParserActions @parser callbacks handler
+-- @field private cursor Cursor @current line sign handler
 local C = {}
 C.__index = C
 

@@ -5,15 +5,19 @@ local log = require'nvimgdb.log'
 local Common = require'nvimgdb.backend.common'
 local ParserImpl = require'nvimgdb.parser_impl'
 
+-- @class BackendGdb @specifics of GDB
 local C = {}
 C.__index = C
 setmetatable(C, {__index = Common})
 
+-- @return BackendGdb @new instance of GdbBackend
 function C.new()
   local self = setmetatable({}, C)
   return self
 end
 
+-- Create a parser to recognize state changes and code jumps
+-- @param actions ParserActions @callbacks for the parser
 function C.create_parser(actions)
   local P = {}
   P.__index = P

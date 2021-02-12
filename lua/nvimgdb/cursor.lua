@@ -1,9 +1,17 @@
 -- Manipulating the current line sign.
 -- vim: set et sw=2 ts=2:
 
+-- @class Cursor @current line handler
+-- @field private config Config @resolved configuration
+-- @field private buf number @buffer number
+-- @field private line number @line number
+-- @field private sign_id number @sign identifier
 local C = {}
 C.__index = C
 
+-- Constructor
+-- @param config Config @resolved configuration
+-- @return Cursor @new instance
 function C.new(config)
   local self = setmetatable({}, C)
   self.config = config
@@ -13,16 +21,16 @@ function C.new(config)
   return self
 end
 
-function C.hide(self)
-  -- Hide the current line sign.
+-- Hide the current line sign
+function C:hide()
   if self.sign_id ~= -1 and self.buf ~= -1 then
     vim.fn.sign_unplace('NvimGdb', {id = self.sign_id, buffer = self.buf})
     self.sign_id = -1
   end
 end
 
-function C.show(self)
-  -- Show the current line sign.
+-- Show the current line sign
+function C:show()
   -- To avoid flicker when removing/adding the sign column(due to
   -- the change in line width), we switch ids for the line sign
   -- and only remove the old line sign after marking the new one.
@@ -42,8 +50,10 @@ function C.show(self)
   end
 end
 
+-- Set the current line sign number.
+-- @param buf number @buffer number
+-- @param line number|string @line number
 function C:set(buf, line)
-  -- Set the current line sign number.
   self.buf = buf
   self.line = tonumber(line)
 end
