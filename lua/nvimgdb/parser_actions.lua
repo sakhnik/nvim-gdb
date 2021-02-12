@@ -3,6 +3,7 @@
 
 -- @class ParserActions @parser callbacks handler
 -- @field private cursor Cursor @current line sign handler
+-- @field private win Win @jump window manager
 local C = {}
 C.__index = C
 
@@ -20,6 +21,8 @@ function C:continue_program()
 end
 
 -- Handle the program breaked. Show the source code.
+-- @param fname string @full path to the source file
+-- @param line string|number @line number
 function C:jump_to_source(fname, line)
   self.win:jump(fname, line)
   vim.cmd("doautocmd User NvimGdbBreak")

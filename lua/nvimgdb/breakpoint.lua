@@ -3,21 +3,31 @@
 
 local log = require'nvimgdb.log'
 
+-- @class Breakpoint @breakpoint signs handler
+-- @field private config Config @resolved configuration
+-- @field private proxy Proxy @connection to the side channel
+-- @field private query_impl QueryBreakpoints @function to query breakpoints for a given file
+-- @field private breaks table<string, FileBreakpoints> @discovered breakpoints so far: {file -> {line -> [id]}}
+-- @field private max_sign_id number @biggest sign identifier for the breakpoints in use
 local C = {}
 C.__index = C
 
+-- Constructor
+-- @param config Config @resolved configuration
+-- @param proxy Proxy @connection to the side channel
+-- @param query_impl QueryBreakpoints @function to query breakpoints
+-- @return Breakpoint @new instance
 function C.new(config, proxy, query_impl)
   local self = setmetatable({}, C)
   self.config = config
   self.proxy = proxy
-  -- Backend implementation of breakpoint query
   self.query_impl = query_impl
-  -- Discovered breakpoints so far: {file -> {line -> [id]}}
   self.breaks = {}
   self.max_sign_id = 0
   return self
 end
 
+-- Clear all breakpoint signs in all buffers
 function C:clear_signs()
   -- Clear all breakpoint signs.
   for i = 5000, self.max_sign_id do
@@ -26,6 +36,8 @@ function C:clear_signs()
   self.max_sign_id = 0
 end
 
+-- Set a breakpoint sign in the given buffer
+-- @param buf number @buffer number
 function C:_set_signs(buf)
   if buf ~= -1 then
     local sign_id = 5000 - 1
@@ -55,6 +67,8 @@ function C:_set_signs(buf)
 end
 
 -- Query actual breakpoints for the given file.
+-- @param buf_num number @buffer number
+-- @param fname string @full path to the source code file
 function C:query(buf_num, fname)
   log.info("Query breakpoints for " .. fname)
   self.breaks[fname] = self.query_impl(fname, self.proxy)
@@ -69,6 +83,9 @@ function C:reset_signs()
 end
 
 -- Get breakpoints for the given position in a file.
+-- @param fname string @full path to the source code file
+-- @param line number|string @line number
+-- @return string[] @list of breakpoint identifiers
 function C:get_for_file(fname, line)
   local breaks = self.breaks[fname]
   if breaks == nil then

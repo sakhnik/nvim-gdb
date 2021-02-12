@@ -3,9 +3,24 @@
 
 local log = require'nvimgdb.log'
 
+-- @class Win @jump window management
+-- @field private config Config @resolved configuration
+-- @field private keymaps Keymaps @dynamic keymap manager
+-- @field private cursor Cursor @current line sign manager
+-- @field private client Client @debugger terminal job
+-- @field private breakpoint Breakpoint @breakpoint sign manager
+-- @field private jump_win number @window number that will be displaying the current file
+-- @field private buffers table<number,boolean> @set of opened buffers to close automatically
 local C = {}
 C.__index = C
 
+-- Constructor
+-- @param config Config @resolved configuration
+-- @param keymaps Keymaps @dynamic keymap manager
+-- @param cursor Cursor @current line sign manager
+-- @param client Client @debugger terminal job
+-- @param breakpoint Breakpoint @breakpoint sign manager
+-- @return Win @new instance
 function C.new(config, keymaps, cursor, client, breakpoint)
   local self = setmetatable({}, C)
   self.config = config
@@ -13,7 +28,6 @@ function C.new(config, keymaps, cursor, client, breakpoint)
   self.cursor = cursor
   self.client = client
   self.breakpoint = breakpoint
-  -- window number that will be displaying the current file
   self.jump_win = nil
   self.buffers = {}  -- {buf -> true}
 
@@ -29,7 +43,8 @@ function C:cleanup()
   end
 end
 
--- Check whether the jump window is displayed."""
+-- Check whether the jump window is displayed.
+-- @return boolean @true if jump window is visible
 function C:_has_jump_win()
   local wins = vim.api.nvim_tabpage_list_wins(vim.api.nvim_get_current_tabpage())
   for _, w in ipairs(wins) do
@@ -41,6 +56,7 @@ function C:_has_jump_win()
 end
 
 -- Check whether the current buffer is displayed in the jump window.
+-- @return boolean
 function C:is_jump_window_active()
   if not self:_has_jump_win() then
     return false
@@ -48,9 +64,12 @@ function C:is_jump_window_active()
   return vim.api.nvim_get_current_buf() == vim.api.nvim_win_get_buf(self.jump_win)
 end
 
+-- Execute function and return the cursor back.
+-- We're going to jump to another window and return.
+-- There may be no need to change keymaps forth and back.
+-- @param dispatch_keymaps boolean @true to dispatch keymaps, false if not necessary
+-- @param func fun() @action to execute
 function C:_with_saved_win(dispatch_keymaps, func)
-  -- We're going to jump to another window and return.
-  -- There may be no need to change keymaps forth and back.
   if not dispatch_keymaps then
     self.keymaps:set_dispatch_active(false)
   end
@@ -62,6 +81,8 @@ function C:_with_saved_win(dispatch_keymaps, func)
   end
 end
 
+-- Execute function and restore the previous mode afterwards
+-- @param func fun() @action to execute
 function C:_with_saved_mode(func)
   local mode = vim.api.nvim_get_mode()
   func()
@@ -70,8 +91,8 @@ function C:_with_saved_mode(func)
   end
 end
 
+-- Ensure that the jump window is available.
 function C:_ensure_jump_window()
-  -- Ensure that the jump window is available.
   if not self:_has_jump_win() then
     -- The jump window needs to be created first
     self:_with_saved_win(false, function()
@@ -84,6 +105,8 @@ function C:_ensure_jump_window()
 end
 
 -- Show the file and the current line in the jump window.
+-- @param file string @full path to the source code
+-- @param line number|string @line number
 function C:jump(file, line)
   log.info("jump(" .. file .. ":" .. line .. ")")
   -- Check whether the file is already loaded or load it
@@ -126,6 +149,10 @@ function C:jump(file, line)
   vim.cmd("redraw")
 end
 
+-- Test whether an item is in the list
+-- @param it any @needle
+-- @param list any[] @haystack
+-- @return boolean
 local function contains(it, list)
   for _, i in ipairs(list) do
     if i == it then
@@ -135,6 +162,8 @@ local function contains(it, list)
   return false
 end
 
+-- @param cmd string @vim command to execute
+-- @return number @newly opened buffer handle
 function C:_open_file(cmd)
   local open_buffers = vim.api.nvim_list_bufs()
   vim.cmd(cmd)
@@ -169,6 +198,9 @@ function C:query_breakpoints()
 end
 
 -- Populate the location list with the result of debugger cmd.
+-- @param cmd string @debugger command to execute
+-- @param kind string @pass-through parameter of the list
+-- @param mods string @command modifiers like 'leftabove'
 function C:lopen(cmd, kind, mods)
   self:_with_saved_mode(function()
     self:_with_saved_win(false, function()

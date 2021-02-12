@@ -6,8 +6,10 @@ local log = require 'nvimgdb.log'
 -- @field private config Config @resolved configuration
 -- @field private client Client @spawned debugger manager
 -- @field private proxy Proxy @connection to the side channel
--- @field private cursor Cursor @current line sign nandler
+-- @field private breakpoint Breakpoint @breakpoint sign manager
 -- @field private keymaps Keymaps @dynamic keymaps manager
+-- @field private cursor Cursor @current line sign nandler
+-- @field private win Win @jump window manager
 local C = {}
 C.efmmgr = require 'nvimgdb.efmmgr'
 C.__index = C

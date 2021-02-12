@@ -40,6 +40,11 @@ function C.create_parser(actions)
   return self
 end
 
+-- @alias FileBreakpoints table<string, string[]> @{line = {break_id}}
+-- @alias QueryBreakpoints fun(fname:string, proxy:Proxy):FileBreakpoints
+-- @param fname string @full path to the source
+-- @param proxy Proxy @connection to the side channel
+-- @return FileBreakpoints @collection of actual breakpoints
 function C.query_breakpoints(fname, proxy)
   log.info("Query breakpoints for " .. fname)
   local response = proxy:query('handle-command info breakpoints')
