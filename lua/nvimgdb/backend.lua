@@ -1,10 +1,10 @@
 -- vim: set et ts=2 sw=2:
 
--- Choose appropriate backend
 local backend = {}
 
+-- Choose appropriate backend
 -- @param name string @backend name
--- @return BackendGdb
+-- @return Backend @new instance
 function backend.choose(name)
   if name == "gdb" then
     return require "nvimgdb.backend.gdb".new()
@@ -14,6 +14,8 @@ function backend.choose(name)
     return require "nvimgdb.backend.pdb".new()
   elseif name == "bashdb" then
     return require "nvimgdb.backend.bashdb".new()
+  else
+    return assert(nil, "Not supported")
   end
 end
 

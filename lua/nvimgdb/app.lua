@@ -4,6 +4,7 @@ local log = require 'nvimgdb.log'
 
 -- @class App @debugger manager
 -- @field private config Config @resolved configuration
+-- @field private backend Backend @selected backend-specific routines
 -- @field private client Client @spawned debugger manager
 -- @field private proxy Proxy @connection to the side channel
 -- @field private breakpoint Breakpoint @breakpoint sign manager
@@ -15,6 +16,10 @@ C.efmmgr = require 'nvimgdb.efmmgr'
 C.__index = C
 
 -- Create a new instance of the debugger in the current tabpage.
+-- @param backend_name string @backend name
+-- @param proxy_cmd string @proxy application name
+-- @param client_cmd string @debugger launching command
+-- @return App @new instance
 function C.new(backend_name, proxy_cmd, client_cmd)
   local self = setmetatable({}, C)
 

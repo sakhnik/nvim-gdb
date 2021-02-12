@@ -5,7 +5,7 @@ local log = require'nvimgdb.log'
 local Common = require'nvimgdb.backend.common'
 local ParserImpl = require'nvimgdb.parser_impl'
 
--- @class BackendGdb @specifics of GDB
+-- @class BackendGdb:Backend @specifics of GDB
 local C = {}
 C.__index = C
 setmetatable(C, {__index = Common})
@@ -40,8 +40,6 @@ function C.create_parser(actions)
   return self
 end
 
--- @alias FileBreakpoints table<string, string[]> @{line = {break_id}}
--- @alias QueryBreakpoints fun(fname:string, proxy:Proxy):FileBreakpoints
 -- @param fname string @full path to the source
 -- @param proxy Proxy @connection to the side channel
 -- @return FileBreakpoints @collection of actual breakpoints

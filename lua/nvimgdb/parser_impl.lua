@@ -3,15 +3,22 @@
 
 local log = require'nvimgdb.log'
 
+-- @class ParserImpl @base parser implementation
+-- @field private actions ParserActions @parser callbacks
 local C = {}
 C.__index = C
 
+-- Constructor
+-- @param actions ParserActions @parser callbacks
+-- @return ParserImpl
 function C.new(actions)
   local self = setmetatable({}, C)
   self:_init(actions)
   return self
 end
 
+-- Initialization
+-- @param actions ParserActions @parser callbacks
 function C:_init(actions)
   self.actions = actions
   -- The running state
