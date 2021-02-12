@@ -5,6 +5,7 @@ local log = require 'nvimgdb.log'
 -- @class App @debugger manager
 -- @field private config Config @resolved configuration
 -- @field private client Client @spawned debugger manager
+-- @field private proxy Proxy @connection to the side channel
 -- @field private cursor Cursor @current line sign nandler
 -- @field private keymaps Keymaps @dynamic keymaps manager
 local C = {}

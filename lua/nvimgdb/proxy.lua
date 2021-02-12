@@ -4,10 +4,17 @@
 local log = require'nvimgdb.log'
 local uv = vim.loop
 
+-- @class Proxy @proxy to the side channel
+-- @field private client Client @debugger terminal job
+-- @field private proxy_addr string @path to the file with proxy port
+-- @field private sock any @UDP socket used to communicate with the proxy
+-- @field private server_port number @UDP port of the proxy
 local C = {}
 C.__index = C
 
--- Proxy to the side channel.
+-- Constructor
+-- @param client Client @debugger terminal job
+-- @return Proxy
 function C.new(client)
   local self = setmetatable({}, C)
   self.client = client
@@ -21,6 +28,7 @@ function C.new(client)
   return self
 end
 
+-- Destructor
 function C:cleanup()
   if self.sock ~= nil then
     self.sock:close()
@@ -28,6 +36,8 @@ function C:cleanup()
   end
 end
 
+-- Get the proxy port to prepare for communication
+-- @return boolean @true if the port is available -- the proxy is ready
 function C:_ensure_connected()
   if self.server_port ~= nil then
     return true
@@ -43,6 +53,8 @@ function C:_ensure_connected()
 end
 
 -- Send a request to the proxy and wait for the response.
+-- @param request string @command to the debugger proxy
+-- @return string @response from the debugger proxy
 function C:query(request)
   log.info("Query " .. request)
 
