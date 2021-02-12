@@ -10,7 +10,7 @@ local C = {}
 C.__index = C
 setmetatable(C, {__index = Common})
 
--- @return BackendGdb @new instance of GdbBackend
+-- @return BackendGdb @new instance
 function C.new()
   local self = setmetatable({}, C)
   return self
@@ -18,6 +18,7 @@ end
 
 -- Create a parser to recognize state changes and code jumps
 -- @param actions ParserActions @callbacks for the parser
+-- @return ParserImpl @new parser instance
 function C.create_parser(actions)
   local P = {}
   P.__index = P
@@ -85,12 +86,14 @@ function C.query_breakpoints(fname, proxy)
   return breaks
 end
 
+-- @type CommandMap
 C.command_map = {
   delete_breakpoints = 'delete',
   breakpoint = 'break',
   ['info breakpoints'] = 'info breakpoints',
 }
 
+-- @return string[]
 function C.get_error_formats()
   -- Return the list of errorformats for backtrace, breakpoints.
   return {[[%m\ at\ %f:%l]], [[%m\ %f:%l]]}

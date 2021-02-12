@@ -11,6 +11,7 @@ local log = require 'nvimgdb.log'
 -- @field private keymaps Keymaps @dynamic keymaps manager
 -- @field private cursor Cursor @current line sign nandler
 -- @field private win Win @jump window manager
+-- @field private parser ParserImpl @debugger output parser
 local C = {}
 C.efmmgr = require 'nvimgdb.efmmgr'
 C.__index = C
