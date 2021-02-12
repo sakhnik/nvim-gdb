@@ -56,7 +56,7 @@ function C:cleanup()
 end
 
 -- Launch the debugger (when all the parsers are ready)
--- @param parser Parser @parser to process debugger output
+-- @param parser ParserImpl @parser to process debugger output
 function C:start(parser)
   -- Open a terminal window with the debugger client command.
   -- Go to the yet-to-be terminal window

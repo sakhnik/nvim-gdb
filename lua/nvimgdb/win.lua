@@ -199,16 +199,15 @@ end
 
 -- Populate the location list with the result of debugger cmd.
 -- @param cmd string @debugger command to execute
--- @param kind string @pass-through parameter of the list
 -- @param mods string @command modifiers like 'leftabove'
-function C:lopen(cmd, kind, mods)
+function C:lopen(cmd, mods)
   self:_with_saved_mode(function()
     self:_with_saved_win(false, function()
       self:_ensure_jump_window()
       if self.jump_win ~= vim.api.nvim_get_current_win() then
         vim.api.nvim_set_current_win(self.jump_win)
       end
-      local lgetexpr = "lgetexpr luaeval('NvimGdb.i():get_for_llist(_A[1], _A[2])', ['" .. kind .. "', '" .. cmd .. "'])"
+      local lgetexpr = "lgetexpr luaeval('NvimGdb.i():get_for_llist(_A[1])', ['" .. cmd .. "'])"
       vim.cmd(lgetexpr)
       vim.cmd("exe 'normal <c-o>' | " .. mods .. " lopen")
     end)

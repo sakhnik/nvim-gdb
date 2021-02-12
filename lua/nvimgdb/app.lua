@@ -82,6 +82,7 @@ function C:postinit()
 end
 
 -- Finish up the debugging session.
+-- @param tab number @tabpage number
 function C:cleanup(tab)
   vim.cmd("doautocmd User NvimGdbCleanup")
 
@@ -116,6 +117,10 @@ function C:cleanup(tab)
 end
 
 -- Send a command to the debugger.
+-- @param cmd string @command template
+-- @param a1 string @parameter 1 if command has format placeholders
+-- @param a2 string @parameter 2
+-- @param a3 string @parameter 3
 function C:send(cmd, a1, a2, a3)
   if cmd ~= nil then
     local command = self.backend:translate_command(cmd):format(a1, a2, a3)
@@ -127,6 +132,8 @@ function C:send(cmd, a1, a2, a3)
 end
 
 -- Execute a custom debugger command and return its output.
+-- @param cmd string @debugger command to execute
+-- @return string @fetched debugger output
 function C:custom_command(cmd)
   return self.proxy:query('handle-command ' .. cmd)
 end
@@ -136,6 +143,7 @@ end
 The output of the expression or command will be displayed
 in that window.
 ]]
+-- @param cmd string @debugger command to watch
 function C:create_watch(cmd)
   vim.cmd("vnew | set readonly buftype=nowrite")
   self.keymaps:dispatch_set()
@@ -162,7 +170,7 @@ function C:create_watch(cmd)
   vim.cmd("wincmd l")
 end
 
--- Toggle breakpoint in the cursor line.
+-- Toggle breakpoint in the cursor line
 function C:breakpoint_toggle()
   if self.parser:is_running() then
     -- pause first
@@ -183,8 +191,8 @@ function C:breakpoint_toggle()
   end
 end
 
+-- Clear all breakpoints
 function C:breakpoint_clear_all()
-  -- Clear all breakpoints.
   if self.parser:is_running() then
     -- pause first
     self.client:interrupt()
@@ -240,6 +248,8 @@ function C:on_buf_leave()
 end
 
 -- Load backtrace or breakpoints into the location list.
+-- @param kind "backtrace"|"breakpoints"
+-- @param mods string @ command modifiers like "aboveleft"
 function C:lopen(kind, mods)
   local cmd = ''
   if kind == "backtrace" then
@@ -250,11 +260,13 @@ function C:lopen(kind, mods)
     log.warn({"Unknown lopen kind", kind})
     return
   end
-  self.win:lopen(cmd, kind, mods)
+  self.win:lopen(cmd, mods)
 end
 
-function C:get_for_llist(kind, cmd)
-  local _ = kind  -- ignore for now
+-- Split command output into lines for llist
+-- @param cmd string @debugger command to execute
+-- @return string[] @output lines
+function C:get_for_llist(cmd)
   local output = self:custom_command(cmd)
   local lines = {}
   for line in output:gmatch("[^\r\n]+") do

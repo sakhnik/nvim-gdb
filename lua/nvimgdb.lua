@@ -2,22 +2,29 @@
 
 local log = require 'nvimgdb.log'
 
-local apps = {}
-local apps_size = 0
-
-C = {}
-C.efmmgr = require 'nvimgdb.efmmgr'
-C.__index = C
+-- @class NvimGdb @globally accessible plugin entry point
+-- @field public efmmgr EfmMgr @errorformat manager
+-- @field private apps table<number, App> @collection of debugger sessions {tabpage -> App}
+-- @field private apps_size number @count of running debugger sessions
+NvimGdb = {
+  efmmgr = require 'nvimgdb.efmmgr',
+  apps = {},
+  apps_size = 0,
+}
+NvimGdb.__index = NvimGdb
 
 -- Create a new instance of the debugger in the current tabpage.
-function C.new(backend_name, proxy_cmd, client_cmd)
+-- @param backend_name string @debugger kind
+-- @param proxy_cmd string @proxy app to launch the debugger with
+-- @param client_cmd string @debugger launch command
+function NvimGdb.new(backend_name, proxy_cmd, client_cmd)
   log.info("New session " .. backend_name)
   local app = require'nvimgdb.app'.new(backend_name, proxy_cmd, client_cmd)
   local tab = vim.api.nvim_get_current_tabpage()
   log.info({"Tabpage", tab})
-  apps[tab] = app
-  apps_size = apps_size + 1
-  if apps_size == 1 then
+  NvimGdb.apps[tab] = app
+  NvimGdb.apps_size = NvimGdb.apps_size + 1
+  if NvimGdb.apps_size == 1 then
     -- Initialize the UI commands, autocommands etc
     log.info("Calling nvimgdb#GlobalInit()")
     vim.fn["nvimgdb#GlobalInit"]()
@@ -39,10 +46,12 @@ setmetatable(SilentTrap, {__index = function(t, _)
   return function() return t end
 end})
 
--- Access the current instance of the debugger.
-function C.i(silent)
+-- Access debugger instance in current tabpage.
+-- @param silent boolean @false to not complain to the log if no debugging in this tabpage
+-- @return App
+function NvimGdb.i(silent)
   local tab = vim.api.nvim_get_current_tabpage()
-  local inst = apps[tab]
+  local inst = NvimGdb.apps[tab]
   if inst == nil then
     if silent ~= nil then
       return SilentTrap.foo()
@@ -53,6 +62,8 @@ function C.i(silent)
   return inst
 end
 
+-- Execute func while preserving the original value of the option 'hidden'
+-- @param func fun()
 local function with_saved_hidden(func)
   -- Prevent "ghost" [noname] buffers when leaving the debugger
   -- and 'hidden' is on
@@ -68,19 +79,20 @@ local function with_saved_hidden(func)
 end
 
 -- Cleanup the current instance.
-function C.cleanup(tab)
+-- @param tab number @tabpage handle
+function NvimGdb.cleanup(tab)
   log.info("Cleanup session " .. tab)
-  local app = apps[tab]
+  local app = NvimGdb.apps[tab]
 
   if app ~= nil then
-    apps[tab] = nil
-    apps_size = apps_size - 1
+    NvimGdb.apps[tab] = nil
+    NvimGdb.apps_size = NvimGdb.apps_size - 1
     with_saved_hidden(function()
-      if apps_size == 0 then
+      if NvimGdb.apps_size == 0 then
         -- Cleanup commands, autocommands etc
         log.info("Calling nvimgdb#GlobalCleanup()")
         vim.fn["nvimgdb#GlobalCleanup"]()
-        C.efmmgr.cleanup()
+        NvimGdb.efmmgr.cleanup()
       end
       app:cleanup(tab)
     end)
@@ -88,34 +100,32 @@ function C.cleanup(tab)
 end
 
 -- Peek into the application count for testing
-function C.get_app_count()
-  return apps_size
+-- @return number @count of debugger sessions
+function NvimGdb.get_app_count()
+  return NvimGdb.apps_size
 end
 
--- Handle the function GdbHandleTabClosed.
-function C.on_tab_closed()
+-- Handle the function GdbHandleTabClosed
+function NvimGdb.on_tab_closed()
   log.info("Handle TabClosed")
   local active_tabs = vim.api.nvim_list_tabpages()
   local active_tabs_set = {}
   for _, tab in ipairs(active_tabs) do
     active_tabs_set[tab] = true
   end
-  for tab, _ in pairs(apps) do
+  for tab, _ in pairs(NvimGdb.apps) do
     if active_tabs_set[tab] == nil then
-      C.cleanup(tab)
+      NvimGdb.cleanup(tab)
     end
   end
 end
 
-function C.on_vim_leave_pre()
-  -- Handle function GdbHandleVimLeavePre.
+-- Handle function GdbHandleVimLeavePre
+function NvimGdb.on_vim_leave_pre()
   log.info("Handle VimLeavePre")
-  for tab, _ in pairs(apps) do
-    C.gdb_cleanup(tab)
+  for tab, _ in pairs(NvimGdb.apps) do
+    NvimGdb.cleanup(tab)
   end
 end
 
--- Make it globally accessible
-NvimGdb = C
-
-return C
+return NvimGdb
