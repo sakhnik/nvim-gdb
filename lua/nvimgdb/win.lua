@@ -116,6 +116,12 @@ function C:jump(file, line)
   self:_with_saved_mode(function()
     self:_ensure_jump_window()
   end)
+
+  local winid = vim.fn.bufwinid(target_buf)
+  if winid > 0 then
+    vim.fn['nvimgdb#KeepCursor'](winid)
+  end
+
   -- TODO handle potential misconfiguration
   --if not self.jump_win:
   --    raise AssertionError("No jump window")
