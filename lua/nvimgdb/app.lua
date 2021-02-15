@@ -222,13 +222,6 @@ end
 function C:on_buf_enter()
   -- Apply keymaps to the jump window only.
   if vim.bo.buftype ~= 'terminal' and self.win:is_jump_window_active() then
-    -- Make sure the cursor stay visible at all times
-    local scroll_off = self.config:get('set_scroll_off')
-    if scroll_off ~= nil then
-      vim.cmd("if !&scrolloff" ..
-              " | setlocal scrolloff=" .. scroll_off ..
-              " | endif")
-    end
     self.keymaps:dispatch_set()
     -- Ensure breakpoints are shown if are queried dynamically
     self.win:query_breakpoints()
