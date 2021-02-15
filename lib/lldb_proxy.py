@@ -10,6 +10,7 @@ to a user.
 import re
 
 from base_proxy import BaseProxy
+from typing import AnyStr
 
 
 class LldbProxy(BaseProxy):
@@ -20,7 +21,7 @@ class LldbProxy(BaseProxy):
         super().__init__("LLDB")
         self.prompt = re.compile(rb"\(lldb\) (\(lldb\) )?")
 
-    def get_prompt(self):
+    def get_prompt(self) -> re.Pattern[AnyStr]:
         return self.prompt
 
 

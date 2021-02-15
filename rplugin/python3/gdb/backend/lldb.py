@@ -5,6 +5,8 @@ import logging
 import re
 from gdb.backend import parser_impl
 from gdb.backend import base
+from gdb.proxy import Proxy
+from typing import Optional, List, Any
 
 
 class _ParserImpl(parser_impl.ParserImpl):
@@ -28,7 +30,7 @@ class _ParserImpl(parser_impl.ParserImpl):
 
 
 class _BreakpointImpl(base.BaseBreakpoint):
-    def __init__(self, proxy):
+    def __init__(self, proxy: Proxy):
         self.proxy = proxy
         self.logger = logging.getLogger("Lldb.Breakpoint")
 
@@ -55,11 +57,11 @@ class _BreakpointImpl(base.BaseBreakpoint):
 class Lldb(base.BaseBackend):
     """LLDB parser and FSM."""
 
-    def create_parser_impl(self, common, handler):
+    def create_parser_impl(self, common, handler) -> parser_impl.ParserImpl:
         """Create parser implementation instance."""
         return _ParserImpl(common, handler)
 
-    def create_breakpoint_impl(self, proxy):
+    def create_breakpoint_impl(self, proxy: Proxy) -> base.BaseBreakpoint:
         """Create breakpoint implementation instance."""
         return _BreakpointImpl(proxy)
 
@@ -70,7 +72,7 @@ class Lldb(base.BaseBackend):
         'info breakpoints': 'nvim-gdb-info-breakpoints',
     }
 
-    def translate_command(self, command):
+    def translate_command(self, command: str) -> str:
         """Adapt command if necessary."""
         return self.command_map.get(command, command)
 

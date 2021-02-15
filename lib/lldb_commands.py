@@ -85,7 +85,7 @@ def _server(server_address: str, debugger_id: int):
                         sock.sendto(resp.encode("utf-8"), 0, addr)
                         return
                     command_to_handle = " ".join(command[1:])
-                    if sys.version_info < (3, 0):
+                    if sys.version_info.major < 3:
                         command_to_handle = command_to_handle.encode("ascii")
                     return_object = lldb.SBCommandReturnObject()
                     debugger.GetCommandInterpreter().HandleCommand(
@@ -99,7 +99,7 @@ def _server(server_address: str, debugger_id: int):
                     result = b"" if result is None else result.encode("utf-8")
                     sock.sendto(result.strip(), 0, addr)
                 except Exception as ex:
-                    print("Exception: " + trackback.format_exc())
+                    print("Exception: " + str(ex))
     finally:
         try:
             os.unlink(server_address)
