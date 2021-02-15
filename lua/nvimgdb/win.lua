@@ -104,6 +104,43 @@ function C:_ensure_jump_window()
   end
 end
 
+local function adjust_jump_win_view(jump_win, line, scroll_off)
+  local winid = vim.fn.win_getid(vim.api.nvim_win_get_number(jump_win))
+  local wininfo = vim.fn.getwininfo(winid)[1]
+  local botline = wininfo.botline
+  local topline = wininfo.topline
+
+  -- Try adjusting the scroll off value if the window is too low
+  local win_height = botline - topline
+  local max_scroll_off = (win_height - win_height % 2) / 2
+  if max_scroll_off < scroll_off then
+    scroll_off = max_scroll_off
+  end
+
+  if botline - topline > scroll_off then
+    -- Check for potential scroll off adjustments
+    local new_topline = topline
+    -- line - topline > scroll_off
+    local top_gap = line - topline
+    if top_gap < scroll_off then
+      new_topline = new_topline - scroll_off + top_gap
+    end
+
+    -- botline - line > scroll_off
+    local bottom_gap = botline - line
+    if bottom_gap < scroll_off then
+      new_topline = new_topline + scroll_off - (botline - line)
+    end
+    if new_topline < 1 then
+      new_topline = 1
+    end
+
+    if new_topline ~= topline then
+      vim.fn.winrestview({topline = new_topline})
+    end
+  end
+end
+
 -- Show the file and the current line in the jump window.
 -- @param file string @full path to the source code
 -- @param line number|string @line number
@@ -116,11 +153,6 @@ function C:jump(file, line)
   self:_with_saved_mode(function()
     self:_ensure_jump_window()
   end)
-
-  local winid = vim.fn.bufwinid(target_buf)
-  if winid > 0 then
-    vim.fn['nvimgdb#KeepCursor'](winid)
-  end
 
   -- TODO handle potential misconfiguration
   --if not self.jump_win:
@@ -149,9 +181,17 @@ function C:jump(file, line)
   end
 
   -- Goto the proper line and set the cursor on it
-  vim.api.nvim_win_set_cursor(self.jump_win, {line, 0})
-  self.cursor:set(target_buf, line)
-  self.cursor:show()
+  self:_with_saved_win(false, function()
+    vim.api.nvim_set_current_win(self.jump_win)
+    vim.api.nvim_win_set_cursor(self.jump_win, {line, 0})
+    self.cursor:set(target_buf, line)
+    self.cursor:show()
+
+    -- &scrolloff seems to have effect only in the interactive mode.
+    -- So we'll have to adjust the view manually.
+    local scroll_off = self.config:get_or('set_scroll_off', 1)
+    adjust_jump_win_view(self.jump_win, line, scroll_off)
+  end)
   vim.cmd("redraw")
 end
 
