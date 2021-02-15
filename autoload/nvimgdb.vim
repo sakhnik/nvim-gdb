@@ -99,3 +99,18 @@ function! nvimgdb#GlobalCleanup()
   delcommand GdbLopenBacktrace
   delcommand GdbLopenBreakpoints
 endfunction
+
+function! nvimgdb#KeepCursor(winid) abort
+  let curr = win_getid()
+  noa keepalt call win_gotoid(a:winid)
+  let wininfo = getwininfo(a:winid)[0]
+  let botline = wininfo['botline']
+  let topline = wininfo['topline']
+  let currlnum = line('.')
+  let lastlnum = line('$')
+  if botline - topline > &scrolloff && botline - currlnum < &scrolloff && botline < lastlnum
+    let topline += &scrolloff - (botline - currlnum)
+    call winrestview({'topline': topline})
+  endif
+  noa keepalt call win_gotoid(curr)
+endfunction
