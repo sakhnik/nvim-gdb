@@ -120,3 +120,27 @@ def test_navigate(eng, backend):
 
     eng.feed('<f10>')
     assert eng.wait_signs({'cur': 'lib.hpp:8'}) is None
+
+
+def test_scrolloff(eng, backend):
+    '''Test that scrolloff is respected in the jump window.'''
+    eng.feed(backend['launch'])
+    assert eng.wait_paused() is None
+    eng.feed(backend['tbreak_main'])
+    eng.feed('run\n', 1000);
+    eng.feed('<esc>')
+
+    def _check_margin():
+        jump_win = eng.exec_lua('return NvimGdb.i().win.jump_win')
+        wininfo = eng.eval(f"getwininfo(win_getid(nvim_win_get_number({jump_win})))[0]")
+        curline = eng.eval(f"nvim_win_get_cursor({jump_win})[0]")
+        signline = int(eng.get_signs()['cur'].split(':')[1])
+        assert signline == curline
+        assert curline <= wininfo['botline'] - 3
+        assert curline >= wininfo['topline'] + 3
+
+    _check_margin()
+    eng.feed('<f10>')
+    _check_margin()
+    eng.feed('<f11>')
+    _check_margin()

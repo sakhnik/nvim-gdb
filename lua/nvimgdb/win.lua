@@ -9,7 +9,7 @@ local log = require'nvimgdb.log'
 -- @field private cursor Cursor @current line sign manager
 -- @field private client Client @debugger terminal job
 -- @field private breakpoint Breakpoint @breakpoint sign manager
--- @field private jump_win number @window number that will be displaying the current file
+-- @field private jump_win handle @window handle that will be displaying the current file
 -- @field private buffers table<number,boolean> @set of opened buffers to close automatically
 local C = {}
 C.__index = C
