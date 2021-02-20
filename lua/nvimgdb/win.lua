@@ -9,7 +9,7 @@ local log = require'nvimgdb.log'
 -- @field private cursor Cursor @current line sign manager
 -- @field private client Client @debugger terminal job
 -- @field private breakpoint Breakpoint @breakpoint sign manager
--- @field private jump_win handle @window handle that will be displaying the current file
+-- @field private jump_win number @window handle that will be displaying the current file
 -- @field private buffers table<number,boolean> @set of opened buffers to close automatically
 local C = {}
 C.__index = C
@@ -20,8 +20,9 @@ C.__index = C
 -- @param cursor Cursor @current line sign manager
 -- @param client Client @debugger terminal job
 -- @param breakpoint Breakpoint @breakpoint sign manager
+-- @param edited_buf number @buffer handle that needs to be loaded by default
 -- @return Win @new instance
-function C.new(config, keymaps, cursor, client, breakpoint)
+function C.new(config, keymaps, cursor, client, breakpoint, edited_buf)
   local self = setmetatable({}, C)
   self.config = config
   self.keymaps = keymaps
@@ -33,6 +34,8 @@ function C.new(config, keymaps, cursor, client, breakpoint)
 
   -- Create the default jump window
   self:_ensure_jump_window()
+  -- Load the originally edited buffer
+  vim.api.nvim_win_set_buf(self.jump_win, edited_buf)
   return self
 end
 

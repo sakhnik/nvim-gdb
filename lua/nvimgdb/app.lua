@@ -29,6 +29,8 @@ function C.new(backend_name, proxy_cmd, client_cmd)
   -- The last executed debugger command for testing
   self._last_command = nil
 
+  local edited_buf = vim.api.nvim_get_current_buf()
+
   -- Create new tab for the debugging view and split horizontally
   vim.cmd('tabnew')
   vim.wo.winfixwidth = false
@@ -54,7 +56,7 @@ function C.new(backend_name, proxy_cmd, client_cmd)
   self.cursor = require'nvimgdb.cursor'.new(self.config)
 
   -- Initialize the windowing subsystem
-  self.win = require'nvimgdb.win'.new(self.config, self.keymaps, self.cursor, self.client, self.breakpoint)
+  self.win = require'nvimgdb.win'.new(self.config, self.keymaps, self.cursor, self.client, self.breakpoint, edited_buf)
 
   -- Initialize the parser
   local parser_actions = require'nvimgdb.parser_actions'.new(self.cursor, self.win)
