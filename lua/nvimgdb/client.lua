@@ -78,8 +78,9 @@ function C:start(parser)
       on_exit = function(_, c, _) on_exit(c) end,
     })
 
+  vim.bo.filetype = "nvimgdb"
   -- Allow detaching the terminal from its window
-  vim.o.bufhidden = "hide"
+  vim.bo.bufhidden = "hide"
   -- Finish the debugging session when the terminal is closed
   -- Left the remains of the code intentionally to remind that there is no need
   -- to close the debugger terminal automatically.
