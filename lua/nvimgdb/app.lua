@@ -12,6 +12,7 @@ local log = require 'nvimgdb.log'
 -- @field private cursor Cursor @current line sign nandler
 -- @field private win Win @jump window manager
 -- @field private parser ParserImpl @debugger output parser
+-- @field private tabpage_created boolean @indicates whether the tabpage was created and needs to be closed during cleanup
 local C = {}
 C.efmmgr = require 'nvimgdb.efmmgr'
 C.__index = C
@@ -29,19 +30,26 @@ function C.new(backend_name, proxy_cmd, client_cmd)
   -- The last executed debugger command for testing
   self._last_command = nil
 
+  local start_win = vim.api.nvim_get_current_win()
   local edited_buf = vim.api.nvim_get_current_buf()
 
-  -- Create new tab for the debugging view and split horizontally
-  vim.cmd('tabnew')
-  vim.wo.winfixwidth = false
-  vim.wo.winfixheight = false
-  vim.cmd('silent wincmd o')
+  -- Check if a debugging session is already running in this tabpage
+  self.tabpage_created = false
+  if getmetatable(NvimGdb.i(true)) == C then
+    -- Create new tab for the new debugging view
+    vim.cmd('tabnew')
+    vim.wo.winfixwidth = false
+    vim.wo.winfixheight = false
+    vim.cmd('silent wincmd o')
+    start_win = nil
+    self.tabpage_created = true
+  end
 
   -- Get the selected backend module
   self.backend = require "nvimgdb.backend".choose(backend_name)
 
   -- Go to the other window and spawn gdb client
-  self.client = require'nvimgdb.client'.new(proxy_cmd, client_cmd)
+  self.client = require'nvimgdb.client'.new(self.config, proxy_cmd, client_cmd, start_win)
 
   -- Initialize connection to the side channel
   self.proxy = require'nvimgdb.proxy'.new(self.client)
@@ -56,7 +64,7 @@ function C.new(backend_name, proxy_cmd, client_cmd)
   self.cursor = require'nvimgdb.cursor'.new(self.config)
 
   -- Initialize the windowing subsystem
-  self.win = require'nvimgdb.win'.new(self.config, self.keymaps, self.cursor, self.client, self.breakpoint, edited_buf)
+  self.win = require'nvimgdb.win'.new(self.config, self.keymaps, self.cursor, self.client, self.breakpoint, start_win, edited_buf)
 
   -- Initialize the parser
   local parser_actions = require'nvimgdb.parser_actions'.new(self.cursor, self.win)
@@ -106,16 +114,18 @@ function C:cleanup(tab)
   -- Close the debugger backend
   self.client:cleanup()
 
-  -- Close the windows and the tab
-  for _, tabpage in ipairs(vim.api.nvim_list_tabpages()) do
-    if tabpage == tab then
-      vim.cmd("tabclose! " .. vim.api.nvim_tabpage_get_number(tabpage))
-      break
+  -- Close the windows and the tab if necessary
+  if self.tabpage_created then
+    for _, tabpage in ipairs(vim.api.nvim_list_tabpages()) do
+      if tabpage == tab then
+        vim.cmd("tabclose! " .. vim.api.nvim_tabpage_get_number(tabpage))
+        break
+      end
     end
-  end
 
-  -- TabEnter isn't fired automatically when a tab is closed
-  NvimGdb.i(0):on_tab_enter()
+    -- TabEnter isn't fired automatically when a tab is closed
+    NvimGdb.i(0):on_tab_enter()
+  end
 end
 
 -- Send a command to the debugger.

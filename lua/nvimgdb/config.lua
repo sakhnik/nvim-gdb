@@ -26,6 +26,7 @@ local default = {
   sign_current_line   = '▶',
   sign_breakpoint     = {'●', '●²', '●³', '●⁴', '●⁵', '●⁶', '●⁷', '●⁸', '●⁹', '●ⁿ'},
   sign_breakpoint_priority = 10,
+  termwin_command     = 'belowright new',
   codewin_command     = 'new',
   set_scroll_off      = 5,
   jump_bottom_gdb_buf = true,
@@ -63,7 +64,7 @@ local function copy_user_config()
 
   -- Make sure the essential keys are present even if not supplied.
   for _, must_have in pairs({'sign_current_line', 'sign_breakpoint',
-    'codewin_command', 'set_scroll_off'}) do
+    'termwin_command', 'codewin_command', 'set_scroll_off'}) do
     if config[must_have] == nil then
       config[must_have] = default[must_have]
     end

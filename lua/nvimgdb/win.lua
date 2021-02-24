@@ -20,16 +20,17 @@ C.__index = C
 -- @param cursor Cursor @current line sign manager
 -- @param client Client @debugger terminal job
 -- @param breakpoint Breakpoint @breakpoint sign manager
+-- @param start_win number @window handle that could be used as the jump window
 -- @param edited_buf number @buffer handle that needs to be loaded by default
 -- @return Win @new instance
-function C.new(config, keymaps, cursor, client, breakpoint, edited_buf)
+function C.new(config, keymaps, cursor, client, breakpoint, start_win, edited_buf)
   local self = setmetatable({}, C)
   self.config = config
   self.keymaps = keymaps
   self.cursor = cursor
   self.client = client
   self.breakpoint = breakpoint
-  self.jump_win = nil
+  self.jump_win = start_win
   self.buffers = {}  -- {buf -> true}
 
   -- Create the default jump window
