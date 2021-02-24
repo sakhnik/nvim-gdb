@@ -194,6 +194,7 @@ function C:jump(file, line)
     -- So we'll have to adjust the view manually.
     local scroll_off = self.config:get_or('set_scroll_off', 1)
     adjust_jump_win_view(self.jump_win, line, scroll_off)
+    vim.cmd("normal! zv")
   end)
   vim.cmd("redraw")
 end
