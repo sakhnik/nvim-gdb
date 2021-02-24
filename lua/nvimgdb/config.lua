@@ -28,6 +28,7 @@ local default = {
   sign_breakpoint_priority = 10,
   codewin_command     = 'new',
   set_scroll_off      = 5,
+  jump_bottom_gdb_buf = true,
 }
 
 -- Turn a string into a funcref looking up a Vim function.
