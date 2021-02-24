@@ -223,7 +223,7 @@ end
 -- Actions to execute when a buffer is entered.
 function C:on_buf_enter()
   -- Apply keymaps to the jump window only.
-  if vim.bo.buftype ~= 'terminal' and self.win:is_jump_window_active() then
+  if vim.bo.filetype ~= 'nvimgdb' and self.win:is_jump_window_active() then
     self.keymaps:dispatch_set()
     -- Ensure breakpoints are shown if are queried dynamically
     self.win:query_breakpoints()
@@ -232,7 +232,7 @@ end
 
 -- Actions to execute when a buffer is left.
 function C:on_buf_leave()
-  if vim.bo.buftype == 'terminal' then
+  if vim.bo.filetype == 'nvimgdb' then
     -- Move the cursor to the end of the buffer
     vim.cmd("$")
     return
