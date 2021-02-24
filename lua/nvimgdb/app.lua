@@ -234,7 +234,10 @@ end
 function C:on_buf_leave()
   if vim.bo.buftype == 'terminal' then
     -- Move the cursor to the end of the buffer
-    vim.cmd("$")
+    local jump_bottom = self.config:get_or('jump_bottom_gdb_buf', false)
+    if jump_bottom then
+      vim.cmd("$")
+    end
     return
   end
   if self.win:is_jump_window_active() then
