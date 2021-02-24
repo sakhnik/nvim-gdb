@@ -17,7 +17,7 @@ def test_buffer_keymaps(eng, post):
     eng.feed('<c-w>w')
     assert eng.wait_for(_get_map, lambda res: "GdbFrameDown" in res) is None
     eng.feed(':tabnew\n')
-    eng.feed(':e config.py\n')
+    eng.feed(':e main.py\n')
     assert eng.wait_for(_get_map, lambda res: "No mapping found" in res) is None
     eng.feed('gt')
     assert eng.wait_for(_get_map, lambda res: "GdbFrameDown" in res) is None
