@@ -30,7 +30,6 @@ function C.new(backend_name, proxy_cmd, client_cmd)
   -- The last executed debugger command for testing
   self._last_command = nil
 
-  local start_win = vim.api.nvim_get_current_win()
   local edited_buf = vim.api.nvim_get_current_buf()
 
   -- Check if a debugging session is already running in this tabpage
@@ -41,15 +40,17 @@ function C.new(backend_name, proxy_cmd, client_cmd)
     vim.wo.winfixwidth = false
     vim.wo.winfixheight = false
     vim.cmd('silent wincmd o')
-    start_win = nil
     self.tabpage_created = true
   end
+
+  -- Current window will become the jump window
+  local start_win = vim.api.nvim_get_current_win()
 
   -- Get the selected backend module
   self.backend = require "nvimgdb.backend".choose(backend_name)
 
-  -- Go to the other window and spawn gdb client
-  self.client = require'nvimgdb.client'.new(self.config, proxy_cmd, client_cmd, start_win)
+  -- Spawn gdb client in a new terminal window
+  self.client = require'nvimgdb.client'.new(self.config, proxy_cmd, client_cmd)
 
   -- Initialize connection to the side channel
   self.proxy = require'nvimgdb.proxy'.new(self.client)

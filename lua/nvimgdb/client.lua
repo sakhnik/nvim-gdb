@@ -21,18 +21,14 @@ local function _get_plugin_dir()
 end
 
 -- Constructor
--- @param client Client @resolved configuration for this session
+-- @param config Config @resolved configuration for this session
 -- @param proxy_cmd string @command to launch the proxy
 -- @param client_cmd string @command to launch the debugger
--- @param start_win number @window handle that's going to be used for code navigation
 -- @return Client @new instance
-function C.new(client, proxy_cmd, client_cmd, start_win)
+function C.new(config, proxy_cmd, client_cmd)
   local self = setmetatable({}, C)
+  vim.cmd(config:get('termwin_command'))
   self.win = vim.api.nvim_get_current_win()
-  if self.win == start_win then
-    vim.cmd(client:get('termwin_command'))
-    self.win = vim.api.nvim_get_current_win()
-  end
   self.client_id = nil
   self.is_active = false
   -- Create a temporary unique directory for all the sockets.
