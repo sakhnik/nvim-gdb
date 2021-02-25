@@ -23,7 +23,7 @@ class _ParserImpl(parser_impl.ParserImpl):
         self.add_trans(self.paused, re_jump, self._paused_jump)
         self.add_trans(self.paused, re_prompt, self._query_b)
         self.add_trans(self.running,
-                       re.compile(r'[\r\n]Breakpoint \d+'),
+                       re.compile(r'\sBreakpoint \d+'),
                        self._query_b)
         self.add_trans(self.running, re_prompt, self._query_b)
         self.add_trans(self.running, re_jump, self._paused_jump)
