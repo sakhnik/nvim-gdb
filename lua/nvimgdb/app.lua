@@ -51,6 +51,12 @@ function C.new(backend_name, proxy_cmd, client_cmd)
 
   -- Spawn gdb client in a new terminal window
   self.client = require'nvimgdb.client'.new(self.config, proxy_cmd, client_cmd)
+  if start_win == self.client.win then
+    -- Apparently, the configuration has been overridden to use current window
+    -- for the debugging terminal. Thus, a new window will be assigned or created
+    -- for the source navigation.
+    start_win = nil
+  end
 
   -- Initialize connection to the side channel
   self.proxy = require'nvimgdb.proxy'.new(self.client)

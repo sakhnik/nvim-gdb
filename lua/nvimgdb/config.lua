@@ -26,8 +26,8 @@ local default = {
   sign_current_line   = '▶',
   sign_breakpoint     = {'●', '●²', '●³', '●⁴', '●⁵', '●⁶', '●⁷', '●⁸', '●⁹', '●ⁿ'},
   sign_breakpoint_priority = 10,
-  termwin_command     = 'belowright new',
-  codewin_command     = 'new',
+  termwin_command     = 'belowright new',  -- Assign a window for the debugging terminal
+  codewin_command     = 'new',             -- Assign a window for the source code
   set_scroll_off      = 5,
   jump_bottom_gdb_buf = true,
 }

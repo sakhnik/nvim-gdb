@@ -5,7 +5,7 @@ local log = require'nvimgdb.log'
 local uv = vim.loop
 
 -- @class Client @spawned debgger manager
--- @field private win number @terminal window handler
+-- @field public win number @terminal window handler
 -- @field private client_id number @terminal job handler
 -- @field private is_active boolean @true if the debugger has been launched
 -- @field private sock_dir string @temporary directory for the proxy address
