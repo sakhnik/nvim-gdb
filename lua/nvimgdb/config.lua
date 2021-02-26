@@ -47,10 +47,23 @@ local function filter_funcref(key, val)
   return function(_) vim.call(val) end
 end
 
+-- Get a value of a user-defined variable nvimgdb_<var>,
+-- probing the scope in succession: buffer, window, tabpage, global.
+-- @param var string @variable name like nvimgdb_<var>
+-- @return string @variable value if defined, nil otherwise
+local function _get_from_user_variable(var)
+  for scope in ("bwtg"):gmatch'.' do
+    local val = loadstring("return vim." .. scope .. ".nvimgdb_" .. var)()
+    if val ~= nil then
+      return val
+    end
+  end
+end
+
 -- @return ConfDict @copy and process the configuration supplied
 local function copy_user_config()
   -- Make a copy of the supplied configuration if defined
-  local config = vim.g.nvimgdb_config
+  local config = _get_from_user_variable("config")
   if config == nil then
     return nil
   end
@@ -101,7 +114,7 @@ end
 -- @param key_to_func table<string, string> @map of keystrokes to their meaning
 function C:_apply_overrides(key_to_func)
   -- If there is config override defined, add it
-  local override = vim.g.nvimgdb_config_override
+  local override = _get_from_user_variable("config_override")
   if override ~= nil then
     for key, val in pairs(override) do
       local key_val = filter_funcref(key, val)
@@ -112,10 +125,10 @@ function C:_apply_overrides(key_to_func)
     end
   end
 
-  -- See whether a global override for a specific configuration
+  -- See whether an override for a specific configuration
   -- key exists. If so, update the config.
   for key, _ in pairs(default) do
-    local val = loadstring('return vim.g.nvimgdb_' .. key)()
+    local val = _get_from_user_variable(key)
     if val ~= nil then
       local key_val = filter_funcref(key, val)
       if key_val ~= nil then
