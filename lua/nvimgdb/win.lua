@@ -35,8 +35,13 @@ function C.new(config, keymaps, cursor, client, breakpoint, start_win, edited_bu
 
   -- Create the default jump window
   self:_ensure_jump_window()
-  -- Load the originally edited buffer
-  vim.api.nvim_win_set_buf(self.jump_win, edited_buf)
+
+  -- The originally edited buffer may have been a new "[No Name]".
+  -- The terminal buffer may be created with the same number.
+  if edited_buf ~= client.client_buf then
+    -- Load the originally edited buffer
+    vim.api.nvim_win_set_buf(self.jump_win, edited_buf)
+  end
   return self
 end
 

@@ -1,8 +1,5 @@
 '''Test PDB support.'''
 
-import os
-import sys
-
 
 def test_smoke(eng, post, terminal_end):
     '''Test a generic use case.'''
