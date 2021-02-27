@@ -162,12 +162,11 @@ When debugging session has started, the following mappings are defined:
 Section 4: Variables                                        *NvimgdbVariables*
 
 The plugin can be configured by defining vim variables as described below.
-The variable resolution scope priority is the following: buffer, window,
-tabpage, and finally global. For example, `g:nvimgdb_option` or
-`t:nvimgdb_option` will be ignored if either `b:nvimgdb_option` or
-`w:nvimgdb_option` is set.
+The variable scope priority is the following: buffer, window, tabpage, and
+finally global. For example, `g:nvimgdb_option` or `t:nvimgdb_option` will be
+ignored if either `b:nvimgdb_option` or `w:nvimgdb_option` is set.
 
-If the variable g:nvimgdb_disable_start_keymaps is defined and evaluates to
+If the variable `g:nvimgdb_disable_start_keymaps` is defined and evaluates to
 true, the initial keymaps to start debugging session are suppressed
 (see |NvimgdbMappings|).
 

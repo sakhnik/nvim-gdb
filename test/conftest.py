@@ -76,6 +76,7 @@ def post(eng, request):
         eng.nvim.command(f"bdelete! {b.number}")
         # api.buf_delete(b.handle, {'force': True})
 
+
 @pytest.fixture(scope="function", params=BACKENDS.values())
 def backend(post, request, terminal_end):
     '''Parametrized tests with C++ backends.'''
@@ -101,3 +102,19 @@ def two_backends(post):
         yield gdb, lldb if lldb else gdb
     else:
         yield lldb, lldb
+
+
+@pytest.fixture(scope='function')
+def config_test(eng, post):
+    '''Fixture to clear custom keymaps.'''
+    assert post
+    yield True
+    eng.exec_lua('''
+for scope in ("bwtg"):gmatch'.' do
+  for k, _ in pairs(vim.fn.eval(scope .. ':')) do
+    if k:find('^nvimgdb_') then
+      vim.cmd('unlet ' .. scope .. ':' .. k)
+    end
+  end
+end
+                 ''')
