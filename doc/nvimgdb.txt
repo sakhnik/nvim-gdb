@@ -9,6 +9,8 @@ CONTENTS                                                     *NvimgdbContents*
     2. Commands ............. |NvimgdbCommands|
     3. Mappings ............. |NvimgdbMappings|
     4. Variables ............ |NvimgdbVariables|
+       4.1 Keymaps .......... |NvimgdbVariablesKeymaps|
+       4.2 Layout ........... |NvimgdbVariablesLayout|
     5. Events ............... |NvimgdbEvents|
     6. Functions ............ |NvimgdbFunctions|
     7. Backends ............. |NvimgdbBackends|
@@ -166,12 +168,7 @@ The variable scope priority is the following: buffer, window, tabpage, and
 finally global. For example, `g:nvimgdb_option` or `t:nvimgdb_option` will be
 ignored if either `b:nvimgdb_option` or `w:nvimgdb_option` is set.
 
-If the variable `g:nvimgdb_disable_start_keymaps` is defined and evaluates to
-true, the initial keymaps to start debugging session are suppressed
-(see |NvimgdbMappings|).
-
-The following variables could be defined to change default mappings for the
-debugging commands: >
+The following variables could be defined to change the plugin configuration: >
 
     nvimgdb_config
     nvimgdb_config_override
@@ -202,10 +199,6 @@ allows overriding the given keys. For example, the default config is: >
       \ 'jump_bottom_gdb_buf': v:true,
       \ }
 <
-The key `codewin_command` defines a Vim command to create a new empty window
-for the code view. It should produce one focused window, and could be used to
-build desired layout.
-
 The key `sign_current_line` and `sign_breakpoint` define how the signs for the
 currently executed line and breakpoints look like. The default values assume a
 modern terminal capable of rendering the Unicode superscript numbers, and
@@ -222,6 +215,9 @@ single breakpoint with `*` and a duplicate breakpoint with `#`.
 The key `sign_breakpoint_priority` defines the sign priority for the
 breakpoint. The sign priority for the current line is always one greater than
 breakpoint's.
+
+------------------------------------------------------------------------------
+Section 4.1 Keymaps                                  *NvimgdbVariablesKeymaps*
 
 The keys starting with `key_` define a key mapping for the respective command.
 The key `set_tkeymaps` allows specifying a hook function, which will be called
@@ -246,6 +242,17 @@ However, the configuration from `g:nvimgdb_config_override` assumes priority
 over default and `g:nvimgdb_config`.  And specific variables `g:nvimgdb_key_*`
 have even higher priority and will disable conflicting keymaps from the
 previous ones.  Please examine `:messages` to make sure nothing is rejected.
+
+If the variable `g:nvimgdb_disable_start_keymaps` is defined and evaluates to
+true, the initial keymaps to start debugging session are suppressed
+(see |NvimgdbMappings|).
+
+------------------------------------------------------------------------------
+Section 4.1 Layout                                    *NvimgdbVariablesLayout*
+
+The key `codewin_command` defines a Vim command to create a new empty window
+for the code view. It should produce one focused window, and could be used to
+build desired layout.
 
 ==============================================================================
 Section 5: Events                                              *NvimgdbEvents*
