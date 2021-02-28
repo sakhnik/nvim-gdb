@@ -194,7 +194,8 @@ allows overriding the given keys. For example, the default config is: >
       \ 'sign_current_line': '▶',
       \ 'sign_breakpoint': [ '●', '●²', '●³', '●⁴', '●⁵', '●⁶', '●⁷', '●⁸', '●⁹', '●ⁿ' ],
       \ 'sign_breakpoint_priority': 10,
-      \ 'codewin_command': 'new'
+      \ 'termwin_command': 'belowright new',
+      \ 'codewin_command': 'new',
       \ 'set_scroll_off': 5,
       \ 'jump_bottom_gdb_buf': v:true,
       \ }
@@ -250,9 +251,30 @@ true, the initial keymaps to start debugging session are suppressed
 ------------------------------------------------------------------------------
 Section 4.1 Layout                                    *NvimgdbVariablesLayout*
 
-The key `codewin_command` defines a Vim command to create a new empty window
-for the code view. It should produce one focused window, and could be used to
-build desired layout.
+When debugging starts with either of the commands `:GdbStart`, the focused
+window will be used to display the currently debugged code. The command
+configured with the key `termwin_command` will then be executed to get another
+window for the terminal for the backend debugger afterwards. If for some
+reason the source window gets closed, the command configured with the key
+`codewin_command` will be used to assign or create another window again.
+
+The default configuration is designed to create terminal window on the bottom,
+and the code window above it: >
+
+    'termwin_command': 'belowright new',
+    'codewin_command': 'new',
+<
+If the terminal window should be launched above the code window, the following
+override could be defined: >
+    let w:nvimgdb_termwin_command = "aboveleft new"
+<
+If the terminal window should instead be launched to the right of the code
+window, try the following: >
+    let w:nvimgdb_termwin_command = "belowright vnew"
+    let w:nvimgdb_codewin_command = "vnew"
+<
+If there is a debugging session already running on the current tabpage, a new
+debugging session will be created on a separate tabpage.
 
 ==============================================================================
 Section 5: Events                                              *NvimgdbEvents*
