@@ -1,10 +1,4 @@
 
-let s:plugin_dir = expand('<sfile>:p:h:h')
-
-function! nvimgdb#GetPluginDir()
-  return s:plugin_dir
-endfunction
-
 function! nvimgdb#ClearAugroup(name)
     exe "augroup " . a:name
       au!
