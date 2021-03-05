@@ -163,10 +163,6 @@ function C:jump(file, line)
     self:_ensure_jump_window()
   end)
 
-  -- TODO handle potential misconfiguration
-  --if not self.jump_win:
-  --    raise AssertionError("No jump window")
-
   -- The terminal buffer may contain the name of the source file
   -- (in pdb, for instance).
   if target_buf == self.client:get_buf() then
