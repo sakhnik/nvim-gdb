@@ -126,4 +126,4 @@ the terminal script with the ubiquitous command `script`.
 
 [![nvim-gdb + llvm](https://asciinema.org/a/162697.png)](https://asciinema.org/a/162697)
 
-[![clone + deploy + test](https://asciinema.org/a/218569.svg)](https://asciinema.org/a/218569)
+[![clone + test](https://asciinema.org/a/397047.svg)](https://asciinema.org/a/397047)
