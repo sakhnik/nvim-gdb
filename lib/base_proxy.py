@@ -40,7 +40,7 @@ class BaseProxy:
         self.server_address: str = args.address
         self.argv = args.cmd
         log_handler = logging.NullHandler() if not os.environ.get('CI') \
-                else logging.FileHandler("proxy.log")
+            else logging.FileHandler("proxy.log")
         logging.basicConfig(
             level=logging.DEBUG,
             format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -59,6 +59,10 @@ class BaseProxy:
         self.filter = [(stream_filter.Filter(), lambda _: None)]
         # Where was the last command received from?
         self.last_addr = None
+
+        # Last user command
+        self.last_command = b''
+        self.command_buffer = bytearray()
 
         # Spawn the process in a PTY
         pid, self.master_fd = pty.fork()
@@ -169,9 +173,11 @@ class BaseProxy:
             # Handle one packet at a time to mitigate the side channel
             # breaking into user input.
             if self.master_fd in rfds:
+                # Reading the program's output
                 data = os.read(self.master_fd, 1024)
                 self.master_read(data)
             elif pty.STDIN_FILENO in rfds:
+                # Reading user's input
                 data = os.read(pty.STDIN_FILENO, 1024)
                 self.stdin_read(data)
             elif self.sock in rfds:
@@ -227,4 +233,24 @@ class BaseProxy:
 
     def stdin_read(self, data):
         """Handle data from the controlling terminal."""
-        self.write_master(data)
+        # Executing side commands messes with the command history.
+        # Most popular debuggers use empty command to prepeat the last
+        # command. We need to keep track of user commands to be able
+        # to simulate the expected behaviour.
+        self.command_buffer.extend(data)
+        if re.fullmatch(b'[\r\n]', self.command_buffer):
+            # Empty command detected, pass the last known command
+            if self.last_command:
+                self.logger.info("Repeat last command %s", self.last_command)
+                self.write_master(self.last_command)
+            else:
+                self.write_master(data)
+            self.command_buffer.clear()
+        else:
+            self.write_master(data)
+            while True:
+                m = re.search(b'[\n\r]', self.command_buffer)
+                if not m:
+                    break
+                self.last_command = self.command_buffer[:m.end()+1]
+                self.command_buffer = self.command_buffer[m.end()+1:]

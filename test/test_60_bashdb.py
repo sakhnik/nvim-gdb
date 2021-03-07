@@ -13,7 +13,6 @@ def test_smoke(eng, post):
     assert post
     eng.feed(' db')
     eng.feed('\n', 2000)
-
     assert eng.wait_signs({'cur': 'main.sh:22'}) is None
 
     eng.feed('tbreak Main\n')
@@ -60,3 +59,22 @@ def test_break(eng, post):
 
     eng.feed('<f8>')
     assert eng.wait_signs({'cur': 'main.sh:4'}) is None
+
+
+def test_repeat_last_command(eng, post):
+    '''Test last command is repeated on empty input.'''
+    assert post
+    eng.feed(' db')
+    eng.feed('\n', 2000)
+    assert eng.wait_signs({'cur': 'main.sh:22'}) is None
+
+    eng.feed('tbreak Main\n')
+    eng.feed('cont\n')
+    assert eng.wait_signs({'cur': 'main.sh:16'}) is None
+
+    eng.feed('n\n')
+    assert eng.wait_signs({'cur': 'main.sh:17'}) is None
+    eng.feed('<cr>')
+    assert eng.wait_signs({'cur': 'main.sh:18'}) is None
+    eng.feed('<cr>')
+    assert eng.wait_signs({'cur': 'main.sh:17'}) is None

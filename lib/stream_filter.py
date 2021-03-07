@@ -6,6 +6,7 @@ import bisect
 
 class Filter:
     """Pass-through filter."""
+
     def filter(self, data):
         """Process data, filter between tokens, return the output."""
         self._calm_the_linter()
@@ -61,7 +62,8 @@ class StreamFilter(Filter):
         offset = 0
         for m in re.finditer(self.CSEQ, self.buffer):
             if m.start() > offset:
-                # Copy over the chunk until a CSEQ start and remember the offsets
+                # Copy over the chunk until a CSEQ start and remember
+                # the offsets
                 offsets_buffer_no_cs.append(len(buffer_no_cs))
                 offsets_buffer.append(offset)
                 buffer_no_cs.extend(self.buffer[offset:m.start()])

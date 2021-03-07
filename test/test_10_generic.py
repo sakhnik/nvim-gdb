@@ -120,3 +120,17 @@ def test_navigate(eng, backend):
 
     eng.feed('<f10>')
     assert eng.wait_signs({'cur': 'lib.hpp:8'}) is None
+
+
+def test_repeat_last_command(eng, backend):
+    '''Last command is repeated on empty input.'''
+    eng.feed(backend['launch'])
+    assert eng.wait_paused() is None
+    eng.feed(backend['tbreak_main'])
+    eng.feed('run\n')
+    assert eng.wait_signs({'cur': 'test.cpp:17'}) is None
+
+    eng.feed('n\n')
+    assert eng.wait_signs({'cur': 'test.cpp:19'}) is None
+    eng.feed('<cr>')
+    assert eng.wait_signs({'cur': 'test.cpp:17'}) is None
