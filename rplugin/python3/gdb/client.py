@@ -53,6 +53,7 @@ class Client(Common):
         self.vim.current.window = self.win
         self.client_id = self.vim.call("nvimgdb#TermOpen", self.command,
                                        self.vim.current.tabpage.handle)
+        self.vim.command("set filetype=nvimgdb")
         # Allow detaching the terminal from its window
         self.vim.command("set bufhidden=hide")
         # Finsih the debugging session when the terminal is closed

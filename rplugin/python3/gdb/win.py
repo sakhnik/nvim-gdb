@@ -84,7 +84,11 @@ class Win(Common):
         # Ensure the jump window is available
         with self._saved_mode():
             self._ensure_jump_window()
-        if not self.jump_win:
+        if self.jump_win:
+            winid = self.vim.call("bufwinid", target_buf)
+            if winid > 0:
+                self.vim.call('nvimgdb#KeepCursor', winid)
+        else:
             raise AssertionError("No jump window")
 
         # The terminal buffer may contain the name of the source file
