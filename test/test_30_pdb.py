@@ -126,3 +126,20 @@ def test_expand(eng, post):
     assert eng.wait_signs({'cur': 'main.py:1'}) is None
     # Clean up the main tabpage
     eng.feed('<esc>gt:new\n<c-w>ogt')
+
+
+def test_repeat_last_command(eng, post, terminal_end):
+    '''Ensure the last command is repeated on empty input.'''
+    assert post
+    assert terminal_end
+    eng.feed(' dp')
+    eng.feed('\n', 1000)
+    eng.feed('tbreak _main\n')
+    eng.feed('cont\n')
+
+    assert eng.wait_signs({'cur': 'main.py:15'}) is None
+
+    eng.feed('n\n')
+    assert eng.wait_signs({'cur': 'main.py:16'}) is None
+    eng.feed('<cr>')
+    assert eng.wait_signs({'cur': 'main.py:15'}) is None
