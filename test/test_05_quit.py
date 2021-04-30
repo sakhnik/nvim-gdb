@@ -24,4 +24,7 @@ def test_gdb_debug_stop(setup, eng):
 def test_gdb_tabclose(setup, eng):
     '''Quit by closing the tab.'''
     assert setup
+    eng.feed("GdbStart ./dummy-gdb.sh<cr>")
+    eng.feed('<esc>')
     eng.feed(":tabclose<cr>")
+    eng.feed(":GdbDebugStop<cr>")

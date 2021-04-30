@@ -8,6 +8,7 @@ to a user.
 """
 
 import re
+import sys
 
 from base_proxy import BaseProxy
 from stream_filter import StreamFilter
@@ -37,4 +38,6 @@ class GdbProxy(BaseProxy):
 
 
 if __name__ == '__main__':
-    GdbProxy().run()
+    proxy = GdbProxy()
+    proxy.run()
+    sys.exit(proxy.exitstatus)

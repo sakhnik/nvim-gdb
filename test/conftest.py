@@ -41,10 +41,9 @@ if "lldb" in config.BACKEND_NAMES:
 def terminal_end(eng):
     '''Check that the terminal last line is visible.'''
     yield True
-    cursor_line = eng.eval("GdbTestPeek('client', 'win', 'cursor')")[0]
-    last_line = eng.eval("GdbTestPeek('client', 'win', 'buffer', 'api', "
-                         "'line_count')")
-    win_height = eng.eval("GdbTestPeek('client', 'win', 'height')")
+    cursor_line = eng.exec_lua("return vim.api.nvim_win_get_cursor(NvimGdb.i().client.win)[1]")
+    last_line = eng.exec_lua("return vim.api.nvim_buf_line_count(vim.api.nvim_win_get_buf(NvimGdb.i().client.win))")
+    win_height = eng.exec_lua("return vim.api.nvim_win_get_height(NvimGdb.i().client.win)")
     assert cursor_line >= last_line - win_height
 
 
@@ -77,6 +76,7 @@ def post(eng, request):
         eng.nvim.command(f"bdelete! {b.number}")
         # api.buf_delete(b.handle, {'force': True})
 
+
 @pytest.fixture(scope="function", params=BACKENDS.values())
 def backend(post, request, terminal_end):
     '''Parametrized tests with C++ backends.'''
@@ -102,3 +102,19 @@ def two_backends(post):
         yield gdb, lldb if lldb else gdb
     else:
         yield lldb, lldb
+
+
+@pytest.fixture(scope='function')
+def config_test(eng, post):
+    '''Fixture to clear custom keymaps.'''
+    assert post
+    yield True
+    eng.exec_lua('''
+for scope in ("bwtg"):gmatch'.' do
+  for k, _ in pairs(NvimGdb.vim.fn.eval(scope .. ':')) do
+    if type(k) == "string" and k:find('^nvimgdb_') then
+      NvimGdb.vim.cmd('unlet ' .. scope .. ':' .. k)
+    end
+  end
+end
+                 ''')

@@ -37,9 +37,6 @@ If you use vim-plug, add the following line to your vimrc file:
 Plug 'sakhnik/nvim-gdb', { 'do': ':!./install.sh' }
 ```
 
-**NOTE**: Make sure to run `:UpdateRemotePlugins` and restart the editor
-before using the plugin.
-
 You can use any other plugin manager too:
 
   * vundle
@@ -112,6 +109,11 @@ The project uses GitHub actions to run the test suite on every commit automatica
 The plugin, proxy and screen logs can be downloaded as the artifacts to be analyzed
 locally.
 
+To ease reproduction of an issue, set the environment variable `CI`, and
+launch NeoVim with the auxiliary script `test/nvim`. The screen cast will
+be written to the log file `spy_ui.log`. Alternatively, consider recording
+the terminal script with the ubiquitous command `script`.
+
 ## References
 
   * Porting to Moonscript: [2018-11-17](https://sakhnik.com/2018/11/17/nvimgdb-lua.html)
@@ -121,4 +123,4 @@ locally.
 
 [![nvim-gdb + llvm](https://asciinema.org/a/162697.png)](https://asciinema.org/a/162697)
 
-[![clone + deploy + test](https://asciinema.org/a/218569.svg)](https://asciinema.org/a/218569)
+[![clone + test](https://asciinema.org/a/397047.svg)](https://asciinema.org/a/397047)

@@ -6,7 +6,7 @@ let g:loaded_nvimgdb = 1
 function! s:Spawn(backend, proxy_cmd, client_cmd)
   "Expand words in the client_cmd to support %, <word> etc
   let cmd = join(map(split(a:client_cmd), {k, v -> expand(v)}))
-  call GdbInit(a:backend, a:proxy_cmd, cmd)
+  call luaeval("require'nvimgdb'.new(_A[1], _A[2], _A[3])", [a:backend, a:proxy_cmd, cmd])
 endfunction
 
 command! -nargs=1 -complete=shellcmd GdbStart call s:Spawn('gdb', 'gdb_wrap.sh', <q-args>)
