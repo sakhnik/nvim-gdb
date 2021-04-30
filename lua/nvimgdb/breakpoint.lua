@@ -31,7 +31,7 @@ end
 function C:clear_signs()
   -- Clear all breakpoint signs.
   for i = 5000, self.max_sign_id do
-    vim.fn.sign_unplace('NvimGdb', {id = i})
+    NvimGdb.vim.fn.sign_unplace('NvimGdb', {id = i})
   end
   self.max_sign_id = 0
 end
@@ -42,7 +42,7 @@ function C:_set_signs(buf)
   if buf ~= -1 then
     local sign_id = 5000 - 1
     -- Breakpoints need full path to the buffer (at least in lldb)
-    local bpath = vim.fn.expand('#' .. tostring(buf) .. ':p')
+    local bpath = NvimGdb.vim.fn.expand('#' .. tostring(buf) .. ':p')
 
     local function _get_sign_name(idx)
       local max_count = #self.config:get('sign_breakpoint')
@@ -56,10 +56,12 @@ function C:_set_signs(buf)
     local for_file = self.breaks[bpath]
     if for_file ~= nil then
       for line, ids in pairs(for_file) do
-        sign_id = sign_id + 1
-        local sign_name = _get_sign_name(#ids)
-        vim.fn.sign_place(sign_id, 'NvimGdb', sign_name, buf,
-                      {lnum = line, priority = priority})
+        if type(line) == "string" then
+          sign_id = sign_id + 1
+          local sign_name = _get_sign_name(#ids)
+          NvimGdb.vim.fn.sign_place(sign_id, 'NvimGdb', sign_name, buf,
+            {lnum = line, priority = priority})
+        end
       end
       self.max_sign_id = sign_id
     end

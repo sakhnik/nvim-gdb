@@ -17,7 +17,7 @@ end
 -- Handle the program continued execution. Hide the cursor.
 function C:continue_program()
   self.cursor:hide()
-  vim.cmd("doautocmd User NvimGdbContinue")
+  NvimGdb.vim.cmd("doautocmd User NvimGdbContinue")
 end
 
 -- Handle the program breaked. Show the source code.
@@ -25,14 +25,14 @@ end
 -- @param line string|number @line number
 function C:jump_to_source(fname, line)
   self.win:jump(fname, line)
-  vim.cmd("doautocmd User NvimGdbBreak")
+  NvimGdb.vim.cmd("doautocmd User NvimGdbBreak")
 end
 
 -- It's high time to query actual breakpoints.
 function C:query_breakpoints()
   self.win:query_breakpoints()
   -- Execute the rest of custom commands
-  vim.cmd("doautocmd User NvimGdbQuery")
+  NvimGdb.vim.cmd("doautocmd User NvimGdbQuery")
 end
 
 return C

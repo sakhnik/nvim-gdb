@@ -1,5 +1,3 @@
--- Logger taken from language client plugin.
-
 local log = {}
 
 -- FIXME: DOC
@@ -21,7 +19,7 @@ log.levels = {
 
 -- Default log level.
 local current_log_level = log.levels.CRIT
-if vim.env.CI ~= nil then
+if vim.api.nvim_eval("$CI") ~= "" then
   current_log_level = log.levels.DEBUG
 end
 
@@ -85,7 +83,13 @@ end
 
 -- This is put here on purpose after the loop above so that it doesn't
 -- interfere with iterating the levels
-vim.tbl_add_reverse_lookup(log.levels)
+-- vim.tbl_add_reverse_lookup(log.levels)
+log.levels[0] = "TRACE"
+log.levels[1] = "DEBUG"
+log.levels[2] = "INFO"
+log.levels[3] = "WARN"
+log.levels[4] = "ERROR"
+log.levels[5] = "CRIT"
 
 --- Sets the current log level.
 --@param level string|number One of `vim.lsp.log.levels`

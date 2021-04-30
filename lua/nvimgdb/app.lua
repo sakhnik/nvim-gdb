@@ -36,10 +36,10 @@ function C.new(backend_name, proxy_cmd, client_cmd)
   self.tabpage_created = false
   if getmetatable(NvimGdb.i(true)) == C then
     -- Create new tab for the new debugging view
-    vim.cmd('tabnew')
-    vim.wo.winfixwidth = false
-    vim.wo.winfixheight = false
-    vim.cmd('silent wincmd o')
+    NvimGdb.vim.cmd('tabnew')
+    NvimGdb.vim.wo.winfixwidth = false
+    NvimGdb.vim.wo.winfixheight = false
+    NvimGdb.vim.cmd('silent wincmd o')
     self.tabpage_created = true
   end
 
@@ -80,18 +80,17 @@ function C.new(backend_name, proxy_cmd, client_cmd)
   -- Setup 'errorformat' for the given backend.
   C.efmmgr.setup(self.backend.get_error_formats())
 
-  -- Spawn the debugger, the parser should be ready by now.
-  self.client:start(self.parser)
-  vim.cmd("doautocmd User NvimGdbStart")
-
-  -- Start insert mode in the GDB window
-  vim.fn.feedkeys("i")
-
   return self
 end
 
 -- The late initialization items that require accessing via tabpage.
 function C:postinit()
+  -- Spawn the debugger, the parser should be ready by now.
+  self.client:start(self.parser)
+  NvimGdb.vim.cmd("doautocmd User NvimGdbStart")
+
+  -- Start insert mode in the GDB window
+  NvimGdb.vim.fn.feedkeys("i")
   -- Set initial keymaps in the terminal window.
   assert(vim.api.nvim_get_current_win() == self.client.win)
   self.keymaps:dispatch_set_t()
@@ -101,7 +100,7 @@ end
 -- Finish up the debugging session.
 -- @param tab number @tabpage number
 function C:cleanup(tab)
-  vim.cmd("doautocmd User NvimGdbCleanup")
+  NvimGdb.vim.cmd("doautocmd User NvimGdbCleanup")
 
   -- Remove from 'errorformat' for the given backend.
   C.efmmgr.teardown(self.backend.get_error_formats())
@@ -125,7 +124,7 @@ function C:cleanup(tab)
   if self.tabpage_created then
     for _, tabpage in ipairs(vim.api.nvim_list_tabpages()) do
       if tabpage == tab then
-        vim.cmd("tabclose! " .. vim.api.nvim_tabpage_get_number(tabpage))
+        NvimGdb.vim.cmd("tabclose! " .. vim.api.nvim_tabpage_get_number(tabpage))
         break
       end
     end
@@ -164,7 +163,7 @@ in that window.
 ]]
 -- @param cmd string @debugger command to watch
 function C:create_watch(cmd)
-  vim.cmd("vnew | set readonly buftype=nowrite")
+  NvimGdb.vim.cmd("vnew | set readonly buftype=nowrite")
   self.keymaps:dispatch_set()
   local buf = vim.api.nvim_get_current_buf()
   vim.api.nvim_buf_set_name(buf, cmd)
@@ -172,21 +171,21 @@ function C:create_watch(cmd)
   local cur_tabpage = vim.api.nvim_get_current_tabpage()
   local augroup_name = "NvimGdbTab" .. cur_tabpage .. "_" .. buf
 
-  vim.cmd("augroup " .. augroup_name)
-  vim.cmd("autocmd!")
-  vim.cmd("autocmd User NvimGdbQuery" ..
+  NvimGdb.vim.cmd("augroup " .. augroup_name)
+  NvimGdb.vim.cmd("autocmd!")
+  NvimGdb.vim.cmd("autocmd User NvimGdbQuery" ..
           " call nvim_buf_set_lines(" .. buf .. ", 0, -1, 0," ..
           " split(GdbCustomCommand('" .. cmd .. "'), '\\n'))")
-  vim.cmd("augroup END")
+  NvimGdb.vim.cmd("augroup END")
 
   -- Destroy the autowatch automatically when the window is gone.
-  vim.cmd("autocmd BufWinLeave <buffer> call" ..
+  NvimGdb.vim.cmd("autocmd BufWinLeave <buffer> call" ..
           " nvimgdb#ClearAugroup('" .. augroup_name .. "')")
   -- Destroy the watch buffer.
-  vim.cmd("autocmd BufWinLeave <buffer> call timer_start(100," ..
+  NvimGdb.vim.cmd("autocmd BufWinLeave <buffer> call timer_start(100," ..
           " { -> execute('bwipeout! " .. buf .. "') })")
   -- Return the cursor to the previous window
-  vim.cmd("wincmd l")
+  NvimGdb.vim.cmd("wincmd l")
 end
 
 -- Toggle breakpoint in the cursor line
@@ -196,8 +195,8 @@ function C:breakpoint_toggle()
     self.client:interrupt()
   end
   local buf = vim.api.nvim_get_current_buf()
-  local file_name = vim.fn.expand('#' .. buf .. ':p')
-  local line_nr = vim.fn.line(".")
+  local file_name = NvimGdb.vim.fn.expand('#' .. buf .. ':p')
+  local line_nr = NvimGdb.vim.fn.line(".")
   local breaks = self.breakpoint:get_for_file(file_name, tostring(line_nr))
 
   if #breaks > 0 then
@@ -242,7 +241,7 @@ end
 -- Actions to execute when a buffer is entered.
 function C:on_buf_enter()
   -- Apply keymaps to the jump window only.
-  if vim.bo.filetype ~= 'nvimgdb' and self.win:is_jump_window_active() then
+  if NvimGdb.vim.bo.filetype ~= 'nvimgdb' and self.win:is_jump_window_active() then
     self.keymaps:dispatch_set()
     -- Ensure breakpoints are shown if are queried dynamically
     self.win:query_breakpoints()
@@ -251,11 +250,11 @@ end
 
 -- Actions to execute when a buffer is left.
 function C:on_buf_leave()
-  if vim.bo.filetype == 'nvimgdb' then
+  if NvimGdb.vim.bo.filetype == 'nvimgdb' then
     -- Move the cursor to the end of the buffer
     local jump_bottom = self.config:get_or('jump_bottom_gdb_buf', false)
     if jump_bottom then
-      vim.cmd("$")
+      NvimGdb.vim.cmd("$")
     end
     return
   end

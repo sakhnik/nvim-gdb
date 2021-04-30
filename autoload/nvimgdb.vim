@@ -1,4 +1,11 @@
 
+function! nvimgdb#TermOpen(command, tab)
+  return termopen(a:command,
+    \ {'on_stdout': {j,d,e -> luaeval("NvimGdb.parser_feed(_A[1], _A[2])", [a:tab, d])},
+    \  'on_exit': {j,c,e -> execute('if c == 0 | silent! close! | endif')},
+    \ })
+endfunction
+
 function! nvimgdb#ClearAugroup(name)
     exe "augroup " . a:name
       au!
@@ -24,7 +31,7 @@ function! nvimgdb#GlobalInit()
   command! GdbBreakpointClearAll lua NvimGdb.i():breakpoint_clear_all()
   command! GdbFrame lua NvimGdb.i():send('f')
   command! GdbRun lua NvimGdb.i():send('run')
-  command! GdbUntil lua NvimGdb.i():send('until %s', vim.fn.line('.'))
+  command! GdbUntil lua NvimGdb.i():send('until %s', NvimGdb.vim.fn.line('.'))
   command! GdbContinue lua NvimGdb.i():send('c')
   command! GdbNext lua NvimGdb.i():send('n')
   command! GdbStep lua NvimGdb.i():send('s')
@@ -32,7 +39,7 @@ function! nvimgdb#GlobalInit()
   command! GdbFrameUp lua NvimGdb.i():send('up')
   command! GdbFrameDown lua NvimGdb.i():send('down')
   command! GdbInterrupt lua NvimGdb.i():send()
-  command! GdbEvalWord lua NvimGdb.i():send('print %s', vim.fn.expand('<cword>'))
+  command! GdbEvalWord lua NvimGdb.i():send('print %s', NvimGdb.vim.fn.expand('<cword>'))
   command! -range GdbEvalRange call luaeval("NvimGdb.i():send('print %s', _A[1])", [s:GetExpression(<f-args>)])
   command! -nargs=1 GdbCreateWatch call luaeval("NvimGdb.i():create_watch(_A[1])", [<q-args>])
   command! GdbLopenBacktrace call luaeval("NvimGdb.i():lopen('backtrace', '<mods>')")

@@ -29,9 +29,6 @@ Or type `<leader>db` to start debugging a BASH script.
 
 ## Installation
 
-[Neovim Nightly 0.5](https://github.com/neovim/neovim/releases/tag/nightly)
-is required for this plugin.
-
 Check the prerequisites in the script [test/prerequisites.sh](https://github.com/sakhnik/nvim-gdb/blob/master/test/prerequisites.sh).
 
 If you use vim-plug, add the following line to your vimrc file:

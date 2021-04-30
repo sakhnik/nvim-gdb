@@ -72,29 +72,30 @@ function C:query(request)
 
   local o_err = nil
   local o_resp = nil
+  local cur_tab = vim.api.nvim_get_current_tabpage()
+  NvimGdb.proxy_ready[cur_tab] = false
 
   assert(uv.udp_send(self.sock, request, '127.0.0.1', self.server_port, function(err)
     if err ~= nil then
       o_err = err
+      NvimGdb.proxy_ready[cur_tab] = true
       return
     end
 
     assert(uv.udp_recv_start(self.sock, function(err2, data, --[[addr]]_, --[[flags]]_)
-      if err2 ~= nil then
-        o_err = err2
-        return
-      end
-      if data ~= nil then
-        o_resp = data
-      end
-    end))
+        if err2 ~= nil then
+          o_err = err2
+          NvimGdb.proxy_ready[cur_tab] = true
+          return
+        end
+        if data ~= nil then
+          o_resp = data
+          NvimGdb.proxy_ready[cur_tab] = true
+        end
+      end))
   end))
 
-  local function check()
-    return o_err ~= nil or o_resp ~= nil
-  end
-
-  if not vim.wait(500, check, 50) then
+  if NvimGdb.vim.fn.wait(500, "luaeval('NvimGdb.proxy_ready[" .. cur_tab .. "]')", 50) ~= 0 then
     assert(uv.udp_recv_stop(self.sock))
     return ''
   end

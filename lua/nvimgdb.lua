@@ -12,6 +12,8 @@ NvimGdb = {
   apps_size = 0,
 }
 NvimGdb.__index = NvimGdb
+NvimGdb.vim = require 'nvimgdb.compat'
+NvimGdb.proxy_ready = {}
 
 -- Create a new instance of the debugger in the current tabpage.
 -- @param backend_name string @debugger kind
@@ -27,7 +29,7 @@ function NvimGdb.new(backend_name, proxy_cmd, client_cmd)
   if NvimGdb.apps_size == 1 then
     -- Initialize the UI commands, autocommands etc
     log.info("Calling nvimgdb#GlobalInit()")
-    vim.fn["nvimgdb#GlobalInit"]()
+    NvimGdb.vim.fn["nvimgdb#GlobalInit"]()
   end
   -- Initialize the rest of the app
   app:postinit()
@@ -62,19 +64,24 @@ function NvimGdb.i(silent)
   return inst
 end
 
+function NvimGdb.parser_feed(tab, lines)
+  local inst = NvimGdb.apps[tab]
+  inst.parser:feed(lines)
+end
+
 -- Execute func while preserving the original value of the option 'hidden'
 -- @param func fun()
 local function with_saved_hidden(func)
   -- Prevent "ghost" [noname] buffers when leaving the debugger
   -- and 'hidden' is on
-  local hidden = vim.o.hidden
+  local hidden = NvimGdb.vim.o.hidden
   if hidden then
-    vim.o.hidden = false
+    NvimGdb.vim.o.hidden = false
   end
   func()
   -- sets hidden back to user default
   if hidden then
-    vim.o.hidden = true
+    NvimGdb.vim.o.hidden = true
   end
 end
 
@@ -91,7 +98,7 @@ function NvimGdb.cleanup(tab)
       if NvimGdb.apps_size == 0 then
         -- Cleanup commands, autocommands etc
         log.info("Calling nvimgdb#GlobalCleanup()")
-        vim.fn["nvimgdb#GlobalCleanup"]()
+        NvimGdb.vim.fn["nvimgdb#GlobalCleanup"]()
         NvimGdb.efmmgr.cleanup()
       end
       app:cleanup(tab)

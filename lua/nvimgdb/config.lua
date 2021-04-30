@@ -44,7 +44,7 @@ local function filter_funcref(key, val)
     return val
   end
   -- Finally, turn the value into a Vim function call.
-  return function(_) vim.call(val) end
+  return function(_) vim.api.nvim_call_function(val, {}) end
 end
 
 -- Get a value of a user-defined variable nvimgdb_<var>,
@@ -53,7 +53,8 @@ end
 -- @return string @variable value if defined, nil otherwise
 local function _get_from_user_variable(var)
   for scope in ("bwtg"):gmatch'.' do
-    local val = loadstring("return vim." .. scope .. ".nvimgdb_" .. var)()
+    local cmd = "return NvimGdb.vim." .. scope .. ".nvimgdb_" .. var
+    local val = loadstring(cmd)()
     if val ~= nil then
       return val
     end
@@ -162,10 +163,10 @@ end
 -- Define the cursor and breakpoint signs
 function C:_define_signs()
   -- Define the sign for current line the debugged program is executing.
-  vim.fn.sign_define('GdbCurrentLine', {text = self.config.sign_current_line})
+  NvimGdb.vim.fn.sign_define('GdbCurrentLine', {text = self.config.sign_current_line})
   -- Define signs for the breakpoints.
   for i, brk in ipairs(self.config.sign_breakpoint) do
-    vim.fn.sign_define('GdbBreakpoint' .. i, {text = brk})
+    NvimGdb.vim.fn.sign_define('GdbBreakpoint' .. i, {text = brk})
   end
 end
 

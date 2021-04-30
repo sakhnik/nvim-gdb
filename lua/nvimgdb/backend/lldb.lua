@@ -50,7 +50,7 @@ function C.query_breakpoints(fname, proxy)
   end
   -- We expect the proxies to send breakpoints for a given file
   -- as a map of lines to array of breakpoint ids set in those lines.
-  local breaks = vim.fn.json_decode(resp)
+  local breaks = NvimGdb.vim.fn.json_decode(resp)
   local err = breaks._error
   if err ~= nil then
     log.error("Can't get breakpoints: " .. err)

@@ -27,7 +27,8 @@ end
 -- @return Client @new instance
 function C.new(config, proxy_cmd, client_cmd)
   local self = setmetatable({}, C)
-  vim.cmd(config:get('termwin_command'))
+  log.info("termwin_command", config:get('termwin_command'))
+  NvimGdb.vim.cmd(config:get('termwin_command'))
   self.win = vim.api.nvim_get_current_win()
   self.client_id = nil
   self.is_active = false
@@ -40,15 +41,15 @@ function C.new(config, proxy_cmd, client_cmd)
     self.proxy_addr = self.sock_dir .. '/port'
     self.command = _get_plugin_dir() .. "/lib/" .. proxy_cmd .. " -a " .. self.proxy_addr .. " -- " .. client_cmd
   end
-  vim.cmd "enew"
+  NvimGdb.vim.cmd "enew"
   self.client_buf = vim.api.nvim_get_current_buf()
   return self
 end
 
 -- Destructor
 function C:cleanup()
-  if vim.api.nvim_buf_is_valid(self.client_buf) and vim.fn.bufexists(self.client_buf) then
-    vim.api.nvim_buf_delete(self.client_buf, {force = true})
+  if vim.api.nvim_buf_is_valid(self.client_buf) and NvimGdb.vim.fn.bufexists(self.client_buf) then
+    NvimGdb.vim.cmd("bd! " .. self.client_buf)
   end
 
   if self.proxy_addr then
@@ -75,14 +76,11 @@ function C:start(parser)
     --  vim.api.nvim_win_close(term_window, true)
     --end
   end
-  self.client_id = vim.fn.termopen(self.command, {
-      on_stdout = function(_, d, _) parser:feed(d) end,
-      on_exit = function(_, c, _) on_exit(c) end,
-    })
+  self.client_id = NvimGdb.vim.fn["nvimgdb#TermOpen"](self.command, vim.api.nvim_get_current_tabpage())
 
-  vim.bo.filetype = "nvimgdb"
+  NvimGdb.vim.bo.filetype = "nvimgdb"
   -- Allow detaching the terminal from its window
-  vim.bo.bufhidden = "hide"
+  NvimGdb.vim.bo.bufhidden = "hide"
   -- Finish the debugging session when the terminal is closed
   -- Left the remains of the code intentionally to remind that there is no need
   -- to close the debugger terminal automatically.
@@ -92,14 +90,14 @@ end
 
 -- Interrupt running program by sending ^c.
 function C:interrupt()
-  vim.fn.jobsend(self.client_id, "\x03")
+  NvimGdb.vim.fn.jobsend(self.client_id, "\x03")
 end
 
 -- Execute one command on the debugger interpreter.
 -- @param data string @send a command to the debugger
 function C:send_line(data)
   log.debug({"send_line", data})
-  vim.fn.jobsend(self.client_id, data .. "\n")
+  NvimGdb.vim.fn.jobsend(self.client_id, data .. "\n")
 end
 
 -- Get the client terminal buffer.

@@ -111,9 +111,9 @@ def config_test(eng, post):
     yield True
     eng.exec_lua('''
 for scope in ("bwtg"):gmatch'.' do
-  for k, _ in pairs(vim.fn.eval(scope .. ':')) do
-    if k:find('^nvimgdb_') then
-      vim.cmd('unlet ' .. scope .. ':' .. k)
+  for k, _ in pairs(NvimGdb.vim.fn.eval(scope .. ':')) do
+    if type(k) == "string" and k:find('^nvimgdb_') then
+      NvimGdb.vim.cmd('unlet ' .. scope .. ':' .. k)
     end
   end
 end
