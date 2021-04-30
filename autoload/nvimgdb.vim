@@ -1,13 +1,7 @@
 
-let s:plugin_dir = expand('<sfile>:p:h:h')
-
-function! nvimgdb#GetPluginDir()
-  return s:plugin_dir
-endfunction
-
 function! nvimgdb#TermOpen(command, tab)
   return termopen(a:command,
-    \ {'on_stdout': {j,d,e -> GdbParserFeed(a:tab, d)},
+    \ {'on_stdout': {j,d,e -> luaeval("NvimGdb.parser_feed(_A[1], _A[2])", [a:tab, d])},
     \  'on_exit': {j,c,e -> execute('if c == 0 | silent! close! | endif')},
     \ })
 endfunction
@@ -32,33 +26,37 @@ endfunction
 
 "Shared global state initialization (commands, keymaps etc)
 function! nvimgdb#GlobalInit()
-  command! GdbDebugStop call GdbCleanup(nvim_get_current_tabpage())
-  command! GdbBreakpointToggle call GdbBreakpointToggle()
-  command! GdbBreakpointClearAll call GdbBreakpointClearAll()
-  command! GdbFrame call GdbSend('f')
-  command! GdbRun call GdbSend('run')
-  command! GdbUntil call GdbSend('until {}', line('.'))
-  command! GdbContinue call GdbSend('c')
-  command! GdbNext call GdbSend('n')
-  command! GdbStep call GdbSend('s')
-  command! GdbFinish call GdbSend('finish')
-  command! GdbFrameUp call GdbSend('up')
-  command! GdbFrameDown call GdbSend('down')
-  command! GdbInterrupt call GdbSend()
-  command! GdbEvalWord call GdbSend('print {}', expand('<cword>'))
-  command! -range GdbEvalRange call GdbSend('print {}', s:GetExpression(<f-args>))
-  command! -nargs=1 GdbCreateWatch call GdbCreateWatch(<q-args>)
-  command! GdbLopenBacktrace call GdbCallAsync('lopen', 'backtrace', '<mods>')
-  command! GdbLopenBreakpoints call GdbCallAsync('lopen', 'breakpoints', '<mods>')
+  command! GdbDebugStop lua NvimGdb.cleanup(vim.api.nvim_get_current_tabpage())
+  command! GdbBreakpointToggle lua NvimGdb.i():breakpoint_toggle()
+  command! GdbBreakpointClearAll lua NvimGdb.i():breakpoint_clear_all()
+  command! GdbFrame lua NvimGdb.i():send('f')
+  command! GdbRun lua NvimGdb.i():send('run')
+  command! GdbUntil lua NvimGdb.i():send('until %s', NvimGdb.vim.fn.line('.'))
+  command! GdbContinue lua NvimGdb.i():send('c')
+  command! GdbNext lua NvimGdb.i():send('n')
+  command! GdbStep lua NvimGdb.i():send('s')
+  command! GdbFinish lua NvimGdb.i():send('finish')
+  command! GdbFrameUp lua NvimGdb.i():send('up')
+  command! GdbFrameDown lua NvimGdb.i():send('down')
+  command! GdbInterrupt lua NvimGdb.i():send()
+  command! GdbEvalWord lua NvimGdb.i():send('print %s', NvimGdb.vim.fn.expand('<cword>'))
+  command! -range GdbEvalRange call luaeval("NvimGdb.i():send('print %s', _A[1])", [s:GetExpression(<f-args>)])
+  command! -nargs=1 GdbCreateWatch call luaeval("NvimGdb.i():create_watch(_A[1])", [<q-args>])
+  command! GdbLopenBacktrace call luaeval("NvimGdb.i():lopen('backtrace', '<mods>')")
+  command! GdbLopenBreakpoints call luaeval("NvimGdb.i():lopen('breakpoints', '<mods>')")
+
+  function! GdbCustomCommand(cmd)
+    return luaeval("NvimGdb.i():custom_command(_A[1])", [a:cmd])
+  endfunction
 
   augroup NvimGdb
     au!
-    au TabEnter * call GdbHandleEvent("on_tab_enter")
-    au TabLeave * call GdbHandleEvent("on_tab_leave")
-    au BufEnter * call GdbHandleEvent("on_buf_enter")
-    au BufLeave * call GdbHandleEvent("on_buf_leave")
-    au TabClosed * call GdbHandleTabClosed()
-    au VimLeavePre * call GdbHandleVimLeavePre()
+    au TabEnter * lua NvimGdb.i(0):on_tab_enter()
+    au TabLeave * lua NvimGdb.i(0):on_tab_leave()
+    au BufEnter * lua NvimGdb.i(0):on_buf_enter()
+    au BufLeave * lua NvimGdb.i(0):on_buf_leave()
+    au TabClosed * lua NvimGdb.on_tab_closed()
+    au VimLeavePre * lua NvimGdb.on_vim_leave_pre()
   augroup END
 
   " Define custom events
@@ -79,6 +77,8 @@ function! nvimgdb#GlobalCleanup()
   " Cleanup custom events
   call nvimgdb#ClearAugroup("NvimGdbInternal")
 
+  delfunction GdbCustomCommand
+
   " Cleanup user commands and keymaps
   delcommand GdbDebugStop
   delcommand GdbBreakpointToggle
@@ -98,19 +98,4 @@ function! nvimgdb#GlobalCleanup()
   delcommand GdbCreateWatch
   delcommand GdbLopenBacktrace
   delcommand GdbLopenBreakpoints
-endfunction
-
-function! nvimgdb#KeepCursor(winid) abort
-  let curr = win_getid()
-  noa keepalt call win_gotoid(a:winid)
-  let wininfo = getwininfo(a:winid)[0]
-  let botline = wininfo['botline']
-  let topline = wininfo['topline']
-  let currlnum = line('.')
-  let lastlnum = line('$')
-  if botline - topline > &scrolloff && botline - currlnum < &scrolloff && botline < lastlnum
-    let topline += &scrolloff - (botline - currlnum)
-    call winrestview({'topline': topline})
-  endif
-  noa keepalt call win_gotoid(curr)
 endfunction

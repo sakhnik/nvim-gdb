@@ -1,5 +1,7 @@
 """A UI client for neovim used to fetch screen logs for testing."""
 
+import logging
+import os
 from pynvim import attach
 
 
@@ -9,11 +11,20 @@ class SpyUI:
     It will attach to a running instance of neovim and capture its screen.
     """
 
-    def __init__(self):
+    def __init__(self, width=80, height=25):
         """Constructor."""
+        self.logger = logging.getLogger("SpyUI")
+        self.logger.setLevel(logging.DEBUG)
+        lhandl = logging.NullHandler() if not os.environ.get('CI') \
+            else logging.FileHandler("spy_ui.log")
+        fmt = "%(asctime)s [%(levelname)s]: %(message)s"
+        lhandl.setFormatter(logging.Formatter(fmt))
+        self.logger.addHandler(lhandl)
+
         self.nvim = attach('tcp', address='localhost', port=44444)
-        self.width = 80
-        self.height = 25
+        self.width = int(width)
+        self.height = int(height)
+        self.logger.info("Starting SpyUI %dx%d", self.width, self.height)
         # Cursor row and col
         self.row = 0
         self.col = 0
@@ -71,8 +82,10 @@ class SpyUI:
             elif cmd == "scroll":
                 self._scroll(*par)
             elif cmd == "flush":
-                self.screen = self.to_str()
-                # self._print()
+                screen = self.to_str()
+                if screen != self.screen:
+                    self.logger.info("\n%s", self.screen)
+                    self.screen = screen
             else:
                 print(cmd, par)
 
@@ -131,10 +144,12 @@ class SpyUI:
         lines.append("+" + "-" * self.width + "+")
         return "\n".join(lines)
 
-    def _print(self):
-        print("")
-        print(self.to_str())
-
 
 if __name__ == "__main__":
-    SpyUI().run()
+    width = os.environ.get("COLUMNS")
+    if not width:
+        width = 80
+    height = os.environ.get("LINES")
+    if not height:
+        height = 25
+    SpyUI(width=width, height=height).run()

@@ -35,13 +35,14 @@ def test_multiview(eng, two_backends):
     assert eng.wait_signs({'cur': 'test.cpp:19', 'break': {1: [5, 12]}}) is None
 
     # Switch to the first backend
-    eng.feed('2gt')
+    eng.feed('1gt')
     assert eng.wait_signs({'cur': 'test.cpp:10', 'break': {1: [11]}}) is None
 
     # Quit
     eng.feed(':GdbDebugStop\n')
 
     # Switch back to the second backend
+    eng.feed('2gt')
     assert eng.wait_signs({'cur': 'test.cpp:19', 'break': {1: [5, 12]}}) is None
 
     # The last debugger is quit automatically

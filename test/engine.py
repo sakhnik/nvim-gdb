@@ -26,8 +26,7 @@ class Engine:
 
         self.screen = ""
 
-        args = ["/usr/bin/env", "./nvim", "--embed", "--headless", "-n",
-                "--listen", "localhost:44444"]
+        args = ["/usr/bin/env", "./nvim", "--embed", "--headless", "-n"]
         self.nvim = attach('child', argv=args)
         self.spy_ui = None
         self.thrd = threading.Thread(target=self.run_ui)
@@ -116,6 +115,12 @@ class Engine:
         self.logger.info("eval «%s»", expr)
         return self.nvim.eval(expr)
 
+    def exec_lua(self, expr):
+        """Execute lua statement."""
+        self.log_screen()
+        self.logger.info("exec_lua «%s»", expr)
+        return self.nvim.exec_lua(expr)
+
     def count_buffers(self):
         """Determine how many buffers are there."""
         self.eval('len(filter(nvim_list_bufs(), "nvim_buf_is_loaded(v:val)"))')
@@ -148,7 +153,7 @@ class Engine:
     def wait_paused(self):
         '''Wait until the parser FSM goes into the paused state.'''
         return self.wait_for(
-            lambda: self.eval("GdbCall('parser.is_paused')"),
+            lambda: self.exec_lua("return NvimGdb.i().parser:is_paused()"),
             lambda res: res, self.launch_delay)
 
     @staticmethod

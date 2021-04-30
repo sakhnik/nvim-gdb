@@ -97,12 +97,12 @@ def test_eval(eng, backend):
     eng.feed('<f10>')
 
     eng.feed('^<f9>')
-    assert eng.eval('GdbTestPeek("_last_command")') == 'print Foo'
+    assert eng.exec_lua('return NvimGdb.i()._last_command') == 'print Foo'
 
     eng.feed('/Lib::Baz\n')
     eng.feed('vt(')
     eng.feed(':GdbEvalRange\n')
-    assert eng.eval('GdbTestPeek("_last_command")') == 'print Lib::Baz'
+    assert eng.exec_lua('return NvimGdb.i()._last_command') == 'print Lib::Baz'
 
 
 def test_navigate(eng, backend):
@@ -134,3 +134,28 @@ def test_repeat_last_command(eng, backend):
     assert eng.wait_signs({'cur': 'test.cpp:19'}) is None
     eng.feed('<cr>')
     assert eng.wait_signs({'cur': 'test.cpp:17'}) is None
+
+
+def test_scrolloff(eng, backend):
+    '''Test that scrolloff is respected in the jump window.'''
+    eng.feed(backend['launch'])
+    assert eng.wait_paused() is None
+    eng.feed(backend['tbreak_main'])
+    eng.feed('run\n', 1000)
+    eng.feed('<esc>')
+
+    def _check_margin():
+        jump_win = eng.exec_lua('return NvimGdb.i().win.jump_win')
+        wininfo = eng.eval(
+            f"getwininfo(win_getid(nvim_win_get_number({jump_win})))[0]")
+        curline = eng.eval(f"nvim_win_get_cursor({jump_win})[0]")
+        signline = int(eng.get_signs()['cur'].split(':')[1])
+        assert signline == curline
+        assert curline <= wininfo['botline'] - 3
+        assert curline >= wininfo['topline'] + 3
+
+    _check_margin()
+    eng.feed('<f10>')
+    _check_margin()
+    eng.feed('<f11>')
+    _check_margin()

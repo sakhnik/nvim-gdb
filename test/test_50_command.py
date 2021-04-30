@@ -1,12 +1,13 @@
 '''Test custom command.'''
 
+import pytest
+
 TESTS = {
     'gdb': [("GdbCustomCommand('print i')", '$1 = 0'),
             ("GdbCustomCommand('info locals')", 'i = 0')],
     'lldb': [("GdbCustomCommand('frame var argc')", "(int) argc = 1"),
              ("GdbCustomCommand('frame var i')", "(int) i = 0")],
 }
-
 
 def test_backend(eng, backend):
     '''Custom command in C++.'''

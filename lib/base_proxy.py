@@ -17,6 +17,7 @@ import re
 import select
 import signal
 import socket
+import sys
 import termios
 import tty
 from typing import Union
@@ -34,9 +35,10 @@ class BaseProxy:
         parser.add_argument('cmd', metavar='ARGS', nargs='+',
                             help='%s command with arguments' % app_name)
         parser.add_argument('-a', '--address', metavar='ADDR',
-                            help='Local socket to receive commands.')
+                            help='A file to dump the side channel UDP port.')
         args = parser.parse_args()
 
+        self.exitstatus = 0
         self.server_address: str = args.address
         self.argv = args.cmd
         log_handler = logging.NullHandler() if not os.environ.get('CI') \
@@ -51,9 +53,12 @@ class BaseProxy:
         self.sock: Union[socket.socket, None] = None
         if self.server_address:
             # Create a UDS socket
-            self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-            self.sock.bind(self.server_address)
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            self.sock.bind(('127.0.0.1', 0))
             self.sock.settimeout(0.5)
+            _, port = self.sock.getsockname()
+            with open(self.server_address, 'w') as f:
+                f.write(f"{port}")
 
         # Create the filter
         self.filter = [(stream_filter.Filter(), lambda _: None)]
@@ -65,9 +70,13 @@ class BaseProxy:
         self.command_buffer = bytearray()
 
         # Spawn the process in a PTY
-        pid, self.master_fd = pty.fork()
-        if pid == pty.CHILD:
-            os.execvp(self.argv[0], self.argv)
+        self.pid, self.master_fd = pty.fork()
+        if self.pid == pty.CHILD:
+            try:
+                os.execvp(self.argv[0], self.argv)
+            except OSError as e:
+                sys.stderr.write(f"Failed to launch: {e}\n")
+                os._exit(1)
 
     def run(self):
         """Run the proxy, the entry point."""
@@ -82,9 +91,9 @@ class BaseProxy:
         try:
             self._process()
         except OSError as os_err:
-            self.logger.exception("Exception")
             # Avoid printing I/O Error that happens on every GDB quit
             if os_err.errno != errno.EIO:
+                self.logger.exception("Exception")
                 raise
         except Exception:
             self.logger.exception("Exception")
@@ -92,12 +101,20 @@ class BaseProxy:
         finally:
             tty.tcsetattr(pty.STDIN_FILENO, tty.TCSAFLUSH, mode)
 
+            _, systemstatus = os.waitpid(self.pid, 0)
+            if systemstatus:
+                if os.WIFSIGNALED(systemstatus):
+                    self.exitstatus = os.WTERMSIG(systemstatus) + 128
+                else:
+                    self.exitstatus = os.WEXITSTATUS(systemstatus)
+            else:
+                self.exitstatus = 0
+
             os.close(self.master_fd)
             self.master_fd = None
             signal.signal(signal.SIGWINCH, old_handler)
 
             if self.server_address:
-                # Make sure the socket does not already exist
                 try:
                     os.unlink(self.server_address)
                 except OSError:
@@ -146,8 +163,13 @@ class BaseProxy:
         """Set the window size of the child pty."""
         assert self.master_fd is not None
         buf = array.array('h', [0, 0, 0, 0])
-        fcntl.ioctl(pty.STDOUT_FILENO, termios.TIOCGWINSZ, buf, True)
-        fcntl.ioctl(self.master_fd, termios.TIOCSWINSZ, buf)
+        try:
+            fcntl.ioctl(pty.STDOUT_FILENO, termios.TIOCGWINSZ, buf, True)
+            fcntl.ioctl(self.master_fd, termios.TIOCSWINSZ, buf)
+        except OSError as ex:
+            # Avoid printing I/O Error that happens on every GDB quit
+            if ex.errno != errno.EIO:
+                self.logger.exception("Exception")
 
     def _process(self):
         """Run the main loop."""
