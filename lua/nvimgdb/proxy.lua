@@ -76,7 +76,7 @@ function C:query(request)
   NvimGdb.proxy_ready[cur_tab] = false
 
   log.debug("udp_send", request, self.server_port)
-  assert(uv.udp_send(self.sock, request, '127.0.0.1', self.server_port, function(err)
+  uv.udp_send(self.sock, request, '127.0.0.1', self.server_port, function(err)
     if err ~= nil then
       log.debug("udp_send callback error", err)
       o_err = err
@@ -85,32 +85,32 @@ function C:query(request)
     end
 
     log.debug("udp_recv_start")
-    assert(uv.udp_recv_start(self.sock, function(err2, data, --[[addr]]_, --[[flags]]_)
-        if err2 ~= nil then
-          log.debug("udp_recv callback error", err2, data)
-          o_err = err2
-          NvimGdb.proxy_ready[cur_tab] = true
-          return
-        end
-        if data ~= nil then
-          log.debug("udp_recv callback data", err2, data)
-          o_resp = data
-          NvimGdb.proxy_ready[cur_tab] = true
-          return
-        end
+    uv.udp_recv_start(self.sock, function(err2, data, --[[addr]]_, --[[flags]]_)
+      if err2 ~= nil then
+        log.debug("udp_recv callback error", err2, data)
+        o_err = err2
         NvimGdb.proxy_ready[cur_tab] = true
-        log.debug("udp_recv callback rest", err2, data)
-      end))
-  end))
+        return
+      end
+      if data ~= nil then
+        log.debug("udp_recv callback data", err2, data)
+        o_resp = data
+        NvimGdb.proxy_ready[cur_tab] = true
+        return
+      end
+      NvimGdb.proxy_ready[cur_tab] = true
+      log.debug("udp_recv callback rest", err2, data)
+    end)
+  end)
 
   log.debug("wait for recv")
   if NvimGdb.vim.fn.wait(500, "luaeval('NvimGdb.proxy_ready[" .. cur_tab .. "]')", 50) ~= 0 then
     log.debug("timeout, udp_recv_stop")
-    assert(uv.udp_recv_stop(self.sock))
+    uv.udp_recv_stop(self.sock)
     return ''
   end
   log.debug("udp_recv_stop")
-  assert(uv.udp_recv_stop(self.sock))
+  uv.udp_recv_stop(self.sock)
 
   if o_err ~= nil then
     log.error("Failed to query: " .. o_err)
