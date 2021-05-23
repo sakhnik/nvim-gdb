@@ -2,15 +2,16 @@
 function! nvimgdb#TermOpen(command, tab)
   return termopen(a:command,
     \ {'on_stdout': {j,d,e -> luaeval("NvimGdb.parser_feed(_A[1], _A[2])", [a:tab, d])},
-    \  'on_exit': {j,c,e -> execute('if c == 0 | silent! close! | endif')},
+    \  'on_exit': {j,c,e -> execute(printf("if c == 0 | sil! bw! | endif" .
+    \       " | call luaeval('NvimGdb.cleanup(_A[1])', [%d])", a:tab))},
     \ })
 endfunction
 
 function! nvimgdb#ClearAugroup(name)
-    exe "augroup " . a:name
-      au!
-    augroup END
-    exe "augroup! " . a:name
+  exe "augroup " . a:name
+    au!
+  augroup END
+  exe "augroup! " . a:name
 endfunction
 
 
