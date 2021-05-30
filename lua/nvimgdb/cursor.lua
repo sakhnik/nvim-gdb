@@ -40,13 +40,15 @@ function C:show()
   else
     self.sign_id = 4998
   end
-  if self.line ~= -1 and self.buf ~= -1 then
-    local priority = self.config:get('sign_breakpoint_priority') + 1
-    NvimGdb.vim.fn.sign_place(self.sign_id, 'NvimGdb', 'GdbCurrentLine', self.buf,
-      {lnum = self.line, priority = priority})
-  end
-  if old_sign_id ~= -1 then
-    NvimGdb.vim.fn.sign_unplace('NvimGdb', {id = old_sign_id, buffer = self.buf})
+  if self.buf ~= -1 then
+    if self.line ~= -1 then
+      local priority = self.config:get('sign_breakpoint_priority') + 1
+      NvimGdb.vim.fn.sign_place(self.sign_id, 'NvimGdb', 'GdbCurrentLine', self.buf,
+        {lnum = self.line, priority = priority})
+    end
+    if old_sign_id ~= -1 then
+      NvimGdb.vim.fn.sign_unplace('NvimGdb', {id = old_sign_id, buffer = self.buf})
+    end
   end
 end
 
