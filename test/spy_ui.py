@@ -25,11 +25,8 @@ class SpyUI:
         self.width = int(width)
         self.height = int(height)
         self.logger.info("Starting SpyUI %dx%d", self.width, self.height)
-        # Cursor row and col
-        self.row = 0
-        self.col = 0
-        self.scroll_region = (0, 0, 0, 0)
-        self.nvim.ui_attach(self.width, self.height, True)
+        self.nvim.ui_attach(self.width, self.height, rgb=True,
+                            ext_linegrid=True)
         self.grid = []
         for _ in range(self.height):
             self.grid.append([' '] * self.width)
@@ -49,7 +46,7 @@ class SpyUI:
             ("mode_info_set", "mode_change", "mouse_on", "mouse_off",
              "option_set", "default_colors_set",
              "hl_group_set", "hl_attr_define",
-             "grid_cursor_goto", "busy_start", "busy_stop",
+             "cursor_goto", "grid_cursor_goto", "busy_start", "busy_stop",
              "update_fg", "update_bg", "update_sp", "highlight_set",
              "win_viewport"
              )
@@ -64,32 +61,33 @@ class SpyUI:
     def _redraw(self, args):
         for arg in args:
             cmd = arg[0]
+
+            def for_each_param(handler):
+                for i in range(1, len(arg)):
+                    handler(*arg[i])
+
             par = arg[1]
             if cmd in self.IGNORE_REDRAW:
                 continue
-            if cmd == "resize":
-                self._resize(*par)
-            elif cmd == "clear":
-                self._clear()
-            elif cmd == "eol_clear":
-                self._eol_clear()
-            elif cmd == "cursor_goto":
-                self._cursor_goto(*par)
-            elif cmd == "put":
-                self._put(arg[1:])
-            elif cmd == "set_scroll_region":
-                self._set_scroll_region(*par)
-            elif cmd == "scroll":
-                self._scroll(*par)
+            if cmd == "grid_resize":
+                for_each_param(self._grid_resize)
+            elif cmd == "grid_clear":
+                for_each_param(self._grid_clear)
+            elif cmd == "grid_line":
+                for_each_param(self._grid_line)
+            elif cmd == "grid_scroll":
+                for_each_param(self._grid_scroll)
             elif cmd == "flush":
                 screen = self.to_str()
                 if screen != self.screen:
+                    # print(screen)
                     self.logger.info("\n%s", self.screen)
                     self.screen = screen
             else:
                 print(cmd, par)
 
-    def _resize(self, width, height):
+    def _grid_resize(self, gr, width, height):
+        assert gr == 1
         new_grid = []
         for _ in range(height):
             new_grid.append([' '] * width)
@@ -100,30 +98,26 @@ class SpyUI:
         self.width = width
         self.height = height
 
-    def _clear(self):
+    def _grid_clear(self, gr):
+        assert gr == 1
         for row in range(self.height):
             for col in range(self.width):
                 self.grid[row][col] = ' '
 
-    def _eol_clear(self):
-        for col in range(self.col, self.width):
-            self.grid[self.row][col] = ' '
+    def _grid_line(self, gr, row, col, cells):
+        assert gr == 1
+        for cell in cells:
+            text = cell[0]
+            repeat = 1
+            if len(cell) > 2:
+                repeat = int(cell[2])
+            for i in range(repeat):
+                self.grid[row][col + i] = text
+            col += repeat
 
-    def _cursor_goto(self, row, col):
-        self.row = row
-        self.col = col
-
-    def _put(self, text):
-        text_row = self.grid[self.row]
-        for col, char in enumerate(text):
-            text_row[self.col + col] = char[0]
-        self.col += len(text)
-
-    def _set_scroll_region(self, top, bot, left, right):
-        self.scroll_region = (top, bot, left, right)
-
-    def _scroll(self, rows):
-        top, bot, left, right = self.scroll_region
+    def _grid_scroll(self, gr, top, bot, left, right, rows, cols):
+        assert gr == 1
+        assert cols == 0
         if rows > 0:
             for row in range(top, bot - rows):
                 rfrom = row + rows
