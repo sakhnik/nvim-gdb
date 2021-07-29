@@ -48,7 +48,7 @@ function! nvimgdb#GlobalInit()
   command! GdbInterrupt lua NvimGdb.i():send()
   command! GdbEvalWord lua NvimGdb.i():send('print %s', NvimGdb.vim.fn.expand('<cword>'))
   command! -range GdbEvalRange call luaeval("NvimGdb.i():send('print %s', _A[1])", [s:GetExpression(<f-args>)])
-  command! -nargs=1 GdbCreateWatch call luaeval("NvimGdb.i():create_watch(_A[1])", [<q-args>])
+  command! -nargs=1 GdbCreateWatch call luaeval("NvimGdb.i():create_watch(_A[1], '<mods>')", [<q-args>])
   command! GdbLopenBacktrace call luaeval("NvimGdb.i():lopen('backtrace', '<mods>')")
   command! GdbLopenBreakpoints call luaeval("NvimGdb.i():lopen('breakpoints', '<mods>')")
 

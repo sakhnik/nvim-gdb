@@ -162,8 +162,11 @@ The output of the expression or command will be displayed
 in that window.
 ]]
 -- @param cmd string @debugger command to watch
-function C:create_watch(cmd)
-  NvimGdb.vim.cmd("vnew | set readonly buftype=nowrite")
+function C:create_watch(cmd, mods)
+  if not mods or mods == '' then
+    mods = 'vert'
+  end
+  NvimGdb.vim.cmd(mods .. " new | set readonly buftype=nowrite")
   self.keymaps:dispatch_set()
   local buf = vim.api.nvim_get_current_buf()
   vim.api.nvim_buf_set_name(buf, cmd)
