@@ -178,7 +178,7 @@ function C:create_watch(cmd, mods)
   NvimGdb.vim.cmd("autocmd!")
   NvimGdb.vim.cmd("autocmd User NvimGdbQuery" ..
           " call nvim_buf_set_lines(" .. buf .. ", 0, -1, 0," ..
-          " split(GdbCustomCommand('" .. cmd .. "'), '\\n'))")
+          " split(GdbCustomCommand('" .. cmd .. "'), '\\r*\\n'))")
   NvimGdb.vim.cmd("augroup END")
 
   -- Destroy the autowatch automatically when the window is gone.
