@@ -100,6 +100,7 @@ function NvimGdb.cleanup(tab)
         log.info("Calling nvimgdb#GlobalCleanup()")
         NvimGdb.vim.fn["nvimgdb#GlobalCleanup"]()
         NvimGdb.efmmgr.cleanup()
+        app.win:unset_keymaps()
       end
       app:cleanup(tab)
     end)

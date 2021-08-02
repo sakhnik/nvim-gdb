@@ -45,6 +45,16 @@ function C.new(config, keymaps, cursor, client, breakpoint, start_win, edited_bu
   return self
 end
 
+-- Only make sense if nvimgdb#GlobalCleanup is called
+function C:unset_keymaps()
+  if self:_has_jump_win() then
+    self:_with_saved_win(true, function()
+      vim.api.nvim_set_current_win(self.jump_win)
+      pcall(self.keymaps.dispatch_unset, self.keymaps)
+    end)
+  end
+end
+
 -- Cleanup the windows and buffers.
 function C:cleanup()
   for buf, _ in pairs(self.buffers) do
