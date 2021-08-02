@@ -199,6 +199,7 @@ function C:jump(file, line)
     NvimGdb.vim.cmd("normal! zv")
   end)
   NvimGdb.vim.cmd("redraw")
+  self.buffers[target_buf] = true
 end
 
 -- Test whether an item is in the list
