@@ -80,8 +80,8 @@ def test_program_exit(eng, backend):
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
     eng.feed(backend['tbreak_main'])
-    eng.feed('run\n', 1000)
     eng.feed('<esc>')
+    eng.feed(':Gdb run\n', 1000)
     eng.feed('<f5>')
     assert eng.wait_signs({}) is None
 

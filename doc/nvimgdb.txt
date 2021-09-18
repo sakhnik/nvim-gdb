@@ -80,6 +80,9 @@ Section 2: Commands                                          *NvimgdbCommands*
                         executed if you close either of the windows created by
                         the debugger.
 
+                                                                        *:Gdb*
+:Gdb [cmd]              Execute any given debugger command [cmd].
+
                                                         *:GdbBreakpointToggle*
                                                       *:GdbBreakpointClearAll*
 :GdbBreakpointToggle    Manage breakpoints in the code: toggle, clear all
