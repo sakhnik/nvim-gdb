@@ -162,8 +162,11 @@ The output of the expression or command will be displayed
 in that window.
 ]]
 -- @param cmd string @debugger command to watch
-function C:create_watch(cmd)
-  NvimGdb.vim.cmd("vnew | set readonly buftype=nowrite")
+function C:create_watch(cmd, mods)
+  if not mods or mods == '' then
+    mods = 'vert'
+  end
+  NvimGdb.vim.cmd(mods .. " new | set readonly buftype=nowrite")
   self.keymaps:dispatch_set()
   local buf = vim.api.nvim_get_current_buf()
   vim.api.nvim_buf_set_name(buf, cmd)
@@ -175,7 +178,7 @@ function C:create_watch(cmd)
   NvimGdb.vim.cmd("autocmd!")
   NvimGdb.vim.cmd("autocmd User NvimGdbQuery" ..
           " call nvim_buf_set_lines(" .. buf .. ", 0, -1, 0," ..
-          " split(GdbCustomCommand('" .. cmd .. "'), '\\n'))")
+          " split(GdbCustomCommand('" .. cmd .. "'), '\\r*\\n'))")
   NvimGdb.vim.cmd("augroup END")
 
   -- Destroy the autowatch automatically when the window is gone.
