@@ -228,7 +228,7 @@ You can call the default handler from within the hook and/or define your own
 very specific terminal keymaps.  The keys `set_keymaps` and `unset_keymaps`
 are called every time when the source code windows is entered and left.  The
 first one can be used to define source window-specific keymaps and the latter
-to carefully cleanup them.  See `test/init.vim` for an example.
+to carefully cleanup them.  See `test/keymap_hooks.vim` for an example.
 
 The key `jump_bottom_gdb_buf` enables jumping to the bottom of the gdb terminal
 buffer when focus is moved to a different window.
