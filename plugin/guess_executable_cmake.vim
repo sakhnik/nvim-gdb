@@ -26,8 +26,8 @@ function ArtifactsOfSource(buffer_name)
 endfunction
 
 function ExecutableOfBuffer()
-        let artifact_name = split(bufname(), '/')[-1]
-        let execs = ExecutableOfFileHelper(artifact_name, 0)
+        let buffer_base_name = split(bufname(), '/')[-1]
+        let execs = ExecutableOfFileHelper(buffer_base_name, 0)
         let execs = uniq(sort(execs))
         return empty(execs) ? g:nvim_gdb_default_exec : execs[0]
 endfunction
@@ -38,9 +38,10 @@ function ExecutableOfFileHelper(file_name, depth)
                 let artifacts = ArtifactsOfSource(a:file_name)
         elseif match(a:file_name, '\(\.a$\|\.so$\)') >= 0
                 let artifacts = ArtifactsOfLibrary(a:file_name)
-        else
+        else " assume executable found
                 return a:file_name
         endif
+        " recurse on all artifacts until executable is found
         call map(artifacts, {idx, val -> ExecutableOfFileHelper(val, a:depth+1)})
         return flatten(artifacts)
 endfunction
