@@ -14,9 +14,14 @@ command! -nargs=1 -complete=shellcmd GdbStartLLDB call s:Spawn('lldb', 'lldb_wra
 command! -nargs=1 -complete=shellcmd GdbStartPDB call s:Spawn('pdb', 'pdb_proxy.py', <q-args>)
 command! -nargs=1 -complete=shellcmd GdbStartBashDB call s:Spawn('bashdb', 'bashdb_proxy.py', <q-args>)
 
+let g:use_find_executables=1
+let g:find_executables_base_dir=g:cmake_build_dir
+let g:use_cmake_to_find_executables=1
 function ExecsCompletion(ArgLead, CmdLine, CursorPos)
-  let found_executables = split(system("find " . g:cmake_build_dir . " -type f -executable"))
-  let cmake_executables = ExecutableOfBuffer()
+  let found_executables = g:use_find_executables ? 
+        \systemlist("find " . g:find_executables_base_dir . " -type f -executable") : []
+  let cmake_executables = g:use_cmake_to_find_executables ? 
+        \ExecutableOfBuffer() : []
   return extend(cmake_executables, found_executables)
 endfunction
 

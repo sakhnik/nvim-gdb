@@ -30,6 +30,10 @@ function ArtifactsOfFiles(targets, file_name)
 endfunction
 
 function ExecutableOfBuffer()
+        if CMakeQuery() 
+                echoerr "nvim-gdb: let g:use_cmake_to_find_executables=0 to NOT use cmake executables for completion"
+                return [g:nvim_gdb_default_exec]
+        endif
         " Decode all target_file JSONS into Dictionaries
         let targets=split(glob(g:cmake_api_reply_dir . "target*"))
         call map(targets, {idx, val -> json_decode(readfile(val))})
@@ -52,12 +56,14 @@ function ExecutableOfFileHelper(targets, file_name, depth)
         return flatten(artifacts)
 endfunction
 
-function CmakeQuery()
+function CMakeQuery()
         let cmake_api_query_dir=g:cmake_build_dir.".cmake/api/v1/query/client-nvim-gdb/"
         call mkdir(cmake_api_query_dir, "p")
         let cmake_api_query_file=cmake_api_query_dir."query.json"
         let cmake_api_query=['{ "requests": [ { "kind": "codemodel" , "version": 2 } ] }']
         call writefile(cmake_api_query, cmake_api_query_file)
-        call system("cmake -B ".g:cmake_build_dir)
-        echo cmake_api_query_file
+        if empty(glob(g:cmake_api_reply_dir))
+                call system("cmake -B ".g:cmake_build_dir)
+        endif
+        return v:shell_error
 endfunction
