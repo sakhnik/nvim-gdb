@@ -1,48 +1,54 @@
 let cmake_build_dir="./build/"
 let cmake_api_reply_dir=cmake_build_dir . ".cmake/api/v1/reply/"
 let nvim_gdb_default_exec='a.out'
-function ArtifactsOfLibrary(buffer_name)
-        let targets=split(glob(g:cmake_api_reply_dir . "target*"))
-        " Decode all target_file JSONS into Dictionaries
-        call map(targets, {idx, val -> json_decode(readfile(val))})
-        " Filter down to targets that use buffer_name as a source
-        let Filter_lambda = {idx, val -> match(map(get(get(val, "link", {}),"commandFragments", []), {idx, source -> source.fragment}), a:buffer_name) >= 0}
-        call filter(targets, Filter_lambda ) 
-        " Get all artifacts that buffer_name generates
-        call flatten(map(targets, {idx, target_file -> map(target_file.artifacts, {idx, artifact -> artifact.path})}))
-        return targets
+
+" targets structure is:
+" [{artifacts:[...], 
+"   link: {commandFragments: [{fragment:"<file_name>", ...}, ...], ...}, 
+"   sources: [{path:"<file_name>", ...}...]
+"  }, ...]
+" Library files (*.a, *.so) are in commandFragments and source files (*.c,
+" *.cpp) are in sources
+function TargetsThatUseFiles(targets, file_name)
+        if match(a:file_name, '\(\.c$\|\.cpp$\)') >= 0
+                let Filter_lambda = {idx, val -> match(map(get(val, "sources", []), {idx, source -> source.path}), a:file_name) >= 0}
+        elseif match(a:file_name, '\(\.a$\|\.so$\)') >= 0
+                let Filter_lambda = {idx, val -> match(map(get(get(val, "link", {}),"commandFragments", []), {idx, commandFragment -> commandFragment.fragment}), a:file_name) >= 0}
+        endif
+        return filter(a:targets, Filter_lambda ) 
 endfunction
 
-function ArtifactsOfSource(buffer_name)
-        let targets=split(glob(g:cmake_api_reply_dir . "target*"))
-        " Decode all target_file JSONS into Dictionaries
-        call map(targets, {idx, val -> json_decode(readfile(val))})
-        " Filter down to targets that use buffer_name as a source
-        let Filter_lambda = {idx, val -> match(map(get(val, "sources", []), {idx, source -> source.path}), a:buffer_name) >= 0}
-        call filter(targets, Filter_lambda ) 
-        " Get all artifacts that buffer_name generates
-        call flatten(map(targets, {idx, target_file -> map(target_file.artifacts, {idx, artifact -> artifact.path})}))
-        return targets
+function GetArtifactPaths(targets)
+        return map(a:targets, {idx, target-> map(target.artifacts, {idx, artifact -> artifact.path})})
+endfunction
+
+function ArtifactsOfFiles(targets, file_name)
+        " Filter down to targets that use file_name
+        let filtered_targets = TargetsThatUseFiles(a:targets, a:file_name)
+        " Get all artifact paths in that target
+        return flatten(GetArtifactPaths(filtered_targets))
 endfunction
 
 function ExecutableOfBuffer()
+        " Decode all target_file JSONS into Dictionaries
+        let targets=split(glob(g:cmake_api_reply_dir . "target*"))
+        call map(targets, {idx, val -> json_decode(readfile(val))})
         let buffer_base_name = split(bufname(), '/')[-1]
-        let execs = ExecutableOfFileHelper(buffer_base_name, 0)
+        let execs = ExecutableOfFileHelper(targets, buffer_base_name, 0)
         let execs = uniq(sort(execs))
-        return empty(execs) ? g:nvim_gdb_default_exec : execs[0]
+        call map(execs, {idx, val -> g:cmake_build_dir . val})
+        return empty(execs) ? [g:nvim_gdb_default_exec] : execs
 endfunction
 
-function ExecutableOfFileHelper(file_name, depth)
+function ExecutableOfFileHelper(targets, file_name, depth)
         echo repeat("  ", a:depth).a:file_name
-        if match(a:file_name, '\(\.c$\|\.cpp$\)') >= 0
-                let artifacts = ArtifactsOfSource(a:file_name)
-        elseif match(a:file_name, '\(\.a$\|\.so$\)') >= 0
-                let artifacts = ArtifactsOfLibrary(a:file_name)
+        if match(a:file_name, '\(\.c$\|\.cpp$\|\.a$\|\.so$\)') >= 0
+                let artifacts = ArtifactsOfFiles(a:targets, a:file_name)
         else " assume executable found
                 return a:file_name
         endif
         " recurse on all artifacts until executable is found
-        call map(artifacts, {idx, val -> ExecutableOfFileHelper(val, a:depth+1)})
+        call map(artifacts, {idx, val -> ExecutableOfFileHelper(a:targets, val, a:depth+1)})
         return flatten(artifacts)
 endfunction
 
