@@ -1,5 +1,6 @@
 let cmake_build_dir="./build/"
 let cmake_api_reply_dir=cmake_build_dir . ".cmake/api/v1/reply/"
+let nvim_gdb_default_exec='a.out'
 function ArtifactsOfLibrary(buffer_name)
         let targets=split(glob(g:cmake_api_reply_dir . "target*"))
         " Decode all target_file JSONS into Dictionaries
@@ -26,16 +27,22 @@ endfunction
 
 function ExecutableOfBuffer()
         let artifact_name = split(bufname(), '/')[-1]
-        echo "buffer name: ".artifact_name
-        while match(artifact_name, '\(\.c$\|\.cpp$\)') >= 0
-                let artifact_name=split(get(ArtifactsOfSource(artifact_name), 0), '/')[-1]
-                echo "source name: ".artifact_name
-        endwhile
-        while match(artifact_name, '\(\.a$\|\.so$\)') >= 0
-                let artifact_name=split(get(ArtifactsOfLibrary(artifact_name), 0), '/')[-1]
-                echo "library name: ".artifact_name
-        endwhile
-        echo "executable name: ".artifact_name
+        let execs = ExecutableOfFileHelper(artifact_name, 0)
+        let execs = uniq(sort(execs))
+        return empty(execs) ? g:nvim_gdb_default_exec : execs[0]
+endfunction
+
+function ExecutableOfFileHelper(file_name, depth)
+        echo repeat("  ", a:depth).a:file_name
+        if match(a:file_name, '\(\.c$\|\.cpp$\)') >= 0
+                let artifacts = ArtifactsOfSource(a:file_name)
+        elseif match(a:file_name, '\(\.a$\|\.so$\)') >= 0
+                let artifacts = ArtifactsOfLibrary(a:file_name)
+        else
+                return a:file_name
+        endif
+        call map(artifacts, {idx, val -> ExecutableOfFileHelper(val, a:depth+1)})
+        return flatten(artifacts)
 endfunction
 
 function CmakeQuery()
