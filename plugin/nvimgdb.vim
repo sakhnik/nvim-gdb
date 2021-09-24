@@ -18,8 +18,13 @@ let g:use_find_executables=1
 let g:find_executables_base_dir=g:cmake_build_dir
 let g:use_cmake_to_find_executables=1
 function ExecsCompletion(ArgLead, CmdLine, CursorPos)
+  " Use `find`
+  let find_cmd="find " . g:find_executables_base_dir . ' -type f -executable -not -path "' . g:cmake_build_dir . 'CMakeFiles/**"'
+  echo "find_cmd: '" . find_cmd . "'"
   let found_executables = g:use_find_executables ? 
-        \systemlist("find " . g:find_executables_base_dir . " -type f -executable") : []
+        \systemlist(find_cmd) : []
+  echo "found_executables: " . join(found_executables, ', ')
+  " Use CMake
   let cmake_executables = g:use_cmake_to_find_executables ? 
         \ExecutableOfBuffer() : []
   return extend(cmake_executables, found_executables)

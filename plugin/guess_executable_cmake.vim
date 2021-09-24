@@ -13,7 +13,7 @@ function TargetsThatUseFiles(targets, file_name)
         if match(a:file_name, '\(\.c$\|\.cpp$\)') >= 0
                 let Filter_lambda = {idx, val -> match(map(get(val, "sources", []), {idx, source -> source.path}), a:file_name) >= 0}
         elseif match(a:file_name, '\(\.a$\|\.so$\)') >= 0
-                let Filter_lambda = {idx, val -> match(map(get(get(val, "link", {}),"commandFragments", []), {idx, commandFragment -> commandFragment.fragment}), a:file_name) >= 0}
+                let Filter_lambda = {idx, val -> match(map(get(get(val, "link", {}),"commandFragments", []), {idx, commandFragment -> commandFragment.fragment}), split(a:file_name,'/')[-1]) >= 0}
         endif
         return filter(a:targets, Filter_lambda ) 
 endfunction
@@ -37,7 +37,7 @@ function ExecutableOfBuffer()
         " Decode all target_file JSONS into Dictionaries
         let targets=split(glob(g:cmake_api_reply_dir . "target*"))
         call map(targets, {idx, val -> json_decode(readfile(val))})
-        let buffer_base_name = split(bufname(), '/')[-1]
+        let buffer_base_name = bufname() " split(bufname(), '/')[-1]
         let execs = ExecutableOfFileHelper(targets, buffer_base_name, 0)
         let execs = uniq(sort(execs))
         call map(execs, {idx, val -> g:cmake_build_dir . val})
@@ -45,14 +45,17 @@ function ExecutableOfBuffer()
 endfunction
 
 function ExecutableOfFileHelper(targets, file_name, depth)
-        echo repeat("  ", a:depth).a:file_name
+        let tabs=repeat("  ", a:depth)
+        echo tabs.a:file_name
         if match(a:file_name, '\(\.c$\|\.cpp$\|\.a$\|\.so$\)') >= 0
-                let artifacts = ArtifactsOfFiles(a:targets, a:file_name)
+                let artifacts = ArtifactsOfFiles(copy(a:targets), a:file_name)
         else " assume executable found
+                echo tabs."found executable: " . a:file_name
                 return a:file_name
         endif
         " recurse on all artifacts until executable is found
-        call map(artifacts, {idx, val -> ExecutableOfFileHelper(a:targets, val, a:depth+1)})
+        echo tabs."recurse with artifacts: ".join(artifacts,', ')
+        call map(artifacts, {idx, artifact -> ExecutableOfFileHelper(a:targets, artifact, a:depth+1)})
         return flatten(artifacts)
 endfunction
 
