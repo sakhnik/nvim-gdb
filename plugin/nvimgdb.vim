@@ -15,18 +15,19 @@ command! -nargs=1 -complete=shellcmd GdbStartPDB call s:Spawn('pdb', 'pdb_proxy.
 command! -nargs=1 -complete=shellcmd GdbStartBashDB call s:Spawn('bashdb', 'bashdb_proxy.py', <q-args>)
 
 let g:use_find_executables=1
-let g:find_executables_base_dir=g:cmake_build_dir
+let g:find_executables_base_dir='.'
 let g:use_cmake_to_find_executables=1
 function ExecsCompletion(ArgLead, CmdLine, CursorPos)
   " Use `find`
-  let find_cmd="find " . g:find_executables_base_dir . ' -type f -executable -not -path "' . g:cmake_build_dir . 'CMakeFiles/**"'
-  echo "find_cmd: '" . find_cmd . "'"
+  let find_cmd="find " . a:ArgLead . '* -type f -executable -not -path "**/CMakeFiles/**"'
+  echom "find_cmd: '" . find_cmd . "'"
   let found_executables = g:use_find_executables ? 
         \systemlist(find_cmd) : []
-  echo "found_executables: " . join(found_executables, ', ')
+  echom "found_executables: " . join(found_executables, ', ')
+
   " Use CMake
   let cmake_executables = g:use_cmake_to_find_executables ? 
-        \ExecutableOfBuffer() : []
+        \ExecutablesOfBuffer(a:ArgLead) : []
   return extend(cmake_executables, found_executables)
 endfunction
 
