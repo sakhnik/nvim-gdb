@@ -18,3 +18,5 @@ cd "$tmpDir/src/test"
 ./prerequisites.sh
 
 ./run -vv .. 2>&1 | tee pytest.log
+
+exit ${PIPESTATUS[0]}
