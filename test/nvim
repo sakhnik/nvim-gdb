@@ -1,8 +1,5 @@
 #!/bin/bash -e
 
-export XDG_RUNTIME_DIR=/tmp/nvim-gdb-runtime
-export XDG_DATA_HOME=/tmp/nvim-gdb-runtime
-
 export COLUMNS=$(tput cols)
 export LINES=$(tput lines)
 
@@ -15,7 +12,7 @@ if [[ "$CI" ]]; then
 fi
 ) &
 
-nvim -u NONE "+source init.vim" --listen localhost:44444 "$@"
+nvim --clean -u init.vim --listen localhost:44444 "$@"
 ret=$?
 
 kill %1
