@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -xe
 
 source .ghwf-common
 
@@ -8,7 +8,7 @@ mkdir -p "$HOME/bin"
 ln -sf "$PWD/nvim.appimage" "$HOME/bin/nvim"
 
 # Make sure to install a recent version of LLDB
-bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
+sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
 
 sudo apt-get update
 sudo apt-get install gdb
