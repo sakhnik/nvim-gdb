@@ -82,7 +82,6 @@ function C:query(request)
       return
     end
 
-    log.debug("udp_recv_start")
     local res, errmsg = uv.udp_recv_start(self.sock, function(err2, data, --[[addr]]_, --[[flags]]_)
       if err2 ~= nil then
         o_err = err2
