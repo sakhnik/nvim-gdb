@@ -93,7 +93,7 @@ C.command_map = {
 -- @return string[]
 function C.get_error_formats()
   -- Return the list of errorformats for backtrace, breakpoints.
-  return {[[%m\ at\ %f:%l]], [[%[>\ ]%#%f(%l)%m]]}
+  return {[[%m\ at\ %f:%l]], [[[%[0-9]%#]%[>\ ]%#%f(%l)%m]], [[%[>\ ]%#%f(%l)%m]]}
 
   -- (Pdb) break
   -- Num Type         Disp Enb   Where
@@ -110,6 +110,20 @@ function C.get_error_formats()
   --   /tmp/nvim-gdb/test/main.py(11)_foo()
   -- -> return num + _bar(num - 1)
   -- > /tmp/nvim-gdb/test/main.py(5)_bar()
+
+  -- Pdb++ may produce a different backtrace:
+  -- (Pdb++) bt
+  -- [0]   /usr/lib/python3.9/bdb.py(580)run()
+  -- -> exec(cmd, globals, locals)
+  -- [1]   <string>(1)<module>()
+  -- [2]   /tmp/nvim-gdb/test/main.py(22)<module>()
+  -- -> _main()
+  -- [3]   /tmp/nvim-gdb/test/main.py(16)_main()
+  -- -> _foo(i)
+  -- [4]   /tmp/nvim-gdb/test/main.py(11)_foo()
+  -- -> return num + _bar(num - 1)
+  -- [5] > /tmp/nvim-gdb/test/main.py(5)_bar()
+  -- -> return i * 2
 end
 
 return C
