@@ -44,7 +44,7 @@ function InCMakeDir(path)
         return ''
 endfunction
 
-function ExecutablesOfBuffer(ArgLead)
+function guess_executable_cmake#ExecutablesOfBuffer(ArgLead)
         " Test ArgLead for CMake directories
         echom "ArgLead: " a:ArgLead . '*'
         let cmake_dirs = systemlist('find ' . trim(a:ArgLead) . '* -type d -maxdepth 0')

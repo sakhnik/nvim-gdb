@@ -30,7 +30,7 @@ function ExecsCompletion(ArgLead, CmdLine, CursorPos)
 
   " Use CMake
   let cmake_executables = g:use_cmake_to_find_executables ? 
-        \ExecutablesOfBuffer(a:ArgLead) : []
+        \guess_executable_cmake#ExecutablesOfBuffer(a:ArgLead) : []
   return extend(cmake_executables, found_executables)
 endfunction
 

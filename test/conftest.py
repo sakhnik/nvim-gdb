@@ -20,7 +20,7 @@ BACKENDS = {}
 if "gdb" in config.BACKEND_NAMES:
     BACKENDS['gdb'] = {
         'name': 'gdb',
-        'launch': ' dd\n',
+        'launch': ' dd a.out\n',
         'tbreak_main': 'tbreak main\n',
         'break_main': 'break main\n',
         'break_bar': 'break Bar\n',
