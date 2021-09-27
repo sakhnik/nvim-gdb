@@ -46,9 +46,10 @@ endfunction
 
 function guess_executable_cmake#ExecutablesOfBuffer(ArgLead)
         " Test ArgLead for CMake directories
-        echom "ArgLead: " a:ArgLead . '*'
-        let cmake_dirs = systemlist('find ' . trim(a:ArgLead) . '* -type d -maxdepth 0')
-        " call add(cmake_dirs, join(split(a:ArgLead, '/')[0:-2], '/'))
+        let arg_lead_glob = './' . trim(a:ArgLead) . '*'
+        echom "ArgLead Glob: " arg_lead_glob
+        let cmake_dirs = systemlist('find ' . arg_lead_glob . ' -type d -maxdepth 0')
+        let cmake_dirs = add(cmake_dirs, join(split(arg_lead_glob, '/')[0:-2], '/'))
         if v:shell_error
                 let cmake_dirs = []
         endif
@@ -58,6 +59,7 @@ function guess_executable_cmake#ExecutablesOfBuffer(ArgLead)
         " get binaries from CMake directories
         let execs = flatten(map(cmake_dirs, {idx, cmake_dir -> ExecutableOfBuffer(cmake_dir)}))
         call map(execs, {idx, exec -> systemlist('realpath --relative-to=. '. exec)})
+        let execs = uniq(sort(execs))
         return execs
 endfunction
 
@@ -74,7 +76,6 @@ function ExecutableOfBuffer(cmake_build_dir)
         call map(targets, {idx, val -> json_decode(readfile(val))})
         let buffer_base_name = bufname() " split(bufname(), '/')[-1]
         let execs = ExecutableOfFileHelper(targets, buffer_base_name, 0)
-        let execs = uniq(sort(execs))
         call map(execs, {idx, val -> a:cmake_build_dir . '/' . val})
         return empty(execs) ? [] : execs
 endfunction
