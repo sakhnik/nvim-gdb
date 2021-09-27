@@ -23,6 +23,9 @@ function ExecsCompletion(ArgLead, CmdLine, CursorPos)
   echom "find_cmd: '" . find_cmd . "'"
   let found_executables = g:use_find_executables ? 
         \systemlist(find_cmd) : []
+  if v:shell_error
+    let found_executables = []
+  endif
   echom "found_executables: " . join(found_executables, ', ')
 
   " Use CMake

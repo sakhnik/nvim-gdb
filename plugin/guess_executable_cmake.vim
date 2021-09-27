@@ -1,5 +1,3 @@
-let nvim_gdb_default_exec='a.out'
-
 " targets structure is:
 " [{artifacts:[...], 
 "   link: {commandFragments: [{fragment:"<file_name>", ...}, ...], ...}, 
@@ -27,19 +25,40 @@ function ArtifactsOfFiles(targets, file_name)
         return flatten(GetArtifactPaths(filtered_targets))
 endfunction
 
-function GetCMakeDirs(proj_dir)
-        let find_cmd="find " . a:proj_dir . ' -type f -name CMakeCache.txt'
-        echom "find_cmd: '" . find_cmd . "'"
-        let cmake_dirs = systemlist(find_cmd)
-        echom cmake_dirs
-        call map(cmake_dirs, {idx, cmake_dir -> trim(system("dirname " . cmake_dir))})
-        return cmake_dirs
+function InCMakeDir(path)
+        " normalize path
+        echom "Is " . a:path . " in a CMake Directory?"
+        let path=systemlist('readlink -f ' . a:path)[0]
+        " check if a CMake Directory
+        let idx = 0
+        while and('/' != path,  idx < 70)
+                echom repeat("  ", idx) . path
+                let idx = idx + 1
+                if glob(path . '/CMakeCache.txt') != ''
+                        echom repeat("  ", idx) . "yes"
+                        return path
+                endif
+                let path=systemlist('readlink -f ' . path . '/../')[0]
+        endwhile
+        echom repeat("  ", idx) . "No"
+        return ''
 endfunction
 
 function ExecutablesOfBuffer(ArgLead)
-        let cmake_dirs = GetCMakeDirs(a:ArgLead . '*')
-        echom cmake_dirs
-        return flatten(map(cmake_dirs, {idx, cmake_dir -> ExecutableOfBuffer(cmake_dir)}))
+        " Test ArgLead for CMake directories
+        echom "ArgLead: " a:ArgLead . '*'
+        let cmake_dirs = systemlist('find ' . trim(a:ArgLead) . '* -type d -maxdepth 0')
+        " call add(cmake_dirs, join(split(a:ArgLead, '/')[0:-2], '/'))
+        if v:shell_error
+                let cmake_dirs = []
+        endif
+        echom "Possible CMake Directories: " cmake_dirs
+        call map(cmake_dirs, {idx, dir -> InCMakeDir(dir)})
+        call filter(cmake_dirs, {idx, dir -> !empty(dir)})
+        " get binaries from CMake directories
+        let execs = flatten(map(cmake_dirs, {idx, cmake_dir -> ExecutableOfBuffer(cmake_dir)}))
+        " call map(execs, {idx, execs -> systemlist('realpath --relative-to=')})
+        return execs
 endfunction
 
 function GetCMakeReplyDir(cmake_build_dir)
@@ -48,8 +67,7 @@ endfunction
 
 function ExecutableOfBuffer(cmake_build_dir)
         if CMakeQuery(a:cmake_build_dir) 
-                echoerr "nvim-gdb: let g:use_cmake_to_find_executables=0 to NOT use cmake executables for completion"
-                return [g:nvim_gdb_default_exec]
+                return []
         endif
         " Decode all target_file JSONS into Dictionaries
         let targets=split(glob(GetCMakeReplyDir(a:cmake_build_dir) . "target*"))
@@ -58,7 +76,7 @@ function ExecutableOfBuffer(cmake_build_dir)
         let execs = ExecutableOfFileHelper(targets, buffer_base_name, 0)
         let execs = uniq(sort(execs))
         call map(execs, {idx, val -> a:cmake_build_dir . '/' . val})
-        return empty(execs) ? [g:nvim_gdb_default_exec] : execs
+        return empty(execs) ? [] : execs
 endfunction
 
 function ExecutableOfFileHelper(targets, file_name, depth)
@@ -80,7 +98,7 @@ function CMakeQuery(cmake_build_dir)
         if empty(glob(a:cmake_build_dir))
                 return v:shell_error
         endif
-        let cmake_api_query_dir=a:cmake_build_dir.".cmake/api/v1/query/client-nvim-gdb/"
+        let cmake_api_query_dir=a:cmake_build_dir . "/.cmake/api/v1/query/client-nvim-gdb/"
         call mkdir(cmake_api_query_dir, "p")
         let cmake_api_query_file=cmake_api_query_dir."query.json"
         let cmake_api_query=['{ "requests": [ { "kind": "codemodel" , "version": 2 } ] }']
