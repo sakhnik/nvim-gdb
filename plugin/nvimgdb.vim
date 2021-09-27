@@ -15,7 +15,6 @@ command! -nargs=1 -complete=shellcmd GdbStartPDB call s:Spawn('pdb', 'pdb_proxy.
 command! -nargs=1 -complete=shellcmd GdbStartBashDB call s:Spawn('bashdb', 'bashdb_proxy.py', <q-args>)
 
 let g:use_find_executables=1
-let g:find_executables_base_dir='.'
 let g:use_cmake_to_find_executables=1
 function ExecsCompletion(ArgLead, CmdLine, CursorPos)
   " Use `find`
