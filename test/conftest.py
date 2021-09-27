@@ -29,7 +29,7 @@ if "gdb" in config.BACKEND_NAMES:
 if "lldb" in config.BACKEND_NAMES:
     BACKENDS['lldb'] = {
         'name': 'lldb',
-        'launch': ' dl\n',
+        'launch': ' dl a.out\n',
         'tbreak_main': 'breakpoint set -o true -n main\n',
         'break_main': 'breakpoint set -n main\n',
         'break_bar': 'breakpoint set --fullname Bar\n',

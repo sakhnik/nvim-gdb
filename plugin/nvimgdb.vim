@@ -10,7 +10,7 @@ function! s:Spawn(backend, proxy_cmd, client_cmd)
 endfunction
 
 command! -nargs=1 -complete=customlist,ExecsCompletion GdbStart call s:Spawn('gdb', 'gdb_wrap.sh', <q-args>)
-command! -nargs=1 -complete=shellcmd GdbStartLLDB call s:Spawn('lldb', 'lldb_wrap.sh', <q-args>)
+command! -nargs=1 -complete=customlist,ExecsCompletion GdbStartLLDB call s:Spawn('lldb', 'lldb_wrap.sh', <q-args>)
 command! -nargs=1 -complete=shellcmd GdbStartPDB call s:Spawn('pdb', 'pdb_proxy.py', <q-args>)
 command! -nargs=1 -complete=shellcmd GdbStartBashDB call s:Spawn('bashdb', 'bashdb_proxy.py', <q-args>)
 
