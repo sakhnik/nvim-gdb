@@ -57,7 +57,7 @@ function guess_executable_cmake#ExecutablesOfBuffer(ArgLead)
         call filter(cmake_dirs, {idx, dir -> !empty(dir)})
         " get binaries from CMake directories
         let execs = flatten(map(cmake_dirs, {idx, cmake_dir -> ExecutableOfBuffer(cmake_dir)}))
-        " call map(execs, {idx, execs -> systemlist('realpath --relative-to=')})
+        call map(execs, {idx, exec -> systemlist('realpath --relative-to=. '. exec)})
         return execs
 endfunction
 
