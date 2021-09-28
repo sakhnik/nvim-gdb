@@ -52,7 +52,7 @@ let g:loaded_nvimgdb = 1
 
 `:GdbStart` and `:GdbStartLLDB` use `find` and the cmake file API to try to
 tab-complete the command with the executable for the current file. To disable
-this set `g:use_find_executables` or `g:use_cmake_to_find_executables` to `0`.
+this set `g:gdb_use_find_executables` or `g:gdb_use_cmake_to_find_executables` to `0`.
 
 The behaviour of the plugin can be tuned by defining specific variables.
 For instance, you could overload some command keymaps:

@@ -31,3 +31,6 @@ def test_cmake_completion(eng):
 
     execs = eng.eval(ExecutablesOfBuffer('./../src/build/cm'))
     assert(execs == test_exec)
+
+    execs = eng.eval("ExecsCompletion('../','','')")
+    assert(execs == test_exec+['../a.out'])

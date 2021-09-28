@@ -49,18 +49,34 @@ function guess_executable_cmake#ExecutablesOfBuffer(ArgLead)
         let arg_lead_glob = './' . trim(a:ArgLead) . '*'
         echom "ArgLead Glob: " arg_lead_glob
         let cmake_dirs = systemlist('find ' . arg_lead_glob . ' -type d -maxdepth 0')
-        let cmake_dirs = add(cmake_dirs, join(split(arg_lead_glob, '/')[0:-2], '/'))
+        " Add ArgLead's base directory to the cmake search
+        let glob_base_dir = join(split(arg_lead_glob, '/')[0:-2], '/')
+        echom "glob_base_dir: " . glob_base_dir
+        let cmake_dirs = add(cmake_dirs, glob_base_dir)
         if v:shell_error
                 let cmake_dirs = []
         endif
+        " Filter non-CMake directories out
         echom "Possible CMake Directories: " cmake_dirs
         call map(cmake_dirs, {idx, dir -> InCMakeDir(dir)})
         call filter(cmake_dirs, {idx, dir -> !empty(dir)})
+        " Look for CMake directories below this one
+        let cmake_dirs = extend(cmake_dirs, GetCMakeDirs(glob_base_dir))
+        let cmake_dirs = uniq(sort(cmake_dirs))
         " get binaries from CMake directories
         let execs = flatten(map(cmake_dirs, {idx, cmake_dir -> ExecutableOfBuffer(cmake_dir)}))
         call map(execs, {idx, exec -> systemlist('realpath --relative-to=. '. exec)})
         let execs = uniq(sort(execs))
-        return execs
+        return flatten(execs)
+endfunction
+
+function GetCMakeDirs(proj_dir)
+        let find_cmd="find " . a:proj_dir . ' -type f -name CMakeCache.txt'
+        echom "find_cmd: '" . find_cmd . "'"
+        let cmake_dirs = systemlist(find_cmd)
+        echom cmake_dirs
+        call map(cmake_dirs, {idx, cmake_dir -> trim(system("dirname " . cmake_dir))})
+        return cmake_dirs
 endfunction
 
 function GetCMakeReplyDir(cmake_build_dir)
@@ -74,7 +90,8 @@ function ExecutableOfBuffer(cmake_build_dir)
         " Decode all target_file JSONS into Dictionaries
         let targets=split(glob(GetCMakeReplyDir(a:cmake_build_dir) . "target*"))
         call map(targets, {idx, val -> json_decode(readfile(val))})
-        let buffer_base_name = bufname() " split(bufname(), '/')[-1]
+        let cmake_source = json_decode(readfile(glob(GetCMakeReplyDir(a:cmake_build_dir) . "codemodel*json"))).paths.source
+        let buffer_base_name = systemlist('realpath --relative-to=' . cmake_source . " ". bufname())[0]
         let execs = ExecutableOfFileHelper(targets, buffer_base_name, 0)
         call map(execs, {idx, val -> a:cmake_build_dir . '/' . val})
         return empty(execs) ? [] : execs
