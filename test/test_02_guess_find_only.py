@@ -14,3 +14,6 @@ def test_cmake_completion(eng):
 
     execs = eng.eval("ExecsCompletion('../','','')")
     assert(execs == test_exec+['../a.out'])
+
+    eng.exe("bd")
+    eng.exe("cd ../")
