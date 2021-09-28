@@ -18,6 +18,12 @@ echo -n "Check for bashdb     "
 if command -v bashdb; then
     echo "bashdb" >> backends.txt
 fi
+echo -n "Check for cmake     "
+if command -v cmake; then
+    echo "cmake" >> backends.txt
+    echo "Running CMake"
+    cmake src -B src/build
+fi
 
 CXX=g++
 [[ $(uname) == Darwin ]] && CXX=clang++

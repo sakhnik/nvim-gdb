@@ -2,17 +2,18 @@
 import time
 import pytest
 import config
-import subprocess
 
 def ExecutablesOfBuffer(path):
     return "guess_executable_cmake#ExecutablesOfBuffer('" + path + "')"
 
+if "cmake" not in config.BACKEND_NAMES:
+    pytest.skip("skipping bashdb tests", allow_module_level=True)
+
 def test_cmake_completion(eng):
-    subprocess.run(["cmake", "src", "-B", "src/build"])
     eng.exe("cd src")
     eng.exe("e test.cpp")
 
-    test_exec = [['build/cmake_test_exec']]
+    test_exec = ['build/cmake_test_exec']
 
     execs = eng.eval(ExecutablesOfBuffer(''))
     assert(execs == test_exec)
@@ -31,6 +32,3 @@ def test_cmake_completion(eng):
 
     execs = eng.eval(ExecutablesOfBuffer('./../src/build/cm'))
     assert(execs == test_exec)
-
-    execs = eng.eval("ExecsCompletion('../','','')")
-    assert(execs == test_exec+['../a.out'])
