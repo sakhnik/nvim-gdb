@@ -114,6 +114,10 @@ launch NeoVim with the auxiliary script `test/nvim`. The screen cast will
 be written to the log file `spy_ui.log`. Alternatively, consider recording
 the terminal script with the ubiquitous command `script`.
 
+To support development, consider donating:
+
+  * ₿ [1E5Sny3tC5qdr1owAQqbzfyq1SFjaNBQW4](https://bitref.com/1E5Sny3tC5qdr1owAQqbzfyq1SFjaNBQW4)
+
 ## References
 
   * Porting to Moonscript: [2018-11-17](https://sakhnik.com/2018/11/17/nvimgdb-lua.html)
