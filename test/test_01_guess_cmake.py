@@ -1,13 +1,14 @@
-
-import time
 import pytest
 import config
+
 
 def ExecutablesOfBuffer(path):
     return "guess_executable_cmake#ExecutablesOfBuffer('" + path + "')"
 
+
 if "cmake" not in config.BACKEND_NAMES:
     pytest.skip("skipping bashdb tests", allow_module_level=True)
+
 
 def test_cmake_completion(eng, cd_to_cmake):
 
