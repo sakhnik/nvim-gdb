@@ -1,4 +1,3 @@
-
 import time
 import pytest
 import config
@@ -8,12 +7,8 @@ if "cmake" in config.BACKEND_NAMES:
     test_exec = ['build/cmake_test_exec']
     
 
-def test_cmake_completion(eng):
-    eng.exe("cd src")
-    eng.exe("e test.cpp")
-
+def test_cmake_completion(eng, cd_to_cmake):
     execs = eng.eval("ExecsCompletion('../','','')")
     assert(execs == test_exec+['../a.out'])
 
-    eng.exe("bd")
-    eng.exe("cd ../")
+    assert cd_to_cmake

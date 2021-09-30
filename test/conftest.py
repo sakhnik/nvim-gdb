@@ -118,3 +118,11 @@ for scope in ("bwtg"):gmatch'.' do
   end
 end
                  ''')
+
+@pytest.fixture(scope='function')
+def cd_to_cmake(eng):
+    eng.exe("cd src")
+    eng.exe("e test.cpp")
+    yield True
+    eng.exe("bd")
+    eng.exe("cd ..")

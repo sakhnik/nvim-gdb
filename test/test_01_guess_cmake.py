@@ -9,9 +9,7 @@ def ExecutablesOfBuffer(path):
 if "cmake" not in config.BACKEND_NAMES:
     pytest.skip("skipping bashdb tests", allow_module_level=True)
 
-def test_cmake_completion(eng):
-    eng.exe("cd src")
-    eng.exe("e test.cpp")
+def test_cmake_completion(eng, cd_to_cmake):
 
     test_exec = ['build/cmake_test_exec']
 
@@ -33,5 +31,4 @@ def test_cmake_completion(eng):
     execs = eng.eval(ExecutablesOfBuffer('./../src/build/cm'))
     assert(execs == test_exec)
 
-    eng.exe("bd")
-    eng.exe("cd ../")
+    assert cd_to_cmake
