@@ -14,13 +14,13 @@ command! -nargs=1 -complete=customlist,ExecsCompletion GdbStartLLDB call s:Spawn
 command! -nargs=1 -complete=shellcmd GdbStartPDB call s:Spawn('pdb', 'pdb_proxy.py', <q-args>)
 command! -nargs=1 -complete=shellcmd GdbStartBashDB call s:Spawn('bashdb', 'bashdb_proxy.py', <q-args>)
 
-let g:gdb_use_find_executables=1
-let g:gdb_use_cmake_to_find_executables=1
+let g:nvimgdb_use_find_executables=1
+let g:nvimgdb_use_cmake_to_find_executables=1
 function ExecsCompletion(ArgLead, CmdLine, CursorPos)
   " Use `find`
   let find_cmd="find " . a:ArgLead . '* -type f -executable -not -path "**/CMakeFiles/**"'
   echom "find_cmd: '" . find_cmd . "'"
-  let found_executables = g:gdb_use_find_executables ? 
+  let found_executables = g:nvimgdb_use_find_executables ? 
         \systemlist(find_cmd) : []
   if v:shell_error
     let found_executables = []
@@ -30,7 +30,7 @@ function ExecsCompletion(ArgLead, CmdLine, CursorPos)
   echom "after fileter: found_executables: " . join(found_executables, ', ')
 
   " Use CMake
-  let cmake_executables = g:gdb_use_cmake_to_find_executables ? 
+  let cmake_executables = g:nvimgdb_use_cmake_to_find_executables ? 
         \guess_executable_cmake#ExecutablesOfBuffer(a:ArgLead) : []
   echom "Cmake Execs: "  cmake_executables
   return extend(cmake_executables, found_executables)
