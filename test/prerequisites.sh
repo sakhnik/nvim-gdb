@@ -35,10 +35,10 @@ if command -v cmake > /dev/null; then
         command -v cmake
         echo "cmake" >> backends.txt
         echo "Running CMake"
+        cmake src -B src/build
     else
         echo "CMake $min_ver or greater required"
     fi
-    cmake src -B src/build
 fi
 
 CXX=g++
