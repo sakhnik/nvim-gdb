@@ -30,7 +30,7 @@ if command -v cmake > /dev/null; then
     min_ver=3.14.7 # need File API
     lesser_ver=$(cmake --version | \
         awk -v min_ver="$min_ver" '/cmake version/ {print $3 "\n" min_ver}' | \
-        sort --version-sort | head --lines=1)
+        sort --version-sort | head -n 1)
     if [ "$min_ver" == "$lesser_ver" ]; then
         command -v cmake
         echo "cmake" >> backends.txt
