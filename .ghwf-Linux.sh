@@ -11,7 +11,7 @@ ln -sf "$PWD/nvim.appimage" "$HOME/bin/nvim"
 sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
 
 sudo apt-get update
-sudo apt-get install gdb cmake
+sudo apt-get install gdb cmake file --no-install-recommends
 
 # Install bashdb
 ver=$(curl -sL "https://sourceforge.net/projects/bashdb/rss" \

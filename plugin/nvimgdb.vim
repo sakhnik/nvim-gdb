@@ -26,8 +26,8 @@ function ExecsCompletion(ArgLead, CmdLine, CursorPos)
     let found_executables = []
   endif
   echom "found_executables: " . join(found_executables, ', ')
-  call filter(found_executables, {idx, exec -> match(systemlist('file --mime-type ' . exec)[0], 'executable$')>=0})
-  echom "after fileter: found_executables: " . join(found_executables, ', ')
+  call filter(found_executables, {idx, exec -> match(systemlist('file --brief --mime-encoding ' . exec)[0], 'binary')>=0})
+  echom "after filter: found_executables: " . join(found_executables, ', ')
 
   " Use CMake
   let cmake_executables = g:nvimgdb_use_cmake_to_find_executables ? 
@@ -38,7 +38,7 @@ endfunction
 
 if !exists('g:nvimgdb_disable_start_keymaps') || !g:nvimgdb_disable_start_keymaps
   nnoremap <leader>dd :GdbStart gdb -q 
-  nnoremap <leader>dl :GdbStartLLDB lldb a.out
+  nnoremap <leader>dl :GdbStartLLDB lldb
   nnoremap <leader>dp :GdbStartPDB python -m pdb main.py
   nnoremap <leader>db :GdbStartBashDB bashdb main.sh
 endif
