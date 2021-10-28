@@ -28,7 +28,7 @@ endfunction
 function InCMakeDir(path)
         " normalize path
         echom "Is " . a:path . " in a CMake Directory?"
-        let path=systemlist('readlink -f ' . a:path)[0]
+        let path=systemlist('realpath ' . a:path)[0]
         " check if a CMake Directory
         let idx = 0
         while and('/' != path,  idx < 70)
@@ -38,7 +38,7 @@ function InCMakeDir(path)
                         echom repeat("  ", idx) . "yes"
                         return path
                 endif
-                let path=systemlist('readlink -f ' . path . '/../')[0]
+                let path=systemlist('realpath ' . path . '/../')[0]
         endwhile
         echom repeat("  ", idx) . "No"
         return ''
