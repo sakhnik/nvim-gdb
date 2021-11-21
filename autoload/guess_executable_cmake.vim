@@ -28,7 +28,7 @@ endfunction
 function InCMakeDir(path)
         " normalize path
         echom "Is " . a:path . " in a CMake Directory?"
-        let path=systemlist('realpath ' . a:path)[0]
+        let path=systemlist('perl -e ''use Cwd "abs_path"; print abs_path(shift)'' ' . a:path)[0]
         " check if a CMake Directory
         let idx = 0
         while and('/' != path,  idx < 70)
@@ -38,7 +38,7 @@ function InCMakeDir(path)
                         echom repeat("  ", idx) . "yes"
                         return path
                 endif
-                let path=systemlist('realpath ' . path . '/../')[0]
+                let path=systemlist('perl -e ''use Cwd "abs_path"; print abs_path(shift)'' ' . path . '/../')[0]
         endwhile
         echom repeat("  ", idx) . "No"
         return ''
@@ -65,7 +65,7 @@ function guess_executable_cmake#ExecutablesOfBuffer(ArgLead)
         let cmake_dirs = uniq(sort(cmake_dirs))
         " get binaries from CMake directories
         let execs = flatten(map(cmake_dirs, {idx, cmake_dir -> ExecutableOfBuffer(cmake_dir)}))
-        call map(execs, {idx, exec -> systemlist('realpath --relative-to=. '. exec)})
+       call map(execs, {idx, exec -> systemlist('perl -e ''use File::Spec "abs2rel"; use Cwd "abs_path"; print File::Spec->abs2rel(abs_path(shift),abs_path("."))'' '. exec)})
         let execs = uniq(sort(execs))
         return flatten(execs)
 endfunction
@@ -76,6 +76,7 @@ function GetCMakeDirs(proj_dir)
         let cmake_dirs = systemlist(find_cmd)
         echom cmake_dirs
         call map(cmake_dirs, {idx, cmake_dir -> trim(system("dirname " . cmake_dir))})
+        echom "cmake dirnames: " cmake_dirs
         return cmake_dirs
 endfunction
 
@@ -91,7 +92,7 @@ function ExecutableOfBuffer(cmake_build_dir)
         let targets=split(glob(GetCMakeReplyDir(a:cmake_build_dir) . "target*"))
         call map(targets, {idx, val -> json_decode(readfile(val))})
         let cmake_source = json_decode(readfile(glob(GetCMakeReplyDir(a:cmake_build_dir) . "codemodel*json"))).paths.source
-        let buffer_base_name = systemlist('realpath --relative-to=' . cmake_source . " ". bufname())[0]
+        let buffer_base_name = systemlist('perl -e ''use File::Spec; use Cwd "abs_path"; print File::Spec->abs2rel(abs_path(shift), abs_path(shift))'' ' . bufname() ." ". cmake_source )[0]
         let execs = ExecutableOfFileHelper(targets, buffer_base_name, 0)
         call map(execs, {idx, val -> a:cmake_build_dir . '/' . val})
         return empty(execs) ? [] : execs
