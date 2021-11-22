@@ -9,14 +9,43 @@ function! s:Spawn(backend, proxy_cmd, client_cmd)
   call luaeval("require'nvimgdb'.new(_A[1], _A[2], _A[3])", [a:backend, a:proxy_cmd, cmd])
 endfunction
 
-command! -nargs=1 -complete=shellcmd GdbStart call s:Spawn('gdb', 'gdb_wrap.sh', <q-args>)
-command! -nargs=1 -complete=shellcmd GdbStartLLDB call s:Spawn('lldb', 'lldb_wrap.sh', <q-args>)
+command! -nargs=1 -complete=customlist,ExecsCompletion GdbStart call s:Spawn('gdb', 'gdb_wrap.sh', <q-args>)
+command! -nargs=1 -complete=customlist,ExecsCompletion GdbStartLLDB call s:Spawn('lldb', 'lldb_wrap.sh', <q-args>)
 command! -nargs=1 -complete=shellcmd GdbStartPDB call s:Spawn('pdb', 'pdb_proxy.py', <q-args>)
 command! -nargs=1 -complete=shellcmd GdbStartBashDB call s:Spawn('bashdb', 'bashdb_proxy.py', <q-args>)
 
+function IsExec(exec)
+  eval system('test -x ' . a:exec)
+  return v:shell_error==0
+endfunction
+
+let g:nvimgdb_use_find_executables=1
+let g:nvimgdb_use_cmake_to_find_executables=1
+function ExecsCompletion(ArgLead, CmdLine, CursorPos)
+  " Use `find`
+  let find_cmd="find " . a:ArgLead . '* -type f -not -path "**/CMakeFiles/**"'
+  echom "find_cmd: '" . find_cmd . "'"
+  let found_executables = g:nvimgdb_use_find_executables ? 
+        \systemlist(find_cmd) : []
+  if v:shell_error
+    let found_executables = []
+  endif
+  call filter(found_executables, {idx, exec -> IsExec(exec)})
+  echom "found_executables: " . join(found_executables, ', ')
+  call filter(found_executables, {idx, exec -> match(systemlist('file --brief --mime-encoding ' . exec)[0], 'binary')>=0})
+  call map(found_executables, {idx, exec -> substitute(exec, '/\{2,}', '/', 'g')})
+  echom "after filter: found_executables: " . join(found_executables, ', ')
+
+  " Use CMake
+  let cmake_executables = g:nvimgdb_use_cmake_to_find_executables ? 
+        \guess_executable_cmake#ExecutablesOfBuffer(a:ArgLead) : []
+  echom "Cmake Execs: "  cmake_executables
+  return extend(cmake_executables, found_executables)
+endfunction
+
 if !exists('g:nvimgdb_disable_start_keymaps') || !g:nvimgdb_disable_start_keymaps
-  nnoremap <leader>dd :GdbStart gdb -q a.out
-  nnoremap <leader>dl :GdbStartLLDB lldb a.out
+  nnoremap <leader>dd :GdbStart gdb -q 
+  nnoremap <leader>dl :GdbStartLLDB lldb
   nnoremap <leader>dp :GdbStartPDB python -m pdb main.py
   nnoremap <leader>db :GdbStartBashDB bashdb main.sh
 endif

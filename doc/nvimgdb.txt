@@ -35,6 +35,11 @@ or alternatively `:GdbStartLLDB` with LLDB launch string as parameter: >
 
     :GdbStartLLDB lldb a.out
 
+The two commands above support command-completion which uses CMake and `find`
+to locate executables associated with the current buffer, and `find` which
+locates all executables in the current path or below. This behavior can be
+disabled by the user via variables. See the |NvimgdbVariables| section below.
+
 To debug Python programs, execute `:GdbStartPDB` and specify the python launch
 command as parameter: >
 
@@ -175,6 +180,8 @@ The following variables could be defined to change the plugin configuration: >
 
     nvimgdb_config
     nvimgdb_config_override
+    nvimgdb_use_find_executables
+    nvimgdb_use_cmake_to_find_executables
 <
 These variables are dictionaries with the keys described below. While the
 first redefines the default configuration completely, the second one merely
@@ -219,6 +226,15 @@ single breakpoint with `*` and a duplicate breakpoint with `#`.
 The key `sign_breakpoint_priority` defines the sign priority for the
 breakpoint. The sign priority for the current line is always one greater than
 breakpoint's.
+
+The `find` program will be used to locate all executables and populate the
+|:command-completion-custom| for `:GdbStart` and `:GdbStartLLDB`. To disable
+this set `g:nvimgdb_use_find_executables` to 0.
+
+This plugin will also search for any executables associated with the current
+buffer via the CMake API if there is a CMake directory present and the `cmake`
+executable is available. To disable this set
+`g:nvimgdb_use_cmake_to_find_executables` to 0.
 
 ------------------------------------------------------------------------------
 Section 4.1 Keymaps                                  *NvimgdbVariablesKeymaps*

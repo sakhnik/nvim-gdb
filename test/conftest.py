@@ -20,7 +20,7 @@ BACKENDS = {}
 if "gdb" in config.BACKEND_NAMES:
     BACKENDS['gdb'] = {
         'name': 'gdb',
-        'launch': ' dd\n',
+        'launch': ' dd a.out\n',
         'tbreak_main': 'tbreak main\n',
         'break_main': 'break main\n',
         'break_bar': 'break Bar\n',
@@ -29,7 +29,7 @@ if "gdb" in config.BACKEND_NAMES:
 if "lldb" in config.BACKEND_NAMES:
     BACKENDS['lldb'] = {
         'name': 'lldb',
-        'launch': ' dl\n',
+        'launch': ' dl a.out\n',
         'tbreak_main': 'breakpoint set -o true -n main\n',
         'break_main': 'breakpoint set -n main\n',
         'break_bar': 'breakpoint set --fullname Bar\n',
@@ -118,3 +118,11 @@ for scope in ("bwtg"):gmatch'.' do
   end
 end
                  ''')
+
+@pytest.fixture(scope='function')
+def cd_to_cmake(eng):
+    eng.exe("cd src")
+    eng.exe("e test.cpp")
+    yield True
+    eng.exe("bd")
+    eng.exe("cd ..")
