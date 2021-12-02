@@ -25,6 +25,7 @@ if "gdb" in config.BACKEND_NAMES:
         'break_main': 'break main\n',
         'break_bar': 'break Bar\n',
         'launchF': ':GdbStart gdb -q {}\n',
+        'watchF': 'watch {}\n',
     }
 if "lldb" in config.BACKEND_NAMES:
     BACKENDS['lldb'] = {
@@ -34,6 +35,7 @@ if "lldb" in config.BACKEND_NAMES:
         'break_main': 'breakpoint set -n main\n',
         'break_bar': 'breakpoint set --fullname Bar\n',
         'launchF': ':GdbStartLLDB lldb {}\n',
+        'watchF': 'watchpoint set variable {}\n',
     }
 
 
