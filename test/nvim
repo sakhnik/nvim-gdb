@@ -12,7 +12,7 @@ if [[ "$CI" ]]; then
 fi
 ) &
 
-nvim --clean -u init.vim --listen localhost:44444 "$@"
+nvim --clean -u NONE +"source init.vim" --listen localhost:44444 "$@"
 ret=$?
 
 kill %1
