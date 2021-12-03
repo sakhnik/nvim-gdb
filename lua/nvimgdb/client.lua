@@ -90,14 +90,14 @@ end
 
 -- Interrupt running program by sending ^c.
 function C:interrupt()
-  NvimGdb.vim.fn.jobsend(self.client_id, "\x03")
+  NvimGdb.vim.fn.chansend(self.client_id, "\x03")
 end
 
 -- Execute one command on the debugger interpreter.
 -- @param data string @send a command to the debugger
 function C:send_line(data)
   log.debug({"send_line", data})
-  NvimGdb.vim.fn.jobsend(self.client_id, data .. "\n")
+  NvimGdb.vim.fn.chansend(self.client_id, data .. "\n")
 end
 
 -- Get the client terminal buffer.
