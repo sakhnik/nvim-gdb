@@ -105,7 +105,7 @@ end
 function C:_with_saved_mode(func)
   local mode = vim.api.nvim_get_mode()
   func()
-  if mode.mode:match("[ti]") ~= nil then
+  if mode.mode:match("^[ti]$") ~= nil then
     NvimGdb.vim.cmd("startinsert!")
   end
 end
