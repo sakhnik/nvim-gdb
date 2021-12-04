@@ -104,10 +104,14 @@ function C:query(request)
   end
 
   if NvimGdb.vim.fn.wait(500, "luaeval('NvimGdb.proxy_ready[" .. cur_tab .. "]')", 50) ~= 0 then
-    uv.udp_recv_stop(self.sock)
+    if self.sock ~= nil then
+      uv.udp_recv_stop(self.sock)
+    end
     return ''
   end
-  uv.udp_recv_stop(self.sock)
+  if self.sock ~= nil then
+    uv.udp_recv_stop(self.sock)
+  end
 
   if o_err ~= nil then
     log.error("Failed to query: " .. o_err)
