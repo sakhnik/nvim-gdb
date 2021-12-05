@@ -86,7 +86,7 @@ end
 -- The late initialization items that require accessing via tabpage.
 function C:postinit()
   -- Spawn the debugger, the parser should be ready by now.
-  self.client:start(self.parser)
+  self.client:start()
   NvimGdb.vim.cmd("doautocmd User NvimGdbStart")
 
   -- Start insert mode in the GDB window
