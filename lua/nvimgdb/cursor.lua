@@ -24,7 +24,7 @@ end
 -- Hide the current line sign
 function C:hide()
   if self.sign_id ~= -1 and self.buf ~= -1 then
-    NvimGdb.vim.fn.sign_unplace('NvimGdb', {id = self.sign_id, buffer = self.buf})
+    vim.fn.sign_unplace('NvimGdb', {id = self.sign_id, buffer = self.buf})
     self.sign_id = -1
   end
 end
@@ -43,11 +43,11 @@ function C:show()
   if self.buf ~= -1 then
     if self.line ~= -1 then
       local priority = self.config:get('sign_breakpoint_priority') + 1
-      NvimGdb.vim.fn.sign_place(self.sign_id, 'NvimGdb', 'GdbCurrentLine', self.buf,
+      vim.fn.sign_place(self.sign_id, 'NvimGdb', 'GdbCurrentLine', self.buf,
         {lnum = self.line, priority = priority})
     end
     if old_sign_id ~= -1 then
-      NvimGdb.vim.fn.sign_unplace('NvimGdb', {id = old_sign_id, buffer = self.buf})
+      vim.fn.sign_unplace('NvimGdb', {id = old_sign_id, buffer = self.buf})
     end
   end
 end

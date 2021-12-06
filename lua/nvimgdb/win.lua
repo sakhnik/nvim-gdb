@@ -124,8 +124,8 @@ function C:_ensure_jump_window()
 end
 
 local function adjust_jump_win_view(jump_win, line, scroll_off)
-  local winid = NvimGdb.vim.fn.win_getid(vim.api.nvim_win_get_number(jump_win))
-  local wininfo = NvimGdb.vim.fn.getwininfo(winid)[1]
+  local winid = vim.fn.win_getid(vim.api.nvim_win_get_number(jump_win))
+  local wininfo = vim.fn.getwininfo(winid)[1]
   local botline = wininfo.botline
   local topline = wininfo.topline
 
@@ -155,7 +155,7 @@ local function adjust_jump_win_view(jump_win, line, scroll_off)
     end
 
     if new_topline ~= topline then
-      NvimGdb.vim.fn.winrestview({topline = new_topline})
+      vim.fn.winrestview({topline = new_topline})
     end
   end
 end
@@ -166,7 +166,7 @@ end
 function C:jump(file, line)
   log.info("jump(" .. file .. ":" .. line .. ")")
   -- Check whether the file is already loaded or load it
-  local target_buf = NvimGdb.vim.fn.bufnr(file, 1)
+  local target_buf = vim.fn.bufnr(file, 1)
 
   -- Ensure the jump window is available
   self:_with_saved_mode(function()
@@ -248,7 +248,7 @@ function C:query_breakpoints()
   local buf_num = vim.api.nvim_win_get_buf(self.jump_win)
 
   -- Get the source code file name
-  local fname = NvimGdb.vim.fn.expand('#' .. buf_num .. ':p')
+  local fname = vim.fn.expand('#' .. buf_num .. ':p')
 
   -- If no file name or a weird name with spaces, ignore it (to avoid
   -- misinterpretation)
