@@ -16,10 +16,12 @@ def setup(eng):
     assert num_bufs == eng.count_buffers()
     assert eng.eval("tabpagenr('$')") == 1
 
+
 def test_gdb_debug_stop(setup, eng):
     '''Quit with the command GdbDebugStop.'''
     assert setup
     eng.feed(":GdbDebugStop<cr>")
+
 
 def test_gdb_tabclose(setup, eng):
     '''Quit by closing the tab.'''

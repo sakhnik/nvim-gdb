@@ -103,11 +103,15 @@ function C:query(request)
     log.error("Failed to send to proxy", errmsg)
   end
 
-  if NvimGdb.vim.fn.wait(500, "luaeval('NvimGdb.proxy_ready[" .. cur_tab .. "]')", 50) ~= 0 then
-    uv.udp_recv_stop(self.sock)
+  if vim.fn.wait(500, "luaeval('NvimGdb.proxy_ready[" .. cur_tab .. "]')", 50) ~= 0 then
+    if self.sock ~= nil then
+      uv.udp_recv_stop(self.sock)
+    end
     return ''
   end
-  uv.udp_recv_stop(self.sock)
+  if self.sock ~= nil then
+    uv.udp_recv_stop(self.sock)
+  end
 
   if o_err ~= nil then
     log.error("Failed to query: " .. o_err)

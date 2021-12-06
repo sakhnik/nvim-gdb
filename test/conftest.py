@@ -25,6 +25,7 @@ if "gdb" in config.BACKEND_NAMES:
         'break_main': 'break main\n',
         'break_bar': 'break Bar\n',
         'launchF': ':GdbStart gdb -q {}\n',
+        'watchF': 'watch {}\n',
     }
 if "lldb" in config.BACKEND_NAMES:
     BACKENDS['lldb'] = {
@@ -34,6 +35,7 @@ if "lldb" in config.BACKEND_NAMES:
         'break_main': 'breakpoint set -n main\n',
         'break_bar': 'breakpoint set --fullname Bar\n',
         'launchF': ':GdbStartLLDB lldb {}\n',
+        'watchF': 'watchpoint set variable {}\n',
     }
 
 
@@ -111,13 +113,14 @@ def config_test(eng, post):
     yield True
     eng.exec_lua('''
 for scope in ("bwtg"):gmatch'.' do
-  for k, _ in pairs(NvimGdb.vim.fn.eval(scope .. ':')) do
+  for k, _ in pairs(vim.fn.eval(scope .. ':')) do
     if type(k) == "string" and k:find('^nvimgdb_') then
       NvimGdb.vim.cmd('unlet ' .. scope .. ':' .. k)
     end
   end
 end
                  ''')
+
 
 @pytest.fixture(scope='function')
 def cd_to_cmake(eng):

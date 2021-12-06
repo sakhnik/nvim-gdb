@@ -34,8 +34,8 @@ function C.create_parser(actions)
   self.add_trans(self.paused, re_prompt, self._query_b)
   self.add_trans(self.running, '%sBreakpoint %d+', self._query_b)
   self.add_trans(self.running, '%sTemporary breakpoint %d+', self._query_b)
-  self.add_trans(self.running, re_prompt, self._query_b)
   self.add_trans(self.running, re_jump, self._paused_jump)
+  self.add_trans(self.running, re_prompt, self._query_b)
 
   self.state = self.running
 

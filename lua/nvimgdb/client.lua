@@ -48,7 +48,7 @@ end
 
 -- Destructor
 function C:cleanup()
-  if vim.api.nvim_buf_is_valid(self.client_buf) and NvimGdb.vim.fn.bufexists(self.client_buf) then
+  if vim.api.nvim_buf_is_valid(self.client_buf) and vim.fn.bufexists(self.client_buf) then
     NvimGdb.vim.cmd("bd! " .. self.client_buf)
   end
 
@@ -59,28 +59,17 @@ function C:cleanup()
 end
 
 -- Launch the debugger (when all the parsers are ready)
--- @param parser ParserImpl @parser to process debugger output
-function C:start(parser)
+function C:start()
   -- Open a terminal window with the debugger client command.
   -- Go to the yet-to-be terminal window
   vim.api.nvim_set_current_win(self.win)
   self.is_active = true
 
-  --local term_window = vim.api.nvim_get_current_win()
-  local on_exit = function(exit_code)
-    local _ = exit_code
-    self.is_active = false
-    -- Actually, there is no need to close the debugger terminal automatically.
-    -- Let the user be able to review the session.
-    --if exit_code == 0 and vim.api.nvim_win_is_valid(term_window) then
-    --  vim.api.nvim_win_close(term_window, true)
-    --end
-  end
-  self.client_id = NvimGdb.vim.fn["nvimgdb#TermOpen"](self.command, vim.api.nvim_get_current_tabpage())
+  self.client_id = vim.fn["nvimgdb#TermOpen"](self.command, vim.api.nvim_get_current_tabpage())
 
-  NvimGdb.vim.bo.filetype = "nvimgdb"
+  vim.bo.filetype = "nvimgdb"
   -- Allow detaching the terminal from its window
-  NvimGdb.vim.bo.bufhidden = "hide"
+  vim.bo.bufhidden = "hide"
   -- Finish the debugging session when the terminal is closed
   -- Left the remains of the code intentionally to remind that there is no need
   -- to close the debugger terminal automatically.
@@ -90,14 +79,14 @@ end
 
 -- Interrupt running program by sending ^c.
 function C:interrupt()
-  NvimGdb.vim.fn.jobsend(self.client_id, "\x03")
+  vim.fn.chansend(self.client_id, "\x03")
 end
 
 -- Execute one command on the debugger interpreter.
 -- @param data string @send a command to the debugger
 function C:send_line(data)
   log.debug({"send_line", data})
-  NvimGdb.vim.fn.jobsend(self.client_id, data .. "\n")
+  vim.fn.chansend(self.client_id, data .. "\n")
 end
 
 -- Get the client terminal buffer.

@@ -9,18 +9,24 @@ def test_hooks(eng, config_test):
     eng.exe("source keymap_hooks.vim")
     eng.feed(":GdbStart ./dummy-gdb.sh\n")
 
+    def _get_var(var):
+        return lambda: eng.eval(var)
+
+    def _is_one(val):
+        return val == 1
+
     assert eng.eval('g:test_tkeymap') == 0
     eng.feed('~tkm')
-    assert eng.eval('g:test_tkeymap') == 1
+    assert eng.wait_for(_get_var('g:test_tkeymap'), _is_one) is None
     eng.feed('<esc>')
     assert eng.eval('g:test_keymap') == 0
     eng.feed('~tn')
-    assert eng.eval('g:test_keymap') == 1
+    assert eng.wait_for(_get_var('g:test_keymap'), _is_one) is None
     eng.exe('let g:test_tkeymap = 0 | let g:test_keymap = 0')
     eng.feed('<c-w>w')
     assert eng.eval('g:test_keymap') == 0
     eng.feed('~tn')
-    assert eng.eval('g:test_keymap') == 1
+    assert eng.wait_for(_get_var('g:test_keymap'), _is_one) is None
     eng.exe('let g:test_keymap = 0')
 
 

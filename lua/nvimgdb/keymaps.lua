@@ -22,59 +22,62 @@ function C:set_dispatch_active(state)
 end
 
 local default = {
-  {'n', 'key_until', ':GdbUntil'},
-  {'n', 'key_continue', ':GdbContinue'},
-  {'n', 'key_next', ':GdbNext'},
-  {'n', 'key_step', ':GdbStep'},
-  {'n', 'key_finish', ':GdbFinish'},
-  {'n', 'key_breakpoint', ':GdbBreakpointToggle'},
-  {'n', 'key_frameup', ':GdbFrameUp'},
-  {'n', 'key_framedown', ':GdbFrameDown'},
-  {'n', 'key_eval', ':GdbEvalWord'},
-  {'v', 'key_eval', ':GdbEvalRange'},
-  {'n', 'key_quit', ':GdbDebugStop'},
+  { mode = 'n', term = false, key = 'key_until',      cmd = ':GdbUntil'            },
+  { mode = 'n', term = true,  key = 'key_continue',   cmd = ':GdbContinue'         },
+  { mode = 'n', term = true,  key = 'key_next',       cmd = ':GdbNext'             },
+  { mode = 'n', term = true,  key = 'key_step',       cmd = ':GdbStep'             },
+  { mode = 'n', term = true,  key = 'key_finish',     cmd = ':GdbFinish'           },
+  { mode = 'n', term = false, key = 'key_breakpoint', cmd = ':GdbBreakpointToggle' },
+  { mode = 'n', term = true,  key = 'key_frameup',    cmd = ':GdbFrameUp'          },
+  { mode = 'n', term = true,  key = 'key_framedown',  cmd = ':GdbFrameDown'        },
+  { mode = 'n', term = false, key = 'key_eval',       cmd = ':GdbEvalWord'         },
+  { mode = 'v', term = false, key = 'key_eval',       cmd = ':GdbEvalRange'        },
+  { mode = 'n', term = true,  key = 'key_quit',       cmd = ':GdbDebugStop'        },
 }
 
 -- Define buffer-local keymaps for the jump window
 function C:set()
-  for _, tuple in ipairs(default) do
-    local mode, key, cmd = unpack(tuple)
-    local keystroke = self.config:get(key)
+  -- Terminal keymaps are only set once per session, so there's
+  -- no need to unset them properly (no `is_term` in C:unset()).
+  local bufname = vim.api.nvim_buf_get_name(vim.api.nvim_get_current_buf())
+  local is_term = bufname:match("^term://") ~= nil
+  for _, m in ipairs(default) do
+    local keystroke = self.config:get(m.key)
     if keystroke ~= nil then
-      vim.api.nvim_buf_set_keymap(vim.api.nvim_get_current_buf(), mode,
-        keystroke, cmd .. '<cr>', {silent = true})
+      if not is_term or m.term then
+        vim.api.nvim_buf_set_keymap(vim.api.nvim_get_current_buf(), m.mode,
+          keystroke, m.cmd .. '<cr>', {silent = true})
+      end
     end
   end
 end
 
 -- Undefine buffer-local keymaps for the jump window
 function C:unset()
-  for _, tuple in ipairs(default) do
-    local mode, key = unpack(tuple)
-    local keystroke = self.config:get(key)
+  for _, m in ipairs(default) do
+    local keystroke = self.config:get(m.key)
     if keystroke ~= nil then
-      vim.api.nvim_buf_del_keymap(vim.api.nvim_get_current_buf(), mode, keystroke)
+      vim.api.nvim_buf_del_keymap(vim.api.nvim_get_current_buf(), m.mode, keystroke)
     end
   end
 end
 
 local default_t = {
-  {'key_until', ':GdbUntil'},
-  {'key_continue', ':GdbContinue'},
-  {'key_next', ':GdbNext'},
-  {'key_step', ':GdbStep'},
-  {'key_finish', ':GdbFinish'},
-  {'key_quit', ':GdbDebugStop'},
+  { key = 'key_until',    cmd = ':GdbUntil'     },
+  { key = 'key_continue', cmd = ':GdbContinue'  },
+  { key = 'key_next',     cmd = ':GdbNext'      },
+  { key = 'key_step',     cmd = ':GdbStep'      },
+  { key = 'key_finish',   cmd = ':GdbFinish'    },
+  { key = 'key_quit',     cmd = ':GdbDebugStop' },
 }
 
 -- Define term-local keymaps.
 function C:set_t()
-  for _, tuple in ipairs(default_t) do
-    local key, cmd = unpack(tuple)
-    local keystroke = self.config:get(key)
+  for _, m in ipairs(default_t) do
+    local keystroke = self.config:get(m.key)
     if keystroke ~= nil then
       vim.api.nvim_buf_set_keymap(vim.api.nvim_get_current_buf(), 't',
-        keystroke, [[<c-\><c-n>]] .. cmd .. [[<cr>i]], {silent = true})
+        keystroke, [[<c-\><c-n>]] .. m.cmd .. [[<cr>i]], {silent = true})
     end
   end
   vim.api.nvim_buf_set_keymap(vim.api.nvim_get_current_buf(), 't',

@@ -105,7 +105,7 @@ function ExecutableOfFileHelper(targets, file_name, depth)
                 let artifacts = ArtifactsOfFiles(copy(a:targets), a:file_name)
         else " assume executable found
                 echom tabs."found executable: " . a:file_name
-                return a:file_name
+                return [a:file_name]
         endif
         " recurse on all artifacts until executable is found
         echom tabs."recurse with artifacts: ".join(artifacts,', ')

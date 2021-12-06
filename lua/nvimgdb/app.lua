@@ -37,8 +37,8 @@ function C.new(backend_name, proxy_cmd, client_cmd)
   if getmetatable(NvimGdb.i(true)) == C then
     -- Create new tab for the new debugging view
     NvimGdb.vim.cmd('tabnew')
-    NvimGdb.vim.wo.winfixwidth = false
-    NvimGdb.vim.wo.winfixheight = false
+    vim.wo.winfixwidth = false
+    vim.wo.winfixheight = false
     NvimGdb.vim.cmd('silent wincmd o')
     self.tabpage_created = true
   end
@@ -86,11 +86,11 @@ end
 -- The late initialization items that require accessing via tabpage.
 function C:postinit()
   -- Spawn the debugger, the parser should be ready by now.
-  self.client:start(self.parser)
+  self.client:start()
   NvimGdb.vim.cmd("doautocmd User NvimGdbStart")
 
   -- Start insert mode in the GDB window
-  NvimGdb.vim.fn.feedkeys("i")
+  vim.fn.feedkeys("i")
   -- Set initial keymaps in the terminal window.
   assert(vim.api.nvim_get_current_win() == self.client.win)
   self.keymaps:dispatch_set_t()
@@ -198,8 +198,8 @@ function C:breakpoint_toggle()
     self.client:interrupt()
   end
   local buf = vim.api.nvim_get_current_buf()
-  local file_name = NvimGdb.vim.fn.expand('#' .. buf .. ':p')
-  local line_nr = NvimGdb.vim.fn.line(".")
+  local file_name = vim.fn.expand('#' .. buf .. ':p')
+  local line_nr = vim.fn.line(".")
   local breaks = self.breakpoint:get_for_file(file_name, tostring(line_nr))
 
   if #breaks > 0 then
@@ -244,7 +244,7 @@ end
 -- Actions to execute when a buffer is entered.
 function C:on_buf_enter()
   -- Apply keymaps to the jump window only.
-  if NvimGdb.vim.bo.filetype ~= 'nvimgdb' and self.win:is_jump_window_active() then
+  if vim.bo.filetype ~= 'nvimgdb' and self.win:is_jump_window_active() then
     self.keymaps:dispatch_set()
     -- Ensure breakpoints are shown if are queried dynamically
     self.win:query_breakpoints()
@@ -253,7 +253,7 @@ end
 
 -- Actions to execute when a buffer is left.
 function C:on_buf_leave()
-  if NvimGdb.vim.bo.filetype == 'nvimgdb' then
+  if vim.bo.filetype == 'nvimgdb' then
     -- Move the cursor to the end of the buffer
     local jump_bottom = self.config:get_or('jump_bottom_gdb_buf', false)
     if jump_bottom then
