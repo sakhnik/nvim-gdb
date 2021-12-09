@@ -124,8 +124,7 @@ function C:_ensure_jump_window()
 end
 
 local function adjust_jump_win_view(jump_win, line, scroll_off)
-  local winid = vim.fn.win_getid(vim.api.nvim_win_get_number(jump_win))
-  local wininfo = vim.fn.getwininfo(winid)[1]
+  local wininfo = vim.fn.getwininfo(jump_win)[1]
   local botline = wininfo.botline
   local topline = wininfo.topline
 
