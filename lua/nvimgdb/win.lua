@@ -197,6 +197,14 @@ function C:jump(file, line)
   -- Goto the proper line and set the cursor on it
   self:_with_saved_win(false, function()
     NvimGdb.vim.cmd(string.format("noa call nvim_set_current_win(%d)", self.jump_win))
+
+    -- If there is no required file or it has fewer lines, avoid settings cursor
+    -- below the last line
+    local max_line = vim.fn.line('$', self.jump_win)
+    if line > max_line then
+      line = max_line
+    end
+
     vim.api.nvim_win_set_cursor(self.jump_win, {line, 0})
     self.cursor:set(target_buf, line)
     self.cursor:show()
