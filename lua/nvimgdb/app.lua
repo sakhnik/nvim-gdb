@@ -171,22 +171,27 @@ function C:create_watch(cmd, mods)
   local buf = vim.api.nvim_get_current_buf()
   vim.api.nvim_buf_set_name(buf, cmd)
 
-  local cur_tabpage = vim.api.nvim_get_current_tabpage()
-  local augroup_name = "NvimGdbTab" .. cur_tabpage .. "_" .. buf
-
-  NvimGdb.vim.cmd("augroup " .. augroup_name)
-  NvimGdb.vim.cmd("autocmd!")
-  NvimGdb.vim.cmd("autocmd User NvimGdbQuery" ..
-          " call nvim_buf_set_lines(" .. buf .. ", 0, -1, 0," ..
-          " split(GdbCustomCommand('" .. cmd .. "'), '\\r*\\n'))")
-  NvimGdb.vim.cmd("augroup END")
+  local aucmd_id = vim.api.nvim_create_autocmd("User NvimGdbQuery", {
+    callback = function()
+      vim.api.nvim_buf_set_lines(buf, 0, -1, 0,
+          vim.fn.split(self:custom_command(cmd), '\\r*\\n'))
+    end
+  })
 
   -- Destroy the autowatch automatically when the window is gone.
-  NvimGdb.vim.cmd("autocmd BufWinLeave <buffer> call" ..
-          " nvimgdb#ClearAugroup('" .. augroup_name .. "')")
-  -- Destroy the watch buffer.
-  NvimGdb.vim.cmd("autocmd BufWinLeave <buffer> call timer_start(100," ..
-          " { -> execute('bwipeout! " .. buf .. "') })")
+  vim.api.nvim_create_autocmd("BufWinLeave", {
+    buffer = buf,
+    callback = function()
+      log.warn({"BufWinLeave deleting"})
+      vim.api.nvim_del_autocmd(aucmd_id)
+      -- Destroy the watch buffer asynchronously (can'be destroyed immediately).
+      local timer = vim.loop.new_timer()
+      timer:start(100, 0, vim.schedule_wrap(function()
+        vim.api.nvim_buf_delete(buf, {force = true})
+      end))
+    end
+  })
+
   -- Return the cursor to the previous window
   NvimGdb.vim.cmd("wincmd l")
 end

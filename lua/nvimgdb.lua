@@ -66,7 +66,9 @@ end
 
 function NvimGdb.parser_feed(tab, lines)
   local inst = NvimGdb.apps[tab]
-  inst.parser:feed(lines)
+  if inst ~= nil then
+    inst.parser:feed(lines)
+  end
 end
 
 -- Execute func while preserving the original value of the option 'hidden'
