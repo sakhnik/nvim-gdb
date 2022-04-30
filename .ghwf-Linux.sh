@@ -19,7 +19,7 @@ ver=$(curl -sL "https://sourceforge.net/projects/bashdb/rss" \
     | grep "^${BASH_VERSINFO[0]}\.${BASH_VERSINFO[1]}" \
     | head -1)
 
-wget -qc "https://phoenixnap.dl.sourceforge.net/project/bashdb/bashdb/${ver}/bashdb-${ver}.tar.bz2"
+wget -qc "https://sourceforge.net/projects/bashdb/files/bashdb/${ver}/bashdb-${ver}.tar.bz2"
 tar -xvf bashdb-${ver}.tar.bz2
 cd bashdb-${ver}
 ./configure
