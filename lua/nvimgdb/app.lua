@@ -13,6 +13,7 @@ local log = require 'nvimgdb.log'
 -- @field private win Win @jump window manager
 -- @field private parser ParserImpl @debugger output parser
 -- @field private tabpage_created boolean @indicates whether the tabpage was created and needs to be closed during cleanup
+-- @field private destructors @list of functions to be called upon cleanup
 local C = {}
 C.efmmgr = require 'nvimgdb.efmmgr'
 C.__index = C
@@ -24,6 +25,7 @@ C.__index = C
 -- @return App @new instance
 function C.new(backend_name, proxy_cmd, client_cmd)
   local self = setmetatable({}, C)
+  self.destructors = {}
 
   self.config = require'nvimgdb.config'.new()
 
@@ -102,6 +104,11 @@ end
 function C:cleanup(tab)
   NvimGdb.vim.cmd("doautocmd User NvimGdbCleanup")
 
+  -- Call collected destructors
+  for _, dtor in ipairs(self.destructors) do
+    dtor()
+  end
+
   -- Remove from 'errorformat' for the given backend.
   C.efmmgr.teardown(self.backend.get_error_formats())
 
@@ -178,18 +185,26 @@ function C:create_watch(cmd, mods)
     end
   })
 
+  local function destroy_watch()
+    if aucmd_id ~= nil then
+      vim.api.nvim_del_autocmd(aucmd_id)
+      aucmd_id = nil
+    end
+    -- Destroy the watch buffer asynchronously (can't be destroyed immediately).
+    local timer = vim.loop.new_timer()
+    timer:start(100, 0, vim.schedule_wrap(function()
+      if vim.api.nvim_buf_is_valid(buf) then
+        vim.api.nvim_buf_delete(buf, {force = true})
+      end
+    end))
+  end
+  -- Destroy the watch window when the debugging session stops
+  self.destructors[#self.destructors + 1] = destroy_watch
+
   -- Destroy the autowatch automatically when the window is gone.
   vim.api.nvim_create_autocmd("BufWinLeave", {
     buffer = buf,
-    callback = function()
-      log.warn({"BufWinLeave deleting"})
-      vim.api.nvim_del_autocmd(aucmd_id)
-      -- Destroy the watch buffer asynchronously (can'be destroyed immediately).
-      local timer = vim.loop.new_timer()
-      timer:start(100, 0, vim.schedule_wrap(function()
-        vim.api.nvim_buf_delete(buf, {force = true})
-      end))
-    end
+    callback = destroy_watch
   })
 
   -- Return the cursor to the previous window
