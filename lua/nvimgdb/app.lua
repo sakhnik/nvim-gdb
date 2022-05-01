@@ -13,6 +13,7 @@ local log = require 'nvimgdb.log'
 -- @field private win Win @jump window manager
 -- @field private parser ParserImpl @debugger output parser
 -- @field private tabpage_created boolean @indicates whether the tabpage was created and needs to be closed during cleanup
+-- @field private destructors @list of functions to be called upon cleanup
 local C = {}
 C.efmmgr = require 'nvimgdb.efmmgr'
 C.__index = C
@@ -24,6 +25,7 @@ C.__index = C
 -- @return App @new instance
 function C.new(backend_name, proxy_cmd, client_cmd)
   local self = setmetatable({}, C)
+  self.destructors = {}
 
   self.config = require'nvimgdb.config'.new()
 
@@ -102,6 +104,11 @@ end
 function C:cleanup(tab)
   NvimGdb.vim.cmd("doautocmd User NvimGdbCleanup")
 
+  -- Call collected destructors
+  for _, dtor in ipairs(self.destructors) do
+    dtor()
+  end
+
   -- Remove from 'errorformat' for the given backend.
   C.efmmgr.teardown(self.backend.get_error_formats())
 
@@ -171,22 +178,35 @@ function C:create_watch(cmd, mods)
   local buf = vim.api.nvim_get_current_buf()
   vim.api.nvim_buf_set_name(buf, cmd)
 
-  local cur_tabpage = vim.api.nvim_get_current_tabpage()
-  local augroup_name = "NvimGdbTab" .. cur_tabpage .. "_" .. buf
+  local aucmd_id = vim.api.nvim_create_autocmd("User NvimGdbQuery", {
+    callback = function()
+      vim.api.nvim_buf_set_lines(buf, 0, -1, 0,
+          vim.fn.split(self:custom_command(cmd), '\\r*\\n'))
+    end
+  })
 
-  NvimGdb.vim.cmd("augroup " .. augroup_name)
-  NvimGdb.vim.cmd("autocmd!")
-  NvimGdb.vim.cmd("autocmd User NvimGdbQuery" ..
-          " call nvim_buf_set_lines(" .. buf .. ", 0, -1, 0," ..
-          " split(GdbCustomCommand('" .. cmd .. "'), '\\r*\\n'))")
-  NvimGdb.vim.cmd("augroup END")
+  local function destroy_watch()
+    if aucmd_id ~= nil then
+      vim.api.nvim_del_autocmd(aucmd_id)
+      aucmd_id = nil
+    end
+    -- Destroy the watch buffer asynchronously (can't be destroyed immediately).
+    local timer = vim.loop.new_timer()
+    timer:start(100, 0, vim.schedule_wrap(function()
+      if vim.api.nvim_buf_is_valid(buf) then
+        vim.api.nvim_buf_delete(buf, {force = true})
+      end
+    end))
+  end
+  -- Destroy the watch window when the debugging session stops
+  self.destructors[#self.destructors + 1] = destroy_watch
 
   -- Destroy the autowatch automatically when the window is gone.
-  NvimGdb.vim.cmd("autocmd BufWinLeave <buffer> call" ..
-          " nvimgdb#ClearAugroup('" .. augroup_name .. "')")
-  -- Destroy the watch buffer.
-  NvimGdb.vim.cmd("autocmd BufWinLeave <buffer> call timer_start(100," ..
-          " { -> execute('bwipeout! " .. buf .. "') })")
+  vim.api.nvim_create_autocmd("BufWinLeave", {
+    buffer = buf,
+    callback = destroy_watch
+  })
+
   -- Return the cursor to the previous window
   NvimGdb.vim.cmd("wincmd l")
 end
