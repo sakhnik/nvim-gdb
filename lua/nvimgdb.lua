@@ -103,7 +103,7 @@ local function global_init()
 
   vim.api.nvim_create_user_command('GdbLopenBreakpoints', function(a)
     NvimGdb.i():lopen('breakpoints', a.mods)
-  end, { desc = "Open stack backtrace in the quickfix" })
+  end, { desc = "Open the breakpoint list in the quickfix" })
 
   vim.api.nvim_command [[
   function! GdbCustomCommand(cmd)
