@@ -218,6 +218,37 @@ local function with_saved_hidden(func)
   end
 end
 
+-- Shared global state cleanup after the last session ended
+local function global_cleanup()
+  -- Cleanup the autocommands
+  vim.api.nvim_del_augroup_by_name("NvimGdb")
+  -- Cleanup custom events
+  vim.api.nvim_del_augroup_by_name("NvimGdbInternal")
+
+  vim.api.nvim_command [[delfunction GdbCustomCommand]]
+
+  -- Cleanup user commands and keymaps
+  vim.api.nvim_del_user_command("GdbDebugStop")
+  vim.api.nvim_del_user_command("GdbBreakpointToggle")
+  vim.api.nvim_del_user_command("GdbBreakpointClearAll")
+  vim.api.nvim_del_user_command("GdbFrame")
+  vim.api.nvim_del_user_command("GdbRun")
+  vim.api.nvim_del_user_command("GdbUntil")
+  vim.api.nvim_del_user_command("GdbContinue")
+  vim.api.nvim_del_user_command("GdbNext")
+  vim.api.nvim_del_user_command("GdbStep")
+  vim.api.nvim_del_user_command("GdbFinish")
+  vim.api.nvim_del_user_command("GdbFrameUp")
+  vim.api.nvim_del_user_command("GdbFrameDown")
+  vim.api.nvim_del_user_command("GdbInterrupt")
+  vim.api.nvim_del_user_command("GdbEvalWord")
+  vim.api.nvim_del_user_command("GdbEvalRange")
+  vim.api.nvim_del_user_command("GdbCreateWatch")
+  vim.api.nvim_del_user_command("Gdb")
+  vim.api.nvim_del_user_command("GdbLopenBacktrace")
+  vim.api.nvim_del_user_command("GdbLopenBreakpoints")
+end
+
 -- Cleanup the current instance.
 -- @param tab number @tabpage handle
 function NvimGdb.cleanup(tab)
@@ -230,8 +261,8 @@ function NvimGdb.cleanup(tab)
     with_saved_hidden(function()
       if NvimGdb.apps_size == 0 then
         -- Cleanup commands, autocommands etc
-        log.info("Calling nvimgdb#GlobalCleanup()")
-        vim.fn["nvimgdb#GlobalCleanup"]()
+        log.info("Calling global_cleanup()")
+        global_cleanup()
         NvimGdb.efmmgr.cleanup()
         app.win:unset_keymaps()
       end
