@@ -70,6 +70,8 @@ function C:start()
   vim.bo.filetype = "nvimgdb"
   -- Allow detaching the terminal from its window
   vim.bo.bufhidden = "hide"
+  -- Prevent the debugger buffer from being listed
+  vim.bo.buflisted = false
   -- Finish the debugging session when the terminal is closed
   -- Left the remains of the code intentionally to remind that there is no need
   -- to close the debugger terminal automatically.
