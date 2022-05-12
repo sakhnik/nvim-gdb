@@ -89,8 +89,8 @@ function C:postinit()
   self.client:start()
   NvimGdb.vim.cmd("doautocmd User NvimGdbStart")
 
-  -- Start insert mode in the GDB window
-  vim.fn.feedkeys("i")
+  -- Start insert mode in the debugger window
+  vim.cmd("startinsert")
   -- Set initial keymaps in the terminal window.
   assert(vim.api.nvim_get_current_win() == self.client.win)
   self.keymaps:dispatch_set_t()
