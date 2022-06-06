@@ -19,8 +19,13 @@ function IsExec(exec)
   return v:shell_error==0
 endfunction
 
-let g:nvimgdb_use_find_executables=1
-let g:nvimgdb_use_cmake_to_find_executables=1
+if !exists("g:nvimgdb_use_find_executables")
+  let g:nvimgdb_use_find_executables=1
+endif
+if !exists("g:nvimgdb_use_cmake_to_find_executables")
+  let g:nvimgdb_use_cmake_to_find_executables=1
+endif
+
 function ExecsCompletion(ArgLead, CmdLine, CursorPos)
   " Use `find`
   let find_cmd="find " . a:ArgLead . '* -type f -not -path "**/CMakeFiles/**"'
