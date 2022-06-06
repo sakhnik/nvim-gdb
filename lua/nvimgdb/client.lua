@@ -4,7 +4,8 @@
 local log = require'nvimgdb.log'
 local uv = vim.loop
 
--- @class Client @spawned debgger manager
+-- @class Client @spawned debugger manager
+-- @field private config Config @resolved configuration
 -- @field public win number @terminal window handler
 -- @field private client_id number @terminal job handler
 -- @field private is_active boolean @true if the debugger has been launched
@@ -27,6 +28,7 @@ end
 -- @return Client @new instance
 function C.new(config, proxy_cmd, client_cmd)
   local self = setmetatable({}, C)
+  self.config = config
   log.info("termwin_command", config:get('termwin_command'))
   NvimGdb.vim.cmd(config:get('termwin_command'))
   self.win = vim.api.nvim_get_current_win()
@@ -77,6 +79,23 @@ function C:start()
   -- to close the debugger terminal automatically.
   --local cur_tabpage = vim.api.nvim_get_current_tabpage()
   --vim.cmd("au TermClose <buffer> lua NvimGdb.cleanup(" .. cur_tabpage .. ")")
+
+  -- Check whether the terminal buffer should always be shown
+  vim.api.nvim_create_autocmd("BufHidden", {
+    buffer = self.client_buf,
+    callback = function() self:_check_sticky() end,
+  })
+end
+
+-- Make the debugger window sticky. If closed accidentally,
+-- resurrect it.
+function C:_check_sticky()
+  local prev_win = vim.api.nvim_get_current_win()
+  NvimGdb.vim.cmd(self.config:get('termwin_command'))
+  local buf = vim.api.nvim_get_current_buf()
+  NvimGdb.vim.cmd('b ' .. self.client_buf)
+  vim.api.nvim_buf_delete(buf, {})
+  vim.api.nvim_set_current_win(prev_win)
 end
 
 -- Interrupt running program by sending ^c.
