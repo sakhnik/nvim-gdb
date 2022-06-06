@@ -4,7 +4,8 @@
 local log = require'nvimgdb.log'
 local uv = vim.loop
 
--- @class Client @spawned debgger manager
+-- @class Client @spawned debugger manager
+-- @field private config Config @resolved configuration
 -- @field public win number @terminal window handler
 -- @field private client_id number @terminal job handler
 -- @field private is_active boolean @true if the debugger has been launched
@@ -12,6 +13,7 @@ local uv = vim.loop
 -- @field private proxy_addr string @path to the file with proxy port
 -- @field private command string @complete command to launch the debugger (including proxy)
 -- @field private client_buf number @terminal buffer handler
+-- @field private buf_hiddend_auid number @autocmd id of the BufHidden handler
 local C = {}
 C.__index = C
 
@@ -27,6 +29,7 @@ end
 -- @return Client @new instance
 function C.new(config, proxy_cmd, client_cmd)
   local self = setmetatable({}, C)
+  self.config = config
   log.info("termwin_command", config:get('termwin_command'))
   NvimGdb.vim.cmd(config:get('termwin_command'))
   self.win = vim.api.nvim_get_current_win()
@@ -43,12 +46,14 @@ function C.new(config, proxy_cmd, client_cmd)
   end
   NvimGdb.vim.cmd "enew"
   self.client_buf = vim.api.nvim_get_current_buf()
+  self.buf_hiddend_auid = -1
   return self
 end
 
 -- Destructor
 function C:cleanup()
   if vim.api.nvim_buf_is_valid(self.client_buf) and vim.fn.bufexists(self.client_buf) then
+    self:_cleanup_buf_hidden()
     NvimGdb.vim.cmd("bd! " .. self.client_buf)
   end
 
@@ -56,6 +61,13 @@ function C:cleanup()
     os.remove(self.proxy_addr)
   end
   assert(os.remove(self.sock_dir))
+end
+
+function C:_cleanup_buf_hidden()
+  if self.buf_hiddend_auid ~= -1 then
+    vim.api.nvim_del_autocmd(self.buf_hiddend_auid)
+    self.buf_hiddend_auid = -1
+  end
 end
 
 -- Launch the debugger (when all the parsers are ready)
@@ -77,6 +89,34 @@ function C:start()
   -- to close the debugger terminal automatically.
   --local cur_tabpage = vim.api.nvim_get_current_tabpage()
   --vim.cmd("au TermClose <buffer> lua NvimGdb.cleanup(" .. cur_tabpage .. ")")
+
+  -- Check whether the terminal buffer should always be shown
+  local sticky = self.config:get_or('sticky_dbg_buf', true)
+  if sticky then
+    self.buf_hiddend_auid = vim.api.nvim_create_autocmd("BufHidden", {
+      buffer = self.client_buf,
+      callback = function()
+        self:_check_sticky()
+      end,
+    })
+    vim.api.nvim_create_autocmd("TermClose", {
+      buffer = self.client_buf,
+      callback = function()
+        self:_cleanup_buf_hidden()
+      end
+    })
+  end
+end
+
+-- Make the debugger window sticky. If closed accidentally,
+-- resurrect it.
+function C:_check_sticky()
+  local prev_win = vim.api.nvim_get_current_win()
+  NvimGdb.vim.cmd(self.config:get('termwin_command'))
+  local buf = vim.api.nvim_get_current_buf()
+  NvimGdb.vim.cmd('b ' .. self.client_buf)
+  vim.api.nvim_buf_delete(buf, {})
+  vim.api.nvim_set_current_win(prev_win)
 end
 
 -- Interrupt running program by sending ^c.
