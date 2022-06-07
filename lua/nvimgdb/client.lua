@@ -97,12 +97,15 @@ end
 -- Make the debugger window sticky. If closed accidentally,
 -- resurrect it.
 function C:_check_sticky()
-  local prev_win = vim.api.nvim_get_current_win()
-  NvimGdb.vim.cmd(self.config:get('termwin_command'))
-  local buf = vim.api.nvim_get_current_buf()
-  NvimGdb.vim.cmd('b ' .. self.client_buf)
-  vim.api.nvim_buf_delete(buf, {})
-  vim.api.nvim_set_current_win(prev_win)
+  local sticky = self.config:get_or('sticky_gdb_buf', true)
+  if sticky then
+    local prev_win = vim.api.nvim_get_current_win()
+    NvimGdb.vim.cmd(self.config:get('termwin_command'))
+    local buf = vim.api.nvim_get_current_buf()
+    NvimGdb.vim.cmd('b ' .. self.client_buf)
+    vim.api.nvim_buf_delete(buf, {})
+    vim.api.nvim_set_current_win(prev_win)
+  end
 end
 
 -- Interrupt running program by sending ^c.

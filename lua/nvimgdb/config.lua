@@ -30,6 +30,7 @@ local default = {
   codewin_command     = 'new',             -- Assign a window for the source code
   set_scroll_off      = 5,
   jump_bottom_gdb_buf = true,
+  sticky_gdb_buf = true,
 }
 
 -- Turn a string into a funcref looking up a Vim function.
