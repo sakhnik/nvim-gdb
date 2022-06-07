@@ -30,3 +30,30 @@ def test_gdb_tabclose(setup, eng):
     eng.feed('<esc>')
     eng.feed(":tabclose<cr>")
     eng.feed(":GdbDebugStop<cr>")
+
+
+def test_sticky_term(setup, eng):
+    '''GDB terminal survives closing.'''
+    assert setup
+    assert 2 == len(eng.eval("nvim_list_wins()"))
+    eng.feed(":q<cr>")
+    assert 2 == len(eng.eval("nvim_list_wins()"))
+    eng.feed(":GdbDebugStop<cr>")
+
+
+@pytest.fixture(scope='function')
+def non_sticky(eng):
+    '''The fixture to disable terminal stickiness.'''
+    eng.feed(":let g:nvimgdb_sticky_gdb_buf = v:false<cr>")
+    yield True
+    eng.feed(":unlet g:nvimgdb_sticky_gdb_buf<cr>")
+
+
+def test_elusive_term(non_sticky, setup, eng):
+    '''GDB terminal can be closed.'''
+    assert non_sticky
+    assert setup
+    assert 2 == len(eng.eval("nvim_list_wins()"))
+    eng.feed(":q<cr>")
+    assert 1 == len(eng.eval("nvim_list_wins()"))
+    eng.feed(":GdbDebugStop<cr>")
