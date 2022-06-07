@@ -13,6 +13,7 @@ local uv = vim.loop
 -- @field private proxy_addr string @path to the file with proxy port
 -- @field private command string @complete command to launch the debugger (including proxy)
 -- @field private client_buf number @terminal buffer handler
+-- @field private buf_hiddend_auid number @autocmd id of the BufHidden handler
 local C = {}
 C.__index = C
 
@@ -45,11 +46,17 @@ function C.new(config, proxy_cmd, client_cmd)
   end
   NvimGdb.vim.cmd "enew"
   self.client_buf = vim.api.nvim_get_current_buf()
+  self.buf_hiddend_auid = -1
   return self
 end
 
 -- Destructor
 function C:cleanup()
+  if self.buf_hiddend_auid ~= -1 then
+    vim.api.nvim_del_autocmd(self.buf_hiddend_auid)
+    self.buf_hiddend_auid = -1
+  end
+
   if vim.api.nvim_buf_is_valid(self.client_buf) and vim.fn.bufexists(self.client_buf) then
     NvimGdb.vim.cmd("bd! " .. self.client_buf)
   end
@@ -81,7 +88,7 @@ function C:start()
   --vim.cmd("au TermClose <buffer> lua NvimGdb.cleanup(" .. cur_tabpage .. ")")
 
   -- Check whether the terminal buffer should always be shown
-  vim.api.nvim_create_autocmd("BufHidden", {
+  self.buf_hiddend_auid = vim.api.nvim_create_autocmd("BufHidden", {
     buffer = self.client_buf,
     callback = function() self:_check_sticky() end,
   })
