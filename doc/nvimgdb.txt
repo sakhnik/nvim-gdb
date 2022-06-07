@@ -249,13 +249,6 @@ are called every time when the source code windows is entered and left.  The
 first one can be used to define source window-specific keymaps and the latter
 to carefully cleanup them.  See `test/keymap_hooks.vim` for an example.
 
-The key `jump_bottom_gdb_buf` enables jumping to the bottom of the gdb terminal
-buffer when focus is moved to a different window.
-
-The key `sticky_gdb_buf` makes the debugger terminal always shown in a window.
-Setting it to true (default) will make sure to restore the terminal window
-with `termwin_command` if it's accidentally or intentially closed.
-
 Finally, every configuration key can be overridden with a global variable
 prefixed `g:nvimgdb_`.  For example, `g:nvimgdb_key_next` overrides
 `g:nvimgdb_config["key_next"]` etc.
@@ -298,6 +291,13 @@ window, try the following: >
 <
 If there is a debugging session already running on the current tabpage, a new
 debugging session will be created on a separate tabpage.
+
+The key `sticky_gdb_buf` makes the debugger terminal always shown in a window.
+Setting it to true (default) will make sure to restore the terminal window
+with `termwin_command` if it's accidentally or intentially closed.
+
+The key `jump_bottom_gdb_buf` enables jumping to the bottom of the gdb terminal
+buffer when focus is moved to a different window.
 
 ==============================================================================
 Section 5: Events                                              *NvimgdbEvents*
