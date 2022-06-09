@@ -52,12 +52,11 @@ end
 
 -- Destructor
 function C:cleanup()
-  if self.buf_hiddend_auid ~= -1 then
-    vim.api.nvim_del_autocmd(self.buf_hiddend_auid)
-    self.buf_hiddend_auid = -1
-  end
-
   if vim.api.nvim_buf_is_valid(self.client_buf) and vim.fn.bufexists(self.client_buf) then
+    if self.buf_hiddend_auid ~= -1 then
+      vim.api.nvim_del_autocmd(self.buf_hiddend_auid)
+      self.buf_hiddend_auid = -1
+    end
     NvimGdb.vim.cmd("bd! " .. self.client_buf)
   end
 
@@ -88,24 +87,24 @@ function C:start()
   --vim.cmd("au TermClose <buffer> lua NvimGdb.cleanup(" .. cur_tabpage .. ")")
 
   -- Check whether the terminal buffer should always be shown
-  self.buf_hiddend_auid = vim.api.nvim_create_autocmd("BufHidden", {
-    buffer = self.client_buf,
-    callback = function() self:_check_sticky() end,
-  })
+  local sticky = self.config:get_or('sticky_gdb_buf', true)
+  if sticky then
+    self.buf_hiddend_auid = vim.api.nvim_create_autocmd("BufHidden", {
+      buffer = self.client_buf,
+      callback = function() self:_check_sticky() end,
+    })
+  end
 end
 
 -- Make the debugger window sticky. If closed accidentally,
 -- resurrect it.
 function C:_check_sticky()
-  local sticky = self.config:get_or('sticky_gdb_buf', true)
-  if sticky then
-    local prev_win = vim.api.nvim_get_current_win()
-    NvimGdb.vim.cmd(self.config:get('termwin_command'))
-    local buf = vim.api.nvim_get_current_buf()
-    NvimGdb.vim.cmd('b ' .. self.client_buf)
-    vim.api.nvim_buf_delete(buf, {})
-    vim.api.nvim_set_current_win(prev_win)
-  end
+  local prev_win = vim.api.nvim_get_current_win()
+  NvimGdb.vim.cmd(self.config:get('termwin_command'))
+  local buf = vim.api.nvim_get_current_buf()
+  NvimGdb.vim.cmd('b ' .. self.client_buf)
+  vim.api.nvim_buf_delete(buf, {})
+  vim.api.nvim_set_current_win(prev_win)
 end
 
 -- Interrupt running program by sending ^c.
