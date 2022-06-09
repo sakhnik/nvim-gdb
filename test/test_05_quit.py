@@ -23,6 +23,12 @@ def test_gdb_debug_stop(setup, eng):
     eng.feed(":GdbDebugStop<cr>")
 
 
+def test_gdb_eof(setup, eng):
+    '''Quit with ctrl-d.'''
+    assert setup
+    eng.feed("i<c-d>")
+
+
 def test_gdb_tabclose(setup, eng):
     '''Quit by closing the tab.'''
     assert setup

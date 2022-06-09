@@ -53,10 +53,7 @@ end
 -- Destructor
 function C:cleanup()
   if vim.api.nvim_buf_is_valid(self.client_buf) and vim.fn.bufexists(self.client_buf) then
-    if self.buf_hiddend_auid ~= -1 then
-      vim.api.nvim_del_autocmd(self.buf_hiddend_auid)
-      self.buf_hiddend_auid = -1
-    end
+    self:_cleanup_buf_hidden()
     NvimGdb.vim.cmd("bd! " .. self.client_buf)
   end
 
@@ -64,6 +61,13 @@ function C:cleanup()
     os.remove(self.proxy_addr)
   end
   assert(os.remove(self.sock_dir))
+end
+
+function C:_cleanup_buf_hidden()
+  if self.buf_hiddend_auid ~= -1 then
+    vim.api.nvim_del_autocmd(self.buf_hiddend_auid)
+    self.buf_hiddend_auid = -1
+  end
 end
 
 -- Launch the debugger (when all the parsers are ready)
@@ -91,7 +95,15 @@ function C:start()
   if sticky then
     self.buf_hiddend_auid = vim.api.nvim_create_autocmd("BufHidden", {
       buffer = self.client_buf,
-      callback = function() self:_check_sticky() end,
+      callback = function()
+        self:_check_sticky()
+      end,
+    })
+    vim.api.nvim_create_autocmd("TermClose", {
+      buffer = self.client_buf,
+      callback = function()
+        self:_cleanup_buf_hidden()
+      end
     })
   end
 end
