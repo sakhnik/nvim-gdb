@@ -45,8 +45,6 @@ def test_bt_backend(eng, backend):
     assert eng.eval("line('.')") == 12
     eng.feed(':lnext\n')
     assert eng.eval("line('.')") == 19
-    eng.feed(':lnext\n')
-    assert eng.eval("line('.')") == 19
 
 
 def test_breaks_pdb(eng, post):
