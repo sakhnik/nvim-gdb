@@ -13,7 +13,7 @@ local uv = vim.loop
 -- @field private proxy_addr string @path to the file with proxy port
 -- @field private command string @complete command to launch the debugger (including proxy)
 -- @field private client_buf number @terminal buffer handler
--- @field private buf_hiddend_auid string @autogroup id of the BufHidden handler
+-- @field private buf_hidden_auid string @autogroup id of the BufHidden handler
 local C = {}
 C.__index = C
 
@@ -46,7 +46,7 @@ function C.new(config, proxy_cmd, client_cmd)
   end
   NvimGdb.vim.cmd "enew"
   self.client_buf = vim.api.nvim_get_current_buf()
-  self.buf_hiddend_auid = nil
+  self.buf_hidden_auid = nil
   return self
 end
 
@@ -64,12 +64,12 @@ function C:cleanup()
 end
 
 function C:_cleanup_buf_hidden()
-  if self.buf_hiddend_auid ~= nil then
-    NvimGdb.vim.cmd("augroup " .. self.buf_hiddend_auid)
+  if self.buf_hidden_auid ~= nil then
+    NvimGdb.vim.cmd("augroup " .. self.buf_hidden_auid)
     NvimGdb.vim.cmd("au!")
     NvimGdb.vim.cmd("augroup END")
-    NvimGdb.vim.cmd("augroup! " .. self.buf_hiddend_auid)
-    self.buf_hiddend_auid = nil
+    NvimGdb.vim.cmd("augroup! " .. self.buf_hidden_auid)
+    self.buf_hidden_auid = nil
   end
 end
 
@@ -97,8 +97,8 @@ function C:start()
   local sticky = self.config:get_or('sticky_dbg_buf', true)
   if sticky then
     local cur_tabpage = vim.api.nvim_get_current_tabpage()
-    self.buf_hiddend_auid = "NvimGdbBufHidden" .. cur_tabpage
-    NvimGdb.vim.cmd("augroup " .. self.buf_hiddend_auid)
+    self.buf_hidden_auid = "NvimGdbBufHidden" .. cur_tabpage
+    NvimGdb.vim.cmd("augroup " .. self.buf_hidden_auid)
     NvimGdb.vim.cmd("au!")
     NvimGdb.vim.cmd("au BufHidden <buffer> lua NvimGdb.i(" .. cur_tabpage .. ").client:_check_sticky()")
     NvimGdb.vim.cmd("au TermClose <buffer> lua NvimGdb.i(" .. cur_tabpage .. ").client:_cleanup_buf_hidden()")
@@ -114,6 +114,7 @@ function C:_check_sticky()
   local buf = vim.api.nvim_get_current_buf()
   NvimGdb.vim.cmd('b ' .. self.client_buf)
   vim.api.nvim_buf_delete(buf, {})
+  self.win = vim.api.nvim_get_current_win()
   vim.api.nvim_set_current_win(prev_win)
 end
 
