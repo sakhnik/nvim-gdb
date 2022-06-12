@@ -1,1 +1,1 @@
-export NVIM_RELEASE_URL=https://github.com/neovim/neovim/releases/latest/download
+export NVIM_RELEASE_URL=https://github.com/neovim/neovim/releases/download/v0.6.1
