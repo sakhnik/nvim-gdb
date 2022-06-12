@@ -31,6 +31,8 @@ Or type `<leader>db` to start debugging a BASH script.
 
 Check the prerequisites in the script [test/prerequisites.sh](https://github.com/sakhnik/nvim-gdb/blob/master/test/prerequisites.sh).
 
+Use the branch `master` for NeoVim ≥ 0.6.1 or the branch `devel` to benefit from the latest NeoVim features.
+
 If you use vim-plug, add the following line to your vimrc file:
 
 ```vim
