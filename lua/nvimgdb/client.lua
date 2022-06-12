@@ -13,7 +13,7 @@ local uv = vim.loop
 -- @field private proxy_addr string @path to the file with proxy port
 -- @field private command string @complete command to launch the debugger (including proxy)
 -- @field private client_buf number @terminal buffer handler
--- @field private buf_hiddend_auid number @autocmd id of the BufHidden handler
+-- @field private buf_hiddend_auid string @autogroup id of the BufHidden handler
 local C = {}
 C.__index = C
 
@@ -46,7 +46,7 @@ function C.new(config, proxy_cmd, client_cmd)
   end
   NvimGdb.vim.cmd "enew"
   self.client_buf = vim.api.nvim_get_current_buf()
-  self.buf_hiddend_auid = -1
+  self.buf_hiddend_auid = nil
   return self
 end
 
@@ -64,9 +64,12 @@ function C:cleanup()
 end
 
 function C:_cleanup_buf_hidden()
-  if self.buf_hiddend_auid ~= -1 then
-    vim.api.nvim_del_autocmd(self.buf_hiddend_auid)
-    self.buf_hiddend_auid = -1
+  if self.buf_hiddend_auid ~= nil then
+    NvimGdb.vim.cmd("augroup " .. self.buf_hiddend_auid)
+    NvimGdb.vim.cmd("au!")
+    NvimGdb.vim.cmd("augroup END")
+    NvimGdb.vim.cmd("augroup! " .. self.buf_hiddend_auid)
+    self.buf_hiddend_auid = nil
   end
 end
 
@@ -93,18 +96,13 @@ function C:start()
   -- Check whether the terminal buffer should always be shown
   local sticky = self.config:get_or('sticky_dbg_buf', true)
   if sticky then
-    self.buf_hiddend_auid = vim.api.nvim_create_autocmd("BufHidden", {
-      buffer = self.client_buf,
-      callback = function()
-        self:_check_sticky()
-      end,
-    })
-    vim.api.nvim_create_autocmd("TermClose", {
-      buffer = self.client_buf,
-      callback = function()
-        self:_cleanup_buf_hidden()
-      end
-    })
+    local cur_tabpage = vim.api.nvim_get_current_tabpage()
+    self.buf_hiddend_auid = "NvimGdbBufHidden" .. cur_tabpage
+    NvimGdb.vim.cmd("augroup " .. self.buf_hiddend_auid)
+    NvimGdb.vim.cmd("au!")
+    NvimGdb.vim.cmd("au BufHidden <buffer> lua NvimGdb.i(" .. cur_tabpage .. ").client:_check_sticky()")
+    NvimGdb.vim.cmd("au TermClose <buffer> lua NvimGdb.i(" .. cur_tabpage .. ").client:_cleanup_buf_hidden()")
+    NvimGdb.vim.cmd("augroup END")
   end
 end
 
