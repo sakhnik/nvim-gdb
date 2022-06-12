@@ -13,7 +13,7 @@ local uv = vim.loop
 -- @field private proxy_addr string @path to the file with proxy port
 -- @field private command string @complete command to launch the debugger (including proxy)
 -- @field private client_buf number @terminal buffer handler
--- @field private buf_hiddend_auid number @autocmd id of the BufHidden handler
+-- @field private buf_hidden_auid number @autocmd id of the BufHidden handler
 local C = {}
 C.__index = C
 
@@ -46,7 +46,7 @@ function C.new(config, proxy_cmd, client_cmd)
   end
   NvimGdb.vim.cmd "enew"
   self.client_buf = vim.api.nvim_get_current_buf()
-  self.buf_hiddend_auid = -1
+  self.buf_hidden_auid = -1
   return self
 end
 
@@ -64,9 +64,9 @@ function C:cleanup()
 end
 
 function C:_cleanup_buf_hidden()
-  if self.buf_hiddend_auid ~= -1 then
-    vim.api.nvim_del_autocmd(self.buf_hiddend_auid)
-    self.buf_hiddend_auid = -1
+  if self.buf_hidden_auid ~= -1 then
+    vim.api.nvim_del_autocmd(self.buf_hidden_auid)
+    self.buf_hidden_auid = -1
   end
 end
 
@@ -93,7 +93,7 @@ function C:start()
   -- Check whether the terminal buffer should always be shown
   local sticky = self.config:get_or('sticky_dbg_buf', true)
   if sticky then
-    self.buf_hiddend_auid = vim.api.nvim_create_autocmd("BufHidden", {
+    self.buf_hidden_auid = vim.api.nvim_create_autocmd("BufHidden", {
       buffer = self.client_buf,
       callback = function()
         self:_check_sticky()
@@ -116,6 +116,7 @@ function C:_check_sticky()
   local buf = vim.api.nvim_get_current_buf()
   NvimGdb.vim.cmd('b ' .. self.client_buf)
   vim.api.nvim_buf_delete(buf, {})
+  self.win = vim.api.nvim_get_current_win()
   vim.api.nvim_set_current_win(prev_win)
 end
 
