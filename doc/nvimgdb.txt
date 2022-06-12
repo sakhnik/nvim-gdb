@@ -292,7 +292,7 @@ window, try the following: >
 If there is a debugging session already running on the current tabpage, a new
 debugging session will be created on a separate tabpage.
 
-The key `sticky_gdb_buf` makes the debugger terminal always shown in a window.
+The key `sticky_dbg_buf` makes the debugger terminal always shown in a window.
 Setting it to true (default) will make sure to restore the terminal window
 with `termwin_command` if it's accidentally or intentially closed.
 

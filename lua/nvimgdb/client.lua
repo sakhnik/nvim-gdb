@@ -91,7 +91,7 @@ function C:start()
   --vim.cmd("au TermClose <buffer> lua NvimGdb.cleanup(" .. cur_tabpage .. ")")
 
   -- Check whether the terminal buffer should always be shown
-  local sticky = self.config:get_or('sticky_gdb_buf', true)
+  local sticky = self.config:get_or('sticky_dbg_buf', true)
   if sticky then
     self.buf_hiddend_auid = vim.api.nvim_create_autocmd("BufHidden", {
       buffer = self.client_buf,

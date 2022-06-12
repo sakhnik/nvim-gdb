@@ -50,9 +50,9 @@ def test_sticky_term(setup, eng):
 @pytest.fixture(scope='function')
 def non_sticky(eng):
     '''The fixture to disable terminal stickiness.'''
-    eng.feed(":let g:nvimgdb_sticky_gdb_buf = v:false<cr>")
+    eng.feed(":let g:nvimgdb_sticky_dbg_buf = v:false<cr>")
     yield True
-    eng.feed(":unlet g:nvimgdb_sticky_gdb_buf<cr>")
+    eng.feed(":unlet g:nvimgdb_sticky_dbg_buf<cr>")
 
 
 def test_elusive_term(non_sticky, setup, eng):
