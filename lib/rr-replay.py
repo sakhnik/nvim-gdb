@@ -9,8 +9,13 @@ import sys
 
 
 async def run_gdb(cmd):
-    args = "".join([f'"{pipes.quote(a)}"' for a in sys.argv[1:]])
-    gdb_proc = await asyncio.create_subprocess_shell(cmd + ' ' + args)
+    args = [f'"{pipes.quote(a)}"' for a in sys.argv[1:]]
+    parts = cmd.split()
+    gdb_idx = parts.index('gdb')
+    if gdb_idx != -1:
+        parts = parts[:gdb_idx+1] + args + parts[gdb_idx+1:]
+        cmd = " ".join(parts)
+    gdb_proc = await asyncio.create_subprocess_shell(cmd)
     await gdb_proc.communicate()
     return gdb_proc.returncode
 
