@@ -25,6 +25,8 @@ Or type `<leader>dl` to do the same with LLDB backend.
 Or type `<leader>dp` to start debugging a python program.
 Or type `<leader>db` to start debugging a BASH script.
 
+Also you can record the execution of a program with [`rr record`](https://rr-project.org/), and then replay its execution systematically with `<leader>dr`.
+
 [![nvim-gdb](https://asciinema.org/a/E8sKlS53Dm6UzK2MJjEolOyam.png)](https://asciinema.org/a/E8sKlS53Dm6UzK2MJjEolOyam?autoplay=1)
 
 ## Installation
@@ -89,6 +91,7 @@ See `:help nvimgdb` for the complete online documentation. Most notable commands
 | &lt;Leader&gt;dl | `:GdbStartLLDB lldb ./a.out`         | Start debugging session, allows editing the launching command        |
 | &lt;Leader&gt;dp | `:GdbStartPDB python -m pdb main.py` | Start Python debugging session, allows editing the launching command |
 | &lt;Leader&gt;db | `:GdbStartBashDB bashdb main.sh`     | Start BASH debugging session, allows editing the launching command   |
+| &lt;Leader&gt;dr | `:GdbStartRR`                        | Start debugging session with [`rr replay`](https://rr-project.org/). |
 | &lt;F8&gt;       | `:GdbBreakpointToggle`               | Toggle breakpoint in the coursor line                                |
 | &lt;F4&gt;       | `:GdbUntil`                          | Continue execution until a given line (`until` in gdb)               |
 | &lt;F5&gt;       | `:GdbContinue`                       | Continue execution (`continue` in gdb)                               |
@@ -130,6 +133,8 @@ To support development, consider donating:
   * Overview to the first anniversary: [2018-08-10](https://sakhnik.com/2018/08/10/nvim-gdb-anni.html)
 
 ## Showcase
+
+[![GdbStartRR](https://asciinema.org/a/506942.svg)](https://asciinema.org/a/506942)
 
 [![nvim-gdb + llvm](https://asciinema.org/a/162697.png)](https://asciinema.org/a/162697)
 

@@ -13,6 +13,7 @@ command! -nargs=1 -complete=customlist,ExecsCompletion GdbStart call s:Spawn('gd
 command! -nargs=1 -complete=customlist,ExecsCompletion GdbStartLLDB call s:Spawn('lldb', 'lldb_wrap.sh', <q-args>)
 command! -nargs=1 -complete=shellcmd GdbStartPDB call s:Spawn('pdb', 'pdb_proxy.py', <q-args>)
 command! -nargs=1 -complete=shellcmd GdbStartBashDB call s:Spawn('bashdb', 'bashdb_proxy.py', <q-args>)
+command! GdbStartRR call s:Spawn('gdb', 'gdb_wrap.sh', 'rr-replay.py')
 
 function IsExec(exec)
   eval system('test -x ' . a:exec)
@@ -53,4 +54,5 @@ if !exists('g:nvimgdb_disable_start_keymaps') || !g:nvimgdb_disable_start_keymap
   nnoremap <leader>dl :GdbStartLLDB lldb
   nnoremap <leader>dp :GdbStartPDB python -m pdb main.py
   nnoremap <leader>db :GdbStartBashDB bashdb main.sh
+  nnoremap <leader>dr :GdbStartRR
 endif
