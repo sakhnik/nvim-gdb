@@ -15,6 +15,7 @@ CONTENTS                                                     *NvimgdbContents*
     6. Functions ............ |NvimgdbFunctions|
     7. Backends ............. |NvimgdbBackends|
        7.1 GDB .............. |NvimgdbGDB|
+       7.2 rr ............... |NvimgdbRR|
     8. Limitations .......... |NvimgdbLimitations|
     9. Development .......... |NvimgdbDevelopment|
    10. Trivia ............... |NvimgdbTrivia|
@@ -39,6 +40,11 @@ The two commands above support command-completion which uses CMake and `find`
 to locate executables associated with the current buffer, and `find` which
 locates all executables in the current path or below. This behavior can be
 disabled by the user via variables. See the |NvimgdbVariables| section below.
+
+To debug prerecorded execution using `rr replay`, execute the following
+command: >
+
+    :GdbStartRR
 
 To debug Python programs, execute `:GdbStartPDB` and specify the python launch
 command as parameter: >
@@ -77,8 +83,11 @@ Section 2: Commands                                          *NvimgdbCommands*
                         launch command.
 
                                                              *:GdbStartBashDB*
-:GdbStartBashDB [cmd]   Start Bash debuggin session with the given BASHDB
+:GdbStartBashDB [cmd]   Start Bash debugging session with the given BASHDB
                         launch command.
+
+                                                                 *:GdbStartRR*
+:GdbStartRR             Start debugging session with the command `rr replay`
 
                                                                *:GdbDebugStop*
 :GdbDebugStop           Quit the debugging session. This command is implicitly
@@ -154,6 +163,9 @@ g:nvimgdb_disable_start_keymaps is defined and evaluates to true:
 
 <leader>db             Fill in command to start debugging with BASHDB, you will
                        still need to enter <cr> to execute it.
+
+<leader>dr             Alias for `:GdbStartRR`, you will still need to enter
+                       <cr> to execute it.
 
 When debugging session has started, the following mappings are defined:
 
@@ -359,6 +371,21 @@ Section 7.1 GDB                                                   *NvimgdbGDB*
   temporal ones disappearing after hit. Technically, the proxy app is a python
   program that launches gdb in a pseudo terminal, listens a unix socket for
   commands, and processes the output of GDB to filter out service commands.
+
+------------------------------------------------------------------------------
+Section 7.2 rr                                                     *NvimgdbRR*
+
+- rr (https://rr-project.org/) allows recording a Linux program execution, and
+  then replaying it in a debugger as many times as necessary. To record,
+  launch your program with `rr record app <args>` . Then `rr replay` will
+  launch GDB as if it were attached to the program. The replays are
+  deterministic in both directions (`continue` and `reverse-continue`).
+  It's very easy to trace data processing by setting watch points and
+  continuing the program back and forth from them.
+
+  The command `:GdbStartRR` is identical to `:GdbStart rr replay` with a
+  workaround for the PTY requirement.
+
 
 ==============================================================================
 Section 8: Limitations                                    *NvimgdbLimitations*
