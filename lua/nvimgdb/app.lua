@@ -248,6 +248,8 @@ function C:on_buf_enter()
     self.keymaps:dispatch_set()
     -- Ensure breakpoints are shown if are queried dynamically
     self.win:query_breakpoints()
+  else
+    vim.cmd("startinsert!")
   end
 end
 
