@@ -199,10 +199,14 @@ function C:jump(file, line)
     NvimGdb.vim.cmd(string.format("noa call nvim_set_current_win(%d)", self.jump_win))
 
     -- If there is no required file or it has fewer lines, avoid settings cursor
-    -- below the last line
+    -- below the last line.
+    -- This also handle the buggy case where line is 0 given that lines should
+    -- start from 1.
     local max_line = vim.fn.line('$', self.jump_win)
     if line > max_line then
       line = max_line
+    elseif line == 0 then
+      line = 1
     end
 
     vim.api.nvim_win_set_cursor(self.jump_win, {line, 0})
