@@ -95,9 +95,9 @@ function C:start()
   if sticky then
     self.buf_hidden_auid = vim.api.nvim_create_autocmd("BufHidden", {
       buffer = self.client_buf,
-      callback = function()
+      callback = vim.schedule_wrap(function()
         self:_check_sticky()
-      end,
+      end),
     })
     vim.api.nvim_create_autocmd("TermClose", {
       buffer = self.client_buf,
