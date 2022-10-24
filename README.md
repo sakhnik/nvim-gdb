@@ -33,7 +33,7 @@ Also you can record the execution of a program with [`rr record`](https://rr-pro
 
 Check the prerequisites in the script [test/prerequisites.sh](https://github.com/sakhnik/nvim-gdb/blob/master/test/prerequisites.sh).
 
-Use the branch `master` for NeoVim ≥ 0.6.1 or the branch `devel` to benefit from the latest NeoVim features.
+Use the branch `master` for NeoVim ≥ 0.7 or the branch `devel` to benefit from the latest NeoVim features.
 
 If you use vim-plug, add the following line to your vimrc file:
 
