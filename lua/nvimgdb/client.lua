@@ -77,7 +77,19 @@ function C:start()
   vim.api.nvim_set_current_win(self.win)
   self.is_active = true
 
-  self.client_id = vim.fn["nvimgdb#TermOpen"](self.command, vim.api.nvim_get_current_tabpage())
+  local cur_tabpage = vim.api.nvim_get_current_tabpage()
+
+  self.client_id = vim.fn.termopen(self.command, {
+    on_stdout = function(--[[j]]_, lines, --[[name]]_)
+      NvimGdb.parser_feed(cur_tabpage, lines)
+    end,
+    on_exit = function(--[[j]]_, code, --[[name]]_)
+      if code == 0 then
+        NvimGdb.vim.cmd("sil! bw!")
+        NvimGdb.cleanup(cur_tabpage)
+      end
+    end
+  })
 
   vim.bo.filetype = "nvimgdb"
   -- Allow detaching the terminal from its window
@@ -114,7 +126,9 @@ function C:_check_sticky()
   local prev_win = vim.api.nvim_get_current_win()
   NvimGdb.vim.cmd(self.config:get('termwin_command'))
   local buf = vim.api.nvim_get_current_buf()
-  NvimGdb.vim.cmd('b ' .. self.client_buf)
+  if vim.api.nvim_buf_is_valid(self.client_buf) then
+    NvimGdb.vim.cmd('b ' .. self.client_buf)
+  end
   vim.api.nvim_buf_delete(buf, {})
   self.win = vim.api.nvim_get_current_win()
   vim.api.nvim_set_current_win(prev_win)
