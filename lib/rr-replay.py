@@ -37,7 +37,8 @@ async def run(cmd):
     # Check it launched
     header = await rr_proc.stderr.readline()
     if header != b'Launch gdb with\n':
-        raise RuntimeError("Unexpected rr replay output")
+        rest = await rr_proc.stderr.read()
+        raise RuntimeError(f"Unexpected: {header.decode()}{rest.decode()}")
 
     # Get the advertised gdb command from the stderr
     gdb_cmd = await rr_proc.stderr.readline()
