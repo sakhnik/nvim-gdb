@@ -54,7 +54,7 @@ end
 function C:cleanup()
   if vim.api.nvim_buf_is_valid(self.client_buf) and vim.fn.bufexists(self.client_buf) then
     self:_cleanup_buf_hidden()
-    NvimGdb.vim.cmd("bd! " .. self.client_buf)
+    vim.api.nvim_buf_delete(self.client_buf, {force = true})
   end
 
   if self.proxy_addr then

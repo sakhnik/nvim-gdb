@@ -58,7 +58,7 @@ end
 -- Cleanup the windows and buffers.
 function C:cleanup()
   for buf, _ in pairs(self.buffers) do
-    NvimGdb.vim.cmd("bd! " .. buf)
+    vim.api.nvim_buf_delete(buf, {force = true})
   end
 end
 
