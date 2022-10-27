@@ -258,6 +258,9 @@ end
 -- Show actual breakpoints in the current window.
 function Win:query_breakpoints()
   log.debug({"function Win:query_breakpoints()"})
+  -- Just notify the client that the breakpoints are being queried
+  self.client:mark_has_interacted()
+
   if not self:_has_jump_win() then
     return
   end

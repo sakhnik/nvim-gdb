@@ -9,6 +9,7 @@ local uv = vim.loop
 -- @field public win number @terminal window handler
 -- @field private client_id number @terminal job handler
 -- @field private is_active boolean @true if the debugger has been launched
+-- @field private has_interacted boolean @true if the debugger was interactive
 -- @field private sock_dir string @temporary directory for the proxy address
 -- @field private proxy_addr string @path to the file with proxy port
 -- @field private command string @complete command to launch the debugger (including proxy)
@@ -36,6 +37,7 @@ function Client.new(config, proxy_cmd, client_cmd)
   self.win = vim.api.nvim_get_current_win()
   self.client_id = nil
   self.is_active = false
+  self.has_interacted = false
   -- Create a temporary unique directory for all the sockets.
   self.sock_dir = uv.fs_mkdtemp(uv.os_tmpdir() .. '/nvimgdb-sock-XXXXXX')
 
@@ -88,7 +90,7 @@ function Client:start()
       NvimGdb.parser_feed(cur_tabpage, lines)
     end,
     on_exit = function(--[[j]]_, code, --[[name]]_)
-      if code == 0 then
+      if self.has_interacted and code == 0 then
         NvimGdb.vim.cmd("sil! bw!")
         NvimGdb.cleanup(cur_tabpage)
       end
@@ -165,6 +167,13 @@ end
 function Client:get_proxy_addr()
   log.debug({"function Client:get_proxy_addr()"})
   return self.proxy_addr
+end
+
+-- Remember this debugger reached the interactive state
+-- This means we can close the terminal whenever the debugger quits
+-- Otherwise, keep the terminal to show the output to the user.
+function Client:mark_has_interacted()
+  self.has_interacted = true
 end
 
 return Client
