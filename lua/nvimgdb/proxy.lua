@@ -9,14 +9,15 @@ local uv = vim.loop
 -- @field private proxy_addr string @path to the file with proxy port
 -- @field private sock any @UDP socket used to communicate with the proxy
 -- @field private server_port number @UDP port of the proxy
-local C = {}
-C.__index = C
+local Proxy = {}
+Proxy.__index = Proxy
 
 -- Constructor
 -- @param client Client @debugger terminal job
 -- @return Proxy
-function C.new(client)
-  local self = setmetatable({}, C)
+function Proxy.new(client)
+  log.debug({"function Proxy.new(", client, ")"})
+  local self = setmetatable({}, Proxy)
   self.client = client
   self.proxy_addr = client:get_proxy_addr()
 
@@ -29,7 +30,8 @@ function C.new(client)
 end
 
 -- Destructor
-function C:cleanup()
+function Proxy:cleanup()
+  log.debug({"function Proxy:cleanup()"})
   if self.sock ~= nil then
     self.sock:close()
     self.sock = nil
@@ -38,7 +40,8 @@ end
 
 -- Get the proxy port to prepare for communication
 -- @return boolean @true if the port is available -- the proxy is ready
-function C:_ensure_connected()
+function Proxy:_ensure_connected()
+  log.debug({"function Proxy:_ensure_connected()"})
   if self.server_port ~= nil then
     return true
   end
@@ -55,7 +58,8 @@ end
 -- Send a request to the proxy and wait for the response.
 -- @param request string @command to the debugger proxy
 -- @return string @response from the debugger proxy
-function C:query(request)
+function Proxy:query(request)
+  log.debug({"function Proxy:query(", request, ")"})
   log.info("Query " .. request)
 
   if not self.client.is_active then
@@ -121,4 +125,4 @@ function C:query(request)
   return o_resp
 end
 
-return C
+return Proxy

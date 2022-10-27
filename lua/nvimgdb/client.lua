@@ -9,13 +9,14 @@ local uv = vim.loop
 -- @field public win number @terminal window handler
 -- @field private client_id number @terminal job handler
 -- @field private is_active boolean @true if the debugger has been launched
+-- @field private has_interacted boolean @true if the debugger was interactive
 -- @field private sock_dir string @temporary directory for the proxy address
 -- @field private proxy_addr string @path to the file with proxy port
 -- @field private command string @complete command to launch the debugger (including proxy)
 -- @field private client_buf number @terminal buffer handler
 -- @field private buf_hidden_auid number @autocmd id of the BufHidden handler
-local C = {}
-C.__index = C
+local Client = {}
+Client.__index = Client
 
 local function _get_plugin_dir()
   local path = debug.getinfo(1).source:match("@(.*/)")
@@ -27,14 +28,16 @@ end
 -- @param proxy_cmd string @command to launch the proxy
 -- @param client_cmd string @command to launch the debugger
 -- @return Client @new instance
-function C.new(config, proxy_cmd, client_cmd)
-  local self = setmetatable({}, C)
+function Client.new(config, proxy_cmd, client_cmd)
+  log.debug({"function Client.new(", config, proxy_cmd, client_cmd, ")"})
+  local self = setmetatable({}, Client)
   self.config = config
   log.info("termwin_command", config:get('termwin_command'))
   NvimGdb.vim.cmd(config:get('termwin_command'))
   self.win = vim.api.nvim_get_current_win()
   self.client_id = nil
   self.is_active = false
+  self.has_interacted = false
   -- Create a temporary unique directory for all the sockets.
   self.sock_dir = uv.fs_mkdtemp(uv.os_tmpdir() .. '/nvimgdb-sock-XXXXXX')
 
@@ -51,10 +54,11 @@ function C.new(config, proxy_cmd, client_cmd)
 end
 
 -- Destructor
-function C:cleanup()
+function Client:cleanup()
+  log.debug({"function Client:cleanup()"})
   if vim.api.nvim_buf_is_valid(self.client_buf) and vim.fn.bufexists(self.client_buf) then
     self:_cleanup_buf_hidden()
-    NvimGdb.vim.cmd("bd! " .. self.client_buf)
+    vim.api.nvim_buf_delete(self.client_buf, {force = true})
   end
 
   if self.proxy_addr then
@@ -63,7 +67,8 @@ function C:cleanup()
   assert(os.remove(self.sock_dir))
 end
 
-function C:_cleanup_buf_hidden()
+function Client:_cleanup_buf_hidden()
+  log.debug({"function Client:_cleanup_buf_hidden()"})
   if self.buf_hidden_auid ~= -1 then
     vim.api.nvim_del_autocmd(self.buf_hidden_auid)
     self.buf_hidden_auid = -1
@@ -71,7 +76,8 @@ function C:_cleanup_buf_hidden()
 end
 
 -- Launch the debugger (when all the parsers are ready)
-function C:start()
+function Client:start()
+  log.debug({"function Client:start()"})
   -- Open a terminal window with the debugger client command.
   -- Go to the yet-to-be terminal window
   vim.api.nvim_set_current_win(self.win)
@@ -84,7 +90,7 @@ function C:start()
       NvimGdb.parser_feed(cur_tabpage, lines)
     end,
     on_exit = function(--[[j]]_, code, --[[name]]_)
-      if code == 0 then
+      if self.has_interacted and code == 0 then
         NvimGdb.vim.cmd("sil! bw!")
         NvimGdb.cleanup(cur_tabpage)
       end
@@ -122,7 +128,8 @@ end
 
 -- Make the debugger window sticky. If closed accidentally,
 -- resurrect it.
-function C:_check_sticky()
+function Client:_check_sticky()
+  log.debug({"function Client:_check_sticky()"})
   local prev_win = vim.api.nvim_get_current_win()
   NvimGdb.vim.cmd(self.config:get('termwin_command'))
   local buf = vim.api.nvim_get_current_buf()
@@ -135,27 +142,38 @@ function C:_check_sticky()
 end
 
 -- Interrupt running program by sending ^c.
-function C:interrupt()
+function Client:interrupt()
+  log.debug({"function Client:interrupt()"})
   vim.fn.chansend(self.client_id, "\x03")
 end
 
 -- Execute one command on the debugger interpreter.
 -- @param data string @send a command to the debugger
-function C:send_line(data)
+function Client:send_line(data)
+  log.debug({"function Client:send_line(", data, ")"})
   log.debug({"send_line", data})
   vim.fn.chansend(self.client_id, data .. "\n")
 end
 
 -- Get the client terminal buffer.
 -- @return number @terminal buffer handle
-function C:get_buf()
+function Client:get_buf()
+  log.debug({"function Client:get_buf()"})
   return self.client_buf
 end
 
 -- Get the side-channel address.
 -- @return string @file with proxy port
-function C:get_proxy_addr()
+function Client:get_proxy_addr()
+  log.debug({"function Client:get_proxy_addr()"})
   return self.proxy_addr
 end
 
-return C
+-- Remember this debugger reached the interactive state
+-- This means we can close the terminal whenever the debugger quits
+-- Otherwise, keep the terminal to show the output to the user.
+function Client:mark_has_interacted()
+  self.has_interacted = true
+end
+
+return Client
