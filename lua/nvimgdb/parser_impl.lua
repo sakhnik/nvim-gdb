@@ -11,21 +11,23 @@ local log = require'nvimgdb.log'
 -- @field private buffer string @debugger output collected so far
 -- @field private byte_count number @monotonously increasing processed byte counter
 -- @field private parsing_progress number[] @ordered byte counters to ensure parsing in the right order
-local C = {}
-C.__index = C
+local ParserImpl = {}
+ParserImpl.__index = ParserImpl
 
 -- Constructor
 -- @param actions ParserActions @parser callbacks
 -- @return ParserImpl
-function C.new(actions)
-  local self = setmetatable({}, C)
+function ParserImpl.new(actions)
+  log.debug({"function ParserImpl.new(", actions, ")"})
+  local self = setmetatable({}, ParserImpl)
   self:_init(actions)
   return self
 end
 
 -- Initialization
 -- @param actions ParserActions @parser callbacks
-function C:_init(actions)
+function ParserImpl:_init(actions)
+  log.debug({"function ParserImpl:_init(", actions, ")"})
   self.actions = actions
   self.running = {}
   self.paused = {}
@@ -47,24 +49,28 @@ end
 -- @param state ParserState @state to add a transition to
 -- @param matcher string @pattern to look for in the buffer
 -- @param handler ParserHandler @handler to invoke when a match is found
-function C.add_trans(state, matcher, handler)
+function ParserImpl.add_trans(state, matcher, handler)
+  log.debug({"function ParserImpl.add_trans(", state, matcher, handler, ")"})
   state[#state + 1] = {matcher = matcher, handler = handler}
 end
 
 -- Test whether the FSM is in the paused state.
 -- @return boolean @true if parser is in the paused state
-function C:is_paused()
+function ParserImpl:is_paused()
+  log.debug({"function ParserImpl:is_paused()"})
   return self.state == self.paused
 end
 
 -- Test whether the FSM is in the running state.
 -- @return boolean @true if parser is in the running state
-function C:is_running()
+function ParserImpl:is_running()
+  log.debug({"function ParserImpl:is_running()"})
   return self.state == self.running
 end
 
 -- @return string @current parser state name
-function C:_get_state_name()
+function ParserImpl:_get_state_name()
+  log.debug({"function ParserImpl:_get_state_name()"})
   if self.state == self.running then
     return "running"
   end
@@ -76,7 +82,8 @@ end
 
 -- From paused to running
 -- @return ParserState @new parser state
-function C:_paused_continue()
+function ParserImpl:_paused_continue()
+  log.debug({"function ParserImpl:_paused_continue()"})
   log.info("_paused_continue")
   self.actions:continue_program()
   return self.running
@@ -86,7 +93,8 @@ end
 -- @param fname string @file name
 -- @param line string @line number
 -- @return ParserState
-function C:_paused_jump(fname, line)
+function ParserImpl:_paused_jump(fname, line)
+  log.debug({"function ParserImpl:_paused_jump(", fname, line, ")"})
   log.info("_paused_jump " .. fname .. ":" .. line)
   self.actions:jump_to_source(fname, tonumber(line))
   return self.paused
@@ -94,14 +102,16 @@ end
 
 -- To paused
 -- @return ParserState
-function C:_paused()
+function ParserImpl:_paused()
+  log.debug({"function ParserImpl:_paused()"})
   log.info('_paused')
   return self.paused
 end
 
 -- Query breakpoints, to paused
 -- @return ParserState
-function C:_query_b()
+function ParserImpl:_query_b()
+  log.debug({"function ParserImpl:_query_b()"})
   log.info('_query_b')
   self.actions:query_breakpoints()
   return self.paused
@@ -111,7 +121,8 @@ end
 -- It may be hard to guess when the backend started waiting for input,
 -- therefore parsing should be done asynchronously after a bit of delay.
 -- @param lines string[] @input lines
-function C:feed(lines)
+function ParserImpl:feed(lines)
+  log.debug({"function ParserImpl:feed(", lines, ")"})
   for _, line in ipairs(lines) do
     log.debug(line)
     if line == nil or line == '' then
@@ -129,7 +140,8 @@ end
 
 -- @param delay_ms number @number of milliseconds to wait before parsing
 -- @param byte_count number @byte mark to allow parsing up to when the delay elapses
-function C:_delay_parsing(delay_ms, byte_count)
+function ParserImpl:_delay_parsing(delay_ms, byte_count)
+  log.debug({"function ParserImpl:_delay_parsing(", delay_ms, byte_count, ")"})
   local timer = vim.loop.new_timer()
   timer:start(delay_ms, 0, vim.schedule_wrap(function()
     self:delay_elapsed(byte_count)
@@ -139,7 +151,8 @@ end
 -- Search through the buffer to find a match for a transition from the current state.
 -- @param ignore_tail_bytes number @number of bytes at the end to ignore (grace period)
 -- @return boolean @true if a match was found, means repeat searching immediately from a new state
-function C:_search(ignore_tail_bytes)
+function ParserImpl:_search(ignore_tail_bytes)
+  log.debug({"function ParserImpl:_search(", ignore_tail_bytes, ")"})
   if #self.buffer <= ignore_tail_bytes then
     return false
   end
@@ -163,7 +176,8 @@ end
 
 -- Grace period elapsed, can search for a transition from the current state.
 -- @param byte_count number @byte mark up to which can search
-function C:delay_elapsed(byte_count)
+function ParserImpl:delay_elapsed(byte_count)
+  log.debug({"function ParserImpl:delay_elapsed(", byte_count, ")"})
   if self.parsing_progress[1] ~= byte_count then
     -- Another parsing is already in progress, return to this mark later
     self:_delay_parsing(1, byte_count)
@@ -178,4 +192,4 @@ function C:delay_elapsed(byte_count)
   table.remove(self.parsing_progress, 1)
 end
 
-return C
+return ParserImpl

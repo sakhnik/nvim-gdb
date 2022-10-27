@@ -2,11 +2,12 @@
 -- vim: et sw=2 ts=2:
 
 local Keymaps = require 'nvimgdb.keymaps'
+local log = require 'nvimgdb.log'
 
 -- @class Config @resolved configuration instance
 -- @field private config ConfDict @configuration entries
-local C = {}
-C.__index = C
+local Config = {}
+Config.__index = Config
 
 -- @class ConfDict @default configuration
 local default = {
@@ -89,8 +90,9 @@ local function copy_user_config()
 end
 
 -- @return Config @create a new configuration instance
-function C.new()
-  local self = setmetatable({}, C)
+function Config.new()
+  log.debug({"function Config.new()"})
+  local self = setmetatable({}, Config)
   -- Prepare actual configuration with overrides resolved.
   local key_to_func = {}
 
@@ -114,7 +116,8 @@ end
 
 -- Apply to the configuration user overrides taken from global variables
 -- @param key_to_func table<string, string> @map of keystrokes to their meaning
-function C:_apply_overrides(key_to_func)
+function Config:_apply_overrides(key_to_func)
+  log.debug({"function Config:_apply_overrides(", key_to_func, ")"})
   -- If there is config override defined, add it
   local override = _get_from_user_variable("config_override")
   if override ~= nil then
@@ -146,7 +149,8 @@ end
 -- @param func string @configuration parameter value
 -- @param key_to_func table<string, string> @disambiguation dictionary
 -- @param verbose boolean @produce messages if true
-function C:_check_keymap_conflicts(key, func, key_to_func, verbose)
+function Config:_check_keymap_conflicts(key, func, key_to_func, verbose)
+  log.debug({"function Config:_check_keymap_conflicts(", key, func, key_to_func, verbose, ")"})
   if func:match('^key_.*') ~= nil then
     local prev_func = key_to_func[key]
     if prev_func ~= nil and prev_func ~= func then
@@ -162,7 +166,8 @@ function C:_check_keymap_conflicts(key, func, key_to_func, verbose)
 end
 
 -- Define the cursor and breakpoint signs
-function C:_define_signs()
+function Config:_define_signs()
+  log.debug({"function Config:_define_signs()"})
   -- Define the sign for current line the debugged program is executing.
   vim.fn.sign_define('GdbCurrentLine', {text = self.config.sign_current_line})
   -- Define signs for the breakpoints.
@@ -174,7 +179,8 @@ end
 -- Get the configuration value or return nil
 -- @param key string @configuration parameter
 -- @return string | fun():nil @configuration parameter value
-function C:get(key)
+function Config:get(key)
+  log.debug({"function Config:get(", key, ")"})
   return self.config[key]
 end
 
@@ -182,10 +188,11 @@ end
 -- @param key string @configuration parameter
 -- @param val string @suggested default value
 -- @return string @parameter value or default value
-function C:get_or(key, val)
+function Config:get_or(key, val)
+  log.debug({"function Config:get_or(", key, val, ")"})
   local v = self:get(key)
   if v == nil then v = val end
   return v
 end
 
-return C
+return Config

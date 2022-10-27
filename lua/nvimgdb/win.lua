@@ -11,8 +11,8 @@ local log = require'nvimgdb.log'
 -- @field private breakpoint Breakpoint @breakpoint sign manager
 -- @field private jump_win number @window handle that will be displaying the current file
 -- @field private buffers table<number,boolean> @set of opened buffers to close automatically
-local C = {}
-C.__index = C
+local Win = {}
+Win.__index = Win
 
 -- Constructor
 -- @param config Config @resolved configuration
@@ -23,8 +23,9 @@ C.__index = C
 -- @param start_win number @window handle that could be used as the jump window
 -- @param edited_buf number @buffer handle that needs to be loaded by default
 -- @return Win @new instance
-function C.new(config, keymaps, cursor, client, breakpoint, start_win, edited_buf)
-  local self = setmetatable({}, C)
+function Win.new(config, keymaps, cursor, client, breakpoint, start_win, edited_buf)
+  log.debug({"function Win.new(", config, keymaps, cursor, client, breakpoint, start_win, edited_buf, ")"})
+  local self = setmetatable({}, Win)
   self.config = config
   self.keymaps = keymaps
   self.cursor = cursor
@@ -46,7 +47,8 @@ function C.new(config, keymaps, cursor, client, breakpoint, start_win, edited_bu
 end
 
 -- Only make sense if nvimgdb#GlobalCleanup is called
-function C:unset_keymaps()
+function Win:unset_keymaps()
+  log.debug({"function Win:unset_keymaps()"})
   if self:_has_jump_win() then
     self:_with_saved_win(true, function()
       vim.api.nvim_set_current_win(self.jump_win)
@@ -56,7 +58,8 @@ function C:unset_keymaps()
 end
 
 -- Cleanup the windows and buffers.
-function C:cleanup()
+function Win:cleanup()
+  log.debug({"function Win:cleanup()"})
   for buf, _ in pairs(self.buffers) do
     vim.api.nvim_buf_delete(buf, {force = true})
   end
@@ -64,7 +67,8 @@ end
 
 -- Check whether the jump window is displayed.
 -- @return boolean @true if jump window is visible
-function C:_has_jump_win()
+function Win:_has_jump_win()
+  log.debug({"function Win:_has_jump_win()"})
   local wins = vim.api.nvim_tabpage_list_wins(vim.api.nvim_get_current_tabpage())
   for _, w in ipairs(wins) do
     if w == self.jump_win then
@@ -76,7 +80,8 @@ end
 
 -- Check whether the current buffer is displayed in the jump window.
 -- @return boolean
-function C:is_jump_window_active()
+function Win:is_jump_window_active()
+  log.debug({"function Win:is_jump_window_active()"})
   if not self:_has_jump_win() then
     return false
   end
@@ -88,7 +93,8 @@ end
 -- There may be no need to change keymaps forth and back.
 -- @param dispatch_keymaps boolean @true to dispatch keymaps, false if not necessary
 -- @param func fun() @action to execute
-function C:_with_saved_win(dispatch_keymaps, func)
+function Win:_with_saved_win(dispatch_keymaps, func)
+  log.debug({"function Win:_with_saved_win(", dispatch_keymaps, func, ")"})
   if not dispatch_keymaps then
     self.keymaps:set_dispatch_active(false)
   end
@@ -102,7 +108,8 @@ end
 
 -- Execute function and restore the previous mode afterwards
 -- @param func fun() @action to execute
-function C:_with_saved_mode(func)
+function Win:_with_saved_mode(func)
+  log.debug({"function Win:_with_saved_mode(", func, ")"})
   local mode = vim.api.nvim_get_mode()
   func()
   if mode.mode:match("^[ti]$") ~= nil then
@@ -111,7 +118,8 @@ function C:_with_saved_mode(func)
 end
 
 -- Ensure that the jump window is available.
-function C:_ensure_jump_window()
+function Win:_ensure_jump_window()
+  log.debug({"function Win:_ensure_jump_window()"})
   if not self:_has_jump_win() then
     -- The jump window needs to be created first
     self:_with_saved_win(false, function()
@@ -162,7 +170,8 @@ end
 -- Show the file and the current line in the jump window.
 -- @param file string @full path to the source code
 -- @param line number|string @line number
-function C:jump(file, line)
+function Win:jump(file, line)
+  log.debug({"function Win:jump(", file, line, ")"})
   log.info("jump(" .. file .. ":" .. line .. ")")
   -- Check whether the file is already loaded or load it
   local target_buf = vim.fn.bufnr(file, 1)
@@ -233,7 +242,8 @@ end
 
 -- @param cmd string @vim command to execute
 -- @return number @newly opened buffer handle
-function C:_open_file(cmd)
+function Win:_open_file(cmd)
+  log.debug({"function Win:_open_file(", cmd, ")"})
   local open_buffers = vim.api.nvim_list_bufs()
   NvimGdb.vim.cmd(cmd)
   local new_buffer = vim.api.nvim_get_current_buf()
@@ -246,7 +256,8 @@ function C:_open_file(cmd)
 end
 
 -- Show actual breakpoints in the current window.
-function C:query_breakpoints()
+function Win:query_breakpoints()
+  log.debug({"function Win:query_breakpoints()"})
   if not self:_has_jump_win() then
     return
   end
@@ -269,7 +280,8 @@ end
 -- Populate the location list with the result of debugger cmd.
 -- @param cmd string @debugger command to execute
 -- @param mods string @command modifiers like 'leftabove'
-function C:lopen(cmd, mods)
+function Win:lopen(cmd, mods)
+  log.debug({"function Win:lopen(", cmd, mods, ")"})
   self:_with_saved_mode(function()
     self:_with_saved_win(false, function()
       self:_ensure_jump_window()
@@ -283,4 +295,4 @@ function C:lopen(cmd, mods)
   end)
 end
 
-return C
+return Win

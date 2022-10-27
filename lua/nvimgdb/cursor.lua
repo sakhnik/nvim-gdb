@@ -1,19 +1,22 @@
 -- Manipulating the current line sign.
 -- vim: set et sw=2 ts=2:
 
+local log = require 'nvimgdb.log'
+
 -- @class Cursor @current line handler
 -- @field private config Config @resolved configuration
 -- @field private buf number @buffer number
 -- @field private line number @line number
 -- @field private sign_id number @sign identifier
-local C = {}
-C.__index = C
+local Cursor = {}
+Cursor.__index = Cursor
 
 -- Constructor
 -- @param config Config @resolved configuration
 -- @return Cursor @new instance
-function C.new(config)
-  local self = setmetatable({}, C)
+function Cursor.new(config)
+  log.debug({"function Cursor.new(", config, ")"})
+  local self = setmetatable({}, Cursor)
   self.config = config
   self.buf = -1
   self.line = -1
@@ -22,7 +25,8 @@ function C.new(config)
 end
 
 -- Hide the current line sign
-function C:hide()
+function Cursor:hide()
+  log.debug({"function Cursor:hide()"})
   if self.sign_id ~= -1 and self.buf ~= -1 then
     vim.fn.sign_unplace('NvimGdb', {id = self.sign_id, buffer = self.buf})
     self.sign_id = -1
@@ -30,7 +34,8 @@ function C:hide()
 end
 
 -- Show the current line sign
-function C:show()
+function Cursor:show()
+  log.debug({"function Cursor:show()"})
   -- To avoid flicker when removing/adding the sign column(due to
   -- the change in line width), we switch ids for the line sign
   -- and only remove the old line sign after marking the new one.
@@ -55,9 +60,10 @@ end
 -- Set the current line sign number.
 -- @param buf number @buffer number
 -- @param line number|string @line number
-function C:set(buf, line)
+function Cursor:set(buf, line)
+  log.debug({"function Cursor:set(", buf, line, ")"})
   self.buf = buf
   self.line = tonumber(line)
 end
 
-return C
+return Cursor
