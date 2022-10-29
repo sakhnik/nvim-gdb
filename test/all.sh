@@ -15,6 +15,9 @@ trap cleanup EXIT
 
 cd "$tmpDir/src/test"
 
+echo "Test neovim is usable"
+nvim --headless +qa
+
 ./prerequisites.sh
 
 ./run -vv .. 2>&1 | tee pytest.log
