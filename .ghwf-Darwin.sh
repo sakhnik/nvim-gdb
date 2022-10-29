@@ -10,7 +10,7 @@ curl -LO $NVIM_RELEASE_URL/nvim-macos.tar.gz
 tar -xf nvim-macos.tar.gz
 cat >"$HOME/bin/nvim" <<EOF
 #!/bin/bash
-$(pwd)/nvim-osx64/bin/nvim "\$@"
+$(pwd)/nvim-macos/bin/nvim "\$@"
 EOF
 chmod +x "$HOME/bin/nvim"
 
