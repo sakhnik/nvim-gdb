@@ -2,6 +2,9 @@ name: Test
 
 on: [push, pull_request]
 
+env:
+  TERM: xterm
+
 jobs:
   build:
 
@@ -10,7 +13,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python-version: [3.9]
+        python-version: ["3.10"]
 
     steps:
     - uses: actions/checkout@v2
