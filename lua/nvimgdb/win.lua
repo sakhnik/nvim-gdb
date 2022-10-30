@@ -147,7 +147,6 @@ function Win:_adjust_jump_win_view(line, scroll_off)
     scroll_off = max_scroll_off
   end
 
-  log.info({"== scrolloff params", "line=", line, "topline=", topline, "botline=", botline, "scrolloff=", scroll_off})
   if botline - topline <= scroll_off then
     return
   end
@@ -169,9 +168,7 @@ function Win:_adjust_jump_win_view(line, scroll_off)
     new_topline = 1
   end
 
-  log.info({"new_topline=", new_topline})
   if new_topline ~= topline then
-    log.info("Update winrestview")
     vim.fn.winrestview({topline = new_topline})
   end
 end
