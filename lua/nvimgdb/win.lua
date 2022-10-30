@@ -131,8 +131,12 @@ function Win:_ensure_jump_window()
   end
 end
 
-local function adjust_jump_win_view(jump_win, line, scroll_off)
-  local wininfo = vim.fn.getwininfo(jump_win)[1]
+-- Ensure the scroll_off config parameter is observed in the jump window
+-- @param line number @buffer line with the cursor
+-- @param scroll_off number @number of the lines to keep off the window edge
+function Win:_adjust_jump_win_view(line, scroll_off)
+  log.debug({"function Win:_adjust_jump_win_view(", line, scroll_off, ")"})
+  local wininfo = vim.fn.getwininfo(self.jump_win)[1]
   local botline = wininfo.botline
   local topline = wininfo.topline
 
@@ -143,27 +147,29 @@ local function adjust_jump_win_view(jump_win, line, scroll_off)
     scroll_off = max_scroll_off
   end
 
-  if botline - topline > scroll_off then
-    -- Check for potential scroll off adjustments
-    local new_topline = topline
-    -- line - topline > scroll_off
-    local top_gap = line - topline
-    if top_gap < scroll_off then
-      new_topline = new_topline - scroll_off + top_gap
-    end
+  if botline - topline <= scroll_off then
+    return
+  end
 
-    -- botline - line > scroll_off
-    local bottom_gap = botline - line
-    if bottom_gap < scroll_off then
-      new_topline = new_topline + scroll_off - (botline - line)
-    end
-    if new_topline < 1 then
-      new_topline = 1
-    end
+  -- Check for potential scroll off adjustments
+  local new_topline = topline
+  -- line - topline > scroll_off
+  local top_gap = line - topline
+  if top_gap < scroll_off then
+    new_topline = new_topline - scroll_off + top_gap
+  end
 
-    if new_topline ~= topline then
-      vim.fn.winrestview({topline = new_topline})
-    end
+  -- botline - line > scroll_off
+  local bottom_gap = botline - line
+  if bottom_gap < scroll_off then
+    new_topline = new_topline + scroll_off - (botline - line)
+  end
+  if new_topline < 1 then
+    new_topline = 1
+  end
+
+  if new_topline ~= topline then
+    vim.fn.winrestview({topline = new_topline})
   end
 end
 
@@ -171,8 +177,7 @@ end
 -- @param file string @full path to the source code
 -- @param line number|string @line number
 function Win:jump(file, line)
-  log.debug({"function Win:jump(", file, line, ")"})
-  log.info("jump(" .. file .. ":" .. line .. ")")
+  log.info({"function Win:jump(", file, line, ")"})
   -- Check whether the file is already loaded or load it
   local target_buf = vim.fn.bufnr(file, 1)
 
@@ -221,7 +226,7 @@ function Win:jump(file, line)
     -- &scrolloff seems to have effect only in the interactive mode.
     -- So we'll have to adjust the view manually.
     local scroll_off = self.config:get_or('set_scroll_off', 1)
-    adjust_jump_win_view(self.jump_win, line, scroll_off)
+    self:_adjust_jump_win_view(line, scroll_off)
     NvimGdb.vim.cmd("normal! zv")
   end)
   NvimGdb.vim.cmd("redraw")

@@ -29,7 +29,7 @@ jobs:
         ./.ghwf-$(uname).sh
         ./install.sh
         pip install pynvim
-        pip install pytest
+        pip install pytest pytest-timestamper
         echo "$HOME/bin" >> $GITHUB_PATH
 
     - name: Run tests
