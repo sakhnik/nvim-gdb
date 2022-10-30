@@ -143,27 +143,32 @@ local function adjust_jump_win_view(jump_win, line, scroll_off)
     scroll_off = max_scroll_off
   end
 
-  if botline - topline > scroll_off then
-    -- Check for potential scroll off adjustments
-    local new_topline = topline
-    -- line - topline > scroll_off
-    local top_gap = line - topline
-    if top_gap < scroll_off then
-      new_topline = new_topline - scroll_off + top_gap
-    end
+  log.info({"== scrolloff params", "line=", line, "topline=", topline, "botline=", botline, "scrolloff=", scroll_off})
+  if botline - topline <= scroll_off then
+    return
+  end
 
-    -- botline - line > scroll_off
-    local bottom_gap = botline - line
-    if bottom_gap < scroll_off then
-      new_topline = new_topline + scroll_off - (botline - line)
-    end
-    if new_topline < 1 then
-      new_topline = 1
-    end
+  -- Check for potential scroll off adjustments
+  local new_topline = topline
+  -- line - topline > scroll_off
+  local top_gap = line - topline
+  if top_gap < scroll_off then
+    new_topline = new_topline - scroll_off + top_gap
+  end
 
-    if new_topline ~= topline then
-      vim.fn.winrestview({topline = new_topline})
-    end
+  -- botline - line > scroll_off
+  local bottom_gap = botline - line
+  if bottom_gap < scroll_off then
+    new_topline = new_topline + scroll_off - (botline - line)
+  end
+  if new_topline < 1 then
+    new_topline = 1
+  end
+
+  log.info({"new_topline=", new_topline})
+  if new_topline ~= topline then
+    log.info("Update winrestview")
+    vim.fn.winrestview({topline = new_topline})
   end
 end
 
