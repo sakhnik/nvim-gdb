@@ -46,8 +46,9 @@ CXX=g++
 
 # pytest will resolve all symlinks, and debuggers may
 # be confused if non-absolute paths are used during compilation.
+readlinkf(){ perl -MCwd -e 'print Cwd::abs_path shift' "$1";}
 this_dir="$(dirname ${BASH_SOURCE[0]})"
-cd $(realpath "$this_dir")
+cd $(readlinkf "$this_dir")
 
 echo -n "Compiling test.cpp   "
 if [[ src/test.cpp -nt a.out || src/lib.hpp -nt a.out ]]; then
