@@ -1,9 +1,7 @@
 #!/bin/bash
 
 # Prepare gdb initialization commands
-# Beware that readlink -f doesn't work in some systems
-readlinkf(){ perl -MCwd -e 'print Cwd::abs_path shift' "$1";}
-this_dir="$(readlinkf "$(dirname "${BASH_SOURCE[0]}")")"
+this_dir="$(realpath "$(dirname "${BASH_SOURCE[0]}")")"
 
 # Assuming the first argument is path to gdb, the rest are arguments.
 # We'd like to ensure gdb is launched with our custom initialization

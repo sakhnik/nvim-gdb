@@ -19,9 +19,7 @@ lldb="$1"
 shift
 
 # Prepare lldb initialization commands
-# Beware that readlink -f doesn't work in Darwin
-readlinkf(){ perl -MCwd -e 'print Cwd::abs_path shift' "$1";}
-this_dir=$(readlinkf "$(dirname "${BASH_SOURCE[0]}")")
+this_dir=$(realpath "$(dirname "${BASH_SOURCE[0]}")")
 
 lldb_init=$(mktemp /tmp/lldb_init.XXXXXX)
 cat >"$lldb_init" <<EOF
