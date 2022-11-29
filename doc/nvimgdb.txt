@@ -181,7 +181,7 @@ When debugging session has started, the following mappings are defined:
                        VISUAL: Evaluate the range         (`:GdbEvalRange`)
 
 ==============================================================================
-Section 4: Variables                                        *NvimgdbVariables*
+Section 4: Variables                          *NvimgdbVariables* *NvimgdbConfig*
 
 The plugin can be configured by defining vim variables as described below.
 The variable scope priority is the following: buffer, window, tabpage, and
