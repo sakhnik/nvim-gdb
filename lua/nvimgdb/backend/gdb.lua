@@ -54,12 +54,24 @@ function C.query_breakpoints(fname, proxy)
 
   -- Select lines in the current file with enabled breakpoints.
   local breaks = {}
+  -- There can be up to two lines for one breakpoint, filename:lnum may be
+  -- on the second line if the screen is too narrow.
+  local bid = nil
   for line in response:gmatch("[^\n\r]+") do
-    if line:find("%sy%s+0x") ~= nil then    -- Is enabled?
-      local fields = {}
-      for field in line:gmatch("[^%s]+") do
-        fields[#fields+1] = field
+    local fields = {}
+    for field in line:gmatch("[^%s]+") do
+      fields[#fields+1] = field
+    end
+
+    if #fields >= 5 and fields[5]:match("0x[0-9a-zA-Z]+") then
+      if fields[4] == 'y' then    -- Is enabled?
+        bid = fields[1]:gmatch("[^.]+")()
+      else
+        bid = nil
       end
+    end
+
+    if #fields >= 2 and fields[#fields - 1] == "at" then
       -- file.cpp:line
       local bpfname, lnum = fields[#fields]:match("^([^:]+):(%d+)$")
       if bpfname ~= nil then
@@ -68,11 +80,10 @@ function C.query_breakpoints(fname, proxy)
         bpfname = vim.loop.fs_realpath(bpfname)
         local is_end_match_full_path = bpfname ~= nil and fname:sub(-#bpfname) == bpfname
 
+        -- If a breakpoint has multiple locations, GDB only
+        -- allows to disable by the breakpoint number, not
+        -- location number.  For instance, 1.4 -> 1
         if is_end_match or is_end_match_full_path then
-          -- If a breakpoint has multiple locations, GDB only
-          -- allows to disable by the breakpoint number, not
-          -- location number.  For instance, 1.4 -> 1
-          local bid = fields[1]:gmatch("[^.]+")()
           local list = breaks[lnum]
           if list == nil then
             breaks[lnum] = {bid}
