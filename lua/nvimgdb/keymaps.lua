@@ -65,6 +65,7 @@ function Keymaps:unset()
     for _, d in ipairs(vim.api.nvim_buf_get_keymap(vim.api.nvim_get_current_buf(), m.mode)) do
       if keystroke ~= nil and keystroke == d["lhs"] then
         vim.api.nvim_buf_del_keymap(vim.api.nvim_get_current_buf(), m.mode, keystroke)
+        -- can use goto here, or wrap this inner loop in a function
       end
     end
   end
