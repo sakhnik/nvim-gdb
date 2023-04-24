@@ -21,6 +21,7 @@ ver=$(curl -sL "https://sourceforge.net/projects/bashdb/rss" \
 wget -qc "https://sourceforge.net/projects/bashdb/files/bashdb/${ver}/bashdb-${ver}.tar.bz2"
 tar -xvf bashdb-${ver}.tar.bz2
 cd bashdb-${ver}
+sed -e "/^\s\+'5.0' / s:): | '5.1'&:g" -i configure
 ./configure
 make
 sudo make install
