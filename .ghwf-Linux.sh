@@ -16,7 +16,6 @@ sudo apt-get install gdb cmake file --no-install-recommends
 # Install bashdb
 ver=$(curl -sL "https://sourceforge.net/projects/bashdb/rss" \
     | grep -oP '(?<=bashdb-)[0-9.-]+(?=\.tar\.bz2)' \
-    | grep "^${BASH_VERSINFO[0]}\.${BASH_VERSINFO[1]}" \
     | head -1)
 
 wget -qc "https://sourceforge.net/projects/bashdb/files/bashdb/${ver}/bashdb-${ver}.tar.bz2"
