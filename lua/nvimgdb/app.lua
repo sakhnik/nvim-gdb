@@ -237,6 +237,8 @@ function App:on_tab_enter()
   if self.parser:is_paused() then
     self.cursor:show()
   end
+  -- Just in case that OnBufEnter isn't fired. Thus, multiple on_buf_enter() calls may occur.
+  self:on_buf_enter()
 end
 
 -- Actions to execute when a tabpage is left.
@@ -245,6 +247,8 @@ function App:on_tab_leave()
   -- Hide the signs
   self.cursor:hide()
   self.breakpoint:clear_signs()
+  -- If the same buffer is focused on the other tabpage, OnBufLeave wouldn't be fired.
+  self:on_buf_leave()
 end
 
 -- Actions to execute when a buffer is entered.

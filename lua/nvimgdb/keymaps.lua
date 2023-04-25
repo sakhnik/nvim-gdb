@@ -63,7 +63,7 @@ function Keymaps:unset()
   for _, m in ipairs(default) do
     local keystroke = self.config:get(m.key)
     if keystroke ~= nil then
-      vim.api.nvim_buf_del_keymap(vim.api.nvim_get_current_buf(), m.mode, keystroke)
+      pcall(vim.api.nvim_buf_del_keymap(vim.api.nvim_get_current_buf(), m.mode, keystroke))
     end
   end
 end
