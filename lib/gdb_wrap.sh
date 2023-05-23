@@ -27,7 +27,7 @@ fi
 # the rest are gdb arguments
 shift
 
-gdb_init=$(mktemp /tmp/gdb_init.XXXXXX)
+gdb_init=$(mktemp -t gdb_init.XXXXXX)
 cat >"$gdb_init" <<EOF
 set confirm off
 set pagination off
