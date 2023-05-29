@@ -189,20 +189,20 @@ function App:create_watch(cmd, mods)
   local cur_tabpage = vim.api.nvim_get_current_tabpage()
   local augroup_name = "NvimGdbTab" .. cur_tabpage .. "_" .. buf
   local augid = vim.api.nvim_create_augroup(augroup_name, { clear = false})
-  local auids = {}
 
   -- Cleanup anything that could be left over if the autocmds haven't been fired.
   local function destr()
-    for _, auid in ipairs(auids) do
-      vim.api.nvim_del_autocmd(auid)
-    end
     vim.api.nvim_del_augroup_by_id(augid)
     -- Destroy the watch buffer.
-    vim.fn.timer_start(100, function() vim.api.nvim_buf_delete(buf, {force = true}) end)
+    vim.fn.timer_start(100, function()
+      if vim.api.nvim_buf_is_valid(buf) then
+        vim.api.nvim_buf_delete(buf, {force = true})
+      end
+    end)
   end
   self.destructors[augroup_name] = destr
 
-  auids[#auids + 1] = vim.api.nvim_create_autocmd({"User"}, {
+  vim.api.nvim_create_autocmd({"User"}, {
     pattern = "NvimGdbQuery",
     group = augid,
     callback = function()
@@ -211,7 +211,7 @@ function App:create_watch(cmd, mods)
   })
 
   -- Destroy the autowatch automatically when the window is gone.
-  auids[#auids + 1] = vim.api.nvim_create_autocmd({"BufDelete"}, {
+  vim.api.nvim_create_autocmd({"BufWinLeave"}, {
     group = augid,
     buffer = buf,
     callback = function()

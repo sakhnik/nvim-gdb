@@ -1,7 +1,5 @@
 '''Test custom command.'''
 
-import pytest
-
 TESTS = {
     'gdb': [("GdbCustomCommand('print i')", '$1 = 0'),
             ("GdbCustomCommand('info locals')", 'i = 0')],
@@ -70,6 +68,7 @@ def test_watch_backend_cleanup(eng, backend_express):
     eng.feed(f':autocmd User NvimGdbCleanup :bwipeout! {bufname}\n')
     eng.feed(':GdbDebugStop\n')
 
+    # Start and test another time to check that no error is raised
     eng.feed(backend_express['launch'])
     assert eng.wait_paused() is None
     eng.feed(backend_express['tbreak_main'])
