@@ -7,22 +7,32 @@ to a user.
 
 import abc
 import argparse
-import array
+import contextlib
 import errno
-import fcntl
 import logging
 import os
-import pty
+import ptyprocess
 import re
 import select
 import signal
 import socket
 import sys
 import termios
-import tty
 from typing import Union
 
 import stream_filter
+
+
+@contextlib.contextmanager
+def raw_terminal(fd):
+    old_attrs = new_attrs = termios.tcgetattr(fd)
+    new_attrs[3] &= ~termios.ICANON & ~termios.ECHO
+    termios.tcsetattr(fd, termios.TCSADRAIN, new_attrs)
+
+    try:
+        yield
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_attrs)
 
 
 class BaseProxy:
@@ -38,7 +48,6 @@ class BaseProxy:
                             help='A file to dump the side channel UDP port.')
         args = parser.parse_args()
 
-        self.exitstatus = 0
         self.server_address: str = args.address
         self.argv = args.cmd
         log_handler = logging.NullHandler() if not os.environ.get('CI') \
@@ -70,26 +79,18 @@ class BaseProxy:
         self.command_buffer = bytearray()
 
         # Spawn the process in a PTY
-        self.pid, self.master_fd = pty.fork()
-        if self.pid == pty.CHILD:
-            try:
-                os.execvp(self.argv[0], self.argv)
-            except OSError as e:
-                sys.stderr.write(f"Failed to launch: {e}\n")
-                os._exit(1)
+        self.pty = ptyprocess.PtyProcessUnicode.spawn(self.argv)
+        self.master_fd = self.pty.fd
 
     def run(self):
         """Run the proxy, the entry point."""
-        old_handler = signal.signal(signal.SIGWINCH,
-                                    lambda signum, frame: self._set_pty_size())
-
-        mode = tty.tcgetattr(pty.STDIN_FILENO)
-        tty.setraw(pty.STDIN_FILENO)
-
+        signal.signal(signal.SIGWINCH,
+                      lambda signum, frame: self._set_pty_size())
         self._set_pty_size()
 
         try:
-            self._process()
+            with raw_terminal(sys.stdin.fileno()):
+                self._process()
         except OSError as os_err:
             # Avoid printing I/O Error that happens on every GDB quit
             if os_err.errno != errno.EIO:
@@ -99,20 +100,7 @@ class BaseProxy:
             self.logger.exception("Exception")
             raise
         finally:
-            tty.tcsetattr(pty.STDIN_FILENO, tty.TCSAFLUSH, mode)
-
-            _, systemstatus = os.waitpid(self.pid, 0)
-            if systemstatus:
-                if os.WIFSIGNALED(systemstatus):
-                    self.exitstatus = os.WTERMSIG(systemstatus) + 128
-                else:
-                    self.exitstatus = os.WEXITSTATUS(systemstatus)
-            else:
-                self.exitstatus = 0
-
-            os.close(self.master_fd)
-            self.master_fd = None
-            signal.signal(signal.SIGWINCH, old_handler)
+            self.pty.terminate()
 
             if self.server_address:
                 try:
@@ -162,14 +150,8 @@ class BaseProxy:
     def _set_pty_size(self):
         """Set the window size of the child pty."""
         assert self.master_fd is not None
-        buf = array.array('h', [0, 0, 0, 0])
-        try:
-            fcntl.ioctl(pty.STDOUT_FILENO, termios.TIOCGWINSZ, buf, True)
-            fcntl.ioctl(self.master_fd, termios.TIOCSWINSZ, buf)
-        except OSError as ex:
-            # Avoid printing I/O Error that happens on every GDB quit
-            if ex.errno != errno.EIO:
-                self.logger.exception("Exception")
+        columns, lines = os.get_terminal_size()
+        self.pty.setwinsize(lines, columns)
 
     def _process(self):
         """Run the main loop."""
@@ -180,9 +162,11 @@ class BaseProxy:
                     sockets.append(self.sock)
                 # Don't handle user input while a side command is running.
                 if len(self.filter) == 1:
-                    sockets.append(pty.STDIN_FILENO)
+                    sockets.append(sys.stdin.fileno())
                 rfds, _, _ = select.select(sockets, [], [], 0.25)
                 self._process_reads(rfds)
+            except KeyboardInterrupt:
+                self.pty.sendcontrol('c')
             except OSError as ex:
                 if ex.errno == errno.EAGAIN:   # Interrupted system call.
                     continue
@@ -198,9 +182,9 @@ class BaseProxy:
                 # Reading the program's output
                 data = os.read(self.master_fd, 1024)
                 self.master_read(data)
-            elif pty.STDIN_FILENO in rfds:
+            elif sys.stdin.fileno() in rfds:
                 # Reading user's input
-                data = os.read(pty.STDIN_FILENO, 1024)
+                data = os.read(sys.stdin.fileno(), 1024)
                 self.stdin_read(data)
             elif self.sock in rfds:
                 data, self.last_addr = self.sock.recvfrom(65536)
@@ -226,7 +210,7 @@ class BaseProxy:
     def _timeout(self):
         filt, _ = self.filter[-1]
         data = filt.timeout()
-        self._write(pty.STDOUT_FILENO, data)
+        self._write(sys.stdout.fileno(), data)
         # Get back to the passthrough filter on timeout
         if len(self.filter) > 1:
             self.filter.pop()
@@ -236,7 +220,7 @@ class BaseProxy:
         self.logger.debug("%s", data)
         filt, handler = self.filter[-1]
         data, filtered = filt.filter(data)
-        self._write(pty.STDOUT_FILENO, data)
+        self._write(sys.stdout.fileno(), data)
         if filtered:
             self.logger.info("Filter matched %d bytes", len(filtered))
             self.filter.pop()

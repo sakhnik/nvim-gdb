@@ -40,4 +40,4 @@ class GdbProxy(BaseProxy):
 if __name__ == '__main__':
     proxy = GdbProxy()
     proxy.run()
-    sys.exit(proxy.exitstatus)
+    #sys.exit(proxy.exitstatus)

@@ -28,4 +28,4 @@ class BashDbProxy(BaseProxy):
 if __name__ == '__main__':
     proxy = BashDbProxy()
     proxy.run()
-    sys.exit(proxy.exitstatus)
+    #sys.exit(proxy.exitstatus)
