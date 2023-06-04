@@ -338,7 +338,7 @@ NvimGdbCleanup          Fired before the debugging session ends.
 ==============================================================================
 Section 6: Functions                                        *NvimgdbFunctions*
 
-The plugin is implemented Python using the remote plugin API.
+The plugin is implemented Lua.
 
                                                           *GdbCustomCommand()*
 GdbCustomCommand("cmd")
