@@ -28,4 +28,4 @@ class PdbProxy(BaseProxy):
 if __name__ == '__main__':
     proxy = PdbProxy()
     proxy.run()
-    #sys.exit(proxy.exitstatus)
+    sys.exit(proxy.exitstatus)
