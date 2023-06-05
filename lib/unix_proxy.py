@@ -73,3 +73,7 @@ class UnixProxy(BaseProxy):
             if len(self.filter) == 1:
                 self.selector.register(sys.stdin.fileno(),
                                        selectors.EVENT_READ)
+
+    def write_master(self, data):
+        """Write to the child process from its controlling terminal."""
+        self._write(self.master_fd, data)

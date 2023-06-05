@@ -132,7 +132,7 @@ class BaseProxy:
 
     @abc.abstractmethod
     def filter_changed(self, added: bool):
-        pass
+        """Handle the filter added or removed."""
 
     @abc.abstractmethod
     def get_prompt(self):
@@ -193,12 +193,13 @@ class BaseProxy:
             thread.start()
 
         while True:
-            if sys.platform != 'win32':
-                pass
-            else:
+            if sys.platform == 'win32':
                 self._process_stdin()
             try:
                 rfds = [key.fileobj for key, _ in self.selector.select(0.25)]
+                if not rfds:
+                    self._timeout()
+                    continue
                 self._process_reads(rfds)
             except OSError as ex:
                 if ex.errno == errno.EAGAIN:   # Interrupted system call.
@@ -208,36 +209,32 @@ class BaseProxy:
                 break
 
     def _process_reads(self, rfds):
-        if not rfds:
-            self._timeout()
-        else:
-            # Handle one packet at a time to mitigate the side channel
-            # breaking into user input.
-            if self.master_fd in rfds:
-                # Reading the program's output
-                if sys.platform != 'win32':
-                    data = os.read(self.master_fd, 1024)
-                else:
-                    data = self.winproc.read().encode('utf-8')
-                self.master_read(data)
-            elif sys.stdin.fileno() in rfds:
-                # Reading user's input
-                if sys.platform != 'win32':
-                    data = os.read(sys.stdin.fileno(), 1024)
-                self.stdin_read(data)
-            elif self.sock in rfds:
-                data, self.last_addr = self.sock.recvfrom(65536)
-                if data[-1] == b'\n':
-                    self.logger.warning(
-                        "The command ending with <nl>. "
-                        "The StreamProxy filter known to fail.")
-                self.logger.info("Got command '%s'", data.decode('utf-8'))
-                command = self.filter_command(data)
-                self.logger.info("Translated command '%s'",
-                                 command.decode('utf-8'))
-                if command:
-                    self.write_master(command)
-                    self.write_master(b'\n')
+        # Handle one packet at a time to mitigate the side channel
+        # breaking into user input.
+        if self.master_fd in rfds:
+            # Reading the program's output
+            if sys.platform != 'win32':
+                data = os.read(self.master_fd, 1024)
+            else:
+                data = self.winproc.read().encode('utf-8')
+            self.master_read(data)
+        elif sys.stdin.fileno() in rfds:
+            # Reading user's input
+            data = os.read(sys.stdin.fileno(), 1024)
+            self.stdin_read(data)
+        elif self.sock in rfds:
+            data, self.last_addr = self.sock.recvfrom(65536)
+            if data[-1] == b'\n':
+                self.logger.warning(
+                    "The command ending with <nl>. "
+                    "The StreamProxy filter known to fail.")
+            self.logger.info("Got command '%s'", data.decode('utf-8'))
+            command = self.filter_command(data)
+            self.logger.info("Translated command '%s'",
+                             command.decode('utf-8'))
+            if command:
+                self.write_master(command)
+                self.write_master(b'\n')
 
     @staticmethod
     def _write(fdesc, data):
@@ -270,12 +267,9 @@ class BaseProxy:
             self.logger.debug("Sending to %s: %s", self.last_addr, res)
             self.sock.sendto(res, 0, self.last_addr)
 
+    @abc.abstractmethod
     def write_master(self, data):
         """Write to the child process from its controlling terminal."""
-        if sys.platform != 'win32':
-            self._write(self.master_fd, data)
-        else:
-            self.winproc.write(data.decode('utf-8'))
 
     def master_read(self, data):
         """Handle data from the child process."""
