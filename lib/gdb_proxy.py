@@ -10,11 +10,11 @@ to a user.
 import re
 import sys
 
-from base_proxy import BaseProxy
+from proxy_impl import ProxyImpl
 from stream_filter import StreamFilter
 
 
-class GdbProxy(BaseProxy):
+class GdbProxy(ProxyImpl):
     """The PTY proxy for GDB."""
 
     def __init__(self):

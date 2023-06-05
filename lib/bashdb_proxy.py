@@ -10,10 +10,10 @@ to a user.
 import re
 import sys
 
-from base_proxy import BaseProxy
+from proxy_impl import ProxyImpl
 
 
-class BashDbProxy(BaseProxy):
+class BashDbProxy(ProxyImpl):
     """PTY proxy for bashdb."""
 
     def __init__(self):

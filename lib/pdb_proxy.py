@@ -10,10 +10,10 @@ to a user.
 import re
 import sys
 
-from base_proxy import BaseProxy
+from proxy_impl import ProxyImpl
 
 
-class PdbProxy(BaseProxy):
+class PdbProxy(ProxyImpl):
     """A proxy for the PDB backend."""
 
     def __init__(self):
