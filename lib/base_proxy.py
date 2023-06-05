@@ -9,18 +9,25 @@ import abc
 import argparse
 import array
 import errno
-import fcntl
+import sys
 import logging
 import os
-import pty
 import re
-import select
+import selectors
 import signal
 import socket
-import sys
-import termios
-import tty
 from typing import Union
+
+if sys.platform != 'win32':
+    import fcntl
+    import pty
+    import termios
+    import tty
+else:
+    import msvcrt
+    import threading
+    import winpty
+
 
 import stream_filter
 
@@ -50,12 +57,15 @@ class BaseProxy:
         self.logger = logging.getLogger(type(self).__name__)
         self.logger.info("Starting proxy: %s", app_name)
 
+        self.selector = selectors.DefaultSelector()
+
         self.sock: Union[socket.socket, None] = None
         if self.server_address:
             # Create a UDS socket
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             self.sock.bind(('127.0.0.1', 0))
             self.sock.settimeout(0.5)
+            self.selector.register(self.sock, selectors.EVENT_READ)
             _, port = self.sock.getsockname()
             with open(self.server_address, 'w') as f:
                 f.write(f"{port}")
@@ -70,23 +80,30 @@ class BaseProxy:
         self.command_buffer = bytearray()
 
         # Spawn the process in a PTY
-        self.pid, self.master_fd = pty.fork()
-        if self.pid == pty.CHILD:
-            try:
-                os.execvp(self.argv[0], self.argv)
-            except OSError as e:
-                sys.stderr.write(f"Failed to launch: {e}\n")
-                os._exit(1)
+        if sys.platform != 'win32':
+            self.pid, self.master_fd = pty.fork()
+            if self.pid == pty.CHILD:
+                try:
+                    os.execvp(self.argv[0], self.argv)
+                except OSError as e:
+                    sys.stderr.write(f"Failed to launch: {e}\n")
+                    os._exit(1)
+        else:
+            self.winproc = winpty.PtyProcess.spawn(self.argv)
+            self.master_fd = self.winproc.fileno()
+            self.mutex = threading.Lock()
+            self.stdin_input = bytearray()
+        self.selector.register(self.master_fd, selectors.EVENT_READ)
 
     def run(self):
         """Run the proxy, the entry point."""
-        old_handler = signal.signal(signal.SIGWINCH,
-                                    lambda signum, frame: self._set_pty_size())
-
-        mode = tty.tcgetattr(pty.STDIN_FILENO)
-        tty.setraw(pty.STDIN_FILENO)
-
-        self._set_pty_size()
+        if sys.platform != 'win32':
+            old_handler = \
+                signal.signal(signal.SIGWINCH,
+                              lambda signum, frame: self._set_pty_size())
+            self._set_pty_size()
+            mode = tty.tcgetattr(sys.stdin.fileno())
+            tty.setraw(sys.stdin.fileno())
 
         try:
             self._process()
@@ -99,9 +116,10 @@ class BaseProxy:
             self.logger.exception("Exception")
             raise
         finally:
-            tty.tcsetattr(pty.STDIN_FILENO, tty.TCSAFLUSH, mode)
-
-            _, systemstatus = os.waitpid(self.pid, 0)
+            if sys.platform != 'win32':
+                _, systemstatus = os.waitpid(self.pid, 0)
+            else:
+                systemstatus = self.winproc.wait()
             if systemstatus:
                 if os.WIFSIGNALED(systemstatus):
                     self.exitstatus = os.WTERMSIG(systemstatus) + 128
@@ -110,9 +128,17 @@ class BaseProxy:
             else:
                 self.exitstatus = 0
 
-            os.close(self.master_fd)
-            self.master_fd = None
-            signal.signal(signal.SIGWINCH, old_handler)
+            if sys.platform != 'win32':
+                os.close(self.master_fd)
+                self.master_fd = None
+            else:
+                self.winproc.close()
+                del self.winproc
+                self.winproc = None
+
+            if sys.platform != 'win32':
+                tty.tcsetattr(sys.stdin.fileno(), tty.TCSAFLUSH, mode)
+                signal.signal(signal.SIGWINCH, old_handler)
 
             if self.server_address:
                 try:
@@ -164,29 +190,71 @@ class BaseProxy:
         assert self.master_fd is not None
         buf = array.array('h', [0, 0, 0, 0])
         try:
-            fcntl.ioctl(pty.STDOUT_FILENO, termios.TIOCGWINSZ, buf, True)
+            fcntl.ioctl(sys.stdout.fileno(), termios.TIOCGWINSZ, buf, True)
             fcntl.ioctl(self.master_fd, termios.TIOCSWINSZ, buf)
         except OSError as ex:
             # Avoid printing I/O Error that happens on every GDB quit
             if ex.errno != errno.EIO:
                 self.logger.exception("Exception")
 
-    def _process(self):
-        """Run the main loop."""
+    def _stdin_thread(self):
+        msvcrt.setmode(sys.stdin.fileno(), os.O_BINARY)
         while True:
             try:
-                sockets = [self.master_fd]
-                if self.sock:
-                    sockets.append(self.sock)
-                # Don't handle user input while a side command is running.
+                ch = msvcrt.getch()
+                self.mutex.acquire()
+                try:
+                    self.stdin_input.extend(ch)
+                finally:
+                    self.mutex.release()
+                self._process_stdin()
+            except Exception as e:
+                print("Exception: " + e)
+        print("Exited")
+
+    def _process_stdin(self):
+        try:
+            self.mutex.acquire()
+            if len(self.filter) == 1 and self.stdin_input:
+                data = bytes(self.stdin_input)
+                self.stdin_input = bytearray()
+                self.stdin_read(data)
+        except Exception as e:
+            print("Exception: " + e)
+        finally:
+            self.mutex.release()
+
+    def _process(self):
+        """Run the main loop."""
+        if sys.platform == 'win32':
+            thread = threading.Thread(target=self._stdin_thread)
+            thread.start()
+
+        # Don't handle user input while a side command is running.
+        stdin_is_registered = False
+        self.stdin_fileno = sys.stdin.fileno()
+
+        while True:
+            if sys.platform != 'win32':
                 if len(self.filter) == 1:
-                    sockets.append(pty.STDIN_FILENO)
-                rfds, _, _ = select.select(sockets, [], [], 0.25)
+                    if not stdin_is_registered:
+                        self.selector.register(self.stdin_fileno, selectors.EVENT_READ)
+                        stdin_is_registered = True
+                else:
+                    if stdin_is_registered:
+                        self.selector.unregister(self.stdin_fileno)
+                        stdin_is_registered = False
+            else:
+                self._process_stdin()
+            try:
+                rfds = [key.fileobj for key, _ in self.selector.select(0.25)]
                 self._process_reads(rfds)
             except OSError as ex:
                 if ex.errno == errno.EAGAIN:   # Interrupted system call.
                     continue
                 raise
+            except EOFError:
+                break
 
     def _process_reads(self, rfds):
         if not rfds:
@@ -196,11 +264,15 @@ class BaseProxy:
             # breaking into user input.
             if self.master_fd in rfds:
                 # Reading the program's output
-                data = os.read(self.master_fd, 1024)
+                if sys.platform != 'win32':
+                    data = os.read(self.master_fd, 1024)
+                else:
+                    data = self.winproc.read().encode('utf-8')
                 self.master_read(data)
-            elif pty.STDIN_FILENO in rfds:
+            elif self.stdin_fileno in rfds:
                 # Reading user's input
-                data = os.read(pty.STDIN_FILENO, 1024)
+                if sys.platform != 'win32':
+                    data = os.read(self.stdin_fileno, 1024)
                 self.stdin_read(data)
             elif self.sock in rfds:
                 data, self.last_addr = self.sock.recvfrom(65536)
@@ -226,7 +298,7 @@ class BaseProxy:
     def _timeout(self):
         filt, _ = self.filter[-1]
         data = filt.timeout()
-        self._write(pty.STDOUT_FILENO, data)
+        self._write(sys.stdout.fileno(), data)
         # Get back to the passthrough filter on timeout
         if len(self.filter) > 1:
             self.filter.pop()
@@ -236,7 +308,7 @@ class BaseProxy:
         self.logger.debug("%s", data)
         filt, handler = self.filter[-1]
         data, filtered = filt.filter(data)
-        self._write(pty.STDOUT_FILENO, data)
+        self._write(sys.stdout.fileno(), data)
         if filtered:
             self.logger.info("Filter matched %d bytes", len(filtered))
             self.filter.pop()
@@ -247,7 +319,10 @@ class BaseProxy:
 
     def write_master(self, data):
         """Write to the child process from its controlling terminal."""
-        self._write(self.master_fd, data)
+        if sys.platform != 'win32':
+            self._write(self.master_fd, data)
+        else:
+            self.winproc.write(data.decode('utf-8'))
 
     def master_read(self, data):
         """Handle data from the child process."""
