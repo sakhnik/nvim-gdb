@@ -26,7 +26,7 @@ class Engine:
 
         self.screen = ""
 
-        args = ["/usr/bin/env", "./nvim", "--embed", "--headless", "-n"]
+        args = ["python3", "./nvim.py", "--embed", "--headless", "-n"]
         self.nvim = attach('child', argv=args)
         self.spy_ui = None
         self.thrd = threading.Thread(target=self.run_ui)
