@@ -16,14 +16,6 @@ import selectors
 import socket
 from typing import Union
 
-if sys.platform != 'win32':
-    pass
-else:
-    import msvcrt
-    import threading
-    import winpty
-
-
 import stream_filter
 
 
@@ -74,20 +66,20 @@ class BaseProxy:
         self.last_command = b''
         self.command_buffer = bytearray()
 
-        # Spawn the process in a PTY
-        if sys.platform != 'win32':
-            pass
-        else:
-            self.winproc = winpty.PtyProcess.spawn(self.argv)
-            self.master_fd = self.winproc.fileno()
-            self.mutex = threading.Lock()
-            self.stdin_input = bytearray()
-            self.selector.register(self.master_fd, selectors.EVENT_READ)
-
-    def run(self):
+    def run_loop(self):
         """Run the proxy, the entry point."""
         try:
-            self._process()
+            while True:
+                try:
+                    rfds = [key.fileobj for key, _ in self.selector.select(0.25)]
+                    if not rfds:
+                        self._timeout()
+                        continue
+                    self._process_reads(rfds)
+                except OSError as ex:
+                    if ex.errno == errno.EAGAIN:   # Interrupted system call.
+                        continue
+                    raise
         except OSError as os_err:
             # Avoid printing I/O Error that happens on every GDB quit
             if os_err.errno != errno.EIO:
@@ -97,18 +89,6 @@ class BaseProxy:
             self.logger.exception("Exception")
             raise
         finally:
-            if sys.platform != 'win32':
-                pass
-            else:
-                self.systemstatus = self.winproc.wait()
-
-            if sys.platform != 'win32':
-                pass
-            else:
-                self.winproc.close()
-                del self.winproc
-                self.winproc = None
-
             if self.server_address:
                 try:
                     os.unlink(self.server_address)
@@ -159,65 +139,13 @@ class BaseProxy:
             return cmd if res else b''
         return command
 
-    def _stdin_thread(self):
-        msvcrt.setmode(sys.stdin.fileno(), os.O_BINARY)
-        while True:
-            try:
-                ch = msvcrt.getch()
-                self.mutex.acquire()
-                try:
-                    self.stdin_input.extend(ch)
-                finally:
-                    self.mutex.release()
-                self._process_stdin()
-            except Exception as e:
-                print("Exception: " + e)
-        print("Exited")
-
-    def _process_stdin(self):
-        try:
-            self.mutex.acquire()
-            if len(self.filter) == 1 and self.stdin_input:
-                data = bytes(self.stdin_input)
-                self.stdin_input = bytearray()
-                self.stdin_read(data)
-        except Exception as e:
-            print("Exception: " + e)
-        finally:
-            self.mutex.release()
-
-    def _process(self):
-        """Run the main loop."""
-        if sys.platform == 'win32':
-            thread = threading.Thread(target=self._stdin_thread)
-            thread.start()
-
-        while True:
-            if sys.platform == 'win32':
-                self._process_stdin()
-            try:
-                rfds = [key.fileobj for key, _ in self.selector.select(0.25)]
-                if not rfds:
-                    self._timeout()
-                    continue
-                self._process_reads(rfds)
-            except OSError as ex:
-                if ex.errno == errno.EAGAIN:   # Interrupted system call.
-                    continue
-                raise
-            except EOFError:
-                break
-
     def _process_reads(self, rfds):
         # Handle one packet at a time to mitigate the side channel
         # breaking into user input.
         if self.master_fd in rfds:
             # Reading the program's output
-            if sys.platform != 'win32':
-                data = os.read(self.master_fd, 1024)
-            else:
-                data = self.winproc.read().encode('utf-8')
-            self.master_read(data)
+            data = self.read_master()
+            self.write_stdout(data)
         elif sys.stdin.fileno() in rfds:
             # Reading user's input
             data = os.read(sys.stdin.fileno(), 1024)
@@ -268,12 +196,12 @@ class BaseProxy:
             self.sock.sendto(res, 0, self.last_addr)
 
     @abc.abstractmethod
-    def write_master(self, data):
-        """Write to the child process from its controlling terminal."""
+    def read_master(self) -> bytes:
+        """Read from the child process."""
 
-    def master_read(self, data):
-        """Handle data from the child process."""
-        self.write_stdout(data)
+    @abc.abstractmethod
+    def write_master(self, data: bytes):
+        """Write to the child process from its controlling terminal."""
 
     def stdin_read(self, data):
         """Handle data from the controlling terminal."""

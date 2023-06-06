@@ -1,5 +1,8 @@
-from unix_proxy import UnixProxy
-from win_proxy import WinProxy
 import sys
 
-ProxyImpl = UnixProxy if sys.platform != 'win32' else WinProxy
+if sys.platform != 'win32':
+    from unix_proxy import UnixProxy
+    ProxyImpl = UnixProxy
+else:
+    from win_proxy import WinProxy
+    ProxyImpl = WinProxy

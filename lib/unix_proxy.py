@@ -15,6 +15,7 @@ class UnixProxy(BaseProxy):
     def __init__(self, app_name: str):
         super().__init__(app_name)
 
+        # Spawn the process in a PTY
         self.pid, self.master_fd = pty.fork()
         if self.pid == pty.CHILD:
             try:
@@ -35,7 +36,7 @@ class UnixProxy(BaseProxy):
         self.filter_changed(False)
 
         try:
-            super().run()
+            super().run_loop()
         finally:
             _, systemstatus = os.waitpid(self.pid, 0)
             if systemstatus:
@@ -74,6 +75,10 @@ class UnixProxy(BaseProxy):
                 self.selector.register(sys.stdin.fileno(),
                                        selectors.EVENT_READ)
 
-    def write_master(self, data):
+    def read_master(self) -> bytes:
+        data = os.read(self.master_fd, 1024)
+        return data
+
+    def write_master(self, data: bytes):
         """Write to the child process from its controlling terminal."""
         self._write(self.master_fd, data)
