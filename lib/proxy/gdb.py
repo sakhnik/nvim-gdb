@@ -7,6 +7,7 @@ This will allow to inject server commands not exposing them
 to a user.
 """
 
+import os
 import re
 import sys
 
@@ -38,6 +39,8 @@ class Gdb(Impl):
 
 
 if __name__ == '__main__':
-    gdb = Gdb(sys.argv[1:])
+    # The script can be launched as `python3 script.py`
+    args_to_skip = 0 if os.path.basename(__file__) == sys.argv[0] else 1
+    gdb = Gdb(sys.argv[args_to_skip:])
     exitcode = gdb.run()
     sys.exit(exitcode)

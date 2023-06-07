@@ -47,4 +47,6 @@ class Nvim:
 
 
 if __name__ == "__main__":
-    sys.exit(Nvim().run(sys.argv[1:]))
+    # The script can be launched as `python3 script.py`
+    args_to_skip = 0 if os.path.basename(__file__) == sys.argv[0] else 1
+    sys.exit(Nvim().run(sys.argv[args_to_skip:]))

@@ -9,11 +9,13 @@ import tempfile
 # Prepare lldb initialization commands
 this_dir = os.path.realpath(os.path.dirname(__file__))
 
-argv = sys.argv
+# The script can be launched as `python3 script.py`
+args_to_skip = 0 if os.path.basename(__file__) == sys.argv[0] else 1
+argv = sys.argv[args_to_skip:]
 server_addr = ''
-if argv[1] == '-a':
-    server_addr = argv[2]
-    argv = argv[3:]
+if argv[0] == '-a':
+    server_addr = argv[1]
+    argv = argv[2:]
 
 # Assuming the first argument is path to lldb, the rest are arguments.
 # We'd like to ensure gdb is launched with our custom initialization
