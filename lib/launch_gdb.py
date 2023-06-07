@@ -3,7 +3,7 @@
 import os
 import sys
 import tempfile
-from gdb_proxy import GdbProxy
+from proxy.gdb import Gdb
 
 
 # Prepare gdb initialization commands
@@ -39,5 +39,5 @@ python gdb.prompt_hook = lambda p: p + ("" if p.endswith("\x01\x1a\x1a\x1a\x02")
     # Execute gdb finally through the proxy with our custom
     # initialization script
     args = ['-a', server_addr, gdb, '-f', '-ix', gdb_init.name] + argv
-    gdb_proxy = GdbProxy(args)
+    gdb_proxy = Gdb(args)
     sys.exit(gdb_proxy.run())

@@ -1,6 +1,6 @@
 '''Test StreamFilter operation.'''
 import re
-from stream_filter import StreamFilter
+from .stream_filter import StreamFilter
 
 
 def test_filter():

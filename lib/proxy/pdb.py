@@ -10,10 +10,10 @@ to a user.
 import re
 import sys
 
-from proxy_impl import ProxyImpl
+from .impl import Impl
 
 
-class PdbProxy(ProxyImpl):
+class Pdb(Impl):
     """A proxy for the PDB backend."""
 
     def __init__(self, argv: [str]):
@@ -23,9 +23,3 @@ class PdbProxy(ProxyImpl):
 
     def get_prompt(self):
         return self.prompt
-
-
-if __name__ == '__main__':
-    proxy = PdbProxy(sys.argv[1:])
-    exitcode = proxy.run()
-    sys.exit(exitcode)

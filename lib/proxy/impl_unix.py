@@ -1,4 +1,3 @@
-from base_proxy import BaseProxy
 import array
 import errno
 import fcntl
@@ -10,8 +9,10 @@ import sys
 import termios
 import tty
 
+from .base import Base
 
-class UnixProxy(BaseProxy):
+
+class ImplUnix(Base):
     def __init__(self, app_name: str, argv: [str]):
         super().__init__(app_name, argv)
 

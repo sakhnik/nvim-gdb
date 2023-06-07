@@ -16,10 +16,10 @@ import selectors
 import socket
 from typing import Union
 
-import stream_filter
+from .stream_filter import Filter, StreamFilter
 
 
-class BaseProxy:
+class Base:
     """This class does the actual work of the pseudo terminal."""
 
     def __init__(self, app_name: str, argv: [str]):
@@ -60,7 +60,7 @@ class BaseProxy:
                 f.write(f"{port}")
 
         # Create the filter
-        self.filter = [(stream_filter.Filter(), lambda _: None)]
+        self.filter = [(Filter(), lambda _: None)]
         # Where was the last command received from?
         self.last_addr = None
 
@@ -73,7 +73,8 @@ class BaseProxy:
         try:
             while True:
                 try:
-                    rfds = [key.fileobj for key, _ in self.selector.select(0.25)]
+                    rfds = [key.fileobj for key, _ in
+                            self.selector.select(0.25)]
                     if not rfds:
                         self._timeout()
                         continue
@@ -136,7 +137,7 @@ class BaseProxy:
         if tokens[0] == 'handle-command':
             cmd = command[len('handle-command '):]
             res = self.set_filter(
-                stream_filter.StreamFilter(self.get_prompt()),
+                StreamFilter(self.get_prompt()),
                 lambda resp: self.process_handle_command(cmd, resp))
             return cmd if res else b''
         return command

@@ -1,4 +1,3 @@
-from base_proxy import BaseProxy
 import msvcrt
 import threading
 import winpty
@@ -6,8 +5,10 @@ import selectors
 import sys
 import os
 
+from .base import Base
 
-class WinProxy(BaseProxy):
+
+class ImplWin(Base):
     def __init__(self, app_name: str, argv: [str]):
         super().__init__(app_name, argv)
 

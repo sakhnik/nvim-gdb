@@ -10,11 +10,11 @@ to a user.
 import re
 import sys
 
-from proxy_impl import ProxyImpl
-from stream_filter import StreamFilter
+from .impl import Impl
+from .stream_filter import StreamFilter
 
 
-class GdbProxy(ProxyImpl):
+class Gdb(Impl):
     """The PTY proxy for GDB."""
 
     def __init__(self, argv: [str]):
@@ -38,6 +38,6 @@ class GdbProxy(ProxyImpl):
 
 
 if __name__ == '__main__':
-    proxy = GdbProxy(sys.argv[1:])
-    exitcode = proxy.run()
+    gdb = Gdb(sys.argv[1:])
+    exitcode = gdb.run()
     sys.exit(exitcode)

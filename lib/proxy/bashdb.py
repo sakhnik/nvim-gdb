@@ -10,10 +10,10 @@ to a user.
 import re
 import sys
 
-from proxy_impl import ProxyImpl
+from .impl import Impl
 
 
-class BashDbProxy(ProxyImpl):
+class BashDb(Impl):
     """PTY proxy for bashdb."""
 
     def __init__(self, argv: [str]):
@@ -23,9 +23,3 @@ class BashDbProxy(ProxyImpl):
 
     def get_prompt(self):
         return self.prompt
-
-
-if __name__ == '__main__':
-    proxy = BashDbProxy(sys.argv[1:])
-    exitcode = proxy.run()
-    sys.exit(exitcode)
