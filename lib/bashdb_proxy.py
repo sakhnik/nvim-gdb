@@ -16,9 +16,9 @@ from proxy_impl import ProxyImpl
 class BashDbProxy(ProxyImpl):
     """PTY proxy for bashdb."""
 
-    def __init__(self):
+    def __init__(self, argv: [str]):
         """ctor."""
-        super().__init__("BashDB")
+        super().__init__("BashDB", argv)
         self.prompt = re.compile(rb'[\r\n]bashdb<\(?\d+\)?> ')
 
     def get_prompt(self):
@@ -26,6 +26,6 @@ class BashDbProxy(ProxyImpl):
 
 
 if __name__ == '__main__':
-    proxy = BashDbProxy()
-    proxy.run()
-    sys.exit(proxy.exitstatus)
+    proxy = BashDbProxy(sys.argv[1:])
+    exitcode = proxy.run()
+    sys.exit(exitcode)

@@ -12,8 +12,8 @@ import tty
 
 
 class UnixProxy(BaseProxy):
-    def __init__(self, app_name: str):
-        super().__init__(app_name)
+    def __init__(self, app_name: str, argv: [str]):
+        super().__init__(app_name, argv)
 
         # Spawn the process in a PTY
         self.pid, self.master_fd = pty.fork()
@@ -35,23 +35,23 @@ class UnixProxy(BaseProxy):
 
         self.filter_changed(False)
 
+        exitcode = 0
         try:
             super().run_loop()
         finally:
             _, systemstatus = os.waitpid(self.pid, 0)
             if systemstatus:
                 if os.WIFSIGNALED(systemstatus):
-                    self.exitstatus = os.WTERMSIG(systemstatus) + 128
+                    exitcode = os.WTERMSIG(systemstatus) + 128
                 else:
-                    self.exitstatus = os.WEXITSTATUS(systemstatus)
-            else:
-                self.exitstatus = 0
+                    exitcode = os.WEXITSTATUS(systemstatus)
 
             os.close(self.master_fd)
             self.master_fd = None
 
             tty.tcsetattr(sys.stdin.fileno(), tty.TCSAFLUSH, mode)
             signal.signal(signal.SIGWINCH, old_handler)
+        return exitcode
 
     def _set_pty_size(self):
         """Set the window size of the child pty."""

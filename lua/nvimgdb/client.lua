@@ -45,7 +45,7 @@ function Client.new(config, proxy_cmd, client_cmd)
   self.command = client_cmd
   if proxy_cmd ~= nil then
     self.proxy_addr = self.sock_dir .. '/port'
-    self.command = _get_plugin_dir() .. "/lib/" .. proxy_cmd .. " -a " .. self.proxy_addr .. " -- " .. client_cmd
+    self.command = _get_plugin_dir() .. "/lib/" .. proxy_cmd .. " -a " .. self.proxy_addr .. " " .. client_cmd
   end
   NvimGdb.vim.cmd "enew"
   self.client_buf = vim.api.nvim_get_current_buf()

@@ -16,9 +16,9 @@ from proxy_impl import ProxyImpl
 class PdbProxy(ProxyImpl):
     """A proxy for the PDB backend."""
 
-    def __init__(self):
+    def __init__(self, argv: [str]):
         """ctor."""
-        super().__init__("PDB")
+        super().__init__("PDB", argv)
         self.prompt = re.compile(rb"[\n\r]\(Pdb\+?\+?\) ")
 
     def get_prompt(self):
@@ -26,6 +26,6 @@ class PdbProxy(ProxyImpl):
 
 
 if __name__ == '__main__':
-    proxy = PdbProxy()
-    proxy.run()
-    sys.exit(proxy.exitstatus)
+    proxy = PdbProxy(sys.argv[1:])
+    exitcode = proxy.run()
+    sys.exit(exitcode)

@@ -22,17 +22,19 @@ import stream_filter
 class BaseProxy:
     """This class does the actual work of the pseudo terminal."""
 
-    def __init__(self, app_name: str):
+    def __init__(self, app_name: str, argv: [str]):
         """Create a spawned process."""
         parser = argparse.ArgumentParser(
             description="Run %s through a filtering proxy." % app_name)
-        parser.add_argument('cmd', metavar='ARGS', nargs='+',
-                            help='%s command with arguments' % app_name)
-        parser.add_argument('-a', '--address', metavar='ADDR',
-                            help='A file to dump the side channel UDP port.')
-        args = parser.parse_args()
+        proxy_group = parser.add_argument_group("Proxy options")
+        proxy_group.add_argument('-a', '--address', metavar='ADDR',
+                                 help='File to dump the side channel UDP port')
+        backend_group = parser.add_argument_group("Backend command")
+        backend_group.add_argument('cmd', metavar='ARGS',
+                                   nargs=argparse.REMAINDER,
+                                   help=f'{app_name} command with arguments')
+        args = parser.parse_args(argv)
 
-        self.exitstatus = 0
         self.server_address: str = args.address
         self.argv = args.cmd
         log_handler = logging.NullHandler() if not os.environ.get('CI') \

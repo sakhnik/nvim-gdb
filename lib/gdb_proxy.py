@@ -17,9 +17,9 @@ from stream_filter import StreamFilter
 class GdbProxy(ProxyImpl):
     """The PTY proxy for GDB."""
 
-    def __init__(self):
+    def __init__(self, argv: [str]):
         """ctor."""
-        super().__init__("GDB")
+        super().__init__("GDB", argv)
         self.prompt = re.compile(b"\x1a\x1a\x1a")
 
     def get_prompt(self):
@@ -38,6 +38,6 @@ class GdbProxy(ProxyImpl):
 
 
 if __name__ == '__main__':
-    proxy = GdbProxy()
-    proxy.run()
-    sys.exit(proxy.exitstatus)
+    proxy = GdbProxy(sys.argv[1:])
+    exitcode = proxy.run()
+    sys.exit(exitcode)

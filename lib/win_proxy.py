@@ -8,8 +8,8 @@ import os
 
 
 class WinProxy(BaseProxy):
-    def __init__(self, app_name: str):
-        super().__init__(app_name)
+    def __init__(self, app_name: str, argv: [str]):
+        super().__init__(app_name, argv)
 
         # Spawn the process in a PTY
         self.winproc = winpty.PtyProcess.spawn(self.argv)
@@ -20,6 +20,8 @@ class WinProxy(BaseProxy):
         self.thread = None
 
     def run(self):
+        exitcode = 0
+
         try:
             self.thread = threading.Thread(target=self._stdin_thread)
             self.thread.start()
@@ -31,9 +33,10 @@ class WinProxy(BaseProxy):
             print("Press any key to continue...")
             if self.thread.is_alive():
                 self.thread.join()
-            self.systemstatus = self.winproc.wait()
+            exitcode = self.winproc.wait()
             del self.winproc
             self.winproc = None
+        return exitcode
 
     def _stdin_thread(self):
         msvcrt.setmode(sys.stdin.fileno(), os.O_BINARY)

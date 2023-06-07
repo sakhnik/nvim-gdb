@@ -42,4 +42,4 @@ cleanup()
 trap cleanup EXIT
 
 # Execute gdb finally through the proxy with our custom initialization script
-"$this_dir/gdb_proxy.py" -a "$server_addr" -- "$gdb" -f -ix "$gdb_init" "$@"
+"$this_dir/gdb_proxy.py" -a "$server_addr" "$gdb" -f -ix "$gdb_init" "$@"
