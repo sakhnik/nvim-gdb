@@ -20,11 +20,11 @@ App.__index = App
 
 -- Create a new instance of the debugger in the current tabpage.
 -- @param backend_name string @backend name
--- @param proxy_cmd string @proxy application name
+-- @param launch_cmd string @proxy application name
 -- @param client_cmd string @debugger launching command
 -- @return App @new instance
-function App.new(backend_name, proxy_cmd, client_cmd)
-  log.debug({"function App.new(", backend_name, proxy_cmd, client_cmd, ")"})
+function App.new(backend_name, launch_cmd, client_cmd)
+  log.debug({"function App.new(", backend_name, launch_cmd, client_cmd, ")"})
   local self = setmetatable({}, App)
 
   -- destructors to be executed during cleanup()
@@ -55,7 +55,7 @@ function App.new(backend_name, proxy_cmd, client_cmd)
   self.backend = require "nvimgdb.backend".choose(backend_name)
 
   -- Spawn gdb client in a new terminal window
-  self.client = require'nvimgdb.client'.new(self.config, proxy_cmd, client_cmd)
+  self.client = require'nvimgdb.client'.new(self.config, launch_cmd, client_cmd)
   if start_win == self.client.win then
     -- Apparently, the configuration has been overridden to use current window
     -- for the debugging terminal. Thus, a new window will be assigned or created

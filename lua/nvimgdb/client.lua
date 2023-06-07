@@ -25,11 +25,11 @@ end
 
 -- Constructor
 -- @param config Config @resolved configuration for this session
--- @param proxy_cmd string @command to launch the proxy
+-- @param launch_cmd string @command to launch the proxy
 -- @param client_cmd string @command to launch the debugger
 -- @return Client @new instance
-function Client.new(config, proxy_cmd, client_cmd)
-  log.debug({"function Client.new(", config, proxy_cmd, client_cmd, ")"})
+function Client.new(config, launch_cmd, client_cmd)
+  log.debug({"function Client.new(", config, launch_cmd, client_cmd, ")"})
   local self = setmetatable({}, Client)
   self.config = config
   log.info("termwin_command", config:get('termwin_command'))
@@ -43,9 +43,9 @@ function Client.new(config, proxy_cmd, client_cmd)
 
   -- Prepare the debugger command to run
   self.command = client_cmd
-  if proxy_cmd ~= nil then
+  if launch_cmd ~= nil then
     self.proxy_addr = self.sock_dir .. '/port'
-    self.command = _get_plugin_dir() .. "/lib/" .. proxy_cmd .. " -a " .. self.proxy_addr .. " -- " .. client_cmd
+    self.command = "python3 " .. _get_plugin_dir() .. "/lib/" .. launch_cmd .. " -a " .. self.proxy_addr .. " " .. client_cmd
   end
   NvimGdb.vim.cmd "enew"
   self.client_buf = vim.api.nvim_get_current_buf()

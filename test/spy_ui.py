@@ -2,6 +2,7 @@
 
 import logging
 import os
+import sys
 from pynvim import attach
 
 
@@ -35,7 +36,8 @@ class SpyUI:
     def run(self):
         """Run the loop."""
         def _req(name, arg):
-            print("req", name, arg)
+            # print("req", name, arg, file=sys.stderr)
+            pass
         self.nvim.run_loop(_req, self._not)
 
     def close(self):
@@ -56,7 +58,8 @@ class SpyUI:
         if name == "redraw":
             self._redraw(args)
         else:
-            print(name, args)
+            # print(name, args, file=sys.stderr)
+            pass
 
     def _redraw(self, args):
         for arg in args:
@@ -84,7 +87,8 @@ class SpyUI:
                     self.logger.info("\n%s", self.screen)
                     self.screen = screen
             else:
-                print(cmd, par)
+                # print(cmd, par, file=sys.stderr)
+                pass
 
     def _grid_resize(self, gr, width, height):
         assert gr == 1
