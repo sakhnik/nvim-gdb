@@ -28,24 +28,23 @@ lldb = argv[0]
 argv = argv[1:]
 
 # Create a named temporary file
-with tempfile.NamedTemporaryFile() as lldb_init:
-    lldb_init.write(f"command script import {this_dir}/lldb_commands.py\n"
-                    .encode())
-    lldb_init.write(b"command script add -f lldb_commands.init")
-    lldb_init.write(b" nvim-gdb-init\n")
-    lldb_init.write(f"nvim-gdb-init {server_addr}\n"
-                    .encode())
-    lldb_init.write(br"settings set frame-format")
-    lldb_init.write(br" frame #${frame.index}: ${frame.pc}{")
-    lldb_init.write(br" ${module.file.basename}{\`${function.name-with-args}")
-    lldb_init.write(br"{${frame.no-debug}${function.pc-offset}}}}")
-    lldb_init.write(br"{ at \032\032${line.file.fullpath}:${line.number}}")
-    lldb_init.write(br"{${function.is-optimized} [opt]}\n")
-    lldb_init.write(b"\n")
-    lldb_init.write(b"settings set auto-confirm true\n")
-    lldb_init.write(b"settings set stop-line-count-before 0\n")
-    lldb_init.write(b"settings set stop-line-count-after 0\n")
-    lldb_init.flush()
+with tempfile.TemporaryDirectory() as dirname:
+    lldb_init = os.path.join(dirname, "lldb_init")
+    with open(lldb_init, "w") as f:
+        f.write(f"command script import {this_dir}/lldb_commands.py\n")
+        f.write("command script add -f lldb_commands.init")
+        f.write(" nvim-gdb-init\n")
+        f.write(f"nvim-gdb-init {server_addr}\n")
+        f.write(r"settings set frame-format")
+        f.write(r" frame #${frame.index}: ${frame.pc}{")
+        f.write(r" ${module.file.basename}{\`${function.name-with-args}")
+        f.write(r"{${frame.no-debug}${function.pc-offset}}}}")
+        f.write(r"{ at \032\032${line.file.fullpath}:${line.number}}")
+        f.write(r"{${function.is-optimized} [opt]}\n")
+        f.write("\n")
+        f.write("settings set auto-confirm true\n")
+        f.write("settings set stop-line-count-before 0\n")
+        f.write("settings set stop-line-count-after 0\n")
     # Execute lldb finally with our custom initialization script
-    result = subprocess.run([lldb, '-S', lldb_init.name] + argv)
+    result = subprocess.run([lldb, '-S', lldb_init] + argv)
     sys.exit(result.returncode)

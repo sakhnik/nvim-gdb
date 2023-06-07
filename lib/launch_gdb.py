@@ -29,7 +29,8 @@ if gdb == 'rr-replay.py':
 # the rest are gdb arguments
 argv = argv[1:]
 
-# Create a named temporary file
+# Create a named temporary directory (a temporary file wouldn't be accessible
+# for other processes).
 with tempfile.TemporaryDirectory() as dirname:
     gdb_init = os.path.join(dirname, "gdb_init")
     with open(gdb_init, "w") as f:
