@@ -33,7 +33,7 @@ function Client.new(config, launch_cmd, client_cmd)
   local self = setmetatable({}, Client)
   self.config = config
   log.info("termwin_command", config:get('termwin_command'))
-  NvimGdb.vim.cmd(config:get('termwin_command'))
+  vim.api.nvim_command(config:get('termwin_command'))
   self.win = vim.api.nvim_get_current_win()
   self.client_id = nil
   self.is_active = false
@@ -47,7 +47,7 @@ function Client.new(config, launch_cmd, client_cmd)
     self.proxy_addr = self.sock_dir .. '/port'
     self.command = "python " .. _get_plugin_dir() .. "/lib/" .. launch_cmd .. " -a " .. self.proxy_addr .. " " .. client_cmd
   end
-  NvimGdb.vim.cmd "enew"
+  vim.api.nvim_command "enew"
   self.client_buf = vim.api.nvim_get_current_buf()
   self.buf_hidden_auid = -1
   return self
@@ -91,7 +91,7 @@ function Client:start()
     end,
     on_exit = function(--[[j]]_, code, --[[name]]_)
       if self.has_interacted and code == 0 then
-        NvimGdb.vim.cmd("sil! bw!")
+        vim.api.nvim_command("sil! bw!")
         NvimGdb.cleanup(cur_tabpage)
       end
     end
@@ -131,10 +131,10 @@ end
 function Client:_check_sticky()
   log.debug({"function Client:_check_sticky()"})
   local prev_win = vim.api.nvim_get_current_win()
-  NvimGdb.vim.cmd(self.config:get('termwin_command'))
+  vim.api.nvim_command(self.config:get('termwin_command'))
   local buf = vim.api.nvim_get_current_buf()
   if vim.api.nvim_buf_is_valid(self.client_buf) then
-    NvimGdb.vim.cmd('b ' .. self.client_buf)
+    vim.api.nvim_command('b ' .. self.client_buf)
   end
   vim.api.nvim_buf_delete(buf, {})
   self.win = vim.api.nvim_get_current_win()

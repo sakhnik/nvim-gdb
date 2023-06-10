@@ -115,7 +115,7 @@ def config_test(eng, post):
 for scope in ("bwtg"):gmatch'.' do
   for k, _ in pairs(vim.fn.eval(scope .. ':')) do
     if type(k) == "string" and k:find('^nvimgdb_') then
-      NvimGdb.vim.cmd('unlet ' .. scope .. ':' .. k)
+      vim.api.nvim_command('unlet ' .. scope .. ':' .. k)
     end
   end
 end

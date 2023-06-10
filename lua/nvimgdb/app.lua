@@ -41,10 +41,10 @@ function App.new(backend_name, launch_cmd, client_cmd)
   self.tabpage_created = false
   if getmetatable(NvimGdb.i(true)) == App then
     -- Create new tab for the new debugging view
-    NvimGdb.vim.cmd('tabnew')
+    vim.api.nvim_command('tabnew')
     vim.wo.winfixwidth = false
     vim.wo.winfixheight = false
-    NvimGdb.vim.cmd('silent wincmd o')
+    vim.api.nvim_command('silent wincmd o')
     self.tabpage_created = true
   end
 
@@ -93,7 +93,7 @@ function App:postinit()
   log.debug({"function App:postinit()"})
   -- Spawn the debugger, the parser should be ready by now.
   self.client:start()
-  NvimGdb.vim.cmd("doautocmd User NvimGdbStart")
+  vim.api.nvim_command("doautocmd User NvimGdbStart")
 
   -- Start insert mode in the debugger window
   vim.cmd("startinsert")
@@ -107,7 +107,7 @@ end
 -- @param tab number @tabpage number
 function App:cleanup(tab)
   log.debug({"function App:cleanup(", tab, ")"})
-  NvimGdb.vim.cmd("doautocmd User NvimGdbCleanup")
+  vim.api.nvim_command("doautocmd User NvimGdbCleanup")
 
   -- Execute scheduled destructors
   for _, destr in pairs(self.destructors) do
@@ -136,7 +136,7 @@ function App:cleanup(tab)
   if self.tabpage_created then
     for _, tabpage in ipairs(vim.api.nvim_list_tabpages()) do
       if tabpage == tab then
-        NvimGdb.vim.cmd("tabclose! " .. vim.api.nvim_tabpage_get_number(tabpage))
+        vim.api.nvim_command("tabclose! " .. vim.api.nvim_tabpage_get_number(tabpage))
         break
       end
     end
@@ -181,7 +181,7 @@ function App:create_watch(cmd, mods)
   if not mods or mods == '' then
     mods = 'vert'
   end
-  NvimGdb.vim.cmd(mods .. " new | set readonly buftype=nowrite")
+  vim.api.nvim_command(mods .. " new | set readonly buftype=nowrite")
   self.keymaps:dispatch_set()
   local buf = vim.api.nvim_get_current_buf()
   vim.api.nvim_buf_set_name(buf, cmd)
@@ -222,7 +222,7 @@ function App:create_watch(cmd, mods)
 
 
   -- Return the cursor to the previous window
-  NvimGdb.vim.cmd("wincmd l")
+  vim.api.nvim_command("wincmd l")
 end
 
 -- Toggle breakpoint in the cursor line
@@ -297,7 +297,7 @@ function App:on_buf_leave()
     -- Move the cursor to the end of the buffer
     local jump_bottom = self.config:get_or('jump_bottom_gdb_buf', false)
     if jump_bottom then
-      NvimGdb.vim.cmd("$")
+      vim.api.nvim_command("$")
     end
     return
   end

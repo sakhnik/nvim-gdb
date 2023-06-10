@@ -113,7 +113,7 @@ function Win:_with_saved_mode(func)
   local mode = vim.api.nvim_get_mode()
   func()
   if mode.mode:match("^[ti]$") ~= nil then
-    NvimGdb.vim.cmd("startinsert!")
+    vim.api.nvim_command("startinsert!")
   end
 end
 
@@ -123,7 +123,7 @@ function Win:_ensure_jump_window()
   if not self:_has_jump_win() then
     -- The jump window needs to be created first
     self:_with_saved_win(false, function()
-      NvimGdb.vim.cmd(self.config:get('codewin_command'))
+      vim.api.nvim_command(self.config:get('codewin_command'))
       self.jump_win = vim.api.nvim_get_current_win()
       -- Remember the '[No name]' buffer for later cleanup
       self.buffers[vim.api.nvim_get_current_buf()] = true
@@ -210,7 +210,7 @@ function Win:jump(file, line)
 
   -- Goto the proper line and set the cursor on it
   self:_with_saved_win(false, function()
-    NvimGdb.vim.cmd(string.format("noa call nvim_set_current_win(%d)", self.jump_win))
+    vim.api.nvim_command(string.format("noa call nvim_set_current_win(%d)", self.jump_win))
 
     -- If there is no required file or it has fewer lines, avoid settings cursor
     -- below the last line
@@ -227,9 +227,9 @@ function Win:jump(file, line)
     -- So we'll have to adjust the view manually.
     local scroll_off = self.config:get_or('set_scroll_off', 1)
     self:_adjust_jump_win_view(line, scroll_off)
-    NvimGdb.vim.cmd("normal! zv")
+    vim.api.nvim_command("normal! zv")
   end)
-  NvimGdb.vim.cmd("redraw")
+  vim.api.nvim_command("redraw")
 end
 
 -- Test whether an item is in the list
@@ -250,7 +250,7 @@ end
 function Win:_open_file(cmd)
   log.debug({"function Win:_open_file(", cmd, ")"})
   local open_buffers = vim.api.nvim_list_bufs()
-  NvimGdb.vim.cmd(cmd)
+  vim.api.nvim_command(cmd)
   local new_buffer = vim.api.nvim_get_current_buf()
   if not contains(new_buffer, open_buffers) then
     -- A new buffer was open specifically for debugging,
@@ -281,7 +281,7 @@ function Win:query_breakpoints()
   if fname ~= '' and fname:find(' ') == nil then
     -- Query the breakpoints for the shown file
     self.breakpoint:query(buf_num, fname)
-    NvimGdb.vim.cmd("redraw")
+    vim.api.nvim_command("redraw")
   end
 end
 
@@ -297,8 +297,8 @@ function Win:lopen(cmd, mods)
         vim.api.nvim_set_current_win(self.jump_win)
       end
       local lgetexpr = "lgetexpr luaeval('NvimGdb.i():get_for_llist(_A[1])', ['" .. cmd .. "'])"
-      NvimGdb.vim.cmd(lgetexpr)
-      NvimGdb.vim.cmd("exe 'normal <c-o>' | " .. mods .. " lopen")
+      vim.api.nvim_command(lgetexpr)
+      vim.api.nvim_command("exe 'normal <c-o>' | " .. mods .. " lopen")
     end)
   end)
 end

@@ -12,7 +12,6 @@ NvimGdb = {
   apps_size = 0,
 }
 NvimGdb.__index = NvimGdb
-NvimGdb.vim = require 'nvimgdb.compat'
 NvimGdb.proxy_ready = {}
 
 -- Create a new instance of the debugger in the current tabpage.
