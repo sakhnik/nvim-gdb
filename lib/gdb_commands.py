@@ -1,13 +1,13 @@
 """The program injected into GDB to provide a side channel
 to the plugin."""
 
-import threading
 import gdb
-import socket
-import sys
+import json
 import os
 import re
-import json
+import socket
+import sys
+import threading
 
 
 class NvimGdbInit(gdb.Command):
