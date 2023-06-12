@@ -9,7 +9,7 @@ import pytest
 def setup(eng):
     '''The fixture for quit tests.'''
     num_bufs = eng.count_buffers()
-    eng.feed(":GdbStart ./dummy-gdb.sh<cr>")
+    eng.feed(":GdbStart gdb -q<cr>")
     eng.feed('<esc>')
     yield True
     # Check that no new buffers have left
@@ -32,7 +32,7 @@ def test_gdb_eof(setup, eng):
 def test_gdb_tabclose(setup, eng):
     '''Quit by closing the tab.'''
     assert setup
-    eng.feed("GdbStart ./dummy-gdb.sh<cr>")
+    eng.feed("GdbStart gdb -q<cr>")
     eng.feed('<esc>')
     eng.feed(":tabclose<cr>")
     eng.feed(":GdbDebugStop<cr>")
