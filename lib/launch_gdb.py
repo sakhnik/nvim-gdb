@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 import os
+import subprocess
 import sys
 import tempfile
-from proxy.gdb import Gdb
 
 
 # Prepare gdb initialization commands
@@ -40,8 +40,9 @@ with tempfile.TemporaryDirectory() as dirname:
         f.write(r'python gdb.prompt_hook = lambda p: p +')
         f.write(r' ("" if p.endswith("\x01\x1a\x1a\x1a\x02") else')
         f.write(r' "\x01\x1a\x1a\x1a\x02")')
-    # Execute gdb finally through the proxy with our custom
-    # initialization script
-    args = ['-a', server_addr, gdb, '-f', '-ix', gdb_init] + argv
-    gdb_proxy = Gdb(args)
-    sys.exit(gdb_proxy.run())
+        f.write("\n")
+        f.write(f"source {this_dir}/gdb_commands.py\n")
+        f.write(f"nvim-gdb-init {server_addr}\n")
+    # Execute gdb finally with our custom initialization script
+    result = subprocess.run([gdb, '-f', '-ix', gdb_init] + argv)
+    sys.exit(result.returncode)
