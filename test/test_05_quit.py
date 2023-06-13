@@ -6,10 +6,10 @@ import pytest
 
 
 @pytest.fixture(scope='function')
-def setup(eng):
+def setup(eng, backend_express):
     '''The fixture for quit tests.'''
     num_bufs = eng.count_buffers()
-    eng.feed(":GdbStart gdb -q<cr>")
+    eng.feed(backend_express['launch'])
     eng.feed('<esc>')
     yield True
     # Check that no new buffers have left
