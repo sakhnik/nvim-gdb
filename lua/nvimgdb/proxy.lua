@@ -45,9 +45,9 @@ function Proxy:_ensure_connected()
   if self.server_port ~= nil then
     return true
   end
-  local lines = io.lines(self.proxy_addr)
-  if lines == nil then
-    log.warn(self.proxy_addr .. ' not available yet')
+  local success, lines = pcall(io.lines, self.proxy_addr)
+  if not success then
+    log.warn({self.proxy_addr, 'not available yet', lines})
     return false
   end
   local line = assert(lines())
