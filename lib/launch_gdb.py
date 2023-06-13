@@ -29,6 +29,8 @@ if gdb == 'rr-replay.py':
 # the rest are gdb arguments
 argv = argv[1:]
 
+exit_code = 0
+
 # Create a named temporary directory (a temporary file wouldn't be accessible
 # for other processes).
 with tempfile.TemporaryDirectory() as dirname:
@@ -45,4 +47,6 @@ with tempfile.TemporaryDirectory() as dirname:
         f.write(f"nvim-gdb-init {server_addr}\n")
     # Execute gdb finally with our custom initialization script
     result = subprocess.run([gdb, '-f', '-ix', gdb_init] + argv)
-    sys.exit(result.returncode)
+    exit_code = result.returncode
+
+sys.exit(exit_code)

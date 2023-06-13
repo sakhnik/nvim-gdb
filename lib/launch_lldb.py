@@ -27,6 +27,8 @@ lldb = argv[0]
 # the rest are lldb arguments
 argv = argv[1:]
 
+exit_code = 0
+
 # Create a named temporary file
 with tempfile.TemporaryDirectory() as dirname:
     lldb_init = os.path.join(dirname, "lldb_init")
@@ -47,4 +49,6 @@ with tempfile.TemporaryDirectory() as dirname:
         f.write("settings set stop-line-count-after 0\n")
     # Execute lldb finally with our custom initialization script
     result = subprocess.run([lldb, '-S', lldb_init] + argv)
-    sys.exit(result.returncode)
+    exit_code = result.returncode
+
+sys.exit(exit_code)
