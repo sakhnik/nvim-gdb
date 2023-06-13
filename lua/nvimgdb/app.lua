@@ -117,6 +117,9 @@ function App:cleanup(tab)
   -- Remove from 'errorformat' for the given backend.
   App.efmmgr.teardown(self.backend.get_error_formats())
 
+  -- Destroy the parser
+  self.parser:cleanup()
+
   -- Clean up the breakpoint signs
   self.breakpoint:reset_signs()
 
