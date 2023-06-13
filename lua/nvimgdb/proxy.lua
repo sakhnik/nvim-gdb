@@ -79,32 +79,32 @@ function Proxy:query(request)
   local cur_tab = vim.api.nvim_get_current_tabpage()
   NvimGdb.proxy_ready[cur_tab] = false
 
-  local res, errmsg = uv.udp_send(self.sock, request, '127.0.0.1', self.server_port, function(err)
-    if err ~= nil then
-      o_err = err
+  local res, errmsg = uv.udp_recv_start(self.sock, function(err2, data, --[[addr]]_, --[[flags]]_)
+    if err2 ~= nil then
+      o_err = err2
       NvimGdb.proxy_ready[cur_tab] = true
       return
     end
-
-    local res, errmsg = uv.udp_recv_start(self.sock, function(err2, data, --[[addr]]_, --[[flags]]_)
-      if err2 ~= nil then
-        o_err = err2
-        NvimGdb.proxy_ready[cur_tab] = true
-        return
-      end
-      if data ~= nil then
-        o_resp = data
-        NvimGdb.proxy_ready[cur_tab] = true
-        return
-      end
+    if data ~= nil then
+      o_resp = data
       NvimGdb.proxy_ready[cur_tab] = true
-    end)
-    if res == nil then
-      log.error("Failed to start receiving from proxy", errmsg)
+      return
     end
+    NvimGdb.proxy_ready[cur_tab] = true
   end)
   if res == nil then
-    log.error("Failed to send to proxy", errmsg)
+    log.error("Failed to start receiving from proxy", errmsg)
+  else
+    res, errmsg = uv.udp_send(self.sock, request, '127.0.0.1', self.server_port, function(err)
+      if err ~= nil then
+        o_err = err
+        NvimGdb.proxy_ready[cur_tab] = true
+        return
+      end
+    end)
+    if res == nil then
+      log.error("Failed to send to proxy", errmsg)
+    end
   end
 
   if vim.fn.wait(500, "luaeval('NvimGdb.proxy_ready[" .. cur_tab .. "]')", 50) ~= 0 then
