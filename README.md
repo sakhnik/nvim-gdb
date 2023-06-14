@@ -119,7 +119,7 @@ The plugin, proxy and screen logs can be downloaded as the artifacts to be analy
 locally.
 
 To ease reproduction of an issue, set the environment variable `CI`, and
-launch NeoVim with the auxiliary script `test/nvim`. The screen cast will
+launch NeoVim with the auxiliary script `test/nvim.py`. The screen cast will
 be written to the log file `spy_ui.log`. Alternatively, consider recording
 the terminal script with the ubiquitous command `script`.
 

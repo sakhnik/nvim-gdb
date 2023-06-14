@@ -11,18 +11,9 @@ local log = require'nvimgdb.log'
 -- @field private buffer string @debugger output collected so far
 -- @field private byte_count number @monotonously increasing processed byte counter
 -- @field private parsing_progress number[] @ordered byte counters to ensure parsing in the right order
+-- @field private timers table<uv_timer_t, boolean> @scheduled timers
 local ParserImpl = {}
 ParserImpl.__index = ParserImpl
-
--- Constructor
--- @param actions ParserActions @parser callbacks
--- @return ParserImpl
-function ParserImpl.new(actions)
-  log.debug({"function ParserImpl.new(", actions, ")"})
-  local self = setmetatable({}, ParserImpl)
-  self:_init(actions)
-  return self
-end
 
 -- Initialization
 -- @param actions ParserActions @parser callbacks
@@ -36,6 +27,17 @@ function ParserImpl:_init(actions)
   self.buffer = '\n'
   self.byte_count = 1
   self.parsing_progress = {}
+  self.timers = {}
+end
+
+-- Destructor
+function ParserImpl:cleanup()
+  -- Stop the remaining timers
+  for timer, _ in pairs(self.timers) do
+    timer:stop()
+    timer:close()
+  end
+  self.timers = {}
 end
 
 -- @alias ParserState ParserTransition[]
@@ -143,7 +145,11 @@ end
 function ParserImpl:_delay_parsing(delay_ms, byte_count)
   log.debug({"function ParserImpl:_delay_parsing(", delay_ms, byte_count, ")"})
   local timer = vim.loop.new_timer()
+  self.timers[timer] = true
   timer:start(delay_ms, 0, vim.schedule_wrap(function()
+    self.timers[timer] = nil
+    timer:stop()
+    timer:close()
     self:delay_elapsed(byte_count)
   end))
 end
