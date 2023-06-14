@@ -47,54 +47,18 @@ end
 -- @return FileBreakpoints @collection of actual breakpoints
 function C.query_breakpoints(fname, proxy)
   log.info("Query breakpoints for " .. fname)
-  local response = proxy:query('handle-command info breakpoints')
-  if response == nil or response == '' then
+  local resp = proxy:query('info-breakpoints ' .. fname)
+  if resp == nil or resp == '' then
     return {}
   end
-
-  -- Select lines in the current file with enabled breakpoints.
-  local breaks = {}
-  -- There can be up to two lines for one breakpoint, filename:lnum may be
-  -- on the second line if the screen is too narrow.
-  local bid = nil
-  for line in response:gmatch("[^\n\r]+") do
-    local fields = {}
-    for field in line:gmatch("[^%s]+") do
-      fields[#fields+1] = field
-    end
-
-    if #fields >= 5 and fields[5]:match("0x[0-9a-zA-Z]+") then
-      if fields[4] == 'y' then    -- Is enabled?
-        bid = fields[1]:gmatch("[^.]+")()
-      else
-        bid = nil
-      end
-    end
-
-    if #fields >= 2 and fields[#fields - 1] == "at" then
-      -- file.cpp:line
-      local bpfname, lnum = fields[#fields]:match("^([^:]+):(%d+)$")
-      if bpfname ~= nil then
-        local is_end_match = fname:sub(-#bpfname) == bpfname  -- ends with
-        -- Try with the real path too
-        bpfname = vim.loop.fs_realpath(bpfname)
-        local is_end_match_full_path = bpfname ~= nil and fname:sub(-#bpfname) == bpfname
-
-        -- If a breakpoint has multiple locations, GDB only
-        -- allows to disable by the breakpoint number, not
-        -- location number.  For instance, 1.4 -> 1
-        if is_end_match or is_end_match_full_path then
-          local list = breaks[lnum]
-          if list == nil then
-            breaks[lnum] = {bid}
-          else
-            list[#list + 1] = bid
-          end
-        end
-      end
-    end
+  -- We expect the proxies to send breakpoints for a given file
+  -- as a map of lines to array of breakpoint ids set in those lines.
+  local breaks = vim.fn.json_decode(resp)
+  local err = breaks._error
+  if err ~= nil then
+    log.error("Can't get breakpoints: " .. err)
+    return {}
   end
-
   return breaks
 end
 

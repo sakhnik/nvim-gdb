@@ -17,6 +17,7 @@ class NvimGdbInit(gdb.Command):
         super(NvimGdbInit, self).__init__("nvim-gdb-init", gdb.COMMAND_OBSCURE)
         self.quit = True
         self.thrd = None
+        self.fallback_to_parsing = False
 
     def invoke(self, arg, from_tty):
         if not self.thrd:
@@ -75,23 +76,30 @@ class NvimGdbInit(gdb.Command):
             except OSError:
                 pass
 
+    def _get_breaks_provider(self):
+        # Older versions of GDB may lack attribute .locations in
+        # the breakpoint class, will have to parse `info breakpoints` then.
+        if not self.fallback_to_parsing:
+            return self._enum_breaks()
+        return self._enum_breaks_fallback()
+
     def _get_breaks(self, fname: str):
         """Get list of enabled breakpoints for a given source file."""
         breaks = {}
 
-        for path, line, bid in self._enum_breaks():
-            # See whether the breakpoint is in the file in question
-            if fname == path:
-                try:
-                    breaks[line].append(bid)
-                except KeyError:
-                    breaks[line] = [bid]
+        try:
+            for path, line, bid in self._get_breaks_provider():
+                if fname == path:
+                    breaks.setdefault(line, []).append(bid)
+        except AttributeError:
+            self.fallback_to_parsing = True
+            return self._get_breaks(fname)
 
         # Return the filtered breakpoints
         return json.dumps(breaks)
 
     def _enum_breaks(self):
-        """Get list of enabled breakpoints for a given source file."""
+        """Get a list of all enabled breakpoints."""
         # Consider every breakpoint while skipping over the disabled ones
         for bp in gdb.breakpoints():
             if not bp.is_valid() or not bp.enabled:
@@ -106,12 +114,40 @@ class NvimGdbInit(gdb.Command):
                 else:
                     yield filename, line, bid
 
+    def _enum_breaks_fallback(self):
+        """Get a list of all enabled breakpoints by parsing
+        `info breakpoints` output."""
+
+        # There can be up to two lines for one breakpoint, filename:lnum may be
+        # on the second line if the screen is too narrow.
+        bid = None
+        response = gdb.execute('info breakpoints', False, True)
+        for line in re.split(r"[\n\r]+", response):
+            fields = re.split(r"[\s]+", line)
+
+            if len(fields) >= 5 and re.match("0x[0-9a-zA-Z]+", fields[4]):
+                if fields[3] != 'y':    # Is enabled?
+                    bid = None
+                else:
+                    bid = re.match("[^.]+", fields[0]).group(0)
+
+            if len(fields) >= 2 and fields[-2] == "at":
+                # file.cpp:line
+                m = re.match(r"^([^:]+):(\d+)$", fields[-1])
+                if m and bid:
+                    bpfname, lnum = m.group(1), m.group(2)
+                    yield bpfname, lnum, bid
+
     def _get_all_breaks(self):
         """Get list of all enabled breakpoints suitable for location
         list."""
         breaks = []
-        for path, line, bid in self._enum_breaks():
-            breaks.append(f"{path}:{line} breakpoint {bid}")
+        try:
+            for path, line, bid in self._get_breaks_provider():
+                breaks.append(f"{path}:{line} breakpoint {bid}")
+        except AttributeError:
+            self.fallback_to_parsing = True
+            return self._get_all_breaks()
         return "\n".join(breaks)
 
 
