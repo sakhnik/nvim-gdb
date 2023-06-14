@@ -10,7 +10,7 @@ local uv = vim.loop
 -- @field private client_id number @terminal job handler
 -- @field private is_active boolean @true if the debugger has been launched
 -- @field private has_interacted boolean @true if the debugger was interactive
--- @field private sock_dir string @temporary directory for the proxy address
+-- @field private tmp_dir string @temporary directory for the proxy address
 -- @field private proxy_addr string @path to the file with proxy port
 -- @field private command string @complete command to launch the debugger (including proxy)
 -- @field private client_buf number @terminal buffer handler
@@ -39,13 +39,13 @@ function Client.new(config, launch_cmd, client_cmd)
   self.is_active = false
   self.has_interacted = false
   -- Create a temporary unique directory for all the sockets.
-  self.sock_dir = uv.fs_mkdtemp(uv.os_tmpdir() .. '/nvimgdb-sock-XXXXXX')
+  self.tmp_dir = uv.fs_mkdtemp(uv.os_tmpdir() .. '/nvimgdb-XXXXXX')
 
   -- Prepare the debugger command to run
   self.command = client_cmd
   if launch_cmd ~= nil then
-    self.proxy_addr = self.sock_dir .. '/port'
-    self.command = "python3 " .. _get_plugin_dir() .. "/lib/" .. launch_cmd .. " -a " .. self.proxy_addr .. " " .. client_cmd
+    self.proxy_addr = self.tmp_dir .. '/port'
+    self.command = "python3 " .. _get_plugin_dir() .. "/lib/" .. launch_cmd .. " -t " .. self.tmp_dir .. " " .. client_cmd
   end
   NvimGdb.vim.cmd "enew"
   self.client_buf = vim.api.nvim_get_current_buf()
@@ -64,7 +64,7 @@ function Client:cleanup()
   if self.proxy_addr then
     os.remove(self.proxy_addr)
   end
-  assert(os.remove(self.sock_dir))
+  vim.fn.delete(self.tmp_dir, "rf")
 end
 
 function Client:_cleanup_buf_hidden()
