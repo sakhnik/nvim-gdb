@@ -61,14 +61,14 @@ def _get_all_breaks(debugger: lldb.SBDebugger):
     return "\n".join(breaks)
 
 
-def _server(server_address: str, debugger_id: int):
+def _server(server_address: str, debugger: lldb.SBDebugger):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind(('127.0.0.1', 0))
     _, port = sock.getsockname()
     with open(server_address, 'w') as f:
         f.write(f"{port}")
 
-    debugger = lldb.SBDebugger_FindDebuggerWithID(debugger_id)
+    # debugger = lldb.SBDebugger_FindDebuggerWithID(debugger_id)
 
     try:
         while True:
@@ -113,5 +113,5 @@ def _server(server_address: str, debugger_id: int):
 def init(debugger: lldb.SBDebugger, command: str, _3, _4):
     """Entry point."""
     server_address = command
-    thrd = threading.Thread(target=_server, args=(server_address, debugger.GetID()))
+    thrd = threading.Thread(target=_server, args=(server_address, debugger))
     thrd.start()

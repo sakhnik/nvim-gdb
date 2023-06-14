@@ -10,18 +10,28 @@ local _warn = health.warn or health.report_warn
 local _error = health.error or health.report_error
 local _info = health.info or health.report_info
 
-local function check_cmd(cmd, args)
-  local full_cmd = cmd .. ' ' .. args
-  local handle = io.popen(full_cmd)
+local function check_output(msg, cmd, filter)
+  local handle = io.popen(cmd)
   if handle == nil then
-    _error("Can't run `" .. full_cmd .. "`")
+    _error("Can't run `" .. cmd .. "`")
     return false
   end
   local result = handle:read "*a"
   handle:close()
-  local version = vim.split(result, "\n")[1]
-  _ok("`" .. cmd .. "` found " .. version)
+  _ok(msg .. " " .. filter(result))
   return true
+end
+
+local function get_whole_output(output)
+  return output
+end
+
+local function get_version(output)
+  return vim.split(output, "\n")[1]
+end
+
+local function check_cmd(cmd, args)
+  return check_output("`" .. cmd .. "` found ", cmd .. ' ' .. args, get_version)
 end
 
 local function check_executable(exe, args)
@@ -37,6 +47,7 @@ M.check = function()
   local has_python = check_cmd("env python3", "--version")
   _start "GDB backend"
   check_executable("gdb", "--version")
+  check_output("GDB Python version is ", "gdb --batch -ex 'python import sys; print(sys.version)'", get_version)
   _start "LLDB backend"
   local has_lldb = check_executable("lldb", "--version")
   _start "RR backend"

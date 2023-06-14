@@ -6,6 +6,7 @@ import pytest
 import config
 import os
 from engine import Engine
+import pynvim
 
 
 @pytest.fixture(scope='session')
@@ -65,7 +66,10 @@ def post(eng, request):
 
     yield True
 
-    eng.exe("GdbDebugStop")
+    try:
+        eng.exe("GdbDebugStop")
+    except pynvim.api.common.NvimError:
+        pass
     assert eng.eval("tabpagenr('$')") == 1
     assert {} == eng.get_signs()
     assert 0 == eng.count_termbuffers()
