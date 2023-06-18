@@ -3,6 +3,7 @@
 import os
 import tempfile
 import pytest
+import sys
 
 
 def test_detect(eng, backend):
@@ -19,9 +20,10 @@ def test_detect(eng, backend):
 @pytest.fixture(scope='function')
 def cd_tmp():
     '''Fixture to change directory temporarily.'''
-    old_dir = os.getcwd()
+    old_dir = os.path.realpath('.')
     os.chdir(tempfile.gettempdir())
-    yield os.path.join(old_dir, 'a.out')
+    aout = 'a.out' if sys.platform != 'win32' else 'a.exe'
+    yield os.path.join(old_dir, aout)
     os.chdir(old_dir)
 
 
