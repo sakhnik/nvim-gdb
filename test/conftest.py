@@ -5,6 +5,7 @@
 import pytest
 import config
 import os
+import sys
 from engine import Engine
 import pynvim
 
@@ -17,11 +18,13 @@ def eng():
     engine.close()
 
 
+aout = "a.out" if sys.platform != 'win32' else 'a.exe'
+
 BACKENDS = {}
 if "gdb" in config.BACKEND_NAMES:
     BACKENDS['gdb'] = {
         'name': 'gdb',
-        'launch': ' dd a.out\n',
+        'launch': f' dd {aout}\n',
         'tbreak_main': 'tbreak main\n',
         'break_main': 'break main\n',
         'break_bar': 'break Bar\n',
@@ -31,7 +34,7 @@ if "gdb" in config.BACKEND_NAMES:
 if "lldb" in config.BACKEND_NAMES:
     BACKENDS['lldb'] = {
         'name': 'lldb',
-        'launch': ' dl a.out\n',
+        'launch': f' dl {aout}\n',
         'tbreak_main': 'breakpoint set -o true -n main\n',
         'break_main': 'breakpoint set -n main\n',
         'break_bar': 'breakpoint set --fullname Bar\n',
