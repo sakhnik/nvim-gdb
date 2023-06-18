@@ -1,6 +1,7 @@
 '''Test generic operation.'''
 
 import pytest
+import sys
 
 
 def test_smoke(eng, backend):
@@ -60,8 +61,13 @@ def test_interrupt(eng, backend):
     assert eng.wait_paused() is None
     eng.feed('run 4294967295\n', 1000)
     eng.feed('<esc>')
+    assert not eng.exec_lua("return NvimGdb.i().parser:is_paused()")
     eng.feed(':GdbInterrupt\n')
-    assert eng.wait_signs({'cur': 'test.cpp:22'}) is None
+    if sys.platform != 'win32':
+        assert eng.wait_signs({'cur': 'test.cpp:22'}) is None
+    else:
+        # Most likely to break in the kernel code
+        assert eng.wait_paused() is None
 
 
 def test_until(eng, backend):

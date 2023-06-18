@@ -30,6 +30,7 @@ function C.create_parser(actions)
   local re_prompt = '%(gdb%) \x1a\x1a\x1a'
   local re_jump = '[\r\n]\x1a\x1a([A-Z]*:*[^:]+):(%d+):%d+'
   self.add_trans(self.paused, '[\r\n]Continuing%.', self._paused_continue)
+  self.add_trans(self.paused, '[\r\n]Starting program:', self._paused_continue)
   self.add_trans(self.paused, re_jump, self._paused_jump)
   self.add_trans(self.paused, re_prompt, self._query_b)
   self.add_trans(self.running, '%sBreakpoint %d+', self._query_b)

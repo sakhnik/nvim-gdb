@@ -29,6 +29,7 @@ function C.create_parser(actions)
 
   local re_prompt = '%s%(lldb%) %(lldb%) $'
   self.add_trans(self.paused, 'Process %d+ resuming', self._paused_continue)
+  self.add_trans(self.paused, 'Process %d+ launched', self._paused_continue)
   self.add_trans(self.paused, ' at ([^:]+):(%d+)', self._paused_jump)
   self.add_trans(self.paused, re_prompt, self._query_b)
   self.add_trans(self.running, 'Process %d+ stopped', self._paused)
