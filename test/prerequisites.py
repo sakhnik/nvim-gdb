@@ -23,11 +23,12 @@ class Prerequisites():
             bashdb = self.check_exe('bashdb', '5')
             if bashdb:
                 bf.write("bashdb\n")
-            cmake = self.check_exe('cmake', '3.14.7')  # need File API
-            if cmake:
-                bf.write("cmake\n")
-                self.echo("Running CMake\n")
-                subprocess.run(['cmake', 'src', '-B', 'src/build'])
+            if sys.platform != 'win32':
+                cmake = self.check_exe('cmake', '3.14.7')  # need File API
+                if cmake:
+                    bf.write("cmake\n")
+                    self.echo("Running CMake\n")
+                    subprocess.run(['cmake', 'src', '-B', 'src/build'])
 
         self.compile_src()
 

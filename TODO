@@ -5,5 +5,6 @@
 - pty resizing with neovim
 - Unicode must be enabled globall for now: `chcp 65001` doesn't help per session
 - Press any key to exit: need to unblock msvcrt.getch() somehow
+- cmake test in win32?
 
 Store and load breakpoints between sessions
