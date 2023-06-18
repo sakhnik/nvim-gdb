@@ -51,7 +51,7 @@ endfunction
 
 if !exists('g:nvimgdb_disable_start_keymaps') || !g:nvimgdb_disable_start_keymaps
   nnoremap <leader>dd :GdbStart gdb -q 
-  nnoremap <leader>dl :GdbStartLLDB lldb
+  nnoremap <leader>dl :GdbStartLLDB lldb 
   nnoremap <leader>dp :GdbStartPDB python -m pdb main.py
   nnoremap <leader>db :GdbStartBashDB bashdb main.sh
   nnoremap <leader>dr :GdbStartRR
