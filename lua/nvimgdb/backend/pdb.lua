@@ -28,6 +28,9 @@ function C.create_parser(actions)
   self:_init(actions)
 
   local re_jump = '[\r\n ]> ([^(]+)%((%d+)%)[^(]+%(%)'
+  if vim.loop.os_uname().sysname:find('Windows') ~= nil then
+    re_jump = '> ([^(]+)%((%d+)%)[^(]+%(%)'
+  end
   local re_prompt = '[\r\n]%(Pdb%+?%+?%) $'
   self.add_trans(self.paused, re_jump, self._paused_jump)
   self.add_trans(self.paused, re_prompt, self._query_b)
@@ -67,7 +70,11 @@ function C.query_breakpoints(fname, proxy)
     end
     local bid = tokens[1]
     if tokens[2] == 'breakpoint' and tokens[4] == 'yes' then
-      local bpfname, lnum = tokens[#tokens]:match("^([^:]+):(.+)$")
+      local jump_regex = "^([^:]+):([0-9]+)$"
+      if vim.loop.os_uname().sysname:find('Windows') ~= nil then
+        jump_regex = "^([^:]+:[^:]+):([0-9]+)$"
+      end
+      local bpfname, lnum = tokens[#tokens]:match(jump_regex)
       if fname == bpfname then
         local list = breaks[lnum]
         if list == nil then

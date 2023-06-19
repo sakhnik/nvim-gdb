@@ -8,7 +8,6 @@ to a user.
 """
 
 import re
-import sys
 
 from .impl import Impl
 

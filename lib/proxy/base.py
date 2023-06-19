@@ -102,12 +102,10 @@ class Base:
     def set_filter(self, filt, handler):
         """Push a new filter with given handler."""
         self.logger.info("set_filter %s %s", str(filt), str(handler))
+        # Only one command at a time.
         if len(self.filter) == 1:
             self.logger.info("filter accepted")
-            # Only one command at a time. Should be an assertion here,
-            # but we wouldn't want to terminate the program.
-            if self.filter:
-                self._timeout()
+            self._timeout()
             self.filter.append((filt, handler))
             self.filter_changed(True)
             return True
@@ -166,7 +164,8 @@ class Base:
                              command.decode('utf-8'))
             if command:
                 self.write_master(command)
-                self.write_master(b'\n')
+                self.write_master(b"\n" if sys.platform != 'win32'
+                                  else b"\r\n")
 
     @staticmethod
     def _write(fdesc, data):
@@ -186,7 +185,7 @@ class Base:
 
     def write_stdout(self, data):
         """Write to stdout for the child process."""
-        self.logger.debug("%s", data)
+        self.logger.debug("Received: <%s>", data)
         filt, handler = self.filter[-1]
         data, filtered = filt.filter(data)
         self._write(sys.stdout.fileno(), data)
