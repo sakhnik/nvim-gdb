@@ -72,6 +72,7 @@ function C.query_breakpoints(fname, proxy)
     if tokens[2] == 'breakpoint' and tokens[4] == 'yes' then
       local jump_regex = "^([^:]+):([0-9]+)$"
       if vim.loop.os_uname().sysname:find('Windows') ~= nil then
+        -- c:\full\path\test.py
         jump_regex = "^([^:]+:[^:]+):([0-9]+)$"
       end
       local bpfname, lnum = tokens[#tokens]:match(jump_regex)

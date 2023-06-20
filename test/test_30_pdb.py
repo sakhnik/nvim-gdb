@@ -8,7 +8,9 @@ def test_smoke(eng, post, terminal_end, count_stops):
     eng.feed(' dp<cr>')
     assert count_stops(1) is None
     eng.feed('tbreak _main<cr>')
+    assert count_stops(2) is None
     eng.feed('cont<cr>')
+    assert count_stops(3) is None
     eng.feed('<esc>')
 
     assert eng.wait_signs({'cur': 'main.py:15'}) is None
@@ -86,7 +88,9 @@ def test_until(eng, post, terminal_end, count_stops):
     eng.feed(' dp<cr>')
     assert count_stops(1) is None
     eng.feed('tbreak _main<cr>')
+    assert count_stops(2) is None
     eng.feed('cont<cr>')
+    assert count_stops(3) is None
     eng.feed('<esc>')
 
     eng.feed('<c-w>w')
@@ -102,10 +106,13 @@ def test_eval(eng, post, terminal_end, count_stops):
     eng.feed(' dp<cr>')
     assert count_stops(1) is None
     eng.feed('tbreak _main<cr>')
+    assert count_stops(2) is None
     eng.feed('cont<cr>')
+    assert count_stops(3) is None
     eng.feed('<esc>')
     eng.feed('<c-w>w')
     eng.feed('<f10>')
+    assert count_stops(4) is None
 
     eng.feed('^<f9>')
     assert eng.exec_lua('return NvimGdb.i()._last_command') == 'print(_foo)'
@@ -136,7 +143,9 @@ def test_repeat_last_command(eng, post, terminal_end, count_stops):
     eng.feed(' dp<cr>')
     assert count_stops(1) is None
     eng.feed('tbreak _main<cr>')
+    assert count_stops(2) is None
     eng.feed('cont<cr>')
+    assert count_stops(3) is None
 
     assert eng.wait_signs({'cur': 'main.py:15'}) is None
 

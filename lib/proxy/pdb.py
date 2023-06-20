@@ -8,6 +8,7 @@ to a user.
 """
 
 import re
+import sys
 
 from .impl import Impl
 
@@ -18,7 +19,10 @@ class Pdb(Impl):
     def __init__(self, argv: [str]):
         """ctor."""
         super().__init__("PDB", argv)
-        self.prompt = re.compile(rb"[\n\r]\(Pdb\+?\+?\) ")
+        if sys.platform != 'win32':
+            self.prompt = re.compile(rb"[\n\r]\(Pdb\+?\+?\) ")
+        else:
+            self.prompt = re.compile(rb"[\n\r]\(Pdb\+?\+?\) *")
 
     def get_prompt(self):
         return self.prompt

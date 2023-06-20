@@ -152,7 +152,11 @@ end
 function Client:send_line(data)
   log.debug({"function Client:send_line(", data, ")"})
   log.debug({"send_line", data})
-  vim.fn.chansend(self.client_id, data .. "\n")
+  local cr = "\n"
+  if vim.loop.os_uname().sysname:find('Windows') ~= nil then
+    cr = "\r"
+  end
+  vim.fn.chansend(self.client_id, data .. cr)
 end
 
 -- Get the client terminal buffer.
