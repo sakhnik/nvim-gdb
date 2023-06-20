@@ -136,3 +136,22 @@ def cd_to_cmake(eng):
     yield True
     eng.exe("bd")
     eng.exe("cd ..")
+
+
+@pytest.fixture(scope='function')
+def count_stops(eng):
+    """Allow waiting for the specific count of debugger prompts appeared."""
+    eng.exe("let g:prompt = 0")
+    eng.exe("augroup pdbtest | au! | au! User NvimGdbQuery let g:prompt += 1"
+            " | augroup END")
+
+    def wait_for(count, deadline=2000):
+        eng.wait_for(
+            lambda: eng.eval("g:prompt"),
+            lambda res: res >= count,
+            deadline
+        )
+    yield wait_for
+
+    eng.exe("au! pdbtest | augroup! pdbtest")
+    eng.exe("unlet g:prompt")

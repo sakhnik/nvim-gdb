@@ -1,12 +1,12 @@
 '''Test PDB support.'''
 
 
-def test_smoke(eng, post, terminal_end):
+def test_smoke(eng, post, terminal_end, count_stops):
     '''Test a generic use case.'''
     assert post
     assert terminal_end
-    eng.feed(' dp')
-    eng.feed('\n', 1000)
+    eng.feed(' dp\n')
+    assert count_stops(1) is None
     eng.feed('tbreak _main\n')
     eng.feed('cont\n')
     eng.feed('<esc>')
@@ -32,12 +32,12 @@ def test_smoke(eng, post, terminal_end):
     assert eng.wait_signs({'cur': 'main.py:1'}) is None
 
 
-def test_break(eng, post, terminal_end):
+def test_break(eng, post, terminal_end, count_stops):
     '''Test toggling breakpoints.'''
     assert post
     assert terminal_end
-    eng.feed(' dp')
-    eng.feed('\n', 1000)
+    eng.feed(' dp\n')
+    assert count_stops(1) is None
     eng.feed('<esc>')
 
     eng.feed('<esc><c-w>k')
@@ -52,12 +52,12 @@ def test_break(eng, post, terminal_end):
     assert eng.wait_signs({'cur': 'main.py:5'}) is None
 
 
-def test_navigation(eng, post, terminal_end):
+def test_navigation(eng, post, terminal_end, count_stops):
     '''Test toggling breakpoints while navigating.'''
     assert post
     assert terminal_end
-    eng.feed(' dp')
-    eng.feed('\n', 1000)
+    eng.feed(' dp\n')
+    assert count_stops(1) is None
     eng.feed('<esc>')
 
     eng.feed('<esc><c-w>w')
@@ -79,12 +79,12 @@ def test_navigation(eng, post, terminal_end):
     assert eng.wait_signs({'cur': 'main.py:1', 'break': {1: [5]}}) is None
 
 
-def test_until(eng, post, terminal_end):
+def test_until(eng, post, terminal_end, count_stops):
     '''Test run until line.'''
     assert post
     assert terminal_end
-    eng.feed(' dp')
-    eng.feed('\n', 1000)
+    eng.feed(' dp\n')
+    assert count_stops(1) is None
     eng.feed('tbreak _main\n')
     eng.feed('cont\n')
     eng.feed('<esc>')
@@ -95,12 +95,12 @@ def test_until(eng, post, terminal_end):
     assert eng.wait_signs({'cur': 'main.py:18'}) is None
 
 
-def test_eval(eng, post, terminal_end):
+def test_eval(eng, post, terminal_end, count_stops):
     '''Test eval <word>.'''
     assert post
     assert terminal_end
-    eng.feed(' dp')
-    eng.feed('\n', 1000)
+    eng.feed(' dp\n')
+    assert count_stops(1) is None
     eng.feed('tbreak _main\n')
     eng.feed('cont\n')
     eng.feed('<esc>')
@@ -115,25 +115,26 @@ def test_eval(eng, post, terminal_end):
     assert eng.exec_lua('return NvimGdb.i()._last_command') == 'print(_foo(i))'
 
 
-def test_expand(eng, post):
+def test_expand(eng, post, count_stops):
     '''Test launch expand().'''
     assert post
     eng.feed(':e main.py\n')    # Open a file to activate %
     eng.feed(' dp')
     # Substitute main.py by % and launch
-    eng.feed('<c-w><c-w><c-w>%\n', 1000)
+    eng.feed('<c-w><c-w><c-w>%\n')
+    assert count_stops(1) is None
     # Ensure a debugging session has started
     assert eng.wait_signs({'cur': 'main.py:1'}) is None
     # Clean up the main tabpage
     eng.feed('<esc>gt:new\n<c-w>ogt')
 
 
-def test_repeat_last_command(eng, post, terminal_end):
+def test_repeat_last_command(eng, post, terminal_end, count_stops):
     '''Ensure the last command is repeated on empty input.'''
     assert post
     assert terminal_end
-    eng.feed(' dp')
-    eng.feed('\n', 1000)
+    eng.feed(' dp\n')
+    assert count_stops(1) is None
     eng.feed('tbreak _main\n')
     eng.feed('cont\n')
 
