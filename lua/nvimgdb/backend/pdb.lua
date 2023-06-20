@@ -31,7 +31,7 @@ function C.create_parser(actions)
   if vim.loop.os_uname().sysname:find('Windows') ~= nil then
     re_jump = '> ([^(]+)%((%d+)%)[^(]+%(%)'
   end
-  local re_prompt = '[\r\n]%(Pdb%+?%+?%) $'
+  local re_prompt = '[\r\n]%(Pdb%+?%+?%) *$'
   self.add_trans(self.paused, re_jump, self._paused_jump)
   self.add_trans(self.paused, re_prompt, self._query_b)
 

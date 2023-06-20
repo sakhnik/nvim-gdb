@@ -5,10 +5,10 @@ def test_smoke(eng, post, terminal_end, count_stops):
     '''Test a generic use case.'''
     assert post
     assert terminal_end
-    eng.feed(' dp\n')
+    eng.feed(' dp<cr>')
     assert count_stops(1) is None
-    eng.feed('tbreak _main\n')
-    eng.feed('cont\n')
+    eng.feed('tbreak _main<cr>')
+    eng.feed('cont<cr>')
     eng.feed('<esc>')
 
     assert eng.wait_signs({'cur': 'main.py:15'}) is None
@@ -36,7 +36,7 @@ def test_break(eng, post, terminal_end, count_stops):
     '''Test toggling breakpoints.'''
     assert post
     assert terminal_end
-    eng.feed(' dp\n')
+    eng.feed(' dp<cr>')
     assert count_stops(1) is None
     eng.feed('<esc>')
 
@@ -56,7 +56,7 @@ def test_navigation(eng, post, terminal_end, count_stops):
     '''Test toggling breakpoints while navigating.'''
     assert post
     assert terminal_end
-    eng.feed(' dp\n')
+    eng.feed(' dp<cr>')
     assert count_stops(1) is None
     eng.feed('<esc>')
 
@@ -66,16 +66,16 @@ def test_navigation(eng, post, terminal_end, count_stops):
     assert eng.wait_signs({'cur': 'main.py:1', 'break': {1: [5]}}) is None
 
     # Go to another file
-    eng.feed(':e lib.py\n')
-    eng.feed(':5\n')
+    eng.feed(':e lib.py<cr>')
+    eng.feed(':5<cr>')
     eng.feed('<f8>')
     assert eng.wait_signs({'cur': 'main.py:1', 'break': {1: [5]}}) is None
-    eng.feed(':7\n')
+    eng.feed(':7<cr>')
     eng.feed('<f8>')
     assert eng.wait_signs({'cur': 'main.py:1', 'break': {1: [5, 7]}}) is None
 
     # Return to the original file
-    eng.feed(':e main.py\n')
+    eng.feed(':e main.py<cr>')
     assert eng.wait_signs({'cur': 'main.py:1', 'break': {1: [5]}}) is None
 
 
@@ -83,10 +83,10 @@ def test_until(eng, post, terminal_end, count_stops):
     '''Test run until line.'''
     assert post
     assert terminal_end
-    eng.feed(' dp\n')
+    eng.feed(' dp<cr>')
     assert count_stops(1) is None
-    eng.feed('tbreak _main\n')
-    eng.feed('cont\n')
+    eng.feed('tbreak _main<cr>')
+    eng.feed('cont<cr>')
     eng.feed('<esc>')
 
     eng.feed('<c-w>w')
@@ -99,10 +99,10 @@ def test_eval(eng, post, terminal_end, count_stops):
     '''Test eval <word>.'''
     assert post
     assert terminal_end
-    eng.feed(' dp\n')
+    eng.feed(' dp<cr>')
     assert count_stops(1) is None
-    eng.feed('tbreak _main\n')
-    eng.feed('cont\n')
+    eng.feed('tbreak _main<cr>')
+    eng.feed('cont<cr>')
     eng.feed('<esc>')
     eng.feed('<c-w>w')
     eng.feed('<f10>')
@@ -111,36 +111,36 @@ def test_eval(eng, post, terminal_end, count_stops):
     assert eng.exec_lua('return NvimGdb.i()._last_command') == 'print(_foo)'
 
     eng.feed('viW')
-    eng.feed(':GdbEvalRange\n')
+    eng.feed(':GdbEvalRange<cr>')
     assert eng.exec_lua('return NvimGdb.i()._last_command') == 'print(_foo(i))'
 
 
 def test_expand(eng, post, count_stops):
     '''Test launch expand().'''
     assert post
-    eng.feed(':e main.py\n')    # Open a file to activate %
+    eng.feed(':e main.py<cr>')    # Open a file to activate %
     eng.feed(' dp')
     # Substitute main.py by % and launch
-    eng.feed('<c-w><c-w><c-w>%\n')
+    eng.feed('<c-w><c-w><c-w>%<cr>')
     assert count_stops(1) is None
     # Ensure a debugging session has started
     assert eng.wait_signs({'cur': 'main.py:1'}) is None
     # Clean up the main tabpage
-    eng.feed('<esc>gt:new\n<c-w>ogt')
+    eng.feed('<esc>gt:new<cr><c-w>ogt')
 
 
 def test_repeat_last_command(eng, post, terminal_end, count_stops):
     '''Ensure the last command is repeated on empty input.'''
     assert post
     assert terminal_end
-    eng.feed(' dp\n')
+    eng.feed(' dp<cr>')
     assert count_stops(1) is None
-    eng.feed('tbreak _main\n')
-    eng.feed('cont\n')
+    eng.feed('tbreak _main<cr>')
+    eng.feed('cont<cr>')
 
     assert eng.wait_signs({'cur': 'main.py:15'}) is None
 
-    eng.feed('n\n')
+    eng.feed('n<cr>')
     assert eng.wait_signs({'cur': 'main.py:16'}) is None
     eng.feed('<cr>')
     assert eng.wait_signs({'cur': 'main.py:15'}) is None
