@@ -41,7 +41,7 @@ def _get_breaks(fname, debugger: lldb.SBDebugger):
 
     for path, line, bid in _enum_breaks(debugger):
         # See whether the breakpoint is in the file in question
-        if fname == path:
+        if fname == os.path.normpath(path):
             try:
                 breaks[line].append(bid)
             except KeyError:
@@ -77,7 +77,7 @@ def _server(server_address: str, debugger: lldb.SBDebugger):
             if command[0] == "info-breakpoints":
                 fname = command[1]
                 # response_addr = command[3]
-                breaks = _get_breaks(fname, debugger)
+                breaks = _get_breaks(os.path.normpath(fname), debugger)
                 sock.sendto(breaks.encode("utf-8"), 0, addr)
             elif command[0] == "handle-command":
                 # pylint: disable=broad-except

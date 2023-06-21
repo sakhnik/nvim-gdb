@@ -47,7 +47,7 @@ class NvimGdbInit(gdb.Command):
                 command = re.split(r"\s+", data.decode("utf-8"))
                 if command[0] == "info-breakpoints":
                     fname = command[1]
-                    breaks = self._get_breaks(fname)
+                    breaks = self._get_breaks(os.path.normpath(fname))
                     sock.sendto(breaks.encode("utf-8"), 0, addr)
                 elif command[0] == "handle-command":
                     # pylint: disable=broad-except
@@ -89,7 +89,7 @@ class NvimGdbInit(gdb.Command):
 
         try:
             for path, line, bid in self._get_breaks_provider():
-                if fname == path:
+                if fname == os.path.normpath(path):
                     breaks.setdefault(line, []).append(bid)
         except AttributeError:
             self.fallback_to_parsing = True
