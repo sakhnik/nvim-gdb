@@ -82,7 +82,7 @@ function C.query_breakpoints(fname, proxy)
     local bid = tokens[1]
     if tokens[2] == 'breakpoint' and tokens[4] == 'yes' then
       local bpfname, lnum = tokens[#tokens]:match(U.jump_regex)
-      if U.strieq(fname, bpfname) then
+      if bpfname ~= nil and U.strieq(fname, bpfname) then
         local list = breaks[lnum]
         if list == nil then
           breaks[lnum] = {bid}
