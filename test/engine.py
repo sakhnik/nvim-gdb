@@ -2,6 +2,7 @@
 
 import logging
 import os
+import sys
 import threading
 import time
 from pynvim import attach
@@ -37,9 +38,9 @@ class Engine:
         self.eval("0")
 
         # Builds on GitHub seem to be more prone to races.
-        is_github = os.environ.get('GITHUB_WORKFLOW')
-        self.feed_delay = 0.02 if not is_github else 0.5
-        self.launch_delay = 5000 if not is_github else 20000
+        is_slow = os.environ.get('GITHUB_WORKFLOW') or sys.platform == 'win32'
+        self.feed_delay = 0.02 if not is_slow else 0.5
+        self.launch_delay = 5000 if not is_slow else 20000
 
     def close(self):
         '''Close.'''
