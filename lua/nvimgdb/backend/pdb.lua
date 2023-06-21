@@ -16,6 +16,21 @@ function C.new()
   return self
 end
 
+local for_win32 = function(win32, other)
+  if vim.loop.os_uname().sysname:find('Windows') ~= nil then
+    return win32
+  end
+  return other
+end
+
+local U = {
+  re_jump = for_win32('> ([^(]+)%((%d+)%)[^(]+%(%)', '[\r\n ]> ([^(]+)%((%d+)%)[^(]+%(%)'),
+  -- c:\full\path\test.py
+  jump_regex = for_win32('^([^:]+:[^:]+):([0-9]+)$', '^([^:]+):([0-9]+)$'),
+  strieq = for_win32(function(a, b) return a:lower() == b:lower() end,
+                      function(a, b) return a == b end)
+}
+
 -- Create a parser to recognize state changes and code jumps
 -- @param actions ParserActions @callbacks for the parser
 -- @return ParserImpl @new parser instance
@@ -27,12 +42,8 @@ function C.create_parser(actions)
   local self = setmetatable({}, P)
   self:_init(actions)
 
-  local re_jump = '[\r\n ]> ([^(]+)%((%d+)%)[^(]+%(%)'
-  if vim.loop.os_uname().sysname:find('Windows') ~= nil then
-    re_jump = '> ([^(]+)%((%d+)%)[^(]+%(%)'
-  end
   local re_prompt = '[\r\n]%(Pdb%+?%+?%) *$'
-  self.add_trans(self.paused, re_jump, self._paused_jump)
+  self.add_trans(self.paused, U.re_jump, self._paused_jump)
   self.add_trans(self.paused, re_prompt, self._query_b)
 
   -- Let's start the backend in the running state for the tests
@@ -44,7 +55,7 @@ function C.create_parser(actions)
     return self.running
   end
 
-  self.add_trans(self.running, re_jump, self._running_jump)
+  self.add_trans(self.running, U.re_jump, self._running_jump)
   self.add_trans(self.running, re_prompt, self._query_b)
   self.state = self.running
   return self
@@ -70,13 +81,8 @@ function C.query_breakpoints(fname, proxy)
     end
     local bid = tokens[1]
     if tokens[2] == 'breakpoint' and tokens[4] == 'yes' then
-      local jump_regex = "^([^:]+):([0-9]+)$"
-      if vim.loop.os_uname().sysname:find('Windows') ~= nil then
-        -- c:\full\path\test.py
-        jump_regex = "^([^:]+:[^:]+):([0-9]+)$"
-      end
-      local bpfname, lnum = tokens[#tokens]:match(jump_regex)
-      if fname == bpfname then
+      local bpfname, lnum = tokens[#tokens]:match(U.jump_regex)
+      if U.strieq(fname, bpfname) then
         local list = breaks[lnum]
         if list == nil then
           breaks[lnum] = {bid}
