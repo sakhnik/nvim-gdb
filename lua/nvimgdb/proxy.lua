@@ -3,12 +3,14 @@
 
 local log = require'nvimgdb.log'
 local uv = vim.loop
+local Queue = require'nvimgdb.utils.queue'
 
 -- @class Proxy @proxy to the side channel
 -- @field private client Client @debugger terminal job
 -- @field private proxy_addr string @path to the file with proxy port
 -- @field private sock any @UDP socket used to communicate with the proxy
 -- @field private server_port number @UDP port of the proxy
+-- @field private queue Queue @response queue from the proxy
 local Proxy = {}
 Proxy.__index = Proxy
 
@@ -26,16 +28,23 @@ function Proxy.new(client)
   -- Will connect to the socket later, when the first query is needed
   -- to be issued.
   self.server_port = nil
+
+  self.queue = Queue.new()
   return self
 end
 
 -- Destructor
 function Proxy:cleanup()
   log.debug({"function Proxy:cleanup()"})
+  if self.port ~= nil then
+    uv.udp_recv_stop(self.sock)
+    self.port = nil
+  end
   if self.sock ~= nil then
     self.sock:close()
     self.sock = nil
   end
+  self.queue:cleanup()
 end
 
 -- Get the proxy port to prepare for communication
@@ -52,6 +61,16 @@ function Proxy:_ensure_connected()
   end
   local line = assert(lines())
   self.server_port = tonumber(line)
+  local res, errmsg = uv.udp_recv_start(self.sock, function(err, data, --[[addr]]_, --[[flags]]_)
+    if err ~= nil or data ~= nil then
+      self.queue:put({err, data})
+    end
+  end)
+  if res == nil then
+    log.error({"Failed to start receiving from proxy", errmsg})
+    self.server_port = nil
+    return false
+  end
   return true
 end
 
@@ -74,55 +93,35 @@ function Proxy:query(request)
     return ''
   end
 
-  local o_err = nil
-  local o_resp = nil
-  local cur_tab = vim.api.nvim_get_current_tabpage()
-  NvimGdb.proxy_ready[cur_tab] = false
-
-  local res, errmsg = uv.udp_recv_start(self.sock, function(err2, data, --[[addr]]_, --[[flags]]_)
-    if err2 ~= nil then
-      o_err = err2
-      NvimGdb.proxy_ready[cur_tab] = true
+  local res, errmsg = uv.udp_send(self.sock, request, '127.0.0.1', self.server_port, function(err)
+    if err ~= nil then
+      self.queue:put({err, ""})
       return
     end
-    if data ~= nil then
-      o_resp = data
-      NvimGdb.proxy_ready[cur_tab] = true
-      return
-    end
-    NvimGdb.proxy_ready[cur_tab] = true
   end)
   if res == nil then
-    log.error("Failed to start receiving from proxy", errmsg)
-  else
-    res, errmsg = uv.udp_send(self.sock, request, '127.0.0.1', self.server_port, function(err)
-      if err ~= nil then
-        o_err = err
-        NvimGdb.proxy_ready[cur_tab] = true
-        return
-      end
-    end)
-    if res == nil then
-      log.error("Failed to send to proxy", errmsg)
+    log.error({"Failed to send to proxy", errmsg})
+    self.queue:put({"Failed to send", ""})
+  end
+
+  local function response_ready()
+    return self.queue:peek() ~= nil
+  end
+
+  local success = vim.wait(500, response_ready, 50)
+  if success then
+    local err, resp = unpack(self.queue:take())
+
+    if err ~= nil then
+      log.error({"Failed to query: ", err})
+      return ''
     end
+    return resp
   end
 
-  if vim.fn.wait(500, "luaeval('NvimGdb.proxy_ready[" .. cur_tab .. "]')", 50) ~= 0 then
-    if self.sock ~= nil then
-      uv.udp_recv_stop(self.sock)
-    end
-    return ''
-  end
-  if self.sock ~= nil then
-    uv.udp_recv_stop(self.sock)
-  end
-
-  if o_err ~= nil then
-    log.error("Failed to query: " .. o_err)
-    return ''
-  end
-
-  return o_resp
+  self.queue:skip()
+  log.warn("Timeout querying")
+  return ""
 end
 
 return Proxy
