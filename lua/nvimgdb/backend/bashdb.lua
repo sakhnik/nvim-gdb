@@ -65,7 +65,7 @@ end
 function C.query_breakpoints(fname, proxy)
   log.info("Query breakpoints for " .. fname)
   local response = proxy:query('handle-command info breakpoints')
-  if response == nil or response == "" then
+  if response == nil or type(response) ~= 'string' or response == "" then
     return {}
   end
 

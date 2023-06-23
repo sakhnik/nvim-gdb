@@ -170,7 +170,14 @@ end
 -- @return string @fetched debugger output
 function App:custom_command(cmd)
   log.debug({"function App:custom_command(", cmd, ")"})
-  return self.proxy:query('handle-command ' .. cmd)
+  local response = self.proxy:query('handle-command ' .. cmd)
+  if type(response) == 'string' then
+    return response
+  end
+  if type(response) == 'table' and next(response) == nil then
+    return ''
+  end
+  return tostring(response)
 end
 
 --[[Create a window to watch for a debugger expression.

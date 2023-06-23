@@ -69,6 +69,9 @@ function C.query_breakpoints(fname, proxy)
   log.info("Query breakpoints for " .. fname)
 
   local response = proxy:query('handle-command break')
+  if response == nil or type(response) ~= 'string' or response == '' then
+    return {}
+  end
 
   -- Num Type         Disp Enb   Where
   -- 1   breakpoint   keep yes   at /tmp/nvim-gdb/test/main.py:8

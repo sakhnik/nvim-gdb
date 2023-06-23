@@ -48,7 +48,7 @@ def _get_breaks(fname, debugger: lldb.SBDebugger):
                 breaks[line] = [bid]
 
     # Return the filtered breakpoints
-    return json.dumps(breaks)
+    return breaks
 
 
 # Get list of all enabled breakpoints suitable for location list
@@ -74,20 +74,30 @@ def _server(server_address: str, debugger: lldb.SBDebugger):
         while True:
             data, addr = sock.recvfrom(65536)
             command = re.split(r"\s+", data.decode("utf-8"))
-            if command[0] == "info-breakpoints":
-                fname = command[1]
+            req_id = int(command[0])
+            request = command[1]
+            args = command[2:]
+            if request == "info-breakpoints":
+                fname = args[0]
                 # response_addr = command[3]
-                breaks = _get_breaks(os.path.normpath(fname), debugger)
-                sock.sendto(breaks.encode("utf-8"), 0, addr)
-            elif command[0] == "handle-command":
+                response = {
+                    "request": req_id,
+                    "response": _get_breaks(os.path.normpath(fname), debugger)
+                }
+                sock.sendto(json.dumps(response).encode("utf-8"), 0, addr)
+            elif request == "handle-command":
                 # pylint: disable=broad-except
                 try:
-                    if command[1] == 'nvim-gdb-info-breakpoints':
+                    if args[0] == 'nvim-gdb-info-breakpoints':
                         # Fake a command info-breakpoins for GdbLopenBreakpoins
-                        resp = _get_all_breaks(debugger)
-                        sock.sendto(resp.encode("utf-8"), 0, addr)
+                        response = {
+                            "request": req_id,
+                            "response": _get_all_breaks(debugger)
+                        }
+                        sock.sendto(json.dumps(response).encode("utf-8"),
+                                    0, addr)
                         return
-                    command_to_handle = " ".join(command[1:])
+                    command_to_handle = " ".join(args)
                     if sys.version_info.major < 3:
                         command_to_handle = command_to_handle.encode("ascii")
                     return_object = lldb.SBCommandReturnObject()
@@ -99,8 +109,12 @@ def _server(server_address: str, debugger: lldb.SBDebugger):
                         result += return_object.GetError()
                     if return_object.GetOutput():
                         result += return_object.GetOutput()
+                    response = {
+                        "request": req_id,
+                        "response": "" if result is None else result.strip()
+                    }
                     result = b"" if result is None else result.encode("utf-8")
-                    sock.sendto(result.strip(), 0, addr)
+                    sock.sendto(json.dumps(response).encode('utf-8'), 0, addr)
                 except Exception as ex:
                     print("Exception: " + str(ex))
     finally:
