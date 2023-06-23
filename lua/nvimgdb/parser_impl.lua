@@ -147,10 +147,12 @@ function ParserImpl:_delay_parsing(delay_ms, byte_count)
   local timer = vim.loop.new_timer()
   self.timers[timer] = true
   timer:start(delay_ms, 0, vim.schedule_wrap(function()
-    self.timers[timer] = nil
-    timer:stop()
-    timer:close()
-    self:delay_elapsed(byte_count)
+    if self.timers[timer] ~= nil then
+      self.timers[timer] = nil
+      timer:stop()
+      timer:close()
+      self:delay_elapsed(byte_count)
+    end
   end))
 end
 
