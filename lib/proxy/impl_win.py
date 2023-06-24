@@ -15,11 +15,11 @@ class ImplWin(Base):
         super().__init__(app_name, argv)
 
         console_size = shutil.get_terminal_size()
-        rows, cols = console_size.lines, console_size.columns
+        rows, _ = console_size.lines, console_size.columns
 
         # Spawn the process in a PTY
         self.winproc = winpty.PtyProcess.spawn(self.argv,
-                                               dimensions=(rows, cols))
+                                               dimensions=(rows, 999))
         self.master_fd = self.winproc.fileno()
         self.mutex = threading.Lock()
         self.stdin_input = bytearray()
