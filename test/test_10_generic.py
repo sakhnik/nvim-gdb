@@ -144,11 +144,8 @@ def test_repeat_last_command(eng, backend):
     assert eng.wait_signs({'cur': 'test.cpp:17'}) is None
 
 
-def test_scrolloff(eng, backend):
+def test_scrolloff(eng, backend, count_stops):
     '''Test that scrolloff is respected in the jump window.'''
-    eng.feed(backend['launch'])
-    assert eng.wait_paused() is None
-
     # Skip if neovim version is known to be buggy
     version = eng.exec_lua('return vim.version()')
     vstr = f"{version['major']:03}.{version['minor']:03}"
@@ -156,8 +153,11 @@ def test_scrolloff(eng, backend):
         pytest.skip("required vim-patch:8.2.4797: getwininfo() may get"
                     + " oudated values")
 
+    eng.feed(backend['launch'])
+    assert eng.wait_paused() is None
     eng.feed(backend['tbreak_main'])
-    eng.feed('run\n', 1000)
+    eng.feed('run<cr>')
+    assert eng.wait_paused() is None
     eng.feed('<esc>')
 
     def _check_margin():
@@ -171,6 +171,8 @@ def test_scrolloff(eng, backend):
 
     _check_margin()
     eng.feed('<f10>')
+    assert count_stops(3) is None
     _check_margin()
     eng.feed('<f11>')
+    assert count_stops(4) is None
     _check_margin()
