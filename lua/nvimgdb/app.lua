@@ -1,6 +1,7 @@
 -- vim: set et ts=2 sw=2:
 
 local log = require 'nvimgdb.log'
+local NvimGdb = require'nvimgdb'
 
 -- @class App @debugger manager
 -- @field private destructors table<string, function> @custom destructors to be executed during cleanup
@@ -216,7 +217,10 @@ function App:create_watch(cmd, mods)
     pattern = "NvimGdbQuery",
     group = augid,
     callback = function()
-      vim.api.nvim_buf_set_lines(buf, 0, -1, 0, vim.fn.split(NvimGdb.i():custom_command(cmd), '\r*\n'))
+      -- The buffer may have been unloaded already
+      if vim.api.nvim_buf_is_loaded(buf) then
+        vim.api.nvim_buf_set_lines(buf, 0, -1, 0, vim.fn.split(NvimGdb.i():custom_command(cmd), '\r*\n'))
+      end
     end
   })
 

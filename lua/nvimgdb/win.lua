@@ -100,9 +100,11 @@ function Win:_with_saved_win(dispatch_keymaps, func)
   end
   local prev_win = vim.api.nvim_get_current_win()
   func()
-  vim.api.nvim_set_current_win(prev_win)
-  if not dispatch_keymaps then
-    self.keymaps:set_dispatch_active(true)
+  -- The window may disappear after func()
+  if pcall(vim.api.nvim_set_current_win, prev_win) then
+    if not dispatch_keymaps then
+      self.keymaps:set_dispatch_active(true)
+    end
   end
 end
 
