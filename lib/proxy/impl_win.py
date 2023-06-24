@@ -1,9 +1,10 @@
 import msvcrt
-import threading
-import winpty
+import os
 import selectors
 import sys
-import os
+import threading
+import traceback
+import winpty
 
 from .base import Base
 
@@ -53,7 +54,8 @@ class ImplWin(Base):
             except EOFError:
                 break
             except Exception as e:
-                print("Exception: " + e)
+                self.logger.critical(f"Exception {e}")
+                self.logger.info("%s", traceback.format_exc())
 
     def _process_stdin(self):
         try:
@@ -65,7 +67,8 @@ class ImplWin(Base):
         except EOFError:
             pass
         except Exception as e:
-            print("Exception: " + e)
+            self.logger.warning(f"Exception: {e}")
+            self.logger.info("%s", traceback.format_exc())
         finally:
             self.mutex.release()
 
