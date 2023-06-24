@@ -1,6 +1,7 @@
 import msvcrt
 import os
 import selectors
+import shutil
 import sys
 import threading
 import traceback
@@ -13,8 +14,12 @@ class ImplWin(Base):
     def __init__(self, app_name: str, argv: [str]):
         super().__init__(app_name, argv)
 
+        console_size = shutil.get_terminal_size()
+        rows, cols = console_size.lines, console_size.columns
+
         # Spawn the process in a PTY
-        self.winproc = winpty.PtyProcess.spawn(self.argv)
+        self.winproc = winpty.PtyProcess.spawn(self.argv,
+                                               dimensions=(rows, cols))
         self.master_fd = self.winproc.fileno()
         self.mutex = threading.Lock()
         self.stdin_input = bytearray()

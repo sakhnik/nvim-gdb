@@ -1,5 +1,4 @@
 # MinGW support
-- pty resizing with neovim
 - handle <up arrow> in pywinpty PDB
 - Unicode must be enabled globall for now: `chcp 65001` doesn't help per session
 - Press any key to exit: need to unblock msvcrt.getch() somehow
@@ -8,5 +7,6 @@
 - Asynchronous querying of breakpoints and commands
 - Visual tests: attach('tcp', address=...)
 - debug logging from gdb and lldb
+- pty resizing with neovim
 
 Store and load breakpoints between sessions
