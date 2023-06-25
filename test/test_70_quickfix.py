@@ -40,7 +40,7 @@ def test_bt_backend(eng, backend):
     assert eng.wait_signs({'cur': 'test.cpp:5', 'break': {1: [5]}}) is None
     eng.feed('<esc>')
     eng.feed('<c-w>w')
-    eng.feed(':belowright GdbLopenBacktrace\n')
+    eng.feed(':belowright GdbLopenBacktrace<cr>')
     assert eng.wait_for(lambda: eng.eval("len(getloclist(0))"),
                         lambda r: r > 0) is None
     eng.feed('<c-w>j')
