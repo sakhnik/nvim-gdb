@@ -5,25 +5,29 @@ import pytest
 import config
 
 
-def test_breaks_backend(eng, backend):
+def test_breaks_backend(eng, backend, count_stops):
     '''Breakpoint location list in C++.'''
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
-    eng.feed('b main\n')
-    eng.feed('b Foo\n')
-    eng.feed('b Bar\n')
+    eng.feed('b main<cr>')
+    eng.feed('b Foo<cr>')
+    count_stops.reset()
+    eng.feed('b Bar<cr>')
+    assert count_stops.wait(1) is None
     eng.feed('<esc>')
+    eng.feed('<c-w>w')
     eng.feed(':aboveleft GdbLopenBreakpoints\n')
-    time.sleep(0.3)
+    assert eng.wait_for(lambda: eng.eval("len(getloclist(0))"),
+                        lambda r: r > 0) is None
     eng.feed('<c-w>k')
-    eng.feed(':ll\n')
+    eng.feed(':ll<cr>')
     assert eng.wait_for(lambda: eng.eval("line('.')"),
                         lambda r: r == 17) is None
-    eng.feed(':lnext\n')
+    eng.feed(':lnext<cr>')
     assert eng.eval("line('.')") == 10
-    eng.feed(':lnext\n')
+    eng.feed(':lnext<cr>')
     assert eng.eval("line('.')") == 5
-    eng.feed(':lnext\n')
+    eng.feed(':lnext<cr>')
     assert eng.eval("line('.')") == 5
 
 
@@ -31,19 +35,21 @@ def test_bt_backend(eng, backend):
     '''Backtrace location list in C++.'''
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
-    eng.feed('b Bar\n')
-    eng.feed('run\n')
+    eng.feed('b Bar<cr>')
+    eng.feed('run<cr>')
     assert eng.wait_signs({'cur': 'test.cpp:5', 'break': {1: [5]}}) is None
     eng.feed('<esc>')
+    eng.feed('<c-w>w')
     eng.feed(':belowright GdbLopenBacktrace\n')
-    time.sleep(0.3)
-    eng.feed('<c-w>k')
-    eng.feed(':ll\n')
+    assert eng.wait_for(lambda: eng.eval("len(getloclist(0))"),
+                        lambda r: r > 0) is None
+    eng.feed('<c-w>j')
+    eng.feed(':ll<cr>')
     assert eng.wait_for(lambda: eng.eval("line('.')"),
                         lambda r: r == 5) is None
-    eng.feed(':lnext\n')
+    eng.feed(':lnext<cr>')
     assert eng.eval("line('.')") == 12
-    eng.feed(':lnext\n')
+    eng.feed(':lnext<cr>')
     assert eng.eval("line('.')") == 19
 
 
