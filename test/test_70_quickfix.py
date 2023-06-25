@@ -51,13 +51,13 @@ def test_breaks_pdb(eng, post, count_stops):
     '''Breakpoint location list in PDB.'''
     assert post
     eng.feed(' dp<cr>')
-    assert count_stops(1) is None
+    assert count_stops.wait(1) is None
     eng.feed('b _main<cr>')
-    assert count_stops(2) is None
+    assert count_stops.wait(2) is None
     eng.feed('b _foo<cr>')
-    assert count_stops(3) is None
+    assert count_stops.wait(3) is None
     eng.feed('b _bar<cr>')
-    assert count_stops(4) is None
+    assert count_stops.wait(4) is None
     eng.feed('<esc>')
     eng.feed('<c-w>w')
     eng.feed(':GdbLopenBreakpoints<cr>')
@@ -79,9 +79,9 @@ def test_bt_pdb(eng, post, count_stops):
     '''Backtrace location list in PDB.'''
     assert post
     eng.feed(' dp<cr>')
-    assert count_stops(1) is None
+    assert count_stops.wait(1) is None
     eng.feed('b _bar<cr>')
-    assert count_stops(2) is None
+    assert count_stops.wait(2) is None
     eng.feed('cont<cr>')
     assert eng.wait_signs({'cur': 'main.py:5', 'break': {1: [4]}}) is None
     eng.feed('<esc>')

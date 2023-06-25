@@ -24,9 +24,9 @@ def test_pdb(eng, post, count_stops):
     '''Custom command in PDB.'''
     assert post
     eng.feed(' dp<cr>')
-    assert count_stops(1) is None
+    assert count_stops.wait(1) is None
     eng.feed('b _foo<cr>')
-    assert count_stops(2) is None
+    assert count_stops.wait(2) is None
     eng.feed('cont<cr>')
 
     def _print_num():

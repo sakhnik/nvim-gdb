@@ -155,9 +155,11 @@ def test_scrolloff(eng, backend, count_stops):
 
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
+    count_stops.reset()
     eng.feed(backend['tbreak_main'])
+    assert count_stops.wait(1) is None
     eng.feed('run<cr>')
-    assert eng.wait_paused() is None
+    assert count_stops.wait(2) is None
     eng.feed('<esc>')
 
     def _check_margin():
@@ -170,9 +172,10 @@ def test_scrolloff(eng, backend, count_stops):
         assert curline >= wininfo['topline'] + 3
 
     _check_margin()
+    count_stops.reset()
     eng.feed('<f10>')
-    assert count_stops(3) is None
+    assert count_stops.wait(1) is None
     _check_margin()
     eng.feed('<f11>')
-    assert count_stops(4) is None
+    assert count_stops.wait(2) is None
     _check_margin()

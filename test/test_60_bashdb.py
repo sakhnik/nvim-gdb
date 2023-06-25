@@ -12,7 +12,7 @@ def test_smoke(eng, post, count_stops):
     '''Test a generic use case.'''
     assert post
     eng.feed(' db\n')
-    assert count_stops(1) is None
+    assert count_stops.wait(1) is None
     assert eng.wait_signs({'cur': 'main.sh:22'}) is None
 
     eng.feed('tbreak Main\n')
@@ -46,7 +46,7 @@ def test_break(eng, post, count_stops):
     '''Test toggling breakpoints.'''
     assert post
     eng.feed(' db\n')
-    assert count_stops(1) is None
+    assert count_stops.wait(1) is None
     eng.feed('<esc>')
 
     eng.feed('<esc><c-w>k')
@@ -65,7 +65,7 @@ def test_repeat_last_command(eng, post, count_stops):
     '''Test last command is repeated on empty input.'''
     assert post
     eng.feed(' db\n')
-    assert count_stops(1) is None
+    assert count_stops.wait(1) is None
     assert eng.wait_signs({'cur': 'main.sh:22'}) is None
 
     eng.feed('tbreak Main\n')
