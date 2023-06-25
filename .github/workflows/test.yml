@@ -34,7 +34,7 @@ jobs:
 
     - name: Run tests
       run: |
-        ./test/all.sh
+        python ./test/all.py
 
     - name: Archive script logs
       if: ${{ always() }}
