@@ -12,6 +12,9 @@ class Setup:
         os.symlink(os.path.realpath("nvim.appimage"),
                    os.path.join(bindir, "nvim"))
 
+        with open(os.getenv("GITHUB_PATH"), 'a') as f:
+            f.write(f'{bindir}\n')
+
         subprocess.run(
             r'''
 # Make sure to install a recent version of LLDB

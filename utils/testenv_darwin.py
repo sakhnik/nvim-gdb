@@ -1,10 +1,14 @@
+import os
 import subprocess
 import urllib.request
 
 
 class Setup:
     def __init__(self, url: str):
-        subprocess.run('mkdir -p "$HOME/bin"', shell=True, check=True)
+        bindir = os.path.join(os.getenv('HOME'), 'bin')
+        subprocess.run(f'mkdir -p {bindir}', shell=True, check=True)
+        with open(os.getenv("GITHUB_PATH"), 'a') as f:
+            f.write(f'{bindir}\n')
 
         subprocess.run('pip install --user six', shell=True, check=True)
 
