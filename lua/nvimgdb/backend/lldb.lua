@@ -4,6 +4,7 @@
 local log = require'nvimgdb.log'
 local Common = require'nvimgdb.backend.common'
 local ParserImpl = require'nvimgdb.parser_impl'
+local utils = require'nvimgdb.utils'
 
 -- @class BackendLldb:Backend @specifics of LLDB
 local C = {}
@@ -73,6 +74,42 @@ function C.get_error_formats()
   -- Breakpoint list is queried specifically with a custom command
   -- nvim-gdb-info-breakpoints, which is only implemented in the proxy.
   return {[[%m\ at\ %f:%l]], [[%f:%l\ %m]]}
+end
+
+-- @param client_cmd string[] @original debugger command
+-- @param tmp_dir string @path to the session state directory
+-- @param proxy_addr string @full path to the file with the udp port in the session state directory
+-- @return string[] @command to launch the debugger with termopen()
+function C.get_launch_cmd(client_cmd, tmp_dir, proxy_addr)
+
+  -- Assuming the first argument is path to lldb, the rest are arguments.
+  -- We'd like to ensure gdb is launched with our custom initialization
+  -- injected.
+
+  local lldb = client_cmd[1]
+
+  local lldb_init = utils.path_join(tmp_dir, "lldb_init")
+  local file = io.open(lldb_init, "w")
+  assert(file, "Failed to open lldb_init for writing")
+  if file then
+    file:write("command script import " .. utils.get_plugin_file_path("lib", "lldb_commands.py") .. "\n")
+    file:write("command script add -f lldb_commands.init nvim-gdb-init\n")
+    file:write("nvim-gdb-init " .. proxy_addr .. "\n")
+    file:write([[settings set frame-format frame #${frame.index}: ${frame.pc}{ ${module.file.basename}{\`${function.name-with-args}{${frame.no-debug}${function.pc-offset}}}}{ at \032\032${line.file.fullpath}:${line.number}}{${function.is-optimized} [opt]}\n]])
+    file:write("\n")
+    file:write("settings set auto-confirm true\n")
+    file:write("settings set stop-line-count-before 0\n")
+    file:write("settings set stop-line-count-after 0\n")
+    file:close()
+  end
+
+  -- Execute lldb finally with our custom initialization script
+  local cmd = {lldb, '-S', lldb_init}
+  -- Append the rest of arguments
+  for i = 2, #client_cmd do
+    cmd[#cmd + 1] = client_cmd[i]
+  end
+  return cmd
 end
 
 return C

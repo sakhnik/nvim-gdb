@@ -4,6 +4,7 @@
 local log = require'nvimgdb.log'
 local Common = require'nvimgdb.backend.common'
 local ParserImpl = require'nvimgdb.parser_impl'
+local utils = require'nvimgdb.utils'
 
 -- @class BackendPdb:Backend @specifics of PDB
 local C = {}
@@ -141,6 +142,19 @@ function C.get_error_formats()
   -- -> return num + _bar(num - 1)
   -- [5] > /tmp/nvim-gdb/test/main.py(5)_bar()
   -- -> return i * 2
+end
+
+-- @param client_cmd string[] @original debugger command
+-- @param tmp_dir string @path to the session state directory
+-- @param proxy_addr string @full path to the file with the udp port in the session state directory
+-- @return string[] @command to launch the debugger with termopen()
+function C.get_launch_cmd(client_cmd, _ --[[tmp_dir]], proxy_addr)
+  local cmd = {"python", utils.get_plugin_file_path('lib', 'proxy', 'pdb.py'), '-a', proxy_addr}
+  -- Append the rest of arguments
+  for i = 1, #client_cmd do
+    cmd[#cmd + 1] = client_cmd[i]
+  end
+  return cmd
 end
 
 return C

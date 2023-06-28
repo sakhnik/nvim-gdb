@@ -7,7 +7,7 @@ import threading
 import traceback
 import winpty
 
-from .base import Base
+from base import Base
 
 
 class ImplWin(Base):

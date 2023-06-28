@@ -3,6 +3,7 @@
 
 local log = require'nvimgdb.log'
 local uv = vim.loop
+local utils = require'nvimgdb.utils'
 
 -- @class Client @spawned debugger manager
 -- @field private config Config @resolved configuration
@@ -12,24 +13,19 @@ local uv = vim.loop
 -- @field private has_interacted boolean @true if the debugger was interactive
 -- @field private tmp_dir string @temporary directory for the proxy address
 -- @field private proxy_addr string @path to the file with proxy port
--- @field private command string @complete command to launch the debugger (including proxy)
+-- @field private command string[] @complete command to launch the debugger (including proxy)
 -- @field private client_buf number @terminal buffer handler
 -- @field private buf_hidden_auid number @autocmd id of the BufHidden handler
 local Client = {}
 Client.__index = Client
 
-local function _get_plugin_dir()
-  local path = debug.getinfo(1).source:match("@(.*/)")
-  return uv.fs_realpath(path .. '/../..')
-end
-
 -- Constructor
 -- @param config Config @resolved configuration for this session
--- @param launch_cmd string @command to launch the proxy
--- @param client_cmd string @command to launch the debugger
+-- @param backend Backend @debugger backend
+-- @param client_cmd string[] @command to launch the debugger
 -- @return Client @new instance
-function Client.new(config, launch_cmd, client_cmd)
-  log.debug({"function Client.new(", config, launch_cmd, client_cmd, ")"})
+function Client.new(config, backend, client_cmd)
+  log.debug({"function Client.new(", config, client_cmd, ")"})
   local self = setmetatable({}, Client)
   self.config = config
   log.info("termwin_command", config:get('termwin_command'))
@@ -40,13 +36,12 @@ function Client.new(config, launch_cmd, client_cmd)
   self.has_interacted = false
   -- Create a temporary unique directory for all the sockets.
   self.tmp_dir = uv.fs_mkdtemp(uv.os_tmpdir() .. '/nvimgdb-XXXXXX')
+  self.proxy_addr = utils.path_join(self.tmp_dir, 'port')
 
   -- Prepare the debugger command to run
-  self.command = client_cmd
-  if launch_cmd ~= nil then
-    self.proxy_addr = self.tmp_dir .. '/port'
-    self.command = "python " .. _get_plugin_dir() .. "/lib/" .. launch_cmd .. " -t " .. self.tmp_dir .. " " .. client_cmd
-  end
+  self.command = backend.get_launch_cmd(client_cmd, self.tmp_dir, self.proxy_addr)
+  log.info({"Debugger command", self.command})
+
   vim.api.nvim_command "enew"
   self.client_buf = vim.api.nvim_get_current_buf()
   self.buf_hidden_auid = -1
@@ -91,8 +86,12 @@ function Client:start()
     end,
     on_exit = function(--[[j]]_, code, --[[name]]_)
       if self.has_interacted and code == 0 then
-        vim.api.nvim_command("sil! bw!")
-        NvimGdb.cleanup(cur_tabpage)
+        local app = NvimGdb.i(cur_tabpage)
+        -- Deal with the race, check that this client is still working in the same tabpage
+        if app ~= nil and type(app.client) == 'table' and app.client == self then
+          vim.api.nvim_command("sil! bw!")
+          NvimGdb.cleanup(cur_tabpage)
+        end
       end
     end
   })

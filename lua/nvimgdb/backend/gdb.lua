@@ -4,6 +4,7 @@
 local log = require'nvimgdb.log'
 local Common = require'nvimgdb.backend.common'
 local ParserImpl = require'nvimgdb.parser_impl'
+local utils = require'nvimgdb.utils'
 
 -- @class BackendGdb:Backend @specifics of GDB
 local C = {}
@@ -73,6 +74,45 @@ C.command_map = {
 function C.get_error_formats()
   -- Return the list of errorformats for backtrace, breakpoints.
   return {[[%m\ at\ %f:%l]], [[%m\ %f:%l]]}
+end
+
+-- @param client_cmd string[] @original debugger command
+-- @param tmp_dir string @path to the session state directory
+-- @param proxy_addr string @full path to the file with the udp port in the session state directory
+-- @return string[] @command to launch the debugger with termopen()
+function C.get_launch_cmd(client_cmd, tmp_dir, proxy_addr)
+
+  -- Assuming the first argument is path to gdb, the rest are arguments.
+  -- We'd like to ensure gdb is launched with our custom initialization
+  -- injected.
+
+  -- Check for rr-replay.py
+  local gdb = client_cmd[1]
+  if gdb == "rr-replay.py" then
+    gdb = utils.get_plugin_file_path("lib", "rr-replay.py")
+  end
+
+  local gdb_init = utils.path_join(tmp_dir, "gdb_init")
+  local file = io.open(gdb_init, "w")
+  assert(file, "Failed to open gdb_init for writing")
+  if file then
+    file:write([[
+set confirm off
+set pagination off
+set filename-display absolute
+python gdb.prompt_hook = lambda p: p + ("" if p.endswith("\x01\x1a\x1a\x1a\x02") else "\x01\x1a\x1a\x1a\x02")
+]])
+    file:write("source " .. utils.get_plugin_file_path("lib", "gdb_commands.py") .. "\n")
+    file:write("nvim-gdb-init " .. proxy_addr .. "\n")
+    file:close()
+  end
+
+  local cmd = {gdb, '-f', '-ix', gdb_init}
+  -- Append the rest of arguments
+  for i = 2, #client_cmd do
+    cmd[#cmd + 1] = client_cmd[i]
+  end
+  return cmd
 end
 
 return C

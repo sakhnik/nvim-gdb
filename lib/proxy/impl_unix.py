@@ -9,7 +9,7 @@ import sys
 import termios
 import tty
 
-from .base import Base
+from base import Base
 
 
 class ImplUnix(Base):

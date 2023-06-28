@@ -17,7 +17,7 @@ import socket
 import sys
 from typing import Union
 
-from .stream_filter import Filter, StreamFilter
+from stream_filter import Filter, StreamFilter
 
 
 class Base:
@@ -28,8 +28,8 @@ class Base:
         parser = argparse.ArgumentParser(
             description="Run %s through a filtering proxy." % app_name)
         proxy_group = parser.add_argument_group("Proxy options")
-        proxy_group.add_argument('-t', '--tmpdir', metavar='TMP',
-                                 help='Temporary directory to dump" + \
+        proxy_group.add_argument('-a', '--address', metavar='ADDR',
+                                 help='File to dump" + \
                                  " the side channel UDP port')
         backend_group = parser.add_argument_group("Backend command")
         backend_group.add_argument('cmd', metavar='ARGS',
@@ -37,7 +37,7 @@ class Base:
                                    help=f'{app_name} command with arguments')
         args = parser.parse_args(argv)
 
-        self.server_address: str = os.path.join(args.tmpdir, "port")
+        self.server_address: str = args.address
         self.argv = args.cmd
         log_handler = logging.NullHandler() if not os.environ.get('CI') \
             else logging.FileHandler("proxy.log")
