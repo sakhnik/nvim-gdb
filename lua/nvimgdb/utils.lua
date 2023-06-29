@@ -11,9 +11,15 @@ end
 -- Full path to the plugin directory
 Utils.plugin_dir = get_plugin_dir()
 
+-- Check whether running in Windows
+-- @return boolean @true if in Windows, false otherwise
+Utils.is_windows = function()
+  return vim.loop.os_uname().sysname:find('Windows') ~= nil
+end
+
 local function get_path_separator()
   local sep = '/'
-  if uv.os_uname().sysname == "Windows" then
+  if Utils.is_windows() then
     sep = '\\'
   end
   return sep
@@ -21,6 +27,8 @@ end
 
 Utils.fs_separator = get_path_separator()
 
+-- Join path components
+-- @return string @path with components separating according to the platform conventions
 Utils.path_join = function(path, ...)
   for _, name in ipairs({...}) do
     path = path .. Utils.fs_separator .. name
@@ -28,6 +36,8 @@ Utils.path_join = function(path, ...)
   return path
 end
 
+-- Get full path of a file in the plugin directory
+-- @return string @full path to the file given its path components
 Utils.get_plugin_file_path = function(...)
   return Utils.path_join(Utils.plugin_dir, ...)
 end

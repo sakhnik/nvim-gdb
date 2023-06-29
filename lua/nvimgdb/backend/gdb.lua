@@ -104,6 +104,10 @@ python gdb.prompt_hook = lambda p: p + ("" if p.endswith("\x01\x1a\x1a\x1a\x02")
 ]])
     file:write("source " .. utils.get_plugin_file_path("lib", "gdb_commands.py") .. "\n")
     file:write("nvim-gdb-init " .. proxy_addr .. "\n")
+    if utils.is_windows() then
+      -- Change code page to UTF-8 in Windows, required to avoid distortion of characters like \x1a (^Z)
+      file:write("!chcp 65001\n")
+    end
     file:close()
   end
 

@@ -18,7 +18,7 @@ function C.new()
 end
 
 local for_win32 = function(win32, other)
-  if vim.loop.os_uname().sysname:find('Windows') ~= nil then
+  if utils.is_windows() then
     return win32
   end
   return other
