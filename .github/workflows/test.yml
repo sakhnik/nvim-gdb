@@ -30,6 +30,11 @@ jobs:
         python -m pip install pynvim
         python -m pip install pytest pytest-timestamper
 
+    - name: Platform-specific dependencies
+      if: runner.os == 'Windows'
+      run: |
+        python -m pip install pywinpty
+
     - name: Run tests
       run: |
         python ./test/all.py
