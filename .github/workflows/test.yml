@@ -7,13 +7,14 @@ env:
 
 jobs:
   build:
-
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.11"]
+
+    runs-on: ${{ matrix.os }}
+
+    timeout-minutes: ${{ (matrix.os == 'windows-latest' && 15) || 7 }}
 
     steps:
     - uses: actions/checkout@v3
