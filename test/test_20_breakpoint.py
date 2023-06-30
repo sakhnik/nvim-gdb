@@ -11,7 +11,7 @@ def test_detect(eng, backend):
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
     eng.feed(backend['break_main'])
-    eng.feed('run\n')
+    eng.feed('run<cr>')
     assert eng.wait_signs({'cur': 'test.cpp:17', 'break': {1: [17]}}) is None
 
 
@@ -32,7 +32,7 @@ def test_cd(eng, backend, cd_tmp):
     eng.feed(backend['launchF'].format(cd_tmp))
     assert eng.wait_paused() is None
     eng.feed(backend['break_main'])
-    eng.feed('run\n')
+    eng.feed('run<cr>')
     assert eng.wait_signs({'cur': 'test.cpp:17', 'break': {1: [17]}}) is None
 
 
@@ -82,7 +82,7 @@ def test_duplicate(eng, backend):
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
     eng.feed(backend['break_main'])
-    eng.feed('run\n')
+    eng.feed('run<cr>')
     assert eng.wait_signs({'cur': 'test.cpp:17', 'break': {1: [17]}}) is None
     eng.feed(backend['break_main'])
     assert eng.wait_signs({'cur': 'test.cpp:17', 'break': {2: [17]}}) is None
@@ -103,8 +103,8 @@ def test_watch(eng, backend):
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
     eng.feed(backend['break_main'])
-    eng.feed('run\n')
+    eng.feed('run<cr>')
     assert eng.wait_signs({'cur': 'test.cpp:17', 'break': {1: [17]}}) is None
     eng.feed(backend['watchF'].format('i'))
-    eng.feed('cont\n')
+    eng.feed('cont<cr>')
     assert eng.wait_signs({'cur': 'test.cpp:17', 'break': {1: [17]}}) is None

@@ -13,7 +13,7 @@ def test_backend(eng, backend):
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
     eng.feed(backend['tbreak_main'])
-    eng.feed('run\n', 1000)
+    eng.feed('run<cr>', 1000)
     eng.feed('<esc>')
     eng.feed('<f10>')
     for cmd, exp in TESTS[backend['name']]:
@@ -48,7 +48,7 @@ def test_watch_backend(eng, backend_express):
     eng.feed(backend_express['launch'])
     assert eng.wait_paused() is None
     eng.feed(backend_express['tbreak_main'])
-    eng.feed('run\n', 1000)
+    eng.feed('run<cr>', 1000)
     eng.feed('<esc>')
     cmd, res = WATCH_TESTS[backend_express["name"]]
     eng.feed(f':GdbCreateWatch {cmd}\n')
@@ -62,7 +62,7 @@ def test_watch_backend_cleanup(eng, backend_express):
     eng.feed(backend_express['launch'])
     assert eng.wait_paused() is None
     eng.feed(backend_express['tbreak_main'])
-    eng.feed('run\n', 1000)
+    eng.feed('run<cr>', 1000)
     eng.feed('<esc>')
     cmd, res = WATCH_TESTS[backend_express["name"]]
     eng.feed(f':GdbCreateWatch {cmd}\n')
@@ -78,7 +78,7 @@ def test_watch_backend_cleanup(eng, backend_express):
         eng.feed(backend_express['launch'])
         assert eng.wait_paused() is None
         eng.feed(backend_express['tbreak_main'])
-        eng.feed('run\n', 1000)
+        eng.feed('run<cr>', 1000)
         eng.feed('<esc>')
         cmd, res = WATCH_TESTS[backend_express["name"]]
         eng.feed(f':GdbCreateWatch {cmd}\n')

@@ -9,7 +9,7 @@ def test_smoke(eng, backend):
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
     eng.feed(backend['tbreak_main'])
-    eng.feed('run\n')
+    eng.feed('run<cr>')
     eng.feed('<esc>')
 
     assert eng.wait_signs({'cur': 'test.cpp:17'}) is None
@@ -59,7 +59,7 @@ def test_interrupt(eng, backend):
     '''Test interrupt.'''
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
-    eng.feed('run 4294967295\n', 1000)
+    eng.feed('run 4294967295<cr>', 1000)
     eng.feed('<esc>')
     assert not eng.exec_lua("return NvimGdb.i().parser:is_paused()")
     eng.feed(':GdbInterrupt\n')
@@ -75,7 +75,7 @@ def test_until(eng, backend):
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
     eng.feed(backend['tbreak_main'])
-    eng.feed('run\n', 1000)
+    eng.feed('run<cr>', 1000)
     eng.feed('<esc><esc><esc>')
     eng.feed('<c-w>w', 300)
     eng.feed(':21<cr>')
@@ -99,7 +99,7 @@ def test_eval(eng, backend):
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
     eng.feed(backend['tbreak_main'])
-    eng.feed('run\n', 1000)
+    eng.feed('run<cr>', 1000)
     eng.feed('<esc>')
     eng.feed('<c-w>w')
     eng.feed('<f10>')
@@ -118,7 +118,7 @@ def test_navigate(eng, backend):
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
     eng.feed(backend['tbreak_main'])
-    eng.feed('run\n', 1000)
+    eng.feed('run<cr>', 1000)
     eng.feed('<esc>')
     eng.feed('<c-w>w')
     eng.feed('/Lib::Baz\n', 300)
@@ -135,10 +135,10 @@ def test_repeat_last_command(eng, backend):
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
     eng.feed(backend['tbreak_main'])
-    eng.feed('run\n')
+    eng.feed('run<cr>')
     assert eng.wait_signs({'cur': 'test.cpp:17'}) is None
 
-    eng.feed('n\n')
+    eng.feed('n<cr>')
     assert eng.wait_signs({'cur': 'test.cpp:19'}) is None
     eng.feed('<cr>')
     assert eng.wait_signs({'cur': 'test.cpp:17'}) is None

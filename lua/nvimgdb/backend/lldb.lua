@@ -29,9 +29,17 @@ function C.create_parser(actions)
   self:_init(actions)
 
   local re_prompt = '%s%(lldb%) %(lldb%) $'
+  if utils.is_windows then
+    re_prompt = '%(lldb%)$'
+  end
+  local re_jump = ' at ([^:]+):(%d+)'
+  if utils.is_windows then
+    -- Full path includes drive like c:\full\path\to\the\source.cpp
+    re_jump = ' at ([^:]+:[^:]+):(%d+)'
+  end
   self.add_trans(self.paused, 'Process %d+ resuming', self._paused_continue)
   self.add_trans(self.paused, 'Process %d+ launched', self._paused_continue)
-  self.add_trans(self.paused, ' at ([^:]+):(%d+)', self._paused_jump)
+  self.add_trans(self.paused, re_jump, self._paused_jump)
   self.add_trans(self.paused, re_prompt, self._query_b)
   self.add_trans(self.running, 'Process %d+ stopped', self._paused)
   self.add_trans(self.running, re_prompt, self._query_b)
@@ -92,14 +100,18 @@ function C.get_launch_cmd(client_cmd, tmp_dir, proxy_addr)
   local file = io.open(lldb_init, "w")
   assert(file, "Failed to open lldb_init for writing")
   if file then
-    file:write("command script import " .. utils.get_plugin_file_path("lib", "lldb_commands.py") .. "\n")
-    file:write("command script add -f lldb_commands.init nvim-gdb-init\n")
-    file:write("nvim-gdb-init " .. proxy_addr .. "\n")
-    file:write([[settings set frame-format frame #${frame.index}: ${frame.pc}{ ${module.file.basename}{\`${function.name-with-args}{${frame.no-debug}${function.pc-offset}}}}{ at \032\032${line.file.fullpath}:${line.number}}{${function.is-optimized} [opt]}\n]])
-    file:write("\n")
+    if utils.is_windows() then
+      -- Change code page to UTF-8 in Windows, required to avoid distortion of characters like \x1a (^Z)
+      file:write("shell chcp 65001\n")
+    end
     file:write("settings set auto-confirm true\n")
     file:write("settings set stop-line-count-before 0\n")
     file:write("settings set stop-line-count-after 0\n")
+    file:write([[settings set frame-format frame #${frame.index}: ${frame.pc}{ ${module.file.basename}{\`${function.name-with-args}{${frame.no-debug}${function.pc-offset}}}}{ at \032\032${line.file.fullpath}:${line.number}}{${function.is-optimized} [opt]}\n]])
+    file:write("\n")
+    file:write("command script import " .. utils.get_plugin_file_path("lib", "lldb_commands.py") .. "\n")
+    file:write("command script add -f lldb_commands.init nvim-gdb-init\n")
+    file:write("nvim-gdb-init " .. proxy_addr .. "\n")
     file:close()
   end
 
