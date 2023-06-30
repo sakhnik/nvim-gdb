@@ -30,12 +30,12 @@ function C.create_parser(actions)
 
   local re_prompt = '%s%(lldb%) %(lldb%) $'
   if utils.is_windows then
-    re_prompt = '%(lldb%)$'
+    re_prompt = '%(lldb%) *$'
   end
   local re_jump = ' at ([^:]+):(%d+)'
   if utils.is_windows then
     -- Full path includes drive like c:\full\path\to\the\source.cpp
-    re_jump = ' at ([^:]+:[^:]+):(%d+)'
+    re_jump = '([^:]+:[^:]+):(%d+)'
   end
   self.add_trans(self.paused, 'Process %d+ resuming', self._paused_continue)
   self.add_trans(self.paused, 'Process %d+ launched', self._paused_continue)
