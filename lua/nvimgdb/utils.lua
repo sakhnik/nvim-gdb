@@ -11,15 +11,12 @@ end
 -- Full path to the plugin directory
 Utils.plugin_dir = get_plugin_dir()
 
--- Check whether running in Windows
--- @return boolean @true if in Windows, false otherwise
-Utils.is_windows = function()
-  return vim.loop.os_uname().sysname:find('Windows') ~= nil
-end
+-- @true if in Windows, false otherwise
+Utils.is_windows = vim.loop.os_uname().sysname:find('Windows') ~= nil
 
 local function get_path_separator()
   local sep = '/'
-  if Utils.is_windows() then
+  if Utils.is_windows then
     sep = '\\'
   end
   return sep

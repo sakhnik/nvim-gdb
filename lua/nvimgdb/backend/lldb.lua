@@ -100,7 +100,7 @@ function C.get_launch_cmd(client_cmd, tmp_dir, proxy_addr)
   local file = io.open(lldb_init, "w")
   assert(file, "Failed to open lldb_init for writing")
   if file then
-    if utils.is_windows() then
+    if utils.is_windows then
       -- Change code page to UTF-8 in Windows, required to avoid distortion of characters like \x1a (^Z)
       file:write("shell chcp 65001\n")
     end

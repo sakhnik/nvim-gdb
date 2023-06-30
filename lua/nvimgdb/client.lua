@@ -152,7 +152,7 @@ function Client:send_line(data)
   log.debug({"function Client:send_line(", data, ")"})
   log.debug({"send_line", data})
   local cr = "\n"
-  if utils.is_windows() then
+  if utils.is_windows then
     cr = "\r"
   end
   vim.fn.chansend(self.client_id, data .. cr)
