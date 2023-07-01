@@ -19,8 +19,9 @@ end
 
 -- Create a parser to recognize state changes and code jumps
 -- @param actions ParserActions @callbacks for the parser
+-- @param proxy Proxy @side channel connection to the debugger
 -- @return ParserImpl @new parser instance
-function C.create_parser(actions)
+function C.create_parser(actions, proxy)
   local P = {}
   P.__index = P
   setmetatable(P, {__index = ParserImpl})
@@ -28,21 +29,27 @@ function C.create_parser(actions)
   local self = setmetatable({}, P)
   self:_init(actions)
 
+  function P:query_paused()
+    local location = proxy:query('get-current-frame-location')
+    log.debug({"current frame location", location})
+    if #location == 2 then
+      local fname = location[1]
+      local line = location[2]
+      self.actions:jump_to_source(fname, line)
+    end
+    self.actions:query_breakpoints()
+    return self.paused
+  end
+
   local re_prompt = '%s%(lldb%) %(lldb%) $'
   if utils.is_windows then
     re_prompt = '%(lldb%) *$'
   end
-  local re_jump = ' at ([^:]+):(%d+)'
-  if utils.is_windows then
-    -- Full path includes drive like c:\full\path\to\the\source.cpp
-    re_jump = '([^:]+:[^:]+):(%d+)'
-  end
   self.add_trans(self.paused, 'Process %d+ resuming', self._paused_continue)
   self.add_trans(self.paused, 'Process %d+ launched', self._paused_continue)
-  self.add_trans(self.paused, re_jump, self._paused_jump)
-  self.add_trans(self.paused, re_prompt, self._query_b)
+  self.add_trans(self.paused, re_prompt, self.query_paused)
   self.add_trans(self.running, 'Process %d+ stopped', self._paused)
-  self.add_trans(self.running, re_prompt, self._query_b)
+  self.add_trans(self.running, re_prompt, self.query_paused)
 
   self.state = self.running
 

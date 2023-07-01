@@ -80,7 +80,7 @@ function App.new(backend_name, client_cmd)
 
   -- Initialize the parser
   local parser_actions = require'nvimgdb.parser_actions'.new(self.cursor, self.win)
-  self.parser = self.backend.create_parser(parser_actions)
+  self.parser = self.backend.create_parser(parser_actions, self.proxy)
 
   -- Setup 'errorformat' for the given backend.
   App.efmmgr.setup(self.backend.get_error_formats())

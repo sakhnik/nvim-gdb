@@ -6,9 +6,11 @@ C.__index = C
 
 -- Create a parser to recognize state changes and code jumps
 -- @param actions ParserActions @callbacks for the parser
+-- @param proxy Proxy @side channel connection to the debugger
 -- @return ParserImpl @new parser instance
-function C.create_parser(actions)
+function C.create_parser(actions, proxy)
   local _ = actions
+  local _ = proxy
   return assert(nil, "Not implemented")
 end
 

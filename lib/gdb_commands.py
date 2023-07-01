@@ -55,6 +55,12 @@ class NvimGdbInit(gdb.Command):
                         "response": self._get_breaks(os.path.normpath(fname))
                     }
                     sock.sendto(json.dumps(response).encode("utf-8"), 0, addr)
+                elif request == "get-current-frame-location":
+                    response = {
+                        "request": req_id,
+                        "response": self._get_current_frame_location()
+                    }
+                    sock.sendto(json.dumps(response).encode("utf-8"), 0, addr)
                 elif request == "handle-command":
                     # pylint: disable=broad-except
                     try:
@@ -92,6 +98,19 @@ class NvimGdbInit(gdb.Command):
                 os.unlink(server_address)
             except OSError:
                 pass
+
+    def _get_current_frame_location(self):
+        try:
+            frame = gdb.selected_frame()
+            if frame is not None:
+                symtab_and_line = frame.find_sal()
+                if symtab_and_line.symtab is not None:
+                    filename = symtab_and_line.symtab.filename
+                    line = symtab_and_line.line
+                    return [filename, line]
+        except gdb.error:
+            ...
+        return []
 
     def _get_breaks_provider(self):
         # Older versions of GDB may lack attribute .locations in

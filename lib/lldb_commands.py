@@ -10,6 +10,25 @@ import json
 import lldb  # type: ignore
 
 
+def get_current_frame_location(debugger: lldb.SBDebugger):
+    target = debugger.GetSelectedTarget()
+    process = target.GetProcess()
+    thread = process.GetSelectedThread()
+    frame = thread.GetSelectedFrame()
+
+    if frame.IsValid():
+        symbol_context = frame.GetSymbolContext(lldb.eSymbolContextEverything)
+        line_entry = symbol_context.line_entry
+        if line_entry.IsValid():
+            filespec = line_entry.GetFileSpec()
+            filepath = os.path.join(filespec.GetDirectory(),
+                                    filespec.GetFilename())
+            line = line_entry.GetLine()
+            return [filepath, line]
+
+    return []
+
+
 # Get list of enabled breakpoints for a given source file
 def _enum_breaks(debugger: lldb.SBDebugger):
     # Ensure target is the actually selected one
@@ -83,6 +102,12 @@ def _server(server_address: str, debugger: lldb.SBDebugger):
                 response = {
                     "request": req_id,
                     "response": _get_breaks(os.path.normpath(fname), debugger)
+                }
+                sock.sendto(json.dumps(response).encode("utf-8"), 0, addr)
+            elif request == "get-current-frame-location":
+                response = {
+                    "request": req_id,
+                    "response": get_current_frame_location(debugger)
                 }
                 sock.sendto(json.dumps(response).encode("utf-8"), 0, addr)
             elif request == "handle-command":

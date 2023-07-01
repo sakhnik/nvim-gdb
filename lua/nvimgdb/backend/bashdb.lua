@@ -19,8 +19,9 @@ end
 
 -- Create a parser to recognize state changes and code jumps
 -- @param actions ParserActions @callbacks for the parser
+-- @param proxy Proxy @side channel connection to the debugger
 -- @return ParserImpl @new parser instance
-function C.create_parser(actions)
+function C.create_parser(actions, _--[[proxy]])
   local P = {}
   P.__index = P
   setmetatable(P, {__index = ParserImpl})

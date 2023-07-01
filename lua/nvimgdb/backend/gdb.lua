@@ -19,8 +19,9 @@ end
 
 -- Create a parser to recognize state changes and code jumps
 -- @param actions ParserActions @callbacks for the parser
+-- @param proxy Proxy @side channel connection to the debugger
 -- @return ParserImpl @new parser instance
-function C.create_parser(actions)
+function C.create_parser(actions, proxy)
   local P = {}
   P.__index = P
   setmetatable(P, {__index = ParserImpl})
@@ -28,16 +29,25 @@ function C.create_parser(actions)
   local self = setmetatable({}, P)
   self:_init(actions)
 
+  function P:query_paused()
+    local location = proxy:query('get-current-frame-location')
+    log.debug({"current frame location", location})
+    if #location == 2 then
+      local fname = location[1]
+      local line = location[2]
+      self.actions:jump_to_source(fname, line)
+    end
+    self.actions:query_breakpoints()
+    return self.paused
+  end
+
   local re_prompt = '%(gdb%) \x1a\x1a\x1a'
-  local re_jump = '[\r\n]\x1a\x1a([A-Z]*:*[^:]+):(%d+):%d+'
   self.add_trans(self.paused, '[\r\n]Continuing%.', self._paused_continue)
   self.add_trans(self.paused, '[\r\n]Starting program:', self._paused_continue)
-  self.add_trans(self.paused, re_jump, self._paused_jump)
-  self.add_trans(self.paused, re_prompt, self._query_b)
-  self.add_trans(self.running, '%sBreakpoint %d+', self._query_b)
-  self.add_trans(self.running, '%sTemporary breakpoint %d+', self._query_b)
-  self.add_trans(self.running, re_jump, self._paused_jump)
-  self.add_trans(self.running, re_prompt, self._query_b)
+  self.add_trans(self.paused, re_prompt, self.query_paused)
+  self.add_trans(self.running, '%sBreakpoint %d+', self.query_paused)
+  self.add_trans(self.running, '%sTemporary breakpoint %d+', self.query_paused)
+  self.add_trans(self.running, re_prompt, self.query_paused)
 
   self.state = self.running
 
@@ -99,7 +109,6 @@ function C.get_launch_cmd(client_cmd, tmp_dir, proxy_addr)
     file:write([[
 set confirm off
 set pagination off
-set filename-display absolute
 python gdb.prompt_hook = lambda p: p + ("" if p.endswith("\x01\x1a\x1a\x1a\x02") else "\x01\x1a\x1a\x1a\x02")
 ]])
     file:write("source " .. utils.get_plugin_file_path("lib", "gdb_commands.py") .. "\n")
@@ -111,7 +120,7 @@ python gdb.prompt_hook = lambda p: p + ("" if p.endswith("\x01\x1a\x1a\x1a\x02")
     file:close()
   end
 
-  local cmd = {gdb, '-f', '-ix', gdb_init}
+  local cmd = {gdb, '-ix', gdb_init}
   -- Append the rest of arguments
   for i = 2, #client_cmd do
     cmd[#cmd + 1] = client_cmd[i]
