@@ -1,5 +1,9 @@
 '''Test custom command.'''
 
+import sys
+import time
+
+
 TESTS = {
     'gdb': [("GdbCustomCommand('print i')", '$1 = 0'),
             ("GdbCustomCommand('info locals')", 'i = 0')],
@@ -13,9 +17,12 @@ def test_backend(eng, backend):
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
     eng.feed(backend['tbreak_main'])
-    eng.feed('run<cr>', 1000)
+    eng.feed('run<cr>')
+    assert eng.wait_signs({'cur': 'test.cpp:17'}) is None
     eng.feed('<esc>')
     eng.feed('<f10>')
+    if sys.platform == 'win32' and backend['name'] == 'lldb':
+        time.sleep(0.3)
     for cmd, exp in TESTS[backend['name']]:
         assert exp == eng.eval(cmd)
 

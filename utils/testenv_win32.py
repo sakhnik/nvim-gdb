@@ -16,7 +16,8 @@ class Setup:
         subprocess.run("choco install --no-progress -y msys2",
                        shell=True, check=True)
         subprocess.run('c:\\tools\\msys64\\usr\\bin\\pacman.exe -S --noconfirm'
+                       ' mingw-w64-x86_64-gcc'
                        ' mingw-w64-x86_64-gdb'
-                       ' mingw-w64-x86_64-gcc',
+                       ' mingw-w64-x86_64-lldb',
                        shell=True, check=True)
         # c:\tools\msys64\mingw64\bin is appended to PATH in all.py

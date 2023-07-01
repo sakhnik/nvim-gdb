@@ -1,6 +1,6 @@
 # MinGW support
 - Git rid of the custom frame format in lldb (test_70_quickfix)
-- Detect whether the debugged process is running using side channel: prompt -> paused, query on output feed timeout (test_interrupt)
+- Detect whether the debugged process is running using side channel: prompt -> paused, query on output feed timeout (test_interrupt, test_command)
 - lldb support
 - `python nvim.py` opens file, fix args forwarding
 - Asynchronous querying of breakpoints and commands (no wait)
