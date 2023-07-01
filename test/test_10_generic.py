@@ -59,6 +59,8 @@ def test_interrupt(eng, backend):
     '''Test interrupt.'''
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
+    if sys.platform == 'win32' and backend['name'] == 'lldb':
+        pytest.skip("LLDB shows prompt even while the target is running")
     eng.feed('run 4294967295<cr>', 1000)
     eng.feed('<esc>')
     assert not eng.exec_lua("return NvimGdb.i().parser:is_paused()")
