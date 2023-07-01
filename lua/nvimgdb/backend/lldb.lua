@@ -47,6 +47,7 @@ function C.create_parser(actions, proxy)
   end
   self.add_trans(self.paused, 'Process %d+ resuming', self._paused_continue)
   self.add_trans(self.paused, 'Process %d+ launched', self._paused_continue)
+  self.add_trans(self.paused, 'Process %d+ exited', self._paused_continue)
   self.add_trans(self.paused, re_prompt, self.query_paused)
   self.add_trans(self.running, 'Process %d+ stopped', self._paused)
   self.add_trans(self.running, re_prompt, self.query_paused)
