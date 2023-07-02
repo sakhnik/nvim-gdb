@@ -13,6 +13,8 @@ Utils.plugin_dir = get_plugin_dir()
 
 -- @true if in Windows, false otherwise
 Utils.is_windows = vim.loop.os_uname().sysname:find('Windows') ~= nil
+Utils.is_linux = vim.loop.os_uname().sysname:find('Linux') ~= nil
+Utils.is_darwin = vim.loop.os_uname().sysname:find('Darwin') ~= nil
 
 local function get_path_separator()
   local sep = '/'

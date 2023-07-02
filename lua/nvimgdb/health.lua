@@ -115,8 +115,10 @@ M.check = function()
     pytest = {"python", "-c", "import pytest; print(f'{pytest.__name__} {pytest.__version__}')"},
     pynvim = {"python", "-c", "import pynvim; v=pynvim.VERSION; print(f'{pynvim.__name__} {v.major}.{v.minor}.{v.patch}{v.prerelease}')"},
   }
-  if not utils.is_windows then
+  if utils.is_linux then
     commands.rr = {"rr", "--version"}
+  end
+  if not utils.is_windows then
     commands.bashdb = {"bashdb", "--version"}
   else
     commands.winpty = {"python", "-c", "import winpty; print(f'{winpty.__name__} {winpty.__version__}')"}
