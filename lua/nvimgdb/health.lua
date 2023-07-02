@@ -44,28 +44,50 @@ local function get_version(output)
   return vim.split(output, "\n")[1]
 end
 
-function Tests:check_result(name)
-  local result = self.results[name]
-  if result.error ~= nil then
-    _error(result.error)
-    return false
-  end
-  return true
-end
-
 function Tests:get_result(name)
   return self.results[name]
 end
 
-function Tests:check_version(name, message, output)
-  if not self:check_result(name) then
-    return
+local function stdout_getter(line)
+  return function(result)
+    if result.stdout == nil then
+      return nil
+    end
+    return result.stdout[line]
   end
-  if message == "" then
-    _ok(get_version(output))
-  else
-    _ok(message .. " " .. get_version(output))
+end
+
+local function stderr_getter(line)
+  return function(result)
+    if result.stderr == nil then
+      return nil
+    end
+    return result.stderr[line]
   end
+end
+
+local function get_message(prefix, message)
+  if prefix ~= "" then
+    return prefix .. " " .. message
+  end
+  return message
+end
+
+function Tests:check_version(name, message, getter)
+  local result = self.results[name]
+  if result.error ~= nil then
+    _error(get_message(message, result.error))
+    return false
+  end
+
+  local output = getter(result)
+  if output == nil then
+    _error(get_message(message, "failed"))
+    return false
+  end
+
+  _ok(get_message(message, get_version(output)))
+  return true
 end
 
 function Tests.execute_commands(commands)
@@ -104,28 +126,41 @@ M.check = function()
   local results = tests.results
 
   _start "GDB backend"
-  tests:check_version("gdb", "", results.gdb.stdout[1])
-  tests:check_version("gdb_py", "GNU gdb Python", results.gdb_py.stdout[1])
-  _start "LLDB backend"
-  tests:check_version("lldb", "", results.lldb.stdout[1])
-  tests:check_version("lldb_py", "lldb Python", results.lldb_py.stdout[2])
-  if results.rr ~= nil then
-    _start "RR executable (requires gdb backend)"
-    tests:check_version("rr", "", results.rr.stdout[1])
+  local has_gdb = tests:check_version("gdb", "", stdout_getter(1))
+  if has_gdb then
+    tests:check_version("gdb_py", "GNU gdb Python", stdout_getter(1))
   end
+
+  _start "LLDB backend"
+  local has_lldb = tests:check_version("lldb", "", stdout_getter(1))
+  if has_lldb then
+    tests:check_version("lldb_py", "lldb Python", stdout_getter(2))
+  end
+
+  if results.rr ~= nil then
+    _start "RR executable"
+    local has_rr = tests:check_version("rr", "", stdout_getter(1))
+    if has_rr then
+      tests:check_version("gdb", "", stdout_getter(1))
+    end
+  end
+
   _start "PDB backend"
-  tests:check_version("python", "", results.python.stdout[1])
-  if utils.is_windows then
-    tests:check_version("winpty", "pywinpty", results.winpty.stdout[1])
+  local has_python = tests:check_version("python", "", stdout_getter(1))
+  if utils.is_windows and has_python then
+    tests:check_version("winpty", "pywinpty", stdout_getter(1))
   end
   if results.bashdb ~= nil then
     _start "BashDB backend"
-    tests:check_version("bashdb", "", results.bashdb.stderr[1])
-    tests:check_version("python", "", results.python.stdout[1])
+    local has_bashdb = tests:check_version("bashdb", "", stderr_getter(1))
+    if has_bashdb then
+      tests:check_version("python", "", stdout_getter(1))
+    end
   end
   _start "Test suite"
-  tests:check_version("pytest", "", results.pytest.stdout[1])
-  tests:check_version("pynvim", "", results.pynvim.stdout[1])
+  tests:check_version("python", "", stdout_getter(1))
+  tests:check_version("pytest", "", stdout_getter(1))
+  tests:check_version("pynvim", "", stdout_getter(1))
 end
 
 return M
