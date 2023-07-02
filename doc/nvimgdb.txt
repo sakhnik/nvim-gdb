@@ -14,8 +14,9 @@ CONTENTS                                                     *NvimgdbContents*
     5. Events ............... |NvimgdbEvents|
     6. Functions ............ |NvimgdbFunctions|
     7. Backends ............. |NvimgdbBackends|
-       7.1 GDB .............. |NvimgdbGDB|
+       7.1 GDB, LLDB ........ |NvimgdbGDB|  |NvimgdbLLDB|
        7.2 rr ............... |NvimgdbRR|
+       7.3 PDB, BashDB ...... |NvimgdbPDB|  |NvimgdbBashDB|
     8. Limitations .......... |NvimgdbLimitations|
     9. Development .......... |NvimgdbDevelopment|
    10. Trivia ............... |NvimgdbTrivia|
@@ -66,6 +67,15 @@ stack with `:GdbFrameUp` and `:GdbFrameDown`.
 
 To quit debugging, either close the tabpage with the debugging session or
 execute the command `:GdbDebugStop`.
+
+Supported debuggers and operating systems:
+
+                  Linux       Darwin       Windows
+        GDB        +            -            +
+        LLDB       +            +            +
+        PDB        +            +            +
+        BashDB     +            +            -
+        rr         +            -            -
 
 ==============================================================================
 Section 2: Commands                                          *NvimgdbCommands*

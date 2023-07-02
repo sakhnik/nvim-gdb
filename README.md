@@ -27,25 +27,29 @@ Or type `<leader>db` to start debugging a BASH script.
 
 Also you can record the execution of a program with [`rr record`](https://rr-project.org/), and then replay its execution systematically with `<leader>dr`.
 
+Supported debuggers and operating systems:
+
+|  Debugger    |  Linux | Darwin | Windows |
+|--------------|--------|--------|---------|
+| GNU gdb      |  `✅`  |  `❌`  |  `✅`   |
+| lldb         |  `✅`  |  `✅`  |  `✅`   |
+| pdb          |  `✅`  |  `✅`  |  `✅`   |
+| BashDB       |  `✅`  |  `✅`  |  `❌`   |
+| rr           |  `✅`  |  `❌`  |  `❌`   |
+
 [![nvim-gdb](https://asciinema.org/a/E8sKlS53Dm6UzK2MJjEolOyam.png)](https://asciinema.org/a/E8sKlS53Dm6UzK2MJjEolOyam?autoplay=1)
 
 ## Installation
 
-Check the prerequisites in the script [test/prerequisites.sh](https://github.com/sakhnik/nvim-gdb/blob/master/test/prerequisites.sh).
+Check the prerequisites in the script [test/prerequisites.py](https://github.com/sakhnik/nvim-gdb/blob/master/test/prerequisites.py).
 
 Use the branch `master` for NeoVim ≥ 0.7 or the branch `devel` to benefit from the latest NeoVim features.
 
 If you use vim-plug, add the following line to your vimrc file:
 
 ```vim
-Plug 'sakhnik/nvim-gdb', { 'do': ':!./install.sh' }
+Plug 'sakhnik/nvim-gdb'
 ```
-
-You can use any other plugin manager too:
-
-  * vundle
-  * neobundle
-  * pathogen
 
 ## Options
 
