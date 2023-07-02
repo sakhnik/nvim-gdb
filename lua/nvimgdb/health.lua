@@ -41,7 +41,7 @@ function Tests:execute_command(job_name, cmd)
 end
 
 local function get_version(output)
-  return vim.split(output, "\n")[1]
+  return vim.split(output, "[\r\n]")[1]
 end
 
 function Tests:get_result(name)
@@ -119,7 +119,7 @@ M.check = function()
     commands.rr = {"rr", "--version"}
     commands.bashdb = {"bashdb", "--version"}
   else
-    commands.winpty = {"python", "-c", "import winpty; print(f'{winpty.__name__} {winpty.__version__})"}
+    commands.winpty = {"python", "-c", "import winpty; print(f'{winpty.__name__} {winpty.__version__}')"}
   end
 
   local tests = Tests.execute_commands(commands)
