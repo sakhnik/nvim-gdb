@@ -36,7 +36,7 @@ class Nvim:
             self.thread = threading.Thread(target=self.run_spy_ui)
             self.thread.start()
 
-        command = ['nvim', '--clean', '-u', 'NONE', '+source init.vim',
+        command = ['nvim', '--clean', '-u', 'NONE', '+luafile init.lua',
                    '--listen', 'localhost:44444']
         command.extend(args)
 
