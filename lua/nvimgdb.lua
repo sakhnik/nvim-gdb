@@ -12,16 +12,14 @@ NvimGdb = {
   apps_size = 0,
 }
 NvimGdb.__index = NvimGdb
-NvimGdb.vim = require 'nvimgdb.compat'
 NvimGdb.proxy_ready = {}
 
 -- Create a new instance of the debugger in the current tabpage.
 -- @param backend_name string @debugger kind
--- @param launch_cmd string @proxy app to launch the debugger with
--- @param client_cmd string @debugger launch command
-function NvimGdb.new(backend_name, launch_cmd, client_cmd)
+-- @param client_cmd string[] @debugger launch command
+function NvimGdb.new(backend_name, client_cmd)
   log.info("New session " .. backend_name)
-  local app = require'nvimgdb.app'.new(backend_name, launch_cmd, client_cmd)
+  local app = require'nvimgdb.app'.new(backend_name, client_cmd)
   local tab = vim.api.nvim_get_current_tabpage()
   log.info({"Tabpage", tab})
   NvimGdb.apps[tab] = app

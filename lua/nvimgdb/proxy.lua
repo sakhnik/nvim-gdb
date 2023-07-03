@@ -9,6 +9,8 @@ local uv = vim.loop
 -- @field private proxy_addr string @path to the file with proxy port
 -- @field private sock any @UDP socket used to communicate with the proxy
 -- @field private server_port number @UDP port of the proxy
+-- @field private request_id number @sequential request number
+-- @field private responses table<number, any> @received responses
 local Proxy = {}
 Proxy.__index = Proxy
 
@@ -26,12 +28,20 @@ function Proxy.new(client)
   -- Will connect to the socket later, when the first query is needed
   -- to be issued.
   self.server_port = nil
+
+  self.request_id = 0
+  self.responses = {}
+
   return self
 end
 
 -- Destructor
 function Proxy:cleanup()
   log.debug({"function Proxy:cleanup()"})
+  if self.port ~= nil then
+    uv.udp_recv_stop(self.sock)
+    self.port = nil
+  end
   if self.sock ~= nil then
     self.sock:close()
     self.sock = nil
@@ -45,13 +55,26 @@ function Proxy:_ensure_connected()
   if self.server_port ~= nil then
     return true
   end
-  local lines = io.lines(self.proxy_addr)
-  if lines == nil then
-    log.warn(self.proxy_addr .. ' not available yet')
+  local success, lines = pcall(io.lines, self.proxy_addr)
+  if not success then
+    log.warn({self.proxy_addr, 'not available yet', lines})
     return false
   end
   local line = assert(lines())
   self.server_port = tonumber(line)
+  local res, errmsg = uv.udp_recv_start(self.sock, function(err, data, --[[addr]]_, --[[flags]]_)
+    if err ~= nil then
+      log.error({"Failed to receive response", err})
+    elseif data ~= nil then
+      local response = vim.json.decode(data)
+      self.responses[response.request] = response
+    end
+  end)
+  if res == nil then
+    log.error({"Failed to start receiving from proxy", errmsg})
+    self.server_port = nil
+    return false
+  end
   return true
 end
 
@@ -74,55 +97,46 @@ function Proxy:query(request)
     return ''
   end
 
-  local o_err = nil
-  local o_resp = nil
-  local cur_tab = vim.api.nvim_get_current_tabpage()
-  NvimGdb.proxy_ready[cur_tab] = false
-
-  local res, errmsg = uv.udp_send(self.sock, request, '127.0.0.1', self.server_port, function(err)
-    if err ~= nil then
-      o_err = err
-      NvimGdb.proxy_ready[cur_tab] = true
-      return
+  if #self.responses > 16 then
+    log.debug({"Cleaning obsolete responses count=", #self.responses})
+    local cleaned_responses = {}
+    local deadline_id = self.request_id - 16
+    for id, resp in pairs(self.responses) do
+      if id >= deadline_id then
+        cleaned_responses[id] = resp
+      end
     end
+    self.responses = cleaned_responses
+    log.debug({"Responses after cleanup count=", #self.responses})
+  end
 
-    local res, errmsg = uv.udp_recv_start(self.sock, function(err2, data, --[[addr]]_, --[[flags]]_)
-      if err2 ~= nil then
-        o_err = err2
-        NvimGdb.proxy_ready[cur_tab] = true
-        return
-      end
-      if data ~= nil then
-        o_resp = data
-        NvimGdb.proxy_ready[cur_tab] = true
-        return
-      end
-      NvimGdb.proxy_ready[cur_tab] = true
-    end)
-    if res == nil then
-      log.error("Failed to start receiving from proxy", errmsg)
+  local request_id = self.request_id
+  self.request_id = self.request_id + 1
+
+  local res, errmsg = uv.udp_send(self.sock, request_id .. " " .. request, '127.0.0.1', self.server_port, function(err)
+    if err ~= nil then
+      self.responses[request_id] = {response = {}}
+      return
     end
   end)
   if res == nil then
-    log.error("Failed to send to proxy", errmsg)
+    log.error({"Failed to send to proxy", errmsg})
+    self.responses[request_id] = {response = {}}
   end
 
-  if vim.fn.wait(500, "luaeval('NvimGdb.proxy_ready[" .. cur_tab .. "]')", 50) ~= 0 then
-    if self.sock ~= nil then
-      uv.udp_recv_stop(self.sock)
-    end
-    return ''
-  end
-  if self.sock ~= nil then
-    uv.udp_recv_stop(self.sock)
+  local function response_ready()
+    return self.responses[request_id] ~= nil
   end
 
-  if o_err ~= nil then
-    log.error("Failed to query: " .. o_err)
-    return ''
+  local success = vim.wait(500, response_ready, 50)
+  if success then
+    local response = self.responses[request_id].response
+    self.responses[request_id] = nil
+    return response
   end
 
-  return o_resp
+  log.warn("Timeout querying")
+  return {}
 end
 
 return Proxy

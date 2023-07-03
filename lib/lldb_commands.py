@@ -10,6 +10,25 @@ import json
 import lldb  # type: ignore
 
 
+def get_current_frame_location(debugger: lldb.SBDebugger):
+    target = debugger.GetSelectedTarget()
+    process = target.GetProcess()
+    thread = process.GetSelectedThread()
+    frame = thread.GetSelectedFrame()
+
+    if frame.IsValid():
+        symbol_context = frame.GetSymbolContext(lldb.eSymbolContextEverything)
+        line_entry = symbol_context.line_entry
+        if line_entry.IsValid():
+            filespec = line_entry.GetFileSpec()
+            filepath = os.path.join(filespec.GetDirectory(),
+                                    filespec.GetFilename())
+            line = line_entry.GetLine()
+            return [filepath, line]
+
+    return []
+
+
 # Get list of enabled breakpoints for a given source file
 def _enum_breaks(debugger: lldb.SBDebugger):
     # Ensure target is the actually selected one
@@ -41,14 +60,14 @@ def _get_breaks(fname, debugger: lldb.SBDebugger):
 
     for path, line, bid in _enum_breaks(debugger):
         # See whether the breakpoint is in the file in question
-        if fname == path:
+        if fname == os.path.normpath(path):
             try:
                 breaks[line].append(bid)
             except KeyError:
                 breaks[line] = [bid]
 
     # Return the filtered breakpoints
-    return json.dumps(breaks)
+    return breaks
 
 
 # Get list of all enabled breakpoints suitable for location list
@@ -61,33 +80,49 @@ def _get_all_breaks(debugger: lldb.SBDebugger):
     return "\n".join(breaks)
 
 
-def _server(server_address: str, debugger_id: int):
+def _server(server_address: str, debugger: lldb.SBDebugger):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind(('127.0.0.1', 0))
     _, port = sock.getsockname()
     with open(server_address, 'w') as f:
         f.write(f"{port}")
 
-    debugger = lldb.SBDebugger_FindDebuggerWithID(debugger_id)
+    # debugger = lldb.SBDebugger_FindDebuggerWithID(debugger_id)
 
     try:
         while True:
             data, addr = sock.recvfrom(65536)
             command = re.split(r"\s+", data.decode("utf-8"))
-            if command[0] == "info-breakpoints":
-                fname = command[1]
+            req_id = int(command[0])
+            request = command[1]
+            args = command[2:]
+            if request == "info-breakpoints":
+                fname = args[0]
                 # response_addr = command[3]
-                breaks = _get_breaks(fname, debugger)
-                sock.sendto(breaks.encode("utf-8"), 0, addr)
-            elif command[0] == "handle-command":
+                response = {
+                    "request": req_id,
+                    "response": _get_breaks(os.path.normpath(fname), debugger)
+                }
+                sock.sendto(json.dumps(response).encode("utf-8"), 0, addr)
+            elif request == "get-current-frame-location":
+                response = {
+                    "request": req_id,
+                    "response": get_current_frame_location(debugger)
+                }
+                sock.sendto(json.dumps(response).encode("utf-8"), 0, addr)
+            elif request == "handle-command":
                 # pylint: disable=broad-except
                 try:
-                    if command[1] == 'nvim-gdb-info-breakpoints':
+                    if args[0] == 'nvim-gdb-info-breakpoints':
                         # Fake a command info-breakpoins for GdbLopenBreakpoins
-                        resp = _get_all_breaks(debugger)
-                        sock.sendto(resp.encode("utf-8"), 0, addr)
+                        response = {
+                            "request": req_id,
+                            "response": _get_all_breaks(debugger)
+                        }
+                        sock.sendto(json.dumps(response).encode("utf-8"),
+                                    0, addr)
                         return
-                    command_to_handle = " ".join(command[1:])
+                    command_to_handle = " ".join(args)
                     if sys.version_info.major < 3:
                         command_to_handle = command_to_handle.encode("ascii")
                     return_object = lldb.SBCommandReturnObject()
@@ -99,8 +134,12 @@ def _server(server_address: str, debugger_id: int):
                         result += return_object.GetError()
                     if return_object.GetOutput():
                         result += return_object.GetOutput()
+                    response = {
+                        "request": req_id,
+                        "response": "" if result is None else result.strip()
+                    }
                     result = b"" if result is None else result.encode("utf-8")
-                    sock.sendto(result.strip(), 0, addr)
+                    sock.sendto(json.dumps(response).encode('utf-8'), 0, addr)
                 except Exception as ex:
                     print("Exception: " + str(ex))
     finally:
@@ -113,5 +152,5 @@ def _server(server_address: str, debugger_id: int):
 def init(debugger: lldb.SBDebugger, command: str, _3, _4):
     """Entry point."""
     server_address = command
-    thrd = threading.Thread(target=_server, args=(server_address, debugger.GetID()))
+    thrd = threading.Thread(target=_server, args=(server_address, debugger))
     thrd.start()

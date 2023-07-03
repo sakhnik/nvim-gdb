@@ -1,6 +1,7 @@
 -- vim: set et ts=2 sw=2:
 
 local log = require 'nvimgdb.log'
+local NvimGdb = require'nvimgdb'
 
 -- @class App @debugger manager
 -- @field private destructors table<string, function> @custom destructors to be executed during cleanup
@@ -20,11 +21,10 @@ App.__index = App
 
 -- Create a new instance of the debugger in the current tabpage.
 -- @param backend_name string @backend name
--- @param launch_cmd string @proxy application name
--- @param client_cmd string @debugger launching command
+-- @param client_cmd string[] @debugger launching command
 -- @return App @new instance
-function App.new(backend_name, launch_cmd, client_cmd)
-  log.debug({"function App.new(", backend_name, launch_cmd, client_cmd, ")"})
+function App.new(backend_name, client_cmd)
+  log.debug({"function App.new(", backend_name, client_cmd, ")"})
   local self = setmetatable({}, App)
 
   -- destructors to be executed during cleanup()
@@ -41,10 +41,10 @@ function App.new(backend_name, launch_cmd, client_cmd)
   self.tabpage_created = false
   if getmetatable(NvimGdb.i(true)) == App then
     -- Create new tab for the new debugging view
-    NvimGdb.vim.cmd('tabnew')
+    vim.api.nvim_command('tabnew')
     vim.wo.winfixwidth = false
     vim.wo.winfixheight = false
-    NvimGdb.vim.cmd('silent wincmd o')
+    vim.api.nvim_command('silent wincmd o')
     self.tabpage_created = true
   end
 
@@ -55,7 +55,7 @@ function App.new(backend_name, launch_cmd, client_cmd)
   self.backend = require "nvimgdb.backend".choose(backend_name)
 
   -- Spawn gdb client in a new terminal window
-  self.client = require'nvimgdb.client'.new(self.config, launch_cmd, client_cmd)
+  self.client = require'nvimgdb.client'.new(self.config, self.backend, client_cmd)
   if start_win == self.client.win then
     -- Apparently, the configuration has been overridden to use current window
     -- for the debugging terminal. Thus, a new window will be assigned or created
@@ -80,7 +80,7 @@ function App.new(backend_name, launch_cmd, client_cmd)
 
   -- Initialize the parser
   local parser_actions = require'nvimgdb.parser_actions'.new(self.cursor, self.win)
-  self.parser = self.backend.create_parser(parser_actions)
+  self.parser = self.backend.create_parser(parser_actions, self.proxy)
 
   -- Setup 'errorformat' for the given backend.
   App.efmmgr.setup(self.backend.get_error_formats())
@@ -93,7 +93,7 @@ function App:postinit()
   log.debug({"function App:postinit()"})
   -- Spawn the debugger, the parser should be ready by now.
   self.client:start()
-  NvimGdb.vim.cmd("doautocmd User NvimGdbStart")
+  vim.api.nvim_command("doautocmd User NvimGdbStart")
 
   -- Start insert mode in the debugger window
   vim.cmd("startinsert")
@@ -107,7 +107,7 @@ end
 -- @param tab number @tabpage number
 function App:cleanup(tab)
   log.debug({"function App:cleanup(", tab, ")"})
-  NvimGdb.vim.cmd("doautocmd User NvimGdbCleanup")
+  vim.api.nvim_command("doautocmd User NvimGdbCleanup")
 
   -- Execute scheduled destructors
   for _, destr in pairs(self.destructors) do
@@ -116,6 +116,9 @@ function App:cleanup(tab)
 
   -- Remove from 'errorformat' for the given backend.
   App.efmmgr.teardown(self.backend.get_error_formats())
+
+  -- Destroy the parser
+  self.parser:cleanup()
 
   -- Clean up the breakpoint signs
   self.breakpoint:reset_signs()
@@ -136,7 +139,7 @@ function App:cleanup(tab)
   if self.tabpage_created then
     for _, tabpage in ipairs(vim.api.nvim_list_tabpages()) do
       if tabpage == tab then
-        NvimGdb.vim.cmd("tabclose! " .. vim.api.nvim_tabpage_get_number(tabpage))
+        vim.api.nvim_command("tabclose! " .. vim.api.nvim_tabpage_get_number(tabpage))
         break
       end
     end
@@ -167,7 +170,14 @@ end
 -- @return string @fetched debugger output
 function App:custom_command(cmd)
   log.debug({"function App:custom_command(", cmd, ")"})
-  return self.proxy:query('handle-command ' .. cmd)
+  local response = self.proxy:query('handle-command ' .. cmd)
+  if type(response) == 'string' then
+    return response
+  end
+  if type(response) == 'table' and next(response) == nil then
+    return ''
+  end
+  return tostring(response)
 end
 
 --[[Create a window to watch for a debugger expression.
@@ -181,7 +191,7 @@ function App:create_watch(cmd, mods)
   if not mods or mods == '' then
     mods = 'vert'
   end
-  NvimGdb.vim.cmd(mods .. " new | set readonly buftype=nowrite")
+  vim.api.nvim_command(mods .. " new | set readonly buftype=nowrite")
   self.keymaps:dispatch_set()
   local buf = vim.api.nvim_get_current_buf()
   vim.api.nvim_buf_set_name(buf, cmd)
@@ -206,7 +216,10 @@ function App:create_watch(cmd, mods)
     pattern = "NvimGdbQuery",
     group = augid,
     callback = function()
-      vim.api.nvim_buf_set_lines(buf, 0, -1, 0, vim.fn.split(NvimGdb.i():custom_command(cmd), '\r*\n'))
+      -- The buffer may have been unloaded already
+      if vim.api.nvim_buf_is_loaded(buf) then
+        vim.api.nvim_buf_set_lines(buf, 0, -1, 0, vim.fn.split(NvimGdb.i():custom_command(cmd), '\r*\n'))
+      end
     end
   })
 
@@ -222,7 +235,7 @@ function App:create_watch(cmd, mods)
 
 
   -- Return the cursor to the previous window
-  NvimGdb.vim.cmd("wincmd l")
+  vim.api.nvim_command("wincmd l")
 end
 
 -- Toggle breakpoint in the cursor line
@@ -297,7 +310,7 @@ function App:on_buf_leave()
     -- Move the cursor to the end of the buffer
     local jump_bottom = self.config:get_or('jump_bottom_gdb_buf', false)
     if jump_bottom then
-      NvimGdb.vim.cmd("$")
+      vim.api.nvim_command("$")
     end
     return
   end

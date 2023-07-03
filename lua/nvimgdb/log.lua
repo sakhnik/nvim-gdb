@@ -17,11 +17,6 @@ log.levels = {
   CRIT = 5;
 }
 
--- Default log level.
-local current_log_level = log.levels.CRIT
-if vim.api.nvim_eval("$CI") ~= "" then
-  current_log_level = log.levels.DEBUG
-end
 
 local log_date_format = "%F %H:%M:%S"
 
@@ -41,6 +36,38 @@ do
       logfile = assert(io.open(logfilename, "a+"))
     end
     return logfile
+  end
+
+  -- Default log level.
+  local current_log_level = log.levels.CRIT
+  local start_time = os.time()
+  local start_time_ms = nil
+
+  if vim.api.nvim_eval("$CI") ~= "" then
+    current_log_level = log.levels.DEBUG
+
+    -- Calibrate clocks to allow measurement of milliseconds
+    start_time = os.time()
+    while os.time() == start_time do
+      -- wait until the second changes
+    end
+    -- Assume the change happened because the next second has started
+    start_time = os.time()
+    start_time_ms = vim.loop.hrtime() * 1e-6
+  end
+
+  local function get_timestamp()
+    if start_time_ms == nil then
+      return os.date(log_date_format)
+    end
+    local time_ms = vim.loop.hrtime() * 1e-6
+    local time = os.time()
+    local time_elapsed_ms = time_ms - start_time_ms
+    local time_elapsed = math.floor(time - start_time)
+    local msec = time_elapsed_ms - 1000 * time_elapsed
+    if msec < 0 then msec = 0 end
+    if msec > 999 then msec = 999 end
+    return os.date(log_date_format, time) .. ',' .. string.format("%03d", msec)
   end
 
   for level, levelnr in pairs(log.levels) do
@@ -66,7 +93,7 @@ do
       if argc == 0 then return true end
       local info = debug.getinfo(2, "Sl")
       local fileinfo = string.format("%s:%s", info.short_src, info.currentline)
-      local parts = { table.concat({os.date(log_date_format), " [", level, "] ", fileinfo, ": "}, "") }
+      local parts = { table.concat({get_timestamp(), " [", level, "] ", fileinfo, ": "}, "") }
       for i = 1, argc do
         local arg = select(i, ...)
         if arg == nil then

@@ -10,7 +10,7 @@ local efmmgr = {
 -- Destructor
 function efmmgr.cleanup()
   for f, _ in pairs(efmmgr.counters) do
-    NvimGdb.vim.cmd("set efm-=" .. f)
+    vim.api.nvim_command("set efm-=" .. f)
   end
 end
 
@@ -21,7 +21,7 @@ function efmmgr.setup(formats)
     local c = efmmgr.counters[f]
     if c == nil then
       c = 0
-      NvimGdb.vim.cmd("set efm+=" .. f)
+      vim.api.nvim_command("set efm+=" .. f)
     end
     efmmgr.counters[f] = c + 1
   end
@@ -33,7 +33,7 @@ function efmmgr.teardown(formats)
   for _, f in ipairs(formats) do
     local c = efmmgr.counters[f] - 1
     if c <= 0 then
-      NvimGdb.vim.cmd("set efm-=" .. f)
+      vim.api.nvim_command("set efm-=" .. f)
       c = nil
     end
     efmmgr.counters[f] = c

@@ -21,7 +21,7 @@ end
 function ParserActions:continue_program()
   log.debug({"function ParserActions:continue_program()"})
   self.cursor:hide()
-  NvimGdb.vim.cmd("doautocmd User NvimGdbContinue")
+  vim.api.nvim_command("doautocmd User NvimGdbContinue")
 end
 
 -- Handle the program breaked. Show the source code.
@@ -30,7 +30,7 @@ end
 function ParserActions:jump_to_source(fname, line)
   log.debug({"function ParserActions:jump_to_source(", fname, line, ")"})
   self.win:jump(fname, line)
-  NvimGdb.vim.cmd("doautocmd User NvimGdbBreak")
+  vim.api.nvim_command("doautocmd User NvimGdbBreak")
 end
 
 -- It's high time to query actual breakpoints.
@@ -38,7 +38,7 @@ function ParserActions:query_breakpoints()
   log.debug({"function ParserActions:query_breakpoints()"})
   self.win:query_breakpoints()
   -- Execute the rest of custom commands
-  NvimGdb.vim.cmd("doautocmd User NvimGdbQuery")
+  vim.api.nvim_command("doautocmd User NvimGdbQuery")
 end
 
 return ParserActions

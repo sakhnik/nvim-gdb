@@ -1,1 +1,13 @@
+# MinGW support
+- Git rid of the custom frame format in lldb (test_70_quickfix)
+- Detect whether the debugged process is running using side channel: prompt -> paused, query on output feed timeout (test_interrupt, test_command)
+- `python nvim.py` opens file, fix args forwarding
+- Asynchronous querying of breakpoints and commands (no wait)
+- handle <up arrow> in pywinpty PDB
+- debug logging from gdb and lldb
+- Press any key to exit: need to unblock msvcrt.getch() somehow
+- cmake test in win32?
+- Visual tests: attach('tcp', address=...)
+- pty resizing with neovim
+
 Store and load breakpoints between sessions

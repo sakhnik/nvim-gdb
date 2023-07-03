@@ -1,19 +1,25 @@
 import msvcrt
-import threading
-import winpty
-import selectors
-import sys
 import os
+import selectors
+import shutil
+import sys
+import threading
+import traceback
+import winpty
 
-from .base import Base
+from base import Base
 
 
 class ImplWin(Base):
     def __init__(self, app_name: str, argv: [str]):
         super().__init__(app_name, argv)
 
+        console_size = shutil.get_terminal_size()
+        rows, _ = console_size.lines, console_size.columns
+
         # Spawn the process in a PTY
-        self.winproc = winpty.PtyProcess.spawn(self.argv)
+        self.winproc = winpty.PtyProcess.spawn(self.argv,
+                                               dimensions=(rows, 999))
         self.master_fd = self.winproc.fileno()
         self.mutex = threading.Lock()
         self.stdin_input = bytearray()
@@ -53,7 +59,8 @@ class ImplWin(Base):
             except EOFError:
                 break
             except Exception as e:
-                print("Exception: " + e)
+                self.logger.critical(f"Exception {e}")
+                self.logger.info("%s", traceback.format_exc())
 
     def _process_stdin(self):
         try:
@@ -65,7 +72,8 @@ class ImplWin(Base):
         except EOFError:
             pass
         except Exception as e:
-            print("Exception: " + e)
+            self.logger.warning(f"Exception: {e}")
+            self.logger.info("%s", traceback.format_exc())
         finally:
             self.mutex.release()
 

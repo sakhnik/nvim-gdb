@@ -14,8 +14,9 @@ CONTENTS                                                     *NvimgdbContents*
     5. Events ............... |NvimgdbEvents|
     6. Functions ............ |NvimgdbFunctions|
     7. Backends ............. |NvimgdbBackends|
-       7.1 GDB .............. |NvimgdbGDB|
+       7.1 GDB, LLDB ........ |NvimgdbGDB|  |NvimgdbLLDB|
        7.2 rr ............... |NvimgdbRR|
+       7.3 PDB, BashDB ...... |NvimgdbPDB|  |NvimgdbBashDB|
     8. Limitations .......... |NvimgdbLimitations|
     9. Development .......... |NvimgdbDevelopment|
    10. Trivia ............... |NvimgdbTrivia|
@@ -66,6 +67,15 @@ stack with `:GdbFrameUp` and `:GdbFrameDown`.
 
 To quit debugging, either close the tabpage with the debugging session or
 execute the command `:GdbDebugStop`.
+
+Supported debuggers and operating systems:
+
+                  Linux       Darwin       Windows
+        GDB        +            -            +
+        LLDB       +            +            +
+        PDB        +            +            +
+        BashDB     +            +            -
+        rr         +            -            -
 
 ==============================================================================
 Section 2: Commands                                          *NvimgdbCommands*
@@ -363,14 +373,11 @@ you created a new window displaying the buffer bufnum. Then try the following:
 Section 7: Backends                                          *NvimgdbBackends*
 
 ------------------------------------------------------------------------------
-Section 7.1 GDB                                                   *NvimgdbGDB*
+Section 7.1 GDB, LLDB                                *NvimgdbGDB*  *NvimgdbLLDB*
 
-- GDB is run via a proxy pty application, which allows to execute concealed
-  service commands, like "info breakpoints" on each stop. Thus, the plugin
-  is able to very carefully display current set of breakpoints with the
-  temporal ones disappearing after hit. Technically, the proxy app is a python
-  program that launches gdb in a pseudo terminal, listens a unix socket for
-  commands, and processes the output of GDB to filter out service commands.
+- To establish a side channel for service commands execution, a Python script
+  is injected into GDB/LLDB. It spawns a thread listening for commands via a
+  UDP socket, executes them and sends a JSON respond back.
 
 ------------------------------------------------------------------------------
 Section 7.2 rr                                                     *NvimgdbRR*
@@ -385,6 +392,16 @@ Section 7.2 rr                                                     *NvimgdbRR*
 
   The command `:GdbStartRR` is identical to `:GdbStart rr replay` with a
   workaround for the PTY requirement.
+
+------------------------------------------------------------------------------
+Section 7.3 PDB, BashDB                            *NvimgdbPDB*  *NvimgdbBashDB*
+
+- PDB and BashDB are run via a proxy pty application, which allows executing
+  concealed service commands, like "info breakpoints" on each stop. Thus, the
+  plugin is able to very carefully display current set of breakpoints with the
+  temporal ones disappearing after hit. Technically, the proxy app is a python
+  program that launches pdb in a pseudo terminal, listens a UDP socket for
+  commands, and processes the output of PDB to filter out service commands.
 
 
 ==============================================================================
@@ -406,10 +423,11 @@ Section 9: Development                                    *NvimgdbDevelopment*
   written to the current directory:
   + nvimgdb.log  contains the logs of the Python plugin
   + proxy.log    contains the logs of the proxy script harnessing the debugger
-  + engine.log   captures the editor screens during automatic testing.
+  + engine.log   captures the editor screens during automatic testing
+  + spy_ui.log   captures the screen too.
 
 - To ease reproduction of an issue, set the environment variable `CI`, and
-  launch NeoVim with the auxiliary script `test/nvim`. The screen cast will
+  launch NeoVim with the auxiliary script `test/nvim.py`. The screen cast will
   be written to the log file spy_ui.log. Alternatively, consider recording
   the terminal script with the ubiquitous command `script`.
 
@@ -419,13 +437,12 @@ Section 9: Development                                    *NvimgdbDevelopment*
   to ensure the original keymaps are preserved and restored after debugging
   session: https://vi.stackexchange.com/questions/7734/how-to-save-and-restore-a-mapping
 
-- PDB and BASHDB like GDB run via a proxy application. Although, they
-  don't have a stock distinctive prefix to bypass the history.
+- PDB and BASHDB are run via a proxy application. Although, they don't have a
+  stock distinctive prefix to bypass the history.
 
 - Breakpoints are queried from GDB, LLDB and PDB on every pause using the
-  established side channels: the pty proxy for GDB, LLDB, PDB and BASHDB.
-  The communication is done via unix domain sockets (see
-  lua/nvimgdb/breakpoint.lua).
+  established side channels: either the pty proxy or an injected Python script.
+  The communication is done via UDP sockets (see lua/nvimgdb/proxy.lua).
 
 ==============================================================================
 Section 10: Trivia                                             *NvimgdbTrivia*

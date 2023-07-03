@@ -8,15 +8,16 @@ to a user.
 import abc
 import argparse
 import errno
-import sys
+import json
 import logging
 import os
 import re
 import selectors
 import socket
+import sys
 from typing import Union
 
-from .stream_filter import Filter, StreamFilter
+from stream_filter import Filter, StreamFilter
 
 
 class Base:
@@ -28,7 +29,8 @@ class Base:
             description="Run %s through a filtering proxy." % app_name)
         proxy_group = parser.add_argument_group("Proxy options")
         proxy_group.add_argument('-a', '--address', metavar='ADDR',
-                                 help='File to dump the side channel UDP port')
+                                 help='File to dump" + \
+                                 " the side channel UDP port')
         backend_group = parser.add_argument_group("Backend command")
         backend_group.add_argument('cmd', metavar='ARGS',
                                    nargs=argparse.REMAINDER,
@@ -60,7 +62,7 @@ class Base:
                 f.write(f"{port}")
 
         # Create the filter
-        self.filter = [(Filter(), lambda _: None)]
+        self.filter = [(Filter(), -1, lambda _: None)]
         # Where was the last command received from?
         self.last_addr = None
 
@@ -98,16 +100,14 @@ class Base:
                 except OSError:
                     pass
 
-    def set_filter(self, filt, handler):
+    def set_filter(self, filt, req_id: int, handler):
         """Push a new filter with given handler."""
         self.logger.info("set_filter %s %s", str(filt), str(handler))
+        # Only one command at a time.
         if len(self.filter) == 1:
             self.logger.info("filter accepted")
-            # Only one command at a time. Should be an assertion here,
-            # but we wouldn't want to terminate the program.
-            if self.filter:
-                self._timeout()
-            self.filter.append((filt, handler))
+            self._timeout()
+            self.filter.append((filt, req_id, handler))
             self.filter_changed(True)
             return True
         self.logger.warning("filter rejected")
@@ -133,11 +133,13 @@ class Base:
 
     def filter_command(self, command):
         """Prepare a requested command for execution."""
-        tokens = re.split(r'\s+', command.decode('utf-8'))
-        if tokens[0] == 'handle-command':
-            cmd = command[len('handle-command '):]
+        m = re.match(rb'^(\d+) ([^ ]+) (.*)', command)
+        if m and m.group(2) == b'handle-command':
+            req_id = int(m.group(1))
+            cmd = m.group(3)
             res = self.set_filter(
                 StreamFilter(self.get_prompt()),
+                req_id,
                 lambda resp: self.process_handle_command(cmd, resp))
             return cmd if res else b''
         return command
@@ -165,7 +167,8 @@ class Base:
                              command.decode('utf-8'))
             if command:
                 self.write_master(command)
-                self.write_master(b'\n')
+                self.write_master(b"\n" if sys.platform != 'win32'
+                                  else b"\r\n")
 
     @staticmethod
     def _write(fdesc, data):
@@ -175,7 +178,7 @@ class Base:
             data = data[count:]
 
     def _timeout(self):
-        filt, _ = self.filter[-1]
+        filt, _, _ = self.filter[-1]
         data = filt.timeout()
         self._write(sys.stdout.fileno(), data)
         # Get back to the passthrough filter on timeout
@@ -185,8 +188,8 @@ class Base:
 
     def write_stdout(self, data):
         """Write to stdout for the child process."""
-        self.logger.debug("%s", data)
-        filt, handler = self.filter[-1]
+        self.logger.debug("Received: <%s>", data)
+        filt, req_id, handler = self.filter[-1]
         data, filtered = filt.filter(data)
         self._write(sys.stdout.fileno(), data)
         if filtered:
@@ -196,7 +199,12 @@ class Base:
             assert callable(handler)
             res = handler(filtered)
             self.logger.debug("Sending to %s: %s", self.last_addr, res)
-            self.sock.sendto(res, 0, self.last_addr)
+            response = {
+                "request": req_id,
+                "response": res.decode('utf-8')
+            }
+            self.sock.sendto(json.dumps(response).encode('utf-8'),
+                             0, self.last_addr)
 
     @abc.abstractmethod
     def read_master(self) -> bytes:

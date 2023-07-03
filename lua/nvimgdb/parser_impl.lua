@@ -11,18 +11,9 @@ local log = require'nvimgdb.log'
 -- @field private buffer string @debugger output collected so far
 -- @field private byte_count number @monotonously increasing processed byte counter
 -- @field private parsing_progress number[] @ordered byte counters to ensure parsing in the right order
+-- @field private timers table<uv_timer_t, boolean> @scheduled timers
 local ParserImpl = {}
 ParserImpl.__index = ParserImpl
-
--- Constructor
--- @param actions ParserActions @parser callbacks
--- @return ParserImpl
-function ParserImpl.new(actions)
-  log.debug({"function ParserImpl.new(", actions, ")"})
-  local self = setmetatable({}, ParserImpl)
-  self:_init(actions)
-  return self
-end
 
 -- Initialization
 -- @param actions ParserActions @parser callbacks
@@ -36,6 +27,17 @@ function ParserImpl:_init(actions)
   self.buffer = '\n'
   self.byte_count = 1
   self.parsing_progress = {}
+  self.timers = {}
+end
+
+-- Destructor
+function ParserImpl:cleanup()
+  -- Stop the remaining timers
+  for timer, _ in pairs(self.timers) do
+    timer:stop()
+    timer:close()
+  end
+  self.timers = {}
 end
 
 -- @alias ParserState ParserTransition[]
@@ -95,6 +97,12 @@ end
 -- @return ParserState
 function ParserImpl:_paused_jump(fname, line)
   log.debug({"function ParserImpl:_paused_jump(", fname, line, ")"})
+  -- Remove \r in case if path was too long and split by the backend
+  local fname1 = fname:gsub("\r", "")
+  if fname1 ~= fname then
+    log.info({"Removing \\r from the file name", fname1})
+    fname = fname1
+  end
   log.info("_paused_jump " .. fname .. ":" .. line)
   self.actions:jump_to_source(fname, tonumber(line))
   return self.paused
@@ -124,7 +132,6 @@ end
 function ParserImpl:feed(lines)
   log.debug({"function ParserImpl:feed(", lines, ")"})
   for _, line in ipairs(lines) do
-    log.debug(line)
     if line == nil or line == '' then
       line = '\n'
     else
@@ -133,6 +140,7 @@ function ParserImpl:feed(lines)
     end
     self.buffer = self.buffer .. line
     self.byte_count = self.byte_count + #line
+    log.debug({"buffer", self.buffer})
   end
   self.parsing_progress[#self.parsing_progress + 1] = self.byte_count
   self:_delay_parsing(50, self.byte_count)
@@ -143,8 +151,14 @@ end
 function ParserImpl:_delay_parsing(delay_ms, byte_count)
   log.debug({"function ParserImpl:_delay_parsing(", delay_ms, byte_count, ")"})
   local timer = vim.loop.new_timer()
+  self.timers[timer] = true
   timer:start(delay_ms, 0, vim.schedule_wrap(function()
-    self:delay_elapsed(byte_count)
+    if self.timers[timer] ~= nil then
+      self.timers[timer] = nil
+      timer:stop()
+      timer:close()
+      self:delay_elapsed(byte_count)
+    end
   end))
 end
 

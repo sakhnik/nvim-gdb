@@ -7,4 +7,5 @@ let g:loaded_netrwPlugin = 1
 set shortmess=a
 set cmdheight=5
 set hidden
+set noruler noshowcmd
 runtime! plugin/*.vim

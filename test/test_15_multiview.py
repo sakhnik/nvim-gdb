@@ -9,7 +9,7 @@ def test_multiview(eng, two_backends):
     eng.feed(back1['launch'])
     assert eng.wait_paused() is None
     eng.feed(back1['tbreak_main'])
-    eng.feed('run\n', 1000)
+    eng.feed('run<cr>', 1000)
     eng.feed('<esc>')
     eng.feed('<c-w>w')
     eng.feed(':11<cr>')
@@ -23,7 +23,7 @@ def test_multiview(eng, two_backends):
     eng.feed(back2['launch'])
     assert eng.wait_paused() is None
     eng.feed(back2['tbreak_main'])
-    eng.feed('run\n', 1000)
+    eng.feed('run<cr>', 1000)
     eng.feed('<esc>')
     eng.feed('<c-w>w')
     eng.feed(':5<cr>')
@@ -39,7 +39,7 @@ def test_multiview(eng, two_backends):
     assert eng.wait_signs({'cur': 'test.cpp:10', 'break': {1: [11]}}) is None
 
     # Quit
-    eng.feed(':GdbDebugStop\n')
+    eng.feed(':GdbDebugStop<cr>')
 
     # Switch back to the second backend
     eng.feed('2gt')
