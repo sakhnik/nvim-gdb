@@ -14,7 +14,7 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
-    timeout-minutes: ${{ (matrix.os == 'windows-latest' && 15) || 7 }}
+    timeout-minutes: ${{ (matrix.os == 'windows-latest' && 20) || 7 }}
 
     steps:
     - uses: actions/checkout@v3
