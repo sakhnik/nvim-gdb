@@ -5,6 +5,7 @@
 import pytest
 import config
 import os
+import sys
 from engine import Engine
 import pynvim
 
@@ -17,26 +18,28 @@ def eng():
     engine.close()
 
 
+aout = "a.out" if sys.platform != 'win32' else 'a.exe'
+
 BACKENDS = {}
 if "gdb" in config.BACKEND_NAMES:
     BACKENDS['gdb'] = {
         'name': 'gdb',
-        'launch': ' dd a.out\n',
-        'tbreak_main': 'tbreak main\n',
-        'break_main': 'break main\n',
-        'break_bar': 'break Bar\n',
-        'launchF': ':GdbStart gdb -q {}\n',
-        'watchF': 'watch {}\n',
+        'launch': f' dd {aout}<cr>',
+        'tbreak_main': 'tbreak main<cr>',
+        'break_main': 'break main<cr>',
+        'break_bar': 'break Bar<cr>',
+        'launchF': ':GdbStart gdb -q {}<cr>',
+        'watchF': 'watch {}<cr>',
     }
 if "lldb" in config.BACKEND_NAMES:
     BACKENDS['lldb'] = {
         'name': 'lldb',
-        'launch': ' dl a.out\n',
-        'tbreak_main': 'breakpoint set -o true -n main\n',
-        'break_main': 'breakpoint set -n main\n',
-        'break_bar': 'breakpoint set --fullname Bar\n',
-        'launchF': ':GdbStartLLDB lldb {}\n',
-        'watchF': 'watchpoint set variable {}\n',
+        'launch': f' dl {aout}<cr>',
+        'tbreak_main': 'breakpoint set -o true -n main<cr>',
+        'break_main': 'breakpoint set -n main<cr>',
+        'break_bar': 'breakpoint set --fullname Bar<cr>',
+        'launchF': ':GdbStartLLDB lldb {}<cr>',
+        'watchF': 'watchpoint set variable {}<cr>',
     }
 
 
@@ -119,7 +122,7 @@ def config_test(eng, post):
 for scope in ("bwtg"):gmatch'.' do
   for k, _ in pairs(vim.fn.eval(scope .. ':')) do
     if type(k) == "string" and k:find('^nvimgdb_') then
-      NvimGdb.vim.cmd('unlet ' .. scope .. ':' .. k)
+      vim.api.nvim_command('unlet ' .. scope .. ':' .. k)
     end
   end
 end
@@ -133,3 +136,28 @@ def cd_to_cmake(eng):
     yield True
     eng.exe("bd")
     eng.exe("cd ..")
+
+
+@pytest.fixture(scope='function')
+def count_stops(eng):
+    """Allow waiting for the specific count of debugger prompts appeared."""
+    eng.exe("let g:prompt = 0")
+    eng.exe("augroup pdbtest"
+            " | au!"
+            " | au! User NvimGdbQuery let g:prompt += 1"
+            " | augroup END")
+
+    class Prompt:
+        def reset(self):
+            eng.exe("let g:prompt = 0")
+
+        def wait(self, count, deadline=2000):
+            eng.wait_for(
+                lambda: eng.eval("g:prompt"),
+                lambda res: res >= count,
+                deadline
+            )
+    yield Prompt()
+
+    eng.exe("au! pdbtest | augroup! pdbtest")
+    eng.exe("unlet g:prompt")

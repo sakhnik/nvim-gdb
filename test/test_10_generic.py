@@ -1,6 +1,7 @@
 '''Test generic operation.'''
 
 import pytest
+import sys
 
 
 def test_smoke(eng, backend):
@@ -8,7 +9,7 @@ def test_smoke(eng, backend):
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
     eng.feed(backend['tbreak_main'])
-    eng.feed('run\n')
+    eng.feed('run<cr>')
     eng.feed('<esc>')
 
     assert eng.wait_signs({'cur': 'test.cpp:17'}) is None
@@ -58,10 +59,17 @@ def test_interrupt(eng, backend):
     '''Test interrupt.'''
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
-    eng.feed('run 4294967295\n', 1000)
+    if sys.platform == 'win32' and backend['name'] == 'lldb':
+        pytest.skip("LLDB shows prompt even while the target is running")
+    eng.feed('run 4294967295<cr>', 1000)
     eng.feed('<esc>')
+    assert not eng.exec_lua("return NvimGdb.i().parser:is_paused()")
     eng.feed(':GdbInterrupt\n')
-    assert eng.wait_signs({'cur': 'test.cpp:22'}) is None
+    if sys.platform != 'win32':
+        assert eng.wait_signs({'cur': 'test.cpp:22'}) is None
+    else:
+        # Most likely to break in the kernel code
+        assert eng.wait_paused() is None
 
 
 def test_until(eng, backend):
@@ -69,7 +77,7 @@ def test_until(eng, backend):
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
     eng.feed(backend['tbreak_main'])
-    eng.feed('run\n', 1000)
+    eng.feed('run<cr>', 1000)
     eng.feed('<esc><esc><esc>')
     eng.feed('<c-w>w', 300)
     eng.feed(':21<cr>')
@@ -93,7 +101,7 @@ def test_eval(eng, backend):
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
     eng.feed(backend['tbreak_main'])
-    eng.feed('run\n', 1000)
+    eng.feed('run<cr>', 1000)
     eng.feed('<esc>')
     eng.feed('<c-w>w')
     eng.feed('<f10>')
@@ -112,7 +120,7 @@ def test_navigate(eng, backend):
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
     eng.feed(backend['tbreak_main'])
-    eng.feed('run\n', 1000)
+    eng.feed('run<cr>', 1000)
     eng.feed('<esc>')
     eng.feed('<c-w>w')
     eng.feed('/Lib::Baz\n', 300)
@@ -129,20 +137,17 @@ def test_repeat_last_command(eng, backend):
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
     eng.feed(backend['tbreak_main'])
-    eng.feed('run\n')
+    eng.feed('run<cr>')
     assert eng.wait_signs({'cur': 'test.cpp:17'}) is None
 
-    eng.feed('n\n')
+    eng.feed('n<cr>')
     assert eng.wait_signs({'cur': 'test.cpp:19'}) is None
     eng.feed('<cr>')
     assert eng.wait_signs({'cur': 'test.cpp:17'}) is None
 
 
-def test_scrolloff(eng, backend):
+def test_scrolloff(eng, backend, count_stops):
     '''Test that scrolloff is respected in the jump window.'''
-    eng.feed(backend['launch'])
-    assert eng.wait_paused() is None
-
     # Skip if neovim version is known to be buggy
     version = eng.exec_lua('return vim.version()')
     vstr = f"{version['major']:03}.{version['minor']:03}"
@@ -150,8 +155,13 @@ def test_scrolloff(eng, backend):
         pytest.skip("required vim-patch:8.2.4797: getwininfo() may get"
                     + " oudated values")
 
+    eng.feed(backend['launch'])
+    assert eng.wait_paused() is None
+    count_stops.reset()
     eng.feed(backend['tbreak_main'])
-    eng.feed('run\n', 1000)
+    assert count_stops.wait(1) is None
+    eng.feed('run<cr>')
+    assert count_stops.wait(2) is None
     eng.feed('<esc>')
 
     def _check_margin():
@@ -164,7 +174,10 @@ def test_scrolloff(eng, backend):
         assert curline >= wininfo['topline'] + 3
 
     _check_margin()
+    count_stops.reset()
     eng.feed('<f10>')
+    assert count_stops.wait(1) is None
     _check_margin()
     eng.feed('<f11>')
+    assert count_stops.wait(2) is None
     _check_margin()

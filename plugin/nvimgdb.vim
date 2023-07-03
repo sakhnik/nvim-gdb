@@ -3,17 +3,17 @@ if exists("g:loaded_nvimgdb") || !has("nvim")
 endif
 let g:loaded_nvimgdb = 1
 
-function! s:Spawn(backend, launch_cmd, client_cmd)
+function! s:Spawn(backend, client_cmd)
   "Expand words in the client_cmd to support %, <word> etc
-  let cmd = join(map(split(a:client_cmd), {k, v -> expand(v)}))
-  call luaeval("require'nvimgdb'.new(_A[1], _A[2], _A[3])", [a:backend, a:launch_cmd, cmd])
+  let cmd = map(a:client_cmd, {k, v -> expand(v)})
+  call luaeval("require'nvimgdb'.new(_A[1], _A[2])", [a:backend, cmd])
 endfunction
 
-command! -nargs=1 -complete=customlist,ExecsCompletion GdbStart call s:Spawn('gdb', 'launch_gdb.py', <q-args>)
-command! -nargs=1 -complete=customlist,ExecsCompletion GdbStartLLDB call s:Spawn('lldb', 'launch_lldb.py', <q-args>)
-command! -nargs=1 -complete=shellcmd GdbStartPDB call s:Spawn('pdb', 'launch_pdb.py', <q-args>)
-command! -nargs=1 -complete=shellcmd GdbStartBashDB call s:Spawn('bashdb', 'launch_bashdb.py', <q-args>)
-command! GdbStartRR call s:Spawn('gdb', 'launch_gdb.py', 'rr-replay.py')
+command! -nargs=+ -complete=customlist,ExecsCompletion GdbStart call s:Spawn('gdb', [<f-args>])
+command! -nargs=+ -complete=customlist,ExecsCompletion GdbStartLLDB call s:Spawn('lldb', [<f-args>])
+command! -nargs=+ -complete=shellcmd GdbStartPDB call s:Spawn('pdb', [<f-args>])
+command! -nargs=+ -complete=shellcmd GdbStartBashDB call s:Spawn('bashdb', [<f-args>])
+command! GdbStartRR call s:Spawn('gdb', ['rr-replay.py'])
 
 function IsExec(exec)
   eval system('test -x ' . a:exec)

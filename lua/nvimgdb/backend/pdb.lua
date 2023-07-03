@@ -4,6 +4,7 @@
 local log = require'nvimgdb.log'
 local Common = require'nvimgdb.backend.common'
 local ParserImpl = require'nvimgdb.parser_impl'
+local utils = require'nvimgdb.utils'
 
 -- @class BackendPdb:Backend @specifics of PDB
 local C = {}
@@ -16,10 +17,26 @@ function C.new()
   return self
 end
 
+local for_win32 = function(win32, other)
+  if utils.is_windows then
+    return win32
+  end
+  return other
+end
+
+local U = {
+  re_jump = for_win32('> ([^(]+)%((%d+)%)[^(]+%(%)', '[\r\n ]> ([^(]+)%((%d+)%)[^(]+%(%)'),
+  -- c:\full\path\test.py
+  jump_regex = for_win32('^([^:]+:[^:]+):([0-9]+)$', '^([^:]+):([0-9]+)$'),
+  strieq = for_win32(function(a, b) return a:lower() == b:lower() end,
+                      function(a, b) return a == b end)
+}
+
 -- Create a parser to recognize state changes and code jumps
 -- @param actions ParserActions @callbacks for the parser
+-- @param proxy Proxy @side channel connection to the debugger
 -- @return ParserImpl @new parser instance
-function C.create_parser(actions)
+function C.create_parser(actions, _--[[proxy]])
   local P = {}
   P.__index = P
   setmetatable(P, {__index = ParserImpl})
@@ -27,9 +44,8 @@ function C.create_parser(actions)
   local self = setmetatable({}, P)
   self:_init(actions)
 
-  local re_jump = '[\r\n ]> ([^(]+)%((%d+)%)[^(]+%(%)'
-  local re_prompt = '[\r\n]%(Pdb%+?%+?%) $'
-  self.add_trans(self.paused, re_jump, self._paused_jump)
+  local re_prompt = '[\r\n]%(Pdb%+?%+?%) *$'
+  self.add_trans(self.paused, U.re_jump, self._paused_jump)
   self.add_trans(self.paused, re_prompt, self._query_b)
 
   -- Let's start the backend in the running state for the tests
@@ -41,7 +57,7 @@ function C.create_parser(actions)
     return self.running
   end
 
-  self.add_trans(self.running, re_jump, self._running_jump)
+  self.add_trans(self.running, U.re_jump, self._running_jump)
   self.add_trans(self.running, re_prompt, self._query_b)
   self.state = self.running
   return self
@@ -55,6 +71,9 @@ function C.query_breakpoints(fname, proxy)
   log.info("Query breakpoints for " .. fname)
 
   local response = proxy:query('handle-command break')
+  if response == nil or type(response) ~= 'string' or response == '' then
+    return {}
+  end
 
   -- Num Type         Disp Enb   Where
   -- 1   breakpoint   keep yes   at /tmp/nvim-gdb/test/main.py:8
@@ -67,8 +86,8 @@ function C.query_breakpoints(fname, proxy)
     end
     local bid = tokens[1]
     if tokens[2] == 'breakpoint' and tokens[4] == 'yes' then
-      local bpfname, lnum = tokens[#tokens]:match("^([^:]+):(.+)$")
-      if fname == bpfname then
+      local bpfname, lnum = tokens[#tokens]:match(U.jump_regex)
+      if bpfname ~= nil and U.strieq(fname, bpfname) then
         local list = breaks[lnum]
         if list == nil then
           breaks[lnum] = {bid}
@@ -124,6 +143,19 @@ function C.get_error_formats()
   -- -> return num + _bar(num - 1)
   -- [5] > /tmp/nvim-gdb/test/main.py(5)_bar()
   -- -> return i * 2
+end
+
+-- @param client_cmd string[] @original debugger command
+-- @param tmp_dir string @path to the session state directory
+-- @param proxy_addr string @full path to the file with the udp port in the session state directory
+-- @return string[] @command to launch the debugger with termopen()
+function C.get_launch_cmd(client_cmd, _ --[[tmp_dir]], proxy_addr)
+  local cmd = {"python", utils.get_plugin_file_path('lib', 'proxy', 'pdb.py'), '-a', proxy_addr}
+  -- Append the rest of arguments
+  for i = 1, #client_cmd do
+    cmd[#cmd + 1] = client_cmd[i]
+  end
+  return cmd
 end
 
 return C

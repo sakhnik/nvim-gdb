@@ -97,6 +97,12 @@ end
 -- @return ParserState
 function ParserImpl:_paused_jump(fname, line)
   log.debug({"function ParserImpl:_paused_jump(", fname, line, ")"})
+  -- Remove \r in case if path was too long and split by the backend
+  local fname1 = fname:gsub("\r", "")
+  if fname1 ~= fname then
+    log.info({"Removing \\r from the file name", fname1})
+    fname = fname1
+  end
   log.info("_paused_jump " .. fname .. ":" .. line)
   self.actions:jump_to_source(fname, tonumber(line))
   return self.paused
@@ -126,7 +132,6 @@ end
 function ParserImpl:feed(lines)
   log.debug({"function ParserImpl:feed(", lines, ")"})
   for _, line in ipairs(lines) do
-    log.debug(line)
     if line == nil or line == '' then
       line = '\n'
     else
@@ -135,6 +140,7 @@ function ParserImpl:feed(lines)
     end
     self.buffer = self.buffer .. line
     self.byte_count = self.byte_count + #line
+    log.debug({"buffer", self.buffer})
   end
   self.parsing_progress[#self.parsing_progress + 1] = self.byte_count
   self:_delay_parsing(50, self.byte_count)

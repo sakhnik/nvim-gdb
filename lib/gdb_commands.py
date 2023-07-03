@@ -45,29 +45,52 @@ class NvimGdbInit(gdb.Command):
                 except TimeoutError:
                     continue
                 command = re.split(r"\s+", data.decode("utf-8"))
-                if command[0] == "info-breakpoints":
-                    fname = command[1]
-                    breaks = self._get_breaks(fname)
-                    sock.sendto(breaks.encode("utf-8"), 0, addr)
-                elif command[0] == "handle-command":
+                req_id = int(command[0])
+                request = command[1]
+                args = command[2:]
+                if request == "info-breakpoints":
+                    fname = args[0]
+                    response = {
+                        "request": req_id,
+                        "response": self._get_breaks(os.path.normpath(fname))
+                    }
+                    sock.sendto(json.dumps(response).encode("utf-8"), 0, addr)
+                elif request == "get-current-frame-location":
+                    response = {
+                        "request": req_id,
+                        "response": self._get_current_frame_location()
+                    }
+                    sock.sendto(json.dumps(response).encode("utf-8"), 0, addr)
+                elif request == "handle-command":
                     # pylint: disable=broad-except
                     try:
-                        if command[1] == 'nvim-gdb-info-breakpoints':
+                        if args[0] == 'nvim-gdb-info-breakpoints':
                             # Fake a command info-breakpoins for
                             # GdbLopenBreakpoins
-                            resp = self._get_all_breaks()
-                            sock.sendto(resp.encode("utf-8"), 0, addr)
+                            response = {
+                                "request": req_id,
+                                "response": self._get_all_breaks()
+                            }
+                            sock.sendto(json.dumps(response).encode("utf-8"),
+                                        0, addr)
                             return
-                        gdb_command = " ".join(command[1:])
+                        gdb_command = " ".join(args)
                         if sys.version_info.major < 3:
                             gdb_command = gdb_command.encode("utf-8")
                         try:
                             result = gdb.execute(gdb_command, False, True)
                         except RuntimeError as err:
                             result = str(err)
+                        if result is None:
+                            result = ""
+                        response = {
+                            "request": req_id,
+                            "response": result.strip()
+                        }
                         result = b"" if result is None else \
                             result.encode("utf-8")
-                        sock.sendto(result.strip(), 0, addr)
+                        sock.sendto(json.dumps(response).encode('utf-8'),
+                                    0, addr)
                     except Exception as ex:
                         print("Exception: " + str(ex))
         finally:
@@ -75,6 +98,19 @@ class NvimGdbInit(gdb.Command):
                 os.unlink(server_address)
             except OSError:
                 pass
+
+    def _get_current_frame_location(self):
+        try:
+            frame = gdb.selected_frame()
+            if frame is not None:
+                symtab_and_line = frame.find_sal()
+                if symtab_and_line.symtab is not None:
+                    filename = symtab_and_line.symtab.filename
+                    line = symtab_and_line.line
+                    return [filename, line]
+        except gdb.error:
+            ...
+        return []
 
     def _get_breaks_provider(self):
         # Older versions of GDB may lack attribute .locations in
@@ -89,14 +125,14 @@ class NvimGdbInit(gdb.Command):
 
         try:
             for path, line, bid in self._get_breaks_provider():
-                if fname == path:
+                if fname == os.path.normpath(path):
                     breaks.setdefault(line, []).append(bid)
         except AttributeError:
             self.fallback_to_parsing = True
             return self._get_breaks(fname)
 
         # Return the filtered breakpoints
-        return json.dumps(breaks)
+        return breaks
 
     def _enum_breaks(self):
         """Get a list of all enabled breakpoints."""
