@@ -6,23 +6,24 @@ local M = {}
 
 local function report_result()
   vim.cmd("tabnew")
-  local result = {}
-  for _, res in ipairs(_G.test_result) do
-    local status = res[3]
-    local name = res[2].name .. '::' .. res[1].name
-    local duration = string.format("%.3f", res[1].duration)
-    table.insert(result, table.concat({status, duration, name}, '\t'))
-    if status == "failure" then
-      for _, line in ipairs(vim.split(res[1].trace.traceback, "\n")) do
-        table.insert(result, line)
-      end
-    end
-  end
-  vim.api.nvim_buf_set_lines(0, 0, 0, false, result)
+  vim.cmd([[
+    syntax match DiagnosticOk /+/
+    syntax match DiagnosticWarn /-/
+    syntax match DiagnosticOk /\d\+ success[^ ]*/
+    syntax match DiagnosticWarn /\d\+ failure[^ ]*/
+    syntax match DiagnosticError /\d\+ error[^ ]*/
+    syntax match DiagnosticInfo /\d\+ pending[^ ]*/
+    syntax match Float /[0-9]\+\.[0-9]\+/
+    syntax match DiagnosticWarn /Failure ->/
+    syntax match DiagnosticError /Error ->/
+  ]])
+  local result = table.concat(_G.test_output, "")
+  local lines = vim.split(result, "\n", {})
+  vim.api.nvim_buf_set_lines(0, 0, 0, false, lines)
 end
 
 local function main()
-  runner({standalone = false, output = 'output.lua'})
+  runner {standalone = false, output = 'output.lua'}
   report_result()
   M.thr:cleanup()
 end
