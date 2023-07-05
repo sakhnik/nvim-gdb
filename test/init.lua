@@ -1,5 +1,6 @@
 vim.cmd("language C")
-vim.o.rtp = vim.env.VIMRUNTIME .. ',' .. vim.loop.fs_realpath('..')
+local plugin_dir = vim.loop.fs_realpath('..')
+vim.o.rtp = vim.env.VIMRUNTIME .. ',' .. plugin_dir
 vim.g.mapleader = ' '
 vim.g.loaded_matchparen = 1   -- Don't load stock plugins to simplify debugging
 vim.g.loaded_netrwPlugin = 1
@@ -10,3 +11,7 @@ vim.o.ruler = false
 vim.o.showcmd = false
 
 vim.cmd("runtime! plugin/*.vim")
+
+local rocks_dir = plugin_dir .. '/lua_modules/share/lua/5.1'
+package.path = rocks_dir .. '/?.lua;' .. rocks_dir .. '/?/init.lua;' .. package.path
+package.cpath = plugin_dir .. '/lua_modules/lib/lua/5.1/?.so;' .. package.cpath

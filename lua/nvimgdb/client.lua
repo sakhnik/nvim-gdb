@@ -82,7 +82,9 @@ function Client:start()
 
   self.client_id = vim.fn.termopen(self.command, {
     on_stdout = function(--[[j]]_, lines, --[[name]]_)
-      NvimGdb.parser_feed(cur_tabpage, lines)
+      if NvimGdb ~= nil then
+        NvimGdb.parser_feed(cur_tabpage, lines)
+      end
     end,
     on_exit = function(--[[j]]_, code, --[[name]]_)
       if self.has_interacted and code == 0 then
