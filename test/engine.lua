@@ -24,14 +24,28 @@ function E.wait_paused(timeout_ms)
   return false
 end
 
-function E.count_buffers()
+function E.count_buffers_impl(pred)
   local count = 0
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-    if vim.api.nvim_buf_is_loaded(buf) then
+    if pred(buf) then
       count = count + 1
     end
   end
   return count
+end
+
+function E.count_buffers()
+  -- Determine how many terminal buffers are there.
+  return E.count_buffers_impl(function(buf)
+    return vim.api.nvim_buf_is_loaded(buf)
+  end)
+end
+
+function E.count_termbuffers()
+  -- Determine how many terminal buffers are there.
+  return E.count_buffers_impl(function(buf)
+    return vim.api.nvim_buf_is_loaded(buf) and vim.api.nvim_buf_get_option(buf, 'buftype') == 'terminal'
+  end)
 end
 
 return E
