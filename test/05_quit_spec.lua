@@ -12,8 +12,8 @@ local function mysetup(backend, action)
   action(backend)
 
   -- Check that no new buffers have left
-  assert.are.equal(num_bufs, eng.count_buffers())
-  assert.are.equal(1, vim.fn.tabpagenr('$'))
+  assert.are.equal(num_bufs, eng.count_buffers(), "No new rogue buffers")
+  assert.are.equal(1, vim.fn.tabpagenr('$'), "No rogue tabpages")
 end
 
 describe("quit", function()

@@ -1,5 +1,5 @@
 local thr = require'thread'
-local runner = require("busted.runner")
+local runner = require'busted.runner'
 
 arg = {"."}
 local M = {}
@@ -23,7 +23,11 @@ local function report_result()
 end
 
 local function main()
-  runner {standalone = false, output = 'output.lua'}
+  -- busted will try to end the process in case of failure, so disable os.exit() for now
+  local exit_orig = os.exit
+  os.exit = function() end
+  pcall(runner, {standalone = false, output = 'output.lua'})
+  os.exit = exit_orig
   report_result()
   M.thr:cleanup()
 end
