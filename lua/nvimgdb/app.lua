@@ -36,6 +36,9 @@ function App.new(backend_name, client_cmd)
   self._last_command = nil
 
   local edited_buf = vim.api.nvim_get_current_buf()
+  if not vim.api.nvim_buf_is_loaded(edited_buf) or vim.api.nvim_buf_get_option(edited_buf, 'buftype') == 'terminal' then
+    edited_buf = nil
+  end
 
   -- Check if a debugging session is already running in this tabpage
   self.tabpage_created = false
