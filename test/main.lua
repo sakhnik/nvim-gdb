@@ -1,11 +1,12 @@
 local thr = require'thread'
 local runner = require'busted.runner'
+local result = require'result'
 
 arg = {"."}
 local M = {}
 
 local function report_result()
-  vim.cmd("tabnew")
+  vim.cmd("noswap tabnew")
   vim.cmd([[
     syntax match DiagnosticOk /+/
     syntax match DiagnosticWarn /-/
@@ -17,9 +18,13 @@ local function report_result()
     syntax match DiagnosticWarn /Failure ->/
     syntax match DiagnosticError /Error ->/
   ]])
-  local result = table.concat(_G.test_output, "")
-  local lines = vim.split(result, "\n", {})
+  local res = table.concat(result.test_output, "")
+  local lines = vim.split(res, "\n", {})
   vim.api.nvim_buf_set_lines(0, 0, 0, false, lines)
+  vim.cmd ':w! test.log'
+  if require'config'.exit_after_tests then
+    os.exit(result.failures > 0 and 1 or 0)
+  end
 end
 
 local function main()

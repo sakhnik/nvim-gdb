@@ -1,6 +1,8 @@
 -- custom_output.lua
 
-_G.test_output = {}
+local result = require"result"
+result.test_output = {}
+result.failures = 0
 
 local s = require 'say'
 local pretty = require 'pl.pretty'
@@ -9,7 +11,7 @@ local string_format = string.format
 local string_gsub = string.gsub
 local io_write = function(...)
   for _, msg in ipairs({...}) do
-    table.insert(_G.test_output, msg)
+    table.insert(result.test_output, msg)
   end
 end
 local io_flush = function() end
@@ -116,6 +118,8 @@ return function(options)
     end
 
     local formattedTime = string_gsub(string_format('%.6f', sec), '([0-9])0+$', '%1')
+
+    result.failures = errors + failures
 
     return successes .. ' ' .. successString .. ' / ' ..
       failures .. ' ' .. failureString .. ' / ' ..
