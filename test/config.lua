@@ -56,7 +56,7 @@ function C.post(action)
 
   thr.y(0, vim.cmd("GdbDebugStop"))
   assert.equals(1, vim.fn.tabpagenr('$'), "No rogue tabpages")
-  --assert {} == eng.get_signs()
+  assert.are.same({}, eng.get_signs(), "No rogue signs")
   assert.equals(0, eng.count_termbuffers(), "No rogue terminal buffers")
   assert.equals(num_bufs, eng.count_buffers(), "No new buffers have left")
 

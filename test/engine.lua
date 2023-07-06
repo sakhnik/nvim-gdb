@@ -48,4 +48,42 @@ function E.count_termbuffers()
   end)
 end
 
+function E.get_signs()
+  -- Get pointer position and list of breakpoints.
+  local ret = {}
+
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_is_loaded(buf) then
+      local breaks = {}
+      for _, bsigns in ipairs(vim.fn.sign_getplaced(buf, {group = "NvimGdb"})) do
+        for _, signs in ipairs(bsigns.signs) do
+          local sname = signs.name
+          if sname == 'GdbCurrentLine' then
+            local bname = vim.api.nvim_buf_get_name(buf):match("[^/\\]+$")
+            if ret.cur == nil then
+              ret.cur = bname .. ':' .. signs.lnum
+            else
+              if ret.curs == nil then
+                ret.curs = {}
+              end
+              table.insert(ret.curs, bname .. ':' .. signs.lnum)
+            end
+          end
+          if sname:match('^GdbBreakpoint') then
+            local num = assert(tonumber(sname:sub(string.len('GdbBreakpoint'))))
+            if breaks[num] == nil then
+              breaks[num] = {}
+            end
+            table.insert(breaks[num], signs.lnum)
+          end
+        end
+      end
+      if #breaks > 0 then
+        ret.brk = breaks
+      end
+    end
+  end
+  return ret
+end
+
 return E
