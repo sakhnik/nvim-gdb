@@ -4,6 +4,21 @@ local result = require"result"
 result.test_output = {}
 result.failures = 0
 
+local tcp_client = nil
+if require'config'.send_output_to_tcp then
+  local uv = vim.loop
+  local client = uv.new_tcp()
+  client:nodelay(true)
+  client:connect("127.0.0.1", 11111, function(err)
+    if err then
+      io.stderr:write("Error connecting: ", err, "\n")
+      return
+    end
+    tcp_client = client
+  end)
+  vim.wait(1000, function() return tcp_client ~= nil end)
+end
+
 local s = require 'say'
 local pretty = require 'pl.pretty'
 local type = type
@@ -12,6 +27,14 @@ local string_gsub = string.gsub
 local io_write = function(...)
   for _, msg in ipairs({...}) do
     table.insert(result.test_output, msg)
+    if tcp_client ~= nil then
+      tcp_client:write(msg, function(err)
+        if err then
+          io.stderr:write("Error sending data: ", err, "\n")
+          return
+        end
+      end)
+    end
   end
 end
 local io_flush = function() end
