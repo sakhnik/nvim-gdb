@@ -1,11 +1,15 @@
 local thr = require'thread'
 local eng = require'engine'
 local conf = require'conftest'
+local utils = require'nvimgdb.utils'
 
 
 local function mysetup(backend, action)
   eng.feed(string.format(backend.launchF, ""))
   assert.is_true(eng.wait_paused(5000))
+  if utils.is_windows and backend.name == 'lldb' then
+    thr.y(500)
+  end
   eng.feed("<esc>")
 
   action(backend)
@@ -31,7 +35,12 @@ describe("quit", function()
 
     it(backend.name .. " when EOF", function()
       mysetup_bufcheck(backend, function()
-        eng.feed("i<c-d>")
+        if utils.is_windows and backend.name == 'lldb' then
+          -- lldb doesn't like ^D in Windows
+          eng.feed("iquit<cr>")
+        else
+          eng.feed("i<c-d>")
+        end
         eng.feed("<cr>")
       end)
     end)
@@ -52,6 +61,9 @@ describe("quit", function()
     it(backend.name .. " when tabpage is closed", function()
       mysetup(backend, function()
         eng.feed(string.format(backend.launchF, ""))
+        if utils.is_windows and backend.name == 'lldb' then
+          thr.y(500)
+        end
         assert.is_true(eng.wait_paused(5000))
         eng.feed('<esc>')
         eng.feed(":tabclose<cr>")
