@@ -10,13 +10,10 @@ if require'config'.send_output_to_tcp then
   local client = uv.new_tcp()
   client:nodelay(true)
   client:connect("127.0.0.1", 11111, function(err)
-    if err then
-      io.stderr:write("Error connecting: ", err, "\n")
-      return
-    end
+    assert(not err, err)
     tcp_client = client
   end)
-  vim.wait(1000, function() return tcp_client ~= nil end)
+  assert(vim.wait(1000, function() return tcp_client ~= nil end), "Failed to connect")
 end
 
 local s = require 'say'
@@ -29,10 +26,7 @@ local io_write = function(...)
     table.insert(result.test_output, msg)
     if tcp_client ~= nil then
       tcp_client:write(msg, function(err)
-        if err then
-          io.stderr:write("Error sending data: ", err, "\n")
-          return
-        end
+        assert(not err, err)
       end)
     end
   end

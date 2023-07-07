@@ -31,10 +31,6 @@ local opts = {
   end
 }
 
-local success, job_id = pcall(vim.fn.jobstart, {"python", "nvim.py", "--headless", "+luafile config_ci.lua", "+luafile main.lua"}, opts)
-if not success then
-  io.stderr:write("Can't execute nvim")
-  os.exit(1)
-end
+assert(vim.fn.jobstart({"python", "nvim.py", "--headless", "+luafile config_ci.lua", "+luafile main.lua"}, opts))
 
 vim.wait(30 * 60 * 1000, function() return false end)
