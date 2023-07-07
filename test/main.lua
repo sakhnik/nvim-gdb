@@ -2,7 +2,7 @@ local thr = require'thread'
 local runner = require'busted.runner'
 local result = require'result'
 
-arg = {"."}
+arg = {"--verbose", "."}
 local M = {}
 
 local function report_result()
