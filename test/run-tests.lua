@@ -31,6 +31,12 @@ local opts = {
   end
 }
 
-assert(vim.fn.jobstart({"python", "nvim.py", "--headless", "+luafile config_ci.lua", "+luafile main.lua"}, opts))
+local job_id = assert(vim.fn.jobstart({"python", "nvim.py", "--headless", "+luafile config_ci.lua", "+luafile main.lua"}, opts))
+
+local signal = uv.new_signal()
+vim.loop.signal_start(signal, "sigint", vim.schedule_wrap(function(_)
+  vim.fn.jobstop(job_id)
+  os.exit(1)
+end))
 
 vim.wait(30 * 60 * 1000, function() return false end)
