@@ -14,4 +14,7 @@ vim.cmd("runtime! plugin/*.vim")
 
 local rocks_dir = plugin_dir .. '/lua_modules/share/lua/5.1'
 package.path = rocks_dir .. '/?.lua;' .. rocks_dir .. '/?/init.lua;' .. package.path
-package.cpath = plugin_dir .. '/lua_modules/lib/lua/5.1/?.so;' .. package.cpath
+
+local utils = require'nvimgdb.utils'
+local so = utils.is_windows and '.dll' or '.so'
+package.cpath = plugin_dir .. '/lua_modules/lib/lua/5.1/?' .. so .. ';' .. package.cpath
