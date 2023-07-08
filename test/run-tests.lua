@@ -39,4 +39,13 @@ vim.loop.signal_start(signal, "sigint", vim.schedule_wrap(function(_)
   os.exit(1)
 end))
 
+--local channel = nil;
+--assert(vim.wait(1000, function()
+--  local ok, ch = pcall(vim.fn.sockconnect, 'tcp', 'localhost:44444', {rpc = true})
+--  channel = ch
+--  return ok
+--end))
+--
+--vim.fn.rpcrequest(channel, "nvim_ui_attach", 80, 25, {ext_linegrid = true})
+
 vim.wait(30 * 60 * 1000, function() return false end)
