@@ -7,6 +7,8 @@ function Thread.create(func, on_stuck)
   co.watchdog_timer = vim.loop.new_timer()
   co.watchdog_timer:start(5000, 5000, function ()
     if co.watchdog_flag then
+      co.watchdog_timer:stop()
+      co.watchdog_timer:close()
       vim.schedule(on_stuck)
     end
     co.watchdog_flag = true

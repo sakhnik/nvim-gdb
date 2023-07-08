@@ -6,6 +6,15 @@ arg = {"--verbose", "."}
 local M = {}
 
 local function report_result()
+  local test_log = table.concat(result.test_output, "")
+  if require'config'.exit_after_tests then
+    local f = io.open('test.log', 'w')
+    if f ~= nil then
+      f:write(test_log)
+      f:close()
+    end
+    os.exit(result.failures > 0 and 1 or 0)
+  end
   vim.cmd("noswap tabnew")
   vim.cmd([[
     syntax match DiagnosticOk /+/
@@ -18,13 +27,9 @@ local function report_result()
     syntax match DiagnosticWarn /Failure ->/
     syntax match DiagnosticError /Error ->/
   ]])
-  local res = table.concat(result.test_output, "")
-  local lines = vim.split(res, "\n", {})
+  local lines = vim.split(test_log, "\n", {})
   vim.api.nvim_buf_set_lines(0, 0, 0, false, lines)
   vim.cmd ':w! test.log'
-  if require'config'.exit_after_tests then
-    os.exit(result.failures > 0 and 1 or 0)
-  end
 end
 
 local function main()
