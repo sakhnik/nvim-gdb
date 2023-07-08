@@ -36,12 +36,10 @@ local opts = {
 }
 
 local job_nvim = assert(vim.fn.jobstart({"python", "nvim.py", "--embed", "--headless", "-n", "+luafile config_ci.lua", "+luafile main.lua"}, opts))
-local job_spy = assert(vim.fn.jobstart({"python", "spy_ui.py"}, opts))
 
 local signal = uv.new_signal()
 vim.loop.signal_start(signal, "sigint", vim.schedule_wrap(function(_)
   vim.fn.jobstop(job_nvim)
-  vim.fn.jobstop(job_spy)
   os.exit(1)
 end))
 
