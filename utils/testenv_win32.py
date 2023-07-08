@@ -20,7 +20,8 @@ class Setup:
         subprocess.run('c:\\tools\\msys64\\usr\\bin\\pacman.exe -S --noconfirm'
                        ' mingw-w64-x86_64-gcc'
                        ' mingw-w64-x86_64-gdb'
-                       ' mingw-w64-x86_64-lldb',
+                       ' mingw-w64-x86_64-lldb'
+                       ' mingw-w64-x86_64-lua51',
                        shell=True, check=True)
         # c:\tools\msys64\mingw64\bin is appended to PATH in all.py
         # And we need it here too:
@@ -38,10 +39,7 @@ class Setup:
             zip_ref.extractall("luarocks")
         shutil.move(f"luarocks/{matches[0]}/luarocks.exe", "luarocks/")
 
-        subprocess.run(
-            r'''
-.\luarocks\luarocks.exe --lua-version=5.1 init
-.\luarocks\luarocks.exe --lua-version=5.1 install busted
-            ''',
-            shell=True, check=True
-        )
+        subprocess.run([r'.\luarocks\luarocks.exe', '--lua-version=5.1',
+                        'init'], check=True)
+        subprocess.run([r'.\luarocks\luarocks.exe', '--lua-version=5.1',
+                        'install', 'busted'], check=True)

@@ -25,10 +25,14 @@ end)
 
 local opts = {
   on_stdout = function(_, d, _)
-    --io.stdout:write(vim.inspect({d}))
+    for _, chunk in ipairs(d) do
+      io.stdout:write(chunk and chunk or "\n")
+    end
   end,
   on_stderr = function(_, d, _)
-    --io.stderr:write(vim.inspect({d}))
+    for _, chunk in ipairs(d) do
+      io.stderr:write(chunk and chunk or "\n")
+    end
   end,
   on_exit = function(_, c, _)
     os.exit(c)
