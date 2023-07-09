@@ -7,15 +7,15 @@ local M = {}
 
 local function report_result()
   local test_log = table.concat(result.test_output, "")
+  local f = io.open('test.log', 'w')
+  if f ~= nil then
+    f:write(test_log)
+    f:close()
+  end
   if require'config'.exit_after_tests then
-    local f = io.open('test.log', 'w')
-    if f ~= nil then
-      f:write(test_log)
-      f:close()
-    end
     os.exit(result.failures > 0 and 1 or 0)
   end
-  vim.cmd("noswap tabnew")
+  vim.cmd("noswap tabnew test.log")
   vim.cmd([[
     syntax match DiagnosticOk /+/
     syntax match DiagnosticWarn /-/
@@ -27,16 +27,16 @@ local function report_result()
     syntax match DiagnosticWarn /Failure ->/
     syntax match DiagnosticError /Error ->/
   ]])
-  local lines = vim.split(test_log, "\n", {})
-  vim.api.nvim_buf_set_lines(0, 0, 0, false, lines)
-  vim.cmd ':w! test.log'
 end
 
 local function main()
   -- busted will try to end the process in case of failure, so disable os.exit() for now
   local exit_orig = os.exit
   os.exit = function() end
-  pcall(runner, {standalone = false, output = 'output.lua'})
+  local ok, err = pcall(runner, {standalone = false, output = 'output.lua'})
+  if not ok then
+    print(err)
+  end
   os.exit = exit_orig
   report_result()
   M.thr:cleanup()

@@ -26,12 +26,12 @@ end)
 local opts = {
   on_stdout = function(_, d, _)
     for _, chunk in ipairs(d) do
-      io.stdout:write(chunk and chunk or "\n")
+      io.stdout:write(chunk ~= '' and chunk or '\n')
     end
   end,
   on_stderr = function(_, d, _)
     for _, chunk in ipairs(d) do
-      io.stderr:write(chunk and chunk or "\n")
+      io.stdout:write(chunk ~= '' and chunk or '\n')
     end
   end,
   on_exit = function(_, c, _)
