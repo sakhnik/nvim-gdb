@@ -8,5 +8,6 @@
 - cmake test in win32?
 - Visual tests: attach('tcp', address=...)
 - pty resizing with neovim
+- Port cmake completion to lua, extend it to suggest shell commands
 
 Store and load breakpoints between sessions

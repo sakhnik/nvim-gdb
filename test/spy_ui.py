@@ -2,7 +2,6 @@
 
 import logging
 import os
-import sys
 from pynvim import attach
 
 
