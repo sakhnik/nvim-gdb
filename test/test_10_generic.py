@@ -151,13 +151,6 @@ def test_scrolloff(eng, backend, count_stops):
     eng.feed(backend['launch'])
     assert eng.wait_paused() is None
 
-    # Skip if neovim version is known to be buggy
-    version = eng.exec_lua('return vim.version()')
-    vstr = f"{version['major']:03}.{version['minor']:03}"
-    if vstr < "000.008":
-        pytest.skip("required vim-patch:8.2.4797: getwininfo() may get"
-                    + " oudated values")
-
     count_stops.reset()
     eng.feed(backend['tbreak_main'])
     assert count_stops.wait(1) is None
