@@ -25,19 +25,19 @@ class Nvim:
         raise TimeoutError(f"Timeout waiting for port {port} on {host}")
 
     def run_spy_ui(self):
-        self.wait_for_port('localhost', 44444)
+        self.wait_for_port('127.0.0.1', 44444)
         terminal_size = shutil.get_terminal_size()
         rows, columns = terminal_size.lines, terminal_size.columns
         self.spy = SpyUI(width=columns, height=rows)
         self.spy.run()
 
     def run(self, args):
-        if os.getenv("CI"):
+        if os.getenv("CI") or "--embed" in args:
             self.thread = threading.Thread(target=self.run_spy_ui)
             self.thread.start()
 
-        command = ['nvim', '--clean', '-u', 'NONE', '+source init.vim',
-                   '--listen', 'localhost:44444']
+        command = ['nvim', '--clean', '-u', 'NONE', '+luafile init.lua',
+                   '--listen', '127.0.0.1:44444']
         command.extend(args)
 
         result = subprocess.run(command)
@@ -48,5 +48,5 @@ class Nvim:
 
 if __name__ == "__main__":
     # The script can be launched as `python3 script.py`
-    args_to_skip = 0 if os.path.basename(__file__) == sys.argv[0] else 1
+    args_to_skip = 1 if os.path.basename(__file__) in sys.argv[0] else 0
     sys.exit(Nvim().run(sys.argv[args_to_skip:]))

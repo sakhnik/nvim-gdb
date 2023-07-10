@@ -44,3 +44,12 @@ command -v bashdb
             ''',
             shell=True, check=True
         )
+
+        subprocess.run(
+            r'''
+sudo apt-get install luarocks luajit
+luarocks --lua-version=5.1 init
+luarocks --lua-version=5.1 install busted
+            ''',
+            shell=True, check=True
+        )

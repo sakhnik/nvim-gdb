@@ -36,3 +36,13 @@ chmod +x "$HOME/bin/lldb"
             ''',
             shell=True, check=True
         )
+
+        subprocess.run(
+            r'''
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+brew install luarocks luajit
+luarocks --lua-version=5.1 init
+luarocks --lua-version=5.1 install busted
+            ''',
+            shell=True, check=True
+        )

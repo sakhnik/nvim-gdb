@@ -27,37 +27,37 @@ endfunction
 
 function InCMakeDir(path)
         " normalize path
-        echom "Is " . a:path . " in a CMake Directory?"
+        "echom "Is " . a:path . " in a CMake Directory?"
         let path=systemlist('perl -e ''use Cwd "abs_path"; print abs_path(shift)'' ' . a:path)[0]
         " check if a CMake Directory
         let idx = 0
         while and('/' != path,  idx < 70)
-                echom repeat("  ", idx) . path
+                "echom repeat("  ", idx) . path
                 let idx = idx + 1
                 if glob(path . '/CMakeCache.txt') != ''
-                        echom repeat("  ", idx) . "yes"
+                        "echom repeat("  ", idx) . "yes"
                         return path
                 endif
                 let path=systemlist('perl -e ''use Cwd "abs_path"; print abs_path(shift)'' ' . path . '/../')[0]
         endwhile
-        echom repeat("  ", idx) . "No"
+        "echom repeat("  ", idx) . "No"
         return ''
 endfunction
 
 function guess_executable_cmake#ExecutablesOfBuffer(ArgLead)
         " Test ArgLead for CMake directories
         let arg_lead_glob = './' . trim(a:ArgLead) . '*'
-        echom "ArgLead Glob: " arg_lead_glob
+        "echom "ArgLead Glob: " arg_lead_glob
         let cmake_dirs = systemlist('find ' . arg_lead_glob . ' -type d -maxdepth 0')
         " Add ArgLead's base directory to the cmake search
         let glob_base_dir = join(split(arg_lead_glob, '/')[0:-2], '/')
-        echom "glob_base_dir: " . glob_base_dir
+        "echom "glob_base_dir: " . glob_base_dir
         let cmake_dirs = add(cmake_dirs, glob_base_dir)
         if v:shell_error
                 let cmake_dirs = []
         endif
         " Filter non-CMake directories out
-        echom "Possible CMake Directories: " cmake_dirs
+        "echom "Possible CMake Directories: " cmake_dirs
         call map(cmake_dirs, {idx, dir -> InCMakeDir(dir)})
         call filter(cmake_dirs, {idx, dir -> !empty(dir)})
         " Look for CMake directories below this one
@@ -72,11 +72,11 @@ endfunction
 
 function GetCMakeDirs(proj_dir)
         let find_cmd="find " . a:proj_dir . ' -type f -name CMakeCache.txt'
-        echom "find_cmd: '" . find_cmd . "'"
+        "echom "find_cmd: '" . find_cmd . "'"
         let cmake_dirs = systemlist(find_cmd)
-        echom cmake_dirs
+        "echom cmake_dirs
         call map(cmake_dirs, {idx, cmake_dir -> trim(system("dirname " . cmake_dir))})
-        echom "cmake dirnames: " cmake_dirs
+        "echom "cmake dirnames: " cmake_dirs
         return cmake_dirs
 endfunction
 
@@ -100,15 +100,15 @@ endfunction
 
 function ExecutableOfFileHelper(targets, file_name, depth)
         let tabs=repeat("  ", a:depth)
-        echom tabs.a:file_name
+        "echom tabs.a:file_name
         if match(a:file_name, '\(\.c$\|\.cpp$\|\.a$\|\.so$\)') >= 0
                 let artifacts = ArtifactsOfFiles(copy(a:targets), a:file_name)
         else " assume executable found
-                echom tabs."found executable: " . a:file_name
+                "echom tabs."found executable: " . a:file_name
                 return [a:file_name]
         endif
         " recurse on all artifacts until executable is found
-        echom tabs."recurse with artifacts: ".join(artifacts,', ')
+        "echom tabs."recurse with artifacts: ".join(artifacts,', ')
         call map(artifacts, {idx, artifact -> ExecutableOfFileHelper(a:targets, artifact, a:depth+1)})
         return flatten(artifacts)
 endfunction
