@@ -113,6 +113,11 @@ function Proxy:query(request)
   local request_id = self.request_id
   self.request_id = self.request_id + 1
 
+  if self.sock == nil then
+    log.error({"No socket, likely a bug"})
+    return {}
+  end
+
   local res, errmsg = uv.udp_send(self.sock, request_id .. " " .. request, '127.0.0.1', self.server_port, function(err)
     if err ~= nil then
       self.responses[request_id] = {response = {}}

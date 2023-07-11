@@ -4,23 +4,6 @@ import pytest
 import sys
 
 
-def test_breaks(eng, backend):
-    '''Test toggling breakpoints.'''
-    eng.feed(backend['launch'])
-    assert eng.wait_paused() is None
-    eng.feed('<esc><c-w>w')
-    eng.feed(":e src/test.cpp\n")
-    eng.feed(':5<cr>')
-    eng.feed('<f8>', 100)
-    assert eng.wait_signs({'break': {1: [5]}}) is None
-
-    eng.exe("GdbRun")
-    assert eng.wait_signs({'cur': 'test.cpp:5', 'break': {1: [5]}}) is None
-
-    eng.feed('<f8>')
-    assert eng.wait_signs({'cur': 'test.cpp:5'}) is None
-
-
 def test_interrupt(eng, backend):
     '''Test interrupt.'''
     eng.feed(backend['launch'])

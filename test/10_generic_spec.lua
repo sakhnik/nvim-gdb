@@ -38,27 +38,24 @@ describe("generic", function()
       end)
     end)
 
---def test_smoke(eng, backend):
---    '''Smoke.'''
---
---
---def test_breaks(eng, backend):
---    '''Test toggling breakpoints.'''
---    eng.feed(backend['launch'])
---    assert eng.wait_paused() is None
---    eng.feed('<esc><c-w>w')
---    eng.feed(":e src/test.cpp\n")
---    eng.feed(':5<cr>')
---    eng.feed('<f8>', 100)
---    assert eng.wait_signs({'break': {1: [5]}}) is None
---
---    eng.exe("GdbRun")
---    assert eng.wait_signs({'cur': 'test.cpp:5', 'break': {1: [5]}}) is None
---
---    eng.feed('<f8>')
---    assert eng.wait_signs({'cur': 'test.cpp:5'}) is None
---
---
+    it(backend.name .. ' breaks', function()
+      conf.post_terminal_end(function()
+        eng.feed(backend.launch)
+        assert.is_true(eng.wait_paused(5000))
+        eng.feed('<esc><c-w>w')
+        eng.feed(":e src/test.cpp\n")
+        eng.feed(':5<cr>')
+        eng.feed('<f8>')
+        assert.is_true(eng.wait_signs({brk = {[1] = {5}}}))
+
+        eng.exe("GdbRun")
+        assert.is_true(eng.wait_signs({cur = 'test.cpp:5', brk = {[1] = {5}}}))
+
+        eng.feed('<f8>')
+        assert.is_true(eng.wait_signs({cur = 'test.cpp:5'}))
+      end)
+    end)
+
 --def test_interrupt(eng, backend):
 --    '''Test interrupt.'''
 --    eng.feed(backend['launch'])

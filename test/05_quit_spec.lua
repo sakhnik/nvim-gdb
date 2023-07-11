@@ -29,7 +29,7 @@ describe("quit", function()
   conf.backend(function(backend)
     it(backend.name .. " using command GdbDebugStop", function()
       mysetup_bufcheck(backend, function()
-        thr.y(0, vim.cmd("GdbDebugStop"))
+        eng.exe("GdbDebugStop")
       end)
     end)
 

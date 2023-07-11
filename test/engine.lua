@@ -6,6 +6,10 @@ function E.feed(keys)
   thr.y(200)
 end
 
+function E.exe(cmd)
+  thr.y(0, vim.cmd(cmd))
+end
+
 function E.get_time_ms()
   return vim.loop.hrtime() * 1e-6
 end
@@ -28,7 +32,11 @@ end
 
 function E.wait_paused(timeout_ms)
   local query = function()
-    return NvimGdb ~= nil and NvimGdb.i().parser:is_paused()
+    if NvimGdb == nil then
+      return false
+    end
+    local parser = NvimGdb.i().parser
+    return type(parser) == 'table' and parser:is_paused()
   end
   local function is_true(v)
     return v
@@ -82,7 +90,7 @@ function E.get_signs()
             end
           end
           if sname:match('^GdbBreakpoint') then
-            local num = assert(tonumber(sname:sub(string.len('GdbBreakpoint'))))
+            local num = assert(tonumber(sname:sub(1 + string.len('GdbBreakpoint'))))
             if breaks[num] == nil then
               breaks[num] = {}
             end
