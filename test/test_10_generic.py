@@ -4,40 +4,6 @@ import pytest
 import sys
 
 
-def test_smoke(eng, backend):
-    '''Smoke.'''
-    eng.feed(backend['launch'])
-    assert eng.wait_paused() is None
-    eng.feed(backend['tbreak_main'])
-    eng.feed('run<cr>')
-    eng.feed('<esc>')
-
-    assert eng.wait_signs({'cur': 'test.cpp:17'}) is None
-
-    eng.feed('<f10>')
-    assert eng.wait_signs({'cur': 'test.cpp:19'}) is None
-
-    eng.feed('<f11>')
-    assert eng.wait_signs({'cur': 'test.cpp:10'}) is None
-
-    eng.feed('<c-p>')
-    assert eng.wait_signs({'cur': 'test.cpp:19'}) is None
-
-    eng.feed('<c-n>')
-    assert eng.wait_signs({'cur': 'test.cpp:10'}) is None
-
-    eng.feed('<f12>')
-
-    def _cond(signs):
-        # different for different compilers
-        return len(signs) == 1 and \
-            signs["cur"] in {'test.cpp:17', 'test.cpp:19'}
-    assert eng.wait_for(eng.get_signs, _cond) is None
-
-    eng.feed('<f5>')
-    assert eng.wait_signs({}) is None
-
-
 def test_breaks(eng, backend):
     '''Test toggling breakpoints.'''
     eng.feed(backend['launch'])

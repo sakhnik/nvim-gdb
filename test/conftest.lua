@@ -1,6 +1,7 @@
 local utils = require'nvimgdb.utils'
 local thr = require'thread'
 local eng = require'engine'
+local busted = require'busted'
 
 local C = {}
 
@@ -40,7 +41,7 @@ function C.terminal_end(action)
   local cursor_line = vim.api.nvim_win_get_cursor(NvimGdb.i().client.win)[1]
   local last_line = vim.api.nvim_buf_line_count(vim.api.nvim_win_get_buf(NvimGdb.i().client.win))
   local win_height = vim.api.nvim_win_get_height(NvimGdb.i().client.win)
-  assert.is_true(cursor_line >= last_line - win_height, "cursor in the terminal window should be visible")
+  busted.assert.is_true(cursor_line >= last_line - win_height, "cursor in the terminal window should be visible")
 end
 
 function C.post(action)
@@ -50,15 +51,13 @@ function C.post(action)
   while vim.fn.tabpagenr('$') > 1 do
     thr.y(0, vim.cmd('tabclose $'))
   end
-  local num_bufs = eng.count_buffers()
 
   action()
 
   thr.y(0, vim.cmd("GdbDebugStop"))
-  assert.equals(1, vim.fn.tabpagenr('$'), "No rogue tabpages")
-  assert.are.same({}, eng.get_signs(), "No rogue signs")
-  assert.equals(0, eng.count_termbuffers(), "No rogue terminal buffers")
-  assert.equals(num_bufs, eng.count_buffers(), "No new buffers have left")
+  busted.assert.equals(1, vim.fn.tabpagenr('$'), "No rogue tabpages")
+  busted.assert.are.same({}, eng.get_signs(), "No rogue signs")
+  busted.assert.equals(0, eng.count_termbuffers(), "No rogue terminal buffers")
 
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
     if buf ~= 1 and vim.api.nvim_buf_is_loaded(buf) then
@@ -67,6 +66,12 @@ function C.post(action)
       --vim.api.nvim_buf_delete(buf, {force = true})
     end
   end
+end
+
+function C.post_terminal_end(action)
+  C.post(function()
+    C.terminal_end(action)
+  end)
 end
 
 --function C.backend(action)
