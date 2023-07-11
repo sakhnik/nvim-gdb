@@ -1,5 +1,8 @@
 local uv = vim.loop
 
+-- Get rid of the script, leave the arguments only
+arg[0] = nil
+
 local server = uv.new_tcp()
 server:bind("127.0.0.1", 11111)
 server:listen(5, function(err)
@@ -39,7 +42,13 @@ local opts = {
   end
 }
 
-local job_nvim = assert(vim.fn.jobstart({"python", "nvim.py", "--embed", "--headless", "-n", "+luafile config_ci.lua", "+luafile main.lua"}, opts))
+local job_nvim = assert(
+  vim.fn.jobstart({
+      "python", "nvim.py", "--embed", "--headless", "-n",
+      "+let g:busted_arg=json_decode('" .. vim.fn.json_encode(arg) .. "')",
+      "+luafile config_ci.lua",
+      "+luafile main.lua"
+  }, opts))
 
 local signal = uv.new_signal()
 vim.loop.signal_start(signal, "sigint", vim.schedule_wrap(function(_)

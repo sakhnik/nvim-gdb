@@ -2,7 +2,11 @@ local thr = require'thread'
 local runner = require'busted.runner'
 local result = require'result'
 
-arg = {"--verbose", "."}
+arg = {'.'}
+if vim.g.busted_arg ~= nil and #vim.g.busted_arg > 0 then
+  arg = vim.g.busted_arg
+end
+
 local M = {}
 
 local function report_result()

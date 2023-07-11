@@ -6,22 +6,42 @@ function E.feed(keys)
   thr.y(200)
 end
 
+function E.exe(cmd)
+  thr.y(0, vim.cmd(cmd))
+end
+
 function E.get_time_ms()
   return vim.loop.hrtime() * 1e-6
 end
 
-function E.wait_paused(timeout_ms)
+function E.wait_for(query, check, timeout_ms)
   if timeout_ms == nil then
     timeout_ms = 5000
   end
   local deadline = E.get_time_ms() + timeout_ms
+  local value = nil
   while E.get_time_ms() < deadline do
-    if NvimGdb ~= nil and NvimGdb.i().parser:is_paused() then
+    value = query()
+    if check(value) then
       return true
     end
     thr.y(100)
   end
-  return false
+  return value
+end
+
+function E.wait_paused(timeout_ms)
+  local query = function()
+    if NvimGdb == nil then
+      return false
+    end
+    local parser = NvimGdb.i().parser
+    return type(parser) == 'table' and parser:is_paused()
+  end
+  local function is_true(v)
+    return v
+  end
+  return E.wait_for(query, is_true, timeout_ms)
 end
 
 function E.count_buffers_impl(pred)
@@ -70,7 +90,7 @@ function E.get_signs()
             end
           end
           if sname:match('^GdbBreakpoint') then
-            local num = assert(tonumber(sname:sub(string.len('GdbBreakpoint'))))
+            local num = assert(tonumber(sname:sub(1 + string.len('GdbBreakpoint'))))
             if breaks[num] == nil then
               breaks[num] = {}
             end
@@ -84,6 +104,16 @@ function E.get_signs()
     end
   end
   return ret
+end
+
+function E.wait_signs(expected_signs, timeout_ms)
+  local function query()
+    return E.get_signs()
+  end
+  local function is_expected(signs)
+    return vim.deep_equal(expected_signs, signs)
+  end
+  return E.wait_for(query, is_expected, timeout_ms)
 end
 
 return E
