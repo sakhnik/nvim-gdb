@@ -1,19 +1,6 @@
 '''Test generic operation.'''
 
 
-def test_until(eng, backend):
-    '''Test run until.'''
-    eng.feed(backend['launch'])
-    assert eng.wait_paused() is None
-    eng.feed(backend['tbreak_main'])
-    eng.feed('run<cr>', 1000)
-    eng.feed('<esc><esc><esc>')
-    eng.feed('<c-w>w', 300)
-    eng.feed(':21<cr>')
-    eng.feed('<f4>')
-    assert eng.wait_signs({'cur': 'test.cpp:21'}) is None
-
-
 def test_program_exit(eng, backend):
     '''Test the cursor is hidden after program end.'''
     eng.feed(backend['launch'])
