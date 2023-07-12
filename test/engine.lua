@@ -1,9 +1,12 @@
 local thr = require'thread'
 local E = {}
 
-function E.feed(keys)
+---Feed keys to Neovim
+---@param keys string @keystrokes
+---@param timeout? number @delay in milliseconds after the input
+function E.feed(keys, timeout)
   vim.api.nvim_input(keys)
-  thr.y(200)
+  thr.y(timeout == nil and 200 or timeout)
 end
 
 function E.exe(cmd)
