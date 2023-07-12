@@ -90,4 +90,31 @@ function C.backend(action)
   end
 end
 
+---Allow waiting for the specific count of debugger prompts appeared
+---@param action function(prompt) @test actions
+function C.count_stops(action)
+  local prompt_count = 0
+  local auid = vim.api.nvim_create_autocmd('User', {
+    pattern = 'NvimGdbQuery',
+    callback = function()
+      prompt_count = prompt_count + 1
+    end
+  })
+
+  local prompt = {
+    reset = function() prompt_count = 0 end,
+    wait = function(count, timeout_ms)
+      return eng.wait_for(
+        function() return prompt_count end,
+        function(val) return val >= count end,
+        timeout_ms
+      )
+    end
+  }
+
+  action(prompt)
+
+  vim.api.nvim_del_autocmd(auid)
+end
+
 return C
