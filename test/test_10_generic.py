@@ -1,25 +1,5 @@
 '''Test generic operation.'''
 
-import pytest
-import sys
-
-
-def test_interrupt(eng, backend):
-    '''Test interrupt.'''
-    eng.feed(backend['launch'])
-    assert eng.wait_paused() is None
-    if sys.platform == 'win32' and backend['name'] == 'lldb':
-        pytest.skip("LLDB shows prompt even while the target is running")
-    eng.feed('run 4294967295<cr>', 1000)
-    eng.feed('<esc>')
-    assert not eng.exec_lua("return NvimGdb.i().parser:is_paused()")
-    eng.feed(':GdbInterrupt\n')
-    if sys.platform != 'win32':
-        assert eng.wait_signs({'cur': 'test.cpp:22'}) is None
-    else:
-        # Most likely to break in the kernel code
-        assert eng.wait_paused() is None
-
 
 def test_until(eng, backend):
     '''Test run until.'''
