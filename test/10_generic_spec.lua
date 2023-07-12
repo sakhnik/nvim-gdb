@@ -1,5 +1,6 @@
 local conf = require'conftest'
 local eng = require'engine'
+local utils = require'nvimgdb.utils'
 
 
 describe("generic", function()
@@ -56,23 +57,26 @@ describe("generic", function()
       end)
     end)
 
---def test_interrupt(eng, backend):
---    '''Test interrupt.'''
---    eng.feed(backend['launch'])
---    assert eng.wait_paused() is None
---    if sys.platform == 'win32' and backend['name'] == 'lldb':
---        pytest.skip("LLDB shows prompt even while the target is running")
---    eng.feed('run 4294967295<cr>', 1000)
---    eng.feed('<esc>')
---    assert not eng.exec_lua("return NvimGdb.i().parser:is_paused()")
---    eng.feed(':GdbInterrupt\n')
---    if sys.platform != 'win32':
---        assert eng.wait_signs({'cur': 'test.cpp:22'}) is None
---    else:
---        # Most likely to break in the kernel code
---        assert eng.wait_paused() is None
---
---
+    it(backend.name .. ' interrupt', function()
+      conf.post_terminal_end(function()
+        eng.feed(backend.launch)
+        assert.is_true(eng.wait_paused(5000))
+        if utils.is_windows and backend.name == 'lldb' then
+          pending("LLDB shows prompt even while the target is running")
+        end
+        eng.feed('run 4294967295<cr>')
+        eng.feed('<esc>')
+        assert.is_false(eng.wait_paused(1000))
+        eng.feed(':GdbInterrupt\n')
+        if not utils.is_windows then
+          assert.is_true(eng.wait_signs({cur = 'test.cpp:22'}))
+        else
+          -- Most likely to break in the kernel code
+        end
+        assert.is_true(eng.wait_paused(1000))
+      end)
+    end)
+
 --def test_until(eng, backend):
 --    '''Test run until.'''
 --    eng.feed(backend['launch'])
