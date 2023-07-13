@@ -3,6 +3,8 @@ local thr = require'thread'
 local eng = require'engine'
 local busted = require'busted'
 
+---@class Conf
+---@field aout string Executable file name
 local C = {}
 
 C.aout = utils.is_windows and 'a.exe' or 'a.out'
@@ -88,6 +90,33 @@ function C.backend(action)
   for _, backend in pairs(C.backends) do
     action(backend)
   end
+end
+
+---Allow waiting for the specific count of debugger prompts appeared
+---@param action function(prompt) @test actions
+function C.count_stops(action)
+  local prompt_count = 0
+  local auid = vim.api.nvim_create_autocmd('User', {
+    pattern = 'NvimGdbQuery',
+    callback = function()
+      prompt_count = prompt_count + 1
+    end
+  })
+
+  local prompt = {
+    reset = function() prompt_count = 0 end,
+    wait = function(count, timeout_ms)
+      return eng.wait_for(
+        function() return prompt_count end,
+        function(val) return val >= count end,
+        timeout_ms
+      )
+    end
+  }
+
+  action(prompt)
+
+  vim.api.nvim_del_autocmd(auid)
 end
 
 return C

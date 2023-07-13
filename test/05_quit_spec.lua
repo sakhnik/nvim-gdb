@@ -33,7 +33,7 @@ describe("quit", function()
       end)
     end)
 
-    it(backend.name .. " when EOF", function()
+    it(backend.name .. " when EOF with ctrl-d", function()
       mysetup_bufcheck(backend, function()
         if utils.is_windows and backend.name == 'lldb' then
           -- lldb doesn't like ^D in Windows
@@ -45,11 +45,19 @@ describe("quit", function()
       end)
     end)
 
+    it(backend.name .. " terminal survives closing", function()
+      mysetup_bufcheck(backend, function()
+        assert.equal(2, #vim.api.nvim_list_wins())
+        eng.feed(":q<cr>")
+        assert.equal(2, #vim.api.nvim_list_wins())
+        eng.feed(":GdbDebugStop<cr>")
+      end)
+    end)
+
     it(backend.name .. " terminal can be closed", function()
       -- Disable terminal stickiness.
       vim.g.nvimgdb_sticky_dbg_buf = false
       mysetup_bufcheck(backend, function()
-        -- GDB terminal can be closed.
         assert.equal(2, #vim.api.nvim_list_wins())
         eng.feed(":q<cr>")
         assert.equal(1, #vim.api.nvim_list_wins())
