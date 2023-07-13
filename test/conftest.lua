@@ -3,6 +3,8 @@ local thr = require'thread'
 local eng = require'engine'
 local busted = require'busted'
 
+---@class Conf
+---@field aout string Executable file name
 local C = {}
 
 C.aout = utils.is_windows and 'a.exe' or 'a.out'

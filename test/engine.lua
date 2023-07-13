@@ -78,6 +78,7 @@ function E.get_signs()
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
     if vim.api.nvim_buf_is_valid(buf) and vim.api.nvim_buf_is_loaded(buf) then
       local breaks = {}
+      local breaks_count = 0
       for _, bsigns in ipairs(vim.fn.sign_getplaced(buf, {group = "NvimGdb"})) do
         for _, signs in ipairs(bsigns.signs) do
           local sname = signs.name
@@ -98,10 +99,11 @@ function E.get_signs()
               breaks[num] = {}
             end
             table.insert(breaks[num], signs.lnum)
+            breaks_count = breaks_count + 1
           end
         end
       end
-      if #breaks > 0 then
+      if breaks_count > 0 then
         ret.brk = breaks
       end
     end
