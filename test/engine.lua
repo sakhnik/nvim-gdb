@@ -33,7 +33,13 @@ function E.wait_for(query, check, timeout_ms)
   return value
 end
 
+---Wait until the debugger gets into the paused state
+---@param timeout_ms? number Timeout in milliseconds
+---@return boolean
 function E.wait_paused(timeout_ms)
+  if timeout_ms == nil then
+    timeout_ms = 5000
+  end
   local query = function()
     if NvimGdb == nil then
       return false

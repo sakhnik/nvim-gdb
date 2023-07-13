@@ -101,18 +101,6 @@ def backend_express(post, request):
     yield request.param
 
 
-@pytest.fixture(scope="function")
-def two_backends(post):
-    '''Use two C++ backends at once.'''
-    assert post
-    gdb = BACKENDS.get('gdb', None)
-    lldb = BACKENDS.get('lldb', None)
-    if gdb:
-        yield gdb, lldb if lldb else gdb
-    else:
-        yield lldb, lldb
-
-
 @pytest.fixture(scope='function')
 def config_test(eng, post):
     '''Fixture to clear custom keymaps.'''
@@ -127,15 +115,6 @@ for scope in ("bwtg"):gmatch'.' do
   end
 end
                  ''')
-
-
-@pytest.fixture(scope='function')
-def cd_to_cmake(eng):
-    eng.exe("cd src")
-    eng.exe("e test.cpp")
-    yield True
-    eng.exe("bd")
-    eng.exe("cd ..")
 
 
 @pytest.fixture(scope='function')
