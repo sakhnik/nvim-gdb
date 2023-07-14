@@ -13,16 +13,7 @@ describe("keymaps", function()
     pending("No usable C++ debugger backends")
   end
 
-  local function config_test(action)
-    conf.post_terminal_end(action)
-    for scope in ("bwtg"):gmatch'.' do
-      for k, _ in pairs(vim.fn.eval(scope .. ':')) do
-        if type(k) == "string" and k:find('^nvimgdb_') then
-          vim.api.nvim_command('unlet ' .. scope .. ':' .. k)
-        end
-      end
-    end
-  end
+  local config_test = conf.config_test
 
   local function keymap_hooks()
     -- This function can be used as an example of how to add custom keymaps
