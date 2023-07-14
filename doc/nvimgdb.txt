@@ -269,7 +269,8 @@ You can call the default handler from within the hook and/or define your own
 very specific terminal keymaps.  The keys `set_keymaps` and `unset_keymaps`
 are called every time when the source code windows is entered and left.  The
 first one can be used to define source window-specific keymaps and the latter
-to carefully cleanup them.  See `test/keymap_hooks.vim` for an example.
+to carefully cleanup them.  See `keymap_hooks()` in `test/40_keymap_spec.lua`
+for an example.
 
 Finally, every configuration key can be overridden with a global variable
 prefixed `g:nvimgdb_`.  For example, `g:nvimgdb_key_next` overrides
