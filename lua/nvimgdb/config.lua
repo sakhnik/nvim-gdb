@@ -45,6 +45,9 @@ local function filter_funcref(key, val)
   if type(def_val) ~= "function" then
     return val
   end
+  if type(val) == "function" then
+    return val
+  end
   -- Finally, turn the value into a Vim function call.
   return function(_) vim.api.nvim_call_function(val, {}) end
 end

@@ -17,6 +17,11 @@ function E.get_time_ms()
   return vim.loop.hrtime() * 1e-6
 end
 
+---Wait until the query passes the check
+---@param query function
+---@param check function
+---@param timeout_ms number
+---@return boolean|any
 function E.wait_for(query, check, timeout_ms)
   if timeout_ms == nil then
     timeout_ms = 5000
