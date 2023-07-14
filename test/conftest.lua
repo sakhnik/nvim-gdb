@@ -119,4 +119,15 @@ function C.count_stops(action)
   vim.api.nvim_del_autocmd(auid)
 end
 
+function C.config_test(action)
+  C.post_terminal_end(action)
+  for scope in ("bwtg"):gmatch'.' do
+    for k, _ in pairs(vim.fn.eval(scope .. ':')) do
+      if type(k) == "string" and k:find('^nvimgdb_') then
+        vim.api.nvim_command('unlet ' .. scope .. ':' .. k)
+      end
+    end
+  end
+end
+
 return C
