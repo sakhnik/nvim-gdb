@@ -112,7 +112,6 @@ M.check = function()
     lldb = {"lldb", "--version"},
     lldb_py = {"lldb", "--batch", "-o", "script import lldb, sys; print(sys.version)", "-o", "quit"},
     python = {"python", "--version"},
-    pytest = {"python", "-c", "import pytest; print(f'{pytest.__name__} {pytest.__version__}')"},
     pynvim = {"python", "-c", "import pynvim; v=pynvim.VERSION; print(f'{pynvim.__name__} {v.major}.{v.minor}.{v.patch}{v.prerelease}')"},
   }
   if utils.is_linux then
@@ -161,7 +160,6 @@ M.check = function()
   end
   _start "Test suite"
   tests:check_version("python", "", stdout_getter(1))
-  tests:check_version("pytest", "", stdout_getter(1))
   tests:check_version("pynvim", "", stdout_getter(1))
 end
 
