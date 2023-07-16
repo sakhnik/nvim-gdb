@@ -40,7 +40,7 @@ class Base:
         self.server_address: str = args.address
         self.argv = args.cmd
         log_handler = logging.NullHandler() if not os.environ.get('CI') \
-            else logging.FileHandler("proxy.log")
+            else logging.FileHandler("proxy.log", encoding='utf-8')
         logging.basicConfig(
             level=logging.DEBUG,
             format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",

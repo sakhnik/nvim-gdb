@@ -76,8 +76,8 @@ class Prerequisites():
 
         if self.is_file_newer('src/test.cpp', aout) \
                 or self.is_file_newer('src/lib.hpp', aout):
-            # pytest will resolve all symlinks, and debuggers may
-            # be confused if non-absolute paths are used during compilation.
+            # Debuggers may be confused if non-absolute paths are used during
+            # compilation.
             subprocess.run([cxx, '-g', '-gdwarf-2', '-std=c++11',
                             os.path.realpath('src/test.cpp')])
             self.echo(f"{aout}\n")
