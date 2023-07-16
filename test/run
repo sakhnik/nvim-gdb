@@ -1,7 +1,0 @@
-#!/bin/bash -e
-
-if [[ $# -ne 0 ]]; then
-    python3 -m pytest "$@"
-else
-    python3 -m pytest ..
-fi

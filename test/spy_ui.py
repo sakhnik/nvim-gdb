@@ -16,7 +16,7 @@ class SpyUI:
         self.logger = logging.getLogger("SpyUI")
         self.logger.setLevel(logging.DEBUG)
         lhandl = logging.NullHandler() if not os.environ.get('CI') \
-            else logging.FileHandler("spy_ui.log")
+            else logging.FileHandler("spy_ui.log", encoding='utf-8')
         fmt = "%(asctime)s [%(levelname)s]: %(message)s"
         lhandl.setFormatter(logging.Formatter(fmt))
         self.logger.addHandler(lhandl)

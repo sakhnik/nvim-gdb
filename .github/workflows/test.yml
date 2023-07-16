@@ -28,8 +28,7 @@ jobs:
       run: |
         python utils/setup-testenv.py
         python -m pip install --upgrade pip
-        python -m pip install pynvim
-        python -m pip install pytest pytest-timestamper
+        python -m pip install pynvim packaging
 
     - name: Platform-specific dependencies
       if: runner.os == 'Windows'
