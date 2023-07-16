@@ -45,12 +45,12 @@ function! nvimgdb#GlobalInit()
 
   augroup NvimGdb
     au!
-    au TabEnter * lua NvimGdb.i(0):on_tab_enter()
-    au TabLeave * lua NvimGdb.i(0):on_tab_leave()
-    au BufEnter * lua NvimGdb.i(0):on_buf_enter()
-    au BufLeave * lua NvimGdb.i(0):on_buf_leave()
-    au TabClosed * lua NvimGdb.on_tab_closed()
-    au VimLeavePre * lua NvimGdb.on_vim_leave_pre()
+    au TabEnter * lua require'nvimgdb'.i(0):on_tab_enter()
+    au TabLeave * lua require'nvimgdb'.i(0):on_tab_leave()
+    au BufEnter * lua require'nvimgdb'.i(0):on_buf_enter()
+    au BufLeave * lua require'nvimgdb'.i(0):on_buf_leave()
+    au TabClosed * lua require'nvimgdb'.on_tab_closed()
+    au VimLeavePre * lua require'nvimgdb'.on_vim_leave_pre()
   augroup END
 
   " Define custom events

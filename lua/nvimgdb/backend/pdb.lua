@@ -44,7 +44,7 @@ function C.create_parser(actions, _--[[proxy]])
   local self = setmetatable({}, P)
   self:_init(actions)
 
-  local re_prompt = '[\r\n]%(Pdb%+?%+?%) *$'
+  local re_prompt = '[\r\n]%(Pdb%+?%+?%)[\r ]*$'
   self.add_trans(self.paused, U.re_jump, self._paused_jump)
   self.add_trans(self.paused, re_prompt, self._query_b)
 
