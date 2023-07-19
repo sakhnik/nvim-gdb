@@ -20,7 +20,7 @@ end
 ---Wait until the query passes the check
 ---@param query function
 ---@param check function
----@param timeout_ms number
+---@param timeout_ms? number timeout in milliseconds (5000 if omitted)
 ---@return boolean|any
 function E.wait_for(query, check, timeout_ms)
   if timeout_ms == nil then
@@ -130,6 +130,18 @@ function E.wait_signs(expected_signs, timeout_ms)
     return vim.deep_equal(expected_signs, signs)
   end
   return E.wait_for(query, is_expected, timeout_ms)
+end
+
+---Wait until cursor in the current window gets to the given line
+---@param line number 1-based line number
+---@param timeout_ms? number timeout in milliseconds
+---@return true|number true if successful, the actual line number otherwise
+function E.wait_cursor(line, timeout_ms)
+  return E.wait_for(
+    function() return vim.api.nvim_win_get_cursor(0)[1] end,
+    function(row) return row == line end,
+    timeout_ms
+  )
 end
 
 return E

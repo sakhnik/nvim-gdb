@@ -50,6 +50,13 @@ function C.post(action)
   -- Prepare and check tabpages for every test.
   -- Quit debugging and do post checks.
 
+  local mode = vim.api.nvim_get_mode()
+  if mode.mode == 'i' then
+    eng.feed("<esc>")
+  elseif mode.mode == 't' then
+    eng.feed("<c-\\><c-n>")
+  end
+
   while vim.fn.tabpagenr('$') > 1 do
     thr.y(0, vim.cmd('tabclose $'))
   end
