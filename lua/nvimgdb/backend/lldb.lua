@@ -124,7 +124,7 @@ function C.get_launch_cmd(client_cmd, tmp_dir, proxy_addr)
   end
 
   -- Execute lldb finally with our custom initialization script
-  local cmd = {lldb, '-S', lldb_init}
+  local cmd = {lldb, '--source-quietly', '-S', lldb_init}
   -- Append the rest of arguments
   for i = 2, #client_cmd do
     cmd[#cmd + 1] = client_cmd[i]
