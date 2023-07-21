@@ -26,11 +26,6 @@ class NvimGdbInit(gdb.Command):
             self.thrd.daemon = True
             self.thrd.start()
 
-    def exit_handler(self, event):
-        self.quit = True
-        if self.thrd and self.thrd.is_alive():
-            self.thrd.join()
-
     def _server(self, server_address: str):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.bind(('127.0.0.1', 0))
@@ -188,4 +183,3 @@ class NvimGdbInit(gdb.Command):
 
 
 init = NvimGdbInit()
-gdb.events.exited.connect(init.exit_handler)
