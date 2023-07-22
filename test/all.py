@@ -35,6 +35,7 @@ with tempfile.TemporaryDirectory() as tmp_dir:
     from prerequisites import Prerequisites
     Prerequisites()
 
-    res = subprocess.run(["nvim", "-l", "run-tests.lua"])
+    res = subprocess.run(["nvim", "-l", "run-tests.lua", ".",
+                          "--no-keep-going"])
     if res.returncode != 0:
         raise RuntimeError("Lua tests failed")
