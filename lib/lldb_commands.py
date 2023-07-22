@@ -1,13 +1,23 @@
 """The program injected into LLDB to provide a side channel
 to the plugin."""
 
-import threading
-import os
-import socket
-import sys
-import re
 import json
 import lldb  # type: ignore
+import logging
+import os
+import re
+import socket
+import sys
+import threading
+
+
+logger = logging.getLogger("lldb")
+logger.setLevel(logging.DEBUG)
+lhandl = logging.NullHandler() if not os.environ.get('CI') \
+    else logging.FileHandler("lldb.log", encoding='utf-8')
+fmt = "%(asctime)s [%(levelname)s]: %(message)s"
+lhandl.setFormatter(logging.Formatter(fmt))
+logger.addHandler(lhandl)
 
 
 def get_current_frame_location(debugger: lldb.SBDebugger):
@@ -27,6 +37,13 @@ def get_current_frame_location(debugger: lldb.SBDebugger):
             return [filepath, line]
 
     return []
+
+
+def is_process_running(debugger: lldb.SBDebugger):
+    target = debugger.GetSelectedTarget()
+    process = target.GetProcess()
+    state = process.GetState()
+    return state == lldb.eStateRunning
 
 
 # Get list of enabled breakpoints for a given source file
@@ -86,13 +103,16 @@ def _server(server_address: str, debugger: lldb.SBDebugger):
     _, port = sock.getsockname()
     with open(server_address, 'w') as f:
         f.write(f"{port}")
+    logger.info("Start listening for commands at port %d", port)
 
     # debugger = lldb.SBDebugger_FindDebuggerWithID(debugger_id)
 
     try:
         while True:
             data, addr = sock.recvfrom(65536)
-            command = re.split(r"\s+", data.decode("utf-8"))
+            command = data.decode("utf-8")
+            logger.debug("Got command: %s", command)
+            command = re.split(r"\s+", command)
             req_id = int(command[0])
             request = command[1]
             args = command[2:]
@@ -102,6 +122,12 @@ def _server(server_address: str, debugger: lldb.SBDebugger):
                 response = {
                     "request": req_id,
                     "response": _get_breaks(os.path.normpath(fname), debugger)
+                }
+                sock.sendto(json.dumps(response).encode("utf-8"), 0, addr)
+            elif request == "is-process-running":
+                response = {
+                    "request": req_id,
+                    "response": is_process_running(debugger)
                 }
                 sock.sendto(json.dumps(response).encode("utf-8"), 0, addr)
             elif request == "get-current-frame-location":
@@ -143,6 +169,7 @@ def _server(server_address: str, debugger: lldb.SBDebugger):
                 except Exception as ex:
                     print("Exception: " + str(ex))
     finally:
+        logger.info("Stop listening for commands")
         try:
             os.unlink(server_address)
         except OSError:

@@ -3,11 +3,21 @@ to the plugin."""
 
 import gdb
 import json
+import logging
 import os
 import re
 import socket
 import sys
 import threading
+
+
+logger = logging.getLogger("gdb")
+logger.setLevel(logging.DEBUG)
+lhandl = logging.NullHandler() if not os.environ.get('CI') \
+    else logging.FileHandler("gdb.log", encoding='utf-8')
+fmt = "%(asctime)s [%(levelname)s]: %(message)s"
+lhandl.setFormatter(logging.Formatter(fmt))
+logger.addHandler(lhandl)
 
 
 class NvimGdbInit(gdb.Command):
@@ -33,13 +43,16 @@ class NvimGdbInit(gdb.Command):
         _, port = sock.getsockname()
         with open(server_address, 'w') as f:
             f.write(f"{port}")
+        logger.info("Start listening for commands at port %d", port)
         try:
             while not self.quit:
                 try:
                     data, addr = sock.recvfrom(65536)
                 except TimeoutError:
                     continue
-                command = re.split(r"\s+", data.decode("utf-8"))
+                command = data.decode("utf-8")
+                logger.debug("Got command: %s", command)
+                command = re.split(r"\s+", command)
                 req_id = int(command[0])
                 request = command[1]
                 args = command[2:]
@@ -89,6 +102,7 @@ class NvimGdbInit(gdb.Command):
                     except Exception as ex:
                         print("Exception: " + str(ex))
         finally:
+            logger.info("Stop listening for commands")
             try:
                 os.unlink(server_address)
             except OSError:
