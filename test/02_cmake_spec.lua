@@ -1,3 +1,4 @@
+local eng = require'engine'
 local utils = require'nvimgdb.utils'
 
 local function executables_of_buffer(path)
@@ -5,11 +6,11 @@ local function executables_of_buffer(path)
 end
 
 local function cd_to_cmake(action)
-  vim.cmd("cd src")
-  vim.cmd("e test.cpp")
+  eng.exe("cd src")
+  eng.exe("e test.cpp")
   action()
-  vim.cmd("bd")
-  vim.cmd("cd ..")
+  eng.exe("bw!")
+  eng.exe("cd ..")
 end
 
 local function check_skip()

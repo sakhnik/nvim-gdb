@@ -53,6 +53,7 @@ describe("bashdb", function()
       assert.is_true(count_stops.wait(1))
       eng.feed('<esc><c-w>k')
       eng.feed(':4<cr>')
+      assert.is_true(eng.wait_cursor(4))
       eng.feed('<f8>')
       assert.is_true(eng.wait_signs({cur = 'main.sh:22', brk = {[1] = {4}}}))
 
