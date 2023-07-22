@@ -11,3 +11,5 @@ backends.txt
 .luarc.json
 lua_modules
 *.rockspec
+luarocks*
+lua.bat
