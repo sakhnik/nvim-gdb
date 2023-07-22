@@ -38,13 +38,12 @@ function C.create_parser(actions, proxy)
       self.actions:jump_to_source(fname, line)
     end
     self.actions:query_breakpoints()
-    return self.paused
+    local is_running = proxy:query('is-process-running')
+    log.debug({"is process running", is_running})
+    return is_running and self.running or self.paused
   end
 
-  local re_prompt = '%s%(lldb%) %(lldb%) $'
-  if utils.is_windows then
-    re_prompt = '%(lldb%) *$'
-  end
+  local re_prompt = '%(lldb%)'
   self.add_trans(self.paused, 'Process %d+ resuming', self._paused_continue)
   self.add_trans(self.paused, 'Process %d+ launched', self._paused_continue)
   self.add_trans(self.paused, 'Process %d+ exited', self._paused_continue)
