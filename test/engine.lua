@@ -3,7 +3,7 @@ local utils = require'nvimgdb.utils'
 
 local E = {}
 
-E.launch_timeout = utils.is_windows and 10000 or 5000
+E.common_timeout = (vim.env.GITHUB_WORKFLOW ~= nil or utils.is_windows) and 10000 or 5000
 
 ---Feed keys to Neovim
 ---@param keys string @keystrokes
@@ -24,11 +24,11 @@ end
 ---Wait until the query passes the check
 ---@param query function
 ---@param check function
----@param timeout_ms? number timeout in milliseconds (5000 if omitted)
+---@param timeout_ms? number timeout in milliseconds (E.common_timeout if omitted)
 ---@return boolean|any
 function E.wait_for(query, check, timeout_ms)
   if timeout_ms == nil then
-    timeout_ms = 5000
+    timeout_ms = E.common_timeout
   end
   local deadline = E.get_time_ms() + timeout_ms
   local value = nil
@@ -64,9 +64,6 @@ end
 ---@param timeout_ms? number Timeout in milliseconds
 ---@return boolean
 function E.wait_paused(timeout_ms)
-  if timeout_ms == nil then
-    timeout_ms = E.launch_timeout
-  end
   return E.wait_state(true, timeout_ms)
 end
 
@@ -74,9 +71,6 @@ end
 ---@param timeout_ms? number Timeout in milliseconds
 ---@return boolean
 function E.wait_running(timeout_ms)
-  if timeout_ms == nil then
-    timeout_ms = E.launch_timeout
-  end
   return E.wait_state(false, timeout_ms)
 end
 

@@ -43,7 +43,7 @@ function C.create_parser(actions, proxy)
     return is_running and self.running or self.paused
   end
 
-  local re_prompt = '%(lldb%)'
+  local re_prompt = '.$'
   self.add_trans(self.paused, 'Process %d+ resuming', self._paused_continue)
   self.add_trans(self.paused, 'Process %d+ launched', self._paused_continue)
   self.add_trans(self.paused, 'Process %d+ exited', self._paused_continue)

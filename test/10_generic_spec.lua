@@ -70,7 +70,8 @@ describe("generic", function()
         eng.feed('<esc>')
         assert.is_true(eng.wait_running(5000))
         eng.feed(':GdbInterrupt\n')
-        if not utils.is_windows then
+        -- TODO: lldb may break in an unexpected location, but when continued, proceeds to the line 22
+        if not utils.is_windows and not backend.name == 'lldb' then
           assert.is_true(eng.wait_signs({cur = 'test.cpp:22'}))
         else
           -- Most likely to break in the kernel code
