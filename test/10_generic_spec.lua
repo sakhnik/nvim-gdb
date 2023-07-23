@@ -104,7 +104,23 @@ describe("generic", function()
         eng.feed(':Gdb run\n')
         assert.is_true(eng.wait_signs({cur = 'test.cpp:17', brk = {[1] = {17}}}))
         eng.feed('<f5>')
-        assert.is_true(eng.wait_signs({brk = {[1] = {17}}}))
+        if utils.is_windows and backend.name == 'lldb' then
+          -- Llldb can't resolve the breakpoint's location anymore
+          assert.is_true(eng.wait_signs({}))
+        else
+          assert.is_true(eng.wait_signs({brk = {[1] = {17}}}))
+        end
+
+        -- One more time
+        eng.feed(':Gdb run\n')
+        assert.is_true(eng.wait_signs({cur = 'test.cpp:17', brk = {[1] = {17}}}))
+        eng.feed('<f5>')
+        if utils.is_windows and backend.name == 'lldb' then
+          -- Llldb can't resolve the breakpoint's location anymore
+          assert.is_true(eng.wait_signs({}))
+        else
+          assert.is_true(eng.wait_signs({brk = {[1] = {17}}}))
+        end
       end)
     end)
 
