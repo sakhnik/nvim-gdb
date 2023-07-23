@@ -6,7 +6,7 @@ local utils = require'nvimgdb.utils'
 
 local function mysetup(backend, action)
   eng.feed(string.format(backend.launchF, ""))
-  assert.is_true(eng.wait_paused(5000))
+  assert.is_true(eng.wait_paused())
   if utils.is_windows and backend.name == 'lldb' then
     thr.y(500)
   end
@@ -72,7 +72,7 @@ describe("quit", function()
         if utils.is_windows and backend.name == 'lldb' then
           thr.y(500)
         end
-        assert.is_true(eng.wait_paused(5000))
+        assert.is_true(eng.wait_paused())
         eng.feed('<esc>')
         eng.feed(":tabclose<cr>")
         eng.feed(":GdbDebugStop<cr>")
