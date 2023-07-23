@@ -38,10 +38,11 @@ function E.wait_for(query, check, timeout_ms)
   return value
 end
 
----Wait until the debugger gets into the paused state
+---Wait until the debugger gets into the desired state
+---@param state boolean true for paused, false for running
 ---@param timeout_ms? number Timeout in milliseconds
 ---@return boolean
-function E.wait_paused(timeout_ms)
+function E.wait_state(state, timeout_ms)
   if timeout_ms == nil then
     timeout_ms = 5000
   end
@@ -52,10 +53,27 @@ function E.wait_paused(timeout_ms)
     local parser = NvimGdb.i().parser
     return type(parser) == 'table' and parser:is_paused()
   end
-  local function is_true(v)
-    return v
+  return E.wait_for(query, function(is_paused) return is_paused == state end, timeout_ms)
+end
+
+---Wait until the debugger gets into the paused state
+---@param timeout_ms? number Timeout in milliseconds
+---@return boolean
+function E.wait_paused(timeout_ms)
+  if timeout_ms == nil then
+    timeout_ms = 5000
   end
-  return E.wait_for(query, is_true, timeout_ms)
+  return E.wait_state(true, timeout_ms)
+end
+
+---Wait until the debugger gets into the running state
+---@param timeout_ms? number Timeout in milliseconds
+---@return boolean
+function E.wait_running(timeout_ms)
+  if timeout_ms == nil then
+    timeout_ms = 5000
+  end
+  return E.wait_state(false, timeout_ms)
 end
 
 function E.count_buffers_impl(pred)

@@ -68,7 +68,7 @@ describe("generic", function()
         end
         eng.feed('run 4294967295<cr>')
         eng.feed('<esc>')
-        assert.is_false(eng.wait_paused(5000))
+        assert.is_true(eng.wait_running(5000))
         eng.feed(':GdbInterrupt\n')
         if not utils.is_windows then
           assert.is_true(eng.wait_signs({cur = 'test.cpp:22'}))
