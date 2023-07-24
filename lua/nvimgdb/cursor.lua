@@ -27,7 +27,7 @@ end
 -- Hide the current line sign
 function Cursor:hide()
   log.debug({"function Cursor:hide()"})
-  if self.sign_id ~= -1 and self.buf ~= -1 then
+  if self.sign_id ~= -1 and vim.api.nvim_buf_is_loaded(self.buf) then
     vim.fn.sign_unplace('NvimGdb', {id = self.sign_id, buffer = self.buf})
     self.sign_id = -1
   end

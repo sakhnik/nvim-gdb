@@ -131,7 +131,8 @@ describe("pdb", function()
       -- Ensure a debugging session has started
       assert.is_true(eng.wait_signs({cur = 'main.py:1'}))
       -- Clean up the main tabpage
-      eng.feed('<esc>gt:new<cr><c-w>ogt')
+      eng.feed('<esc><c-w>w')
+      eng.exe('bw!')
     end)
   end)
 
