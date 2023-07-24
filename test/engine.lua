@@ -74,26 +74,33 @@ function E.wait_running(timeout_ms)
   return E.wait_state(false, timeout_ms)
 end
 
-function E.count_buffers_impl(pred)
-  local count = 0
+---Get buffers satisfying the predicate
+---@param pred function(buf: number): boolean condition for a buffer to be reported
+---@return table<number, string> map of buffer number to name
+function E.get_buffers_impl(pred)
+  local buffers = {}
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
     if pred(buf) then
-      count = count + 1
+      buffers[buf] = vim.api.nvim_buf_get_name(buf)
     end
   end
-  return count
+  return buffers
 end
 
-function E.count_buffers()
+---Get all the loaded buffers
+---@return table<number, string> map of buffer number to name
+function E.get_buffers()
   -- Determine how many terminal buffers are there.
-  return E.count_buffers_impl(function(buf)
+  return E.get_buffers_impl(function(buf)
     return vim.api.nvim_buf_is_loaded(buf)
   end)
 end
 
-function E.count_termbuffers()
+---Get all the terminal buffers
+---@return table<number, string> map of buffer number to name
+function E.get_termbuffers()
   -- Determine how many terminal buffers are there.
-  return E.count_buffers_impl(function(buf)
+  return E.get_buffers_impl(function(buf)
     return vim.api.nvim_buf_is_loaded(buf) and vim.api.nvim_buf_get_option(buf, 'buftype') == 'terminal'
   end)
 end

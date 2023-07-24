@@ -66,7 +66,7 @@ function C.post(action)
   thr.y(0, vim.cmd("GdbDebugStop"))
   busted.assert.equals(1, vim.fn.tabpagenr('$'), "No rogue tabpages")
   busted.assert.are.same({}, eng.get_signs(), "No rogue signs")
-  busted.assert.equals(0, eng.count_termbuffers(), "No rogue terminal buffers")
+  busted.assert.are.same({}, eng.get_termbuffers(), "No rogue terminal buffers")
 
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
     if buf ~= 1 and vim.api.nvim_buf_is_loaded(buf) then
@@ -82,16 +82,6 @@ function C.post_terminal_end(action)
     C.terminal_end(action)
   end)
 end
-
---function C.backend(action)
---  C.post(function()
---    C.terminal_end(function()
---      for name, backend in pairs(C.backends) do
---        action(name, backend)
---      end
---    end)
---  end)
---end
 
 function C.backend(action)
   for _, backend in pairs(C.backends) do

@@ -18,11 +18,12 @@ local function mysetup(backend, action)
 end
 
 local function mysetup_bufcheck(backend, action)
-  local num_bufs = eng.count_buffers()
+  local buffers = eng.get_buffers()
 
   mysetup(backend, action)
 
-  assert.are.equal(num_bufs, eng.count_buffers(), "No new rogue buffers")
+  local cur_buffers = eng.get_buffers()
+  assert.are.same(buffers, cur_buffers, "No new rogue buffers")
 end
 
 describe("quit", function()
