@@ -30,20 +30,23 @@ function C.create_parser(actions, proxy)
   self:_init(actions)
 
   function P:query_paused()
-    local location = proxy:query('get-current-frame-location')
-    log.debug({"current frame location", location})
-    if #location == 2 then
-      local fname = location[1]
-      local line = location[2]
-      self.actions:jump_to_source(fname, line)
+    local process_state = proxy:query('get-process-state')
+    log.debug({"process state", process_state})
+    if process_state == 'stopped' then
+      -- A frame and thread are selected when the process gets stopped
+      local location = proxy:query('get-current-frame-location')
+      log.debug({"current frame location", location})
+      if #location == 2 then
+        local fname = location[1]
+        local line = location[2]
+        self.actions:jump_to_source(fname, line)
+      end
     end
     self.actions:query_breakpoints()
-    local is_running = proxy:query('is-process-running')
-    log.debug({"is process running", is_running})
-    return is_running and self.running or self.paused
+    return process_state == 'running' and self.running or self.paused
   end
 
-  local re_prompt = '.$'
+  local re_prompt = '$'
   self.add_trans(self.paused, 'Process %d+ resuming', self._paused_continue)
   self.add_trans(self.paused, 'Process %d+ launched', self._paused_continue)
   self.add_trans(self.paused, 'Process %d+ exited', self._paused_continue)

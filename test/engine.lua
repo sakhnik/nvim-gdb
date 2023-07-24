@@ -112,6 +112,9 @@ function E.get_signs()
           local sname = signs.name
           if sname == 'GdbCurrentLine' then
             local bname = vim.api.nvim_buf_get_name(buf):match("[^/\\]+$")
+            if bname == nil then
+              bname = vim.api.nvim_buf_get_name(buf)
+            end
             if ret.cur == nil then
               ret.cur = bname .. ':' .. signs.lnum
             else

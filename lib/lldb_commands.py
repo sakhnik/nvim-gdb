@@ -39,11 +39,15 @@ def get_current_frame_location(debugger: lldb.SBDebugger):
     return []
 
 
-def is_process_running(debugger: lldb.SBDebugger):
+def get_process_state(debugger: lldb.SBDebugger):
     target = debugger.GetSelectedTarget()
     process = target.GetProcess()
     state = process.GetState()
-    return state == lldb.eStateRunning
+    if state == lldb.eStateRunning:
+        return "running"
+    elif state == lldb.eStateStopped:
+        return "stopped"
+    return "other"
 
 
 # Get list of enabled breakpoints for a given source file
@@ -107,6 +111,11 @@ def _server(server_address: str, debugger: lldb.SBDebugger):
 
     # debugger = lldb.SBDebugger_FindDebuggerWithID(debugger_id)
 
+    def send_response(response, addr):
+        response = json.dumps(response).encode("utf-8")
+        logger.debug("Sending response: %s", response)
+        sock.sendto(response, 0, addr)
+
     try:
         while True:
             data, addr = sock.recvfrom(65536)
@@ -123,19 +132,19 @@ def _server(server_address: str, debugger: lldb.SBDebugger):
                     "request": req_id,
                     "response": _get_breaks(os.path.normpath(fname), debugger)
                 }
-                sock.sendto(json.dumps(response).encode("utf-8"), 0, addr)
-            elif request == "is-process-running":
+                send_response(response, addr)
+            elif request == "get-process-state":
                 response = {
                     "request": req_id,
-                    "response": is_process_running(debugger)
+                    "response": get_process_state(debugger)
                 }
-                sock.sendto(json.dumps(response).encode("utf-8"), 0, addr)
+                send_response(response, addr)
             elif request == "get-current-frame-location":
                 response = {
                     "request": req_id,
                     "response": get_current_frame_location(debugger)
                 }
-                sock.sendto(json.dumps(response).encode("utf-8"), 0, addr)
+                send_response(response, addr)
             elif request == "handle-command":
                 # pylint: disable=broad-except
                 try:
@@ -145,8 +154,8 @@ def _server(server_address: str, debugger: lldb.SBDebugger):
                             "request": req_id,
                             "response": _get_all_breaks(debugger)
                         }
-                        sock.sendto(json.dumps(response).encode("utf-8"),
-                                    0, addr)
+                        sock.sendto(json.dumps(response).encode("utf-8"), 0,
+                                    addr)
                         return
                     command_to_handle = " ".join(args)
                     if sys.version_info.major < 3:
@@ -165,9 +174,9 @@ def _server(server_address: str, debugger: lldb.SBDebugger):
                         "response": "" if result is None else result.strip()
                     }
                     result = b"" if result is None else result.encode("utf-8")
-                    sock.sendto(json.dumps(response).encode('utf-8'), 0, addr)
+                    send_response(response, addr)
                 except Exception as ex:
-                    print("Exception: " + str(ex))
+                    logger.error("Exception: %s", ex)
     finally:
         logger.info("Stop listening for commands")
         try:
