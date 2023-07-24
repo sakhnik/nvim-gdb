@@ -34,7 +34,6 @@ function Win.new(config, keymaps, cursor, client, breakpoint, start_win, edited_
   self.jump_win = start_win
   self.buffers = {}  -- {buf -> true}
 
-  self.last_jump_time_ms = 0
   self.last_jump_line = 0
 
   -- Create the default jump window
@@ -130,7 +129,6 @@ function Win:_ensure_jump_window()
     self:_with_saved_win(false, function()
       vim.api.nvim_command(self.config:get('codewin_command'))
       self.jump_win = vim.api.nvim_get_current_win()
-      self.last_jump_time_ms = 0   -- allow moving the cursor immediately in the new window
       -- Remember the '[No name]' buffer for later cleanup
       self.buffers[vim.api.nvim_get_current_buf()] = true
     end)
@@ -225,14 +223,9 @@ function Win:jump(file, line)
       line = max_line
     end
 
-    -- Jumps are asynchronous, and the user may wanted to move the cursor somewhere else
-    -- just recently. To prevent moving the cursor undesirably, this code will detect
-    -- whether the user touched the cursor recently.
-    local cur_time_ms = vim.loop.hrtime() / 1000000;
-    local cur_cursor_line = vim.api.nvim_win_get_cursor(self.jump_win)[1]
-    if cur_cursor_line == self.last_jump_line or cur_time_ms > 500 + self.last_jump_time_ms then
+    -- Debounce jumping because of asynchronous querying
+    if line ~= self.last_jump_line then
       vim.api.nvim_win_set_cursor(self.jump_win, {line, 0})
-      self.last_jump_time_ms = cur_time_ms
       self.last_jump_line = line
     end
 
