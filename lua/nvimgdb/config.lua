@@ -4,12 +4,12 @@
 local Keymaps = require 'nvimgdb.keymaps'
 local log = require 'nvimgdb.log'
 
--- @class Config @resolved configuration instance
--- @field private config ConfDict @configuration entries
+---@class Config resolved configuration instance
+---@field private config ConfDict configuration entries
 local Config = {}
 Config.__index = Config
 
--- @class ConfDict @default configuration
+---@class ConfDict default configuration
 local default = {
   key_until           = '<f4>',
   key_continue        = '<f5>',
@@ -34,10 +34,10 @@ local default = {
   sticky_dbg_buf      = true,
 }
 
--- Turn a string into a funcref looking up a Vim function.
--- @param key string callback name
--- @param val any parameter value expected to be a function reference
--- @return function
+---Turn a string into a funcref looking up a Vim function.
+---@param key string callback name
+---@param val any parameter value expected to be a function reference
+---@return any
 local function filter_funcref(key, val)
   -- Lookup the key in the default config.
   local def_val = default[key]
@@ -52,21 +52,19 @@ local function filter_funcref(key, val)
   return function(_) vim.api.nvim_call_function(val, {}) end
 end
 
--- Get a value of a user-defined variable nvimgdb_<var>,
--- probing the scope in succession: buffer, window, tabpage, global.
--- @param var string @variable name like nvimgdb_<var>
--- @return string @variable value if defined, nil otherwise
+---Get a value of a user-defined variable nvimgdb_<var>,
+---probing the scope in succession: buffer, window, tabpage, global.
+---@param var string variable name like nvimgdb_<var>
+---@return any variable value if defined, nil otherwise
 local function _get_from_user_variable(var)
   for scope in ("bwtg"):gmatch'.' do
     local cmd = "return vim." .. scope .. ".nvimgdb_" .. var
     local val = loadstring(cmd)()
-    if val ~= nil then
-      return val
-    end
+    return val
   end
 end
 
--- @return ConfDict @copy and process the configuration supplied
+---@return ConfDict? copy and process the configuration supplied
 local function copy_user_config()
   -- Make a copy of the supplied configuration if defined
   local config = _get_from_user_variable("config")
@@ -92,16 +90,18 @@ local function copy_user_config()
   return config
 end
 
--- @return Config @create a new configuration instance
+---@return Config create a new configuration instance
 function Config.new()
-  log.debug({"function Config.new()"})
+  log.debug({"Config.new"})
   local self = setmetatable({}, Config)
   -- Prepare actual configuration with overrides resolved.
   local key_to_func = {}
 
   -- Make a copy of the supplied configuration if defined
-  self.config = copy_user_config()
-  if self.config == nil then
+  local config = copy_user_config()
+  if config ~= nil then
+    self.config = config
+  else
     self.config = {}
     for key, val in pairs(default) do
       self.config[key] = val
@@ -117,10 +117,10 @@ function Config.new()
   return self
 end
 
--- Apply to the configuration user overrides taken from global variables
--- @param key_to_func table<string, string> @map of keystrokes to their meaning
+---Apply to the configuration user overrides taken from global variables
+---@param key_to_func table<string, string> map of keystrokes to their meaning
 function Config:_apply_overrides(key_to_func)
-  log.debug({"function Config:_apply_overrides(", key_to_func, ")"})
+  log.debug({"Config:_apply_overrides", key_to_func = key_to_func})
   -- If there is config override defined, add it
   local override = _get_from_user_variable("config_override")
   if override ~= nil then
@@ -147,13 +147,13 @@ function Config:_apply_overrides(key_to_func)
   end
 end
 
--- Check for keymap configuration sanity.
--- @param key string @configuration parameter
--- @param func string @configuration parameter value
--- @param key_to_func table<string, string> @disambiguation dictionary
--- @param verbose boolean @produce messages if true
+---Check for keymap configuration sanity.
+---@param key string configuration parameter
+---@param func string configuration parameter value
+---@param key_to_func table<string, string> disambiguation dictionary
+---@param verbose boolean produce messages if true
 function Config:_check_keymap_conflicts(key, func, key_to_func, verbose)
-  log.debug({"function Config:_check_keymap_conflicts(", key, func, key_to_func, verbose, ")"})
+  log.debug({"Config:_check_keymap_conflicts", key = key, func = func, key_to_func = key_to_func, verbose = verbose})
   if func:match('^key_.*') ~= nil then
     local prev_func = key_to_func[key]
     if prev_func ~= nil and prev_func ~= func then
@@ -168,9 +168,9 @@ function Config:_check_keymap_conflicts(key, func, key_to_func, verbose)
   end
 end
 
--- Define the cursor and breakpoint signs
+---Define the cursor and breakpoint signs
 function Config:_define_signs()
-  log.debug({"function Config:_define_signs()"})
+  log.debug({"Config:_define_signs"})
   -- Define the sign for current line the debugged program is executing.
   vim.fn.sign_define('GdbCurrentLine', {text = self.config.sign_current_line})
   -- Define signs for the breakpoints.
@@ -179,20 +179,20 @@ function Config:_define_signs()
   end
 end
 
--- Get the configuration value or return nil
--- @param key string @configuration parameter
--- @return string | fun():nil @configuration parameter value
+---Get the configuration value or return nil
+---@param key string configuration parameter
+---@return string | function configuration parameter value
 function Config:get(key)
-  log.debug({"function Config:get(", key, ")"})
+  log.debug({"Config:get", key = key})
   return self.config[key]
 end
 
--- Get the configuration value by key or return the val if missing.
--- @param key string @configuration parameter
--- @param val string @suggested default value
--- @return string @parameter value or default value
+---Get the configuration value by key or return the val if missing.
+---@param key string configuration parameter
+---@param val string|function suggested default value
+---@return string|function parameter value or default value
 function Config:get_or(key, val)
-  log.debug({"function Config:get_or(", key, val, ")"})
+  log.debug({"Config:get_or", key = key, val = val})
   local v = self:get(key)
   if v == nil then v = val end
   return v
