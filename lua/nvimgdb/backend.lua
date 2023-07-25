@@ -43,14 +43,15 @@ function C.get_error_formats()
   return {}
 end
 
--- @param client_cmd string[] @original debugger command
--- @param tmp_dir string @path to the session state directory
--- @param proxy_addr string @full path to the file with the udp port in the session state directory
--- @return string[] @command to launch the debugger with termopen()
+---@param client_cmd string[] original debugger command
+---@param tmp_dir string path to the session state directory
+---@param proxy_addr string full path to the file with the udp port in the session state directory
+---@return string[] command to launch the debugger with termopen()
 function C.get_launch_cmd(client_cmd, tmp_dir, proxy_addr)
   local _ = client_cmd
   local _ = tmp_dir
   local _ = proxy_addr
+  return {}
 end
 
 return C
