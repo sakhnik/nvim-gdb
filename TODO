@@ -1,6 +1,6 @@
 # MinGW support
 - Git rid of the custom frame format in lldb (test_70_quickfix)
-- Fix documentation comments -- -> ---
+- Port vimscript to lua: nvimgdb.vim
 - Detect whether the debugged process is running using side channel: prompt -> paused, query on output feed timeout (test_interrupt, test_command)
 - Asynchronous querying of breakpoints and commands (no wait)
 - handle <up arrow> in pywinpty PDB
