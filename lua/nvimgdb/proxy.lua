@@ -80,12 +80,12 @@ end
 
 ---Send a request to the proxy and wait for the response.
 ---@param request string command to the debugger proxy
----@return string response from the debugger proxy
+---@return any response from the debugger proxy
 function Proxy:query(request)
   log.info({"Proxy:query", request = request})
 
   if not self.client.is_active then
-    return ''
+    return nil
   end
 
   -- It takes time for the proxy to open a side channel.
@@ -93,7 +93,7 @@ function Proxy:query(request)
   -- the first query.
   if not self:_ensure_connected() then
     log.error("Server port isn't known yet")
-    return ''
+    return nil
   end
 
   if #self.responses > 16 then
@@ -114,7 +114,7 @@ function Proxy:query(request)
 
   if self.sock == nil then
     log.error({"No socket, likely a bug"})
-    return ""
+    return nil
   end
 
   local res, errmsg = uv.udp_send(self.sock, request_id .. " " .. request, '127.0.0.1', self.server_port, function(err)
@@ -140,7 +140,7 @@ function Proxy:query(request)
   end
 
   log.warn("Timeout querying")
-  return ""
+  return nil
 end
 
 return Proxy
