@@ -62,6 +62,12 @@ function Client:cleanup()
   vim.fn.delete(self.tmp_dir, "rf")
 end
 
+---Get client buffer
+---@return number client buffer
+function Client:get_client_buf()
+  return self.client_buf
+end
+
 function Client:_cleanup_buf_hidden()
   log.debug({"Client:_cleanup_buf_hidden"})
   if self.buf_hidden_auid ~= -1 then
