@@ -5,27 +5,27 @@ local log = require'nvimgdb.log'
 local uv = vim.loop
 local utils = require'nvimgdb.utils'
 
--- @class Client @spawned debugger manager
--- @field private config Config @resolved configuration
--- @field public win number @terminal window handler
--- @field private client_id number @terminal job handler
--- @field private is_active boolean @true if the debugger has been launched
--- @field private has_interacted boolean @true if the debugger was interactive
--- @field private tmp_dir string @temporary directory for the proxy address
--- @field private proxy_addr string @path to the file with proxy port
--- @field private command string[] @complete command to launch the debugger (including proxy)
--- @field private client_buf number @terminal buffer handler
--- @field private buf_hidden_auid number @autocmd id of the BufHidden handler
+---@class Client spawned debugger manager
+---@field private config Config resolved configuration
+---@field public win number terminal window handler
+---@field private client_id number terminal job handler
+---@field private is_active boolean true if the debugger has been launched
+---@field private has_interacted boolean true if the debugger was interactive
+---@field private tmp_dir string temporary directory for the proxy address
+---@field private proxy_addr string path to the file with proxy port
+---@field private command string[] complete command to launch the debugger (including proxy)
+---@field private client_buf number terminal buffer handler
+---@field private buf_hidden_auid number autocmd id of the BufHidden handler
 local Client = {}
 Client.__index = Client
 
--- Constructor
--- @param config Config @resolved configuration for this session
--- @param backend Backend @debugger backend
--- @param client_cmd string[] @command to launch the debugger
--- @return Client @new instance
+---Constructor
+---@param config Config resolved configuration for this session
+---@param backend Backend debugger backend
+---@param client_cmd string[] command to launch the debugger
+---@return Client new instance
 function Client.new(config, backend, client_cmd)
-  log.debug({"function Client.new(", config, client_cmd, ")"})
+  log.debug({"Client.new", config = config, client_cmd = client_cmd})
   local self = setmetatable({}, Client)
   self.config = config
   log.info("termwin_command", config:get('termwin_command'))
@@ -48,9 +48,9 @@ function Client.new(config, backend, client_cmd)
   return self
 end
 
--- Destructor
+---Destructor
 function Client:cleanup()
-  log.debug({"function Client:cleanup()"})
+  log.debug({"Client:cleanup"})
   if vim.api.nvim_buf_is_valid(self.client_buf) and vim.fn.bufexists(self.client_buf) then
     self:_cleanup_buf_hidden()
     vim.api.nvim_buf_delete(self.client_buf, {force = true})
@@ -63,16 +63,16 @@ function Client:cleanup()
 end
 
 function Client:_cleanup_buf_hidden()
-  log.debug({"function Client:_cleanup_buf_hidden()"})
+  log.debug({"Client:_cleanup_buf_hidden"})
   if self.buf_hidden_auid ~= -1 then
     vim.api.nvim_del_autocmd(self.buf_hidden_auid)
     self.buf_hidden_auid = -1
   end
 end
 
--- Launch the debugger (when all the parsers are ready)
+---Launch the debugger (when all the parsers are ready)
 function Client:start()
-  log.debug({"function Client:start()"})
+  log.debug({"Client:start"})
   -- Open a terminal window with the debugger client command.
   -- Go to the yet-to-be terminal window
   vim.api.nvim_set_current_win(self.win)
@@ -128,10 +128,10 @@ function Client:start()
   end
 end
 
--- Make the debugger window sticky. If closed accidentally,
--- resurrect it.
+---Make the debugger window sticky. If closed accidentally,
+---resurrect it.
 function Client:_check_sticky()
-  log.debug({"function Client:_check_sticky()"})
+  log.debug({"Client:_check_sticky"})
   local prev_win = vim.api.nvim_get_current_win()
   vim.api.nvim_command(self.config:get('termwin_command'))
   local buf = vim.api.nvim_get_current_buf()
@@ -143,17 +143,16 @@ function Client:_check_sticky()
   vim.api.nvim_set_current_win(prev_win)
 end
 
--- Interrupt running program by sending ^c.
+---Interrupt running program by sending ^c.
 function Client:interrupt()
-  log.debug({"function Client:interrupt()"})
+  log.debug({"Client:interrupt"})
   vim.fn.chansend(self.client_id, "\x03")
 end
 
--- Execute one command on the debugger interpreter.
--- @param data string @send a command to the debugger
+---Execute one command on the debugger interpreter.
+---@param data string send a command to the debugger
 function Client:send_line(data)
-  log.debug({"function Client:send_line(", data, ")"})
-  log.debug({"send_line", data})
+  log.info({"Client:send_line", data = data})
   local cr = "\n"
   if utils.is_windows then
     cr = "\r"
@@ -161,23 +160,23 @@ function Client:send_line(data)
   vim.fn.chansend(self.client_id, data .. cr)
 end
 
--- Get the client terminal buffer.
--- @return number @terminal buffer handle
+---Get the client terminal buffer.
+---@return number terminal buffer handle
 function Client:get_buf()
-  log.debug({"function Client:get_buf()"})
+  log.debug({"Client:get_buf"})
   return self.client_buf
 end
 
--- Get the side-channel address.
--- @return string @file with proxy port
+---Get the side-channel address.
+---@return string file with proxy port
 function Client:get_proxy_addr()
-  log.debug({"function Client:get_proxy_addr()"})
+  log.debug({"Client:get_proxy_addr"})
   return self.proxy_addr
 end
 
--- Remember this debugger reached the interactive state
--- This means we can close the terminal whenever the debugger quits
--- Otherwise, keep the terminal to show the output to the user.
+---Remember this debugger reached the interactive state
+---This means we can close the terminal whenever the debugger quits
+---Otherwise, keep the terminal to show the output to the user.
 function Client:mark_has_interacted()
   self.has_interacted = true
 end
