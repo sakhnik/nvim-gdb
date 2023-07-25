@@ -3,25 +3,25 @@
 
 local log = require 'nvimgdb.log'
 
--- @class Keymaps @dynamic keymaps manager
--- @field private config Config @supplied configuration
+---@class Keymaps @dynamic keymaps manager
+---@field private config Config supplied configuration
 local Keymaps = {}
 Keymaps.__index = Keymaps
 
--- @param config Config @resolved configuration
--- @return Keymaps @new instance of Keymaps
+---@param config Config resolved configuration
+---@return Keymaps new instance of Keymaps
 function Keymaps.new(config)
-  log.debug({"function Keymaps.new(", config, ")"})
+  log.debug({"Keymaps.new", config = config})
   local self = setmetatable({}, Keymaps)
   self.config = config
   self.dispatch_active = true
   return self
 end
 
--- Turn on/off keymaps manipulation.
--- @param state boolean @true to enable keymaps dispatching, false to supress
+---Turn on/off keymaps manipulation.
+---@param state boolean true to enable keymaps dispatching, false to supress
 function Keymaps:set_dispatch_active(state)
-  log.debug({"function Keymaps:set_dispatch_active(", state, ")"})
+  log.debug({"Keymaps:set_dispatch_active", state = state})
   self.dispatch_active = state
 end
 
@@ -39,9 +39,9 @@ local default = {
   { mode = 'n', term = true,  key = 'key_quit',       cmd = ':GdbDebugStop'        },
 }
 
--- Define buffer-local keymaps for the jump window
+---Define buffer-local keymaps for the jump window
 function Keymaps:set()
-  log.debug({"function Keymaps:set()"})
+  log.debug({"Keymaps:set"})
   -- Terminal keymaps are only set once per session, so there's
   -- no need to unset them properly (no `is_term` in Keymaps:unset()).
   local bufname = vim.api.nvim_buf_get_name(vim.api.nvim_get_current_buf())
@@ -57,9 +57,9 @@ function Keymaps:set()
   end
 end
 
--- Undefine buffer-local keymaps for the jump window
+---Undefine buffer-local keymaps for the jump window
 function Keymaps:unset()
-  log.debug({"function Keymaps:unset()"})
+  log.debug({"Keymaps:unset"})
   for _, m in ipairs(default) do
     local keystroke = self.config:get(m.key)
     if keystroke ~= nil then
@@ -77,9 +77,9 @@ local default_t = {
   { key = 'key_quit',     cmd = ':GdbDebugStop' },
 }
 
--- Define term-local keymaps.
+---Define term-local keymaps.
 function Keymaps:set_t()
-  log.debug({"function Keymaps:set_t()"})
+  log.debug({"Keymaps:set_t"})
   for _, m in ipairs(default_t) do
     local keystroke = self.config:get(m.key)
     if keystroke ~= nil then
@@ -91,30 +91,30 @@ function Keymaps:set_t()
     '<esc>', [[<c-\><c-n>G]], {silent = true})
 end
 
--- Run by the configuration and call the appropriate keymap handler
--- @param key string @keymap routine like set_keymaps
+---Run by the configuration and call the appropriate keymap handler
+---@param key string keymap routine like set_keymaps
 function Keymaps:_dispatch(key)
-  log.debug({"function Keymaps:_dispatch(", key, ")"})
+  log.debug({"Keymaps:_dispatch", key = key})
   if self.dispatch_active then
     self.config:get_or(key, function(_) end)(self)
   end
 end
 
--- Call the hook to set the keymaps.
+---Call the hook to set the keymaps.
 function Keymaps:dispatch_set()
-  log.debug({"function Keymaps:dispatch_set()"})
+  log.debug({"Keymaps:dispatch_set"})
   self:_dispatch 'set_keymaps'
 end
 
--- Call the hook to unset the keymaps.
+---Call the hook to unset the keymaps.
 function Keymaps:dispatch_unset()
-  log.debug({"function Keymaps:dispatch_unset()"})
+  log.debug({"Keymaps:dispatch_unset"})
   self:_dispatch 'unset_keymaps'
 end
 
--- Call the hook to set the terminal keymaps.
+---Call the hook to set the terminal keymaps.
 function Keymaps:dispatch_set_t()
-  log.debug({"function Keymaps:dispatch_set_t()"})
+  log.debug({"Keymaps:dispatch_set_t"})
   self:_dispatch 'set_tkeymaps'
 end
 
