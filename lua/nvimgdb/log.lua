@@ -92,7 +92,14 @@ do
       if levelnr < current_log_level then return false end
       if argc == 0 then return true end
       local info = debug.getinfo(2, "Sl")
-      local fileinfo = string.format("%s:%s", info.short_src, info.currentline)
+      local src = info.short_src
+      -- Chop off the long path prefix, just keep everything relative to lua/
+      local suffix = src:match("lua[/\\].+")
+      if suffix ~= nil then
+        src = suffix
+      end
+
+      local fileinfo = string.format("%s:%s", src, info.currentline)
       local parts = { table.concat({get_timestamp(), " [", level, "] ", fileinfo, ": "}, "") }
       for i = 1, argc do
         local arg = select(i, ...)
