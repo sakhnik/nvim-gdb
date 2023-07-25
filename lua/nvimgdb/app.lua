@@ -3,18 +3,18 @@
 local log = require 'nvimgdb.log'
 local NvimGdb = require'nvimgdb'
 
--- @class App @debugger manager
--- @field private destructors table<string, function> @custom destructors to be executed during cleanup
--- @field private config Config @resolved configuration
--- @field private backend Backend @selected backend-specific routines
--- @field private client Client @spawned debugger manager
--- @field private proxy Proxy @connection to the side channel
--- @field private breakpoint Breakpoint @breakpoint sign manager
--- @field private keymaps Keymaps @dynamic keymaps manager
--- @field private cursor Cursor @current line sign nandler
--- @field private win Win @jump window manager
--- @field private parser ParserImpl @debugger output parser
--- @field private tabpage_created boolean @indicates whether the tabpage was created and needs to be closed during cleanup
+---@class App @debugger manager
+---@field private destructors table<string, function> @custom destructors to be executed during cleanup
+---@field private config Config @resolved configuration
+---@field private backend Backend @selected backend-specific routines
+---@field private client Client @spawned debugger manager
+---@field private proxy Proxy @connection to the side channel
+---@field private breakpoint Breakpoint @breakpoint sign manager
+---@field private keymaps Keymaps @dynamic keymaps manager
+---@field private cursor Cursor @current line sign nandler
+---@field private win Win @jump window manager
+---@field private parser ParserImpl @debugger output parser
+---@field private tabpage_created boolean @indicates whether the tabpage was created and needs to be closed during cleanup
 local App = {}
 App.efmmgr = require 'nvimgdb.efmmgr'
 App.__index = App
@@ -55,7 +55,7 @@ function App.new(backend_name, client_cmd)
   local start_win = vim.api.nvim_get_current_win()
 
   -- Get the selected backend module
-  self.backend = require "nvimgdb.backend".choose(backend_name)
+  self.backend = require("nvimgdb.backend." .. backend_name).new()
 
   -- Spawn gdb client in a new terminal window
   self.client = require'nvimgdb.client'.new(self.config, self.backend, client_cmd)
