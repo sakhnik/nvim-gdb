@@ -1,12 +1,6 @@
 local conf = require'conftest'
 local eng = require'engine'
 
-local function bashdb_stops(action)
-  conf.post_terminal_end(function()
-    conf.count_stops(action)
-  end)
-end
-
 describe("bashdb", function()
 
   if conf.backend_names.bashdb == nil then
@@ -14,9 +8,8 @@ describe("bashdb", function()
   end
 
   it('generic use case', function()
-    bashdb_stops(function(count_stops)
+    conf.post_terminal_end(function()
       eng.feed(' db<cr>')
-      assert.is_true(count_stops.wait(1))
       assert.is_true(eng.wait_signs({cur = 'main.sh:22'}))
 
       eng.feed('tbreak Main<cr>')
@@ -48,11 +41,12 @@ describe("bashdb", function()
   end)
 
   it('toggling breakpoints', function()
-    bashdb_stops(function(count_stops)
+    conf.post_terminal_end(function()
       eng.feed(' db<cr>')
-      assert.is_true(count_stops.wait(1))
+      assert.is_true(eng.wait_signs({cur = 'main.sh:22'}))
       eng.feed('<esc><c-w>k')
       eng.feed(':4<cr>')
+      assert.is_true(eng.wait_cursor(4))
       eng.feed('<f8>')
       assert.is_true(eng.wait_signs({cur = 'main.sh:22', brk = {[1] = {4}}}))
 
@@ -65,9 +59,8 @@ describe("bashdb", function()
   end)
 
   it('last command is repeated on empty input', function()
-    bashdb_stops(function(count_stops)
+    conf.post_terminal_end(function()
       eng.feed(' db<cr>')
-      assert.is_true(count_stops.wait(1))
       assert.is_true(eng.wait_signs({cur = 'main.sh:22'}))
 
       eng.feed('tbreak Main<cr>')

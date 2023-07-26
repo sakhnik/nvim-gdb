@@ -2,25 +2,25 @@
 -- vim: set et ts=2 sw=2:
 
 local log = require'nvimgdb.log'
-local Common = require'nvimgdb.backend.common'
+local Backend = require'nvimgdb.backend'
 local ParserImpl = require'nvimgdb.parser_impl'
 local utils = require'nvimgdb.utils'
 
--- @class BackendGdb:Backend @specifics of GDB
+---@class BackendGdb: Backend @specifics of GDB
 local C = {}
 C.__index = C
-setmetatable(C, {__index = Common})
+setmetatable(C, {__index = Backend})
 
--- @return BackendGdb @new instance
+---@return BackendGdb new instance
 function C.new()
   local self = setmetatable({}, C)
   return self
 end
 
--- Create a parser to recognize state changes and code jumps
--- @param actions ParserActions @callbacks for the parser
--- @param proxy Proxy @side channel connection to the debugger
--- @return ParserImpl @new parser instance
+---Create a parser to recognize state changes and code jumps
+---@param actions ParserActions callbacks for the parser
+---@param proxy Proxy side channel connection to the debugger
+---@return ParserImpl new parser instance
 function C.create_parser(actions, proxy)
   local P = {}
   P.__index = P
@@ -54,9 +54,9 @@ function C.create_parser(actions, proxy)
   return self
 end
 
--- @param fname string @full path to the source
--- @param proxy Proxy @connection to the side channel
--- @return FileBreakpoints @collection of actual breakpoints
+---@param fname string full path to the source
+---@param proxy Proxy connection to the side channel
+---@return FileBreakpoints collection of actual breakpoints
 function C.query_breakpoints(fname, proxy)
   log.info("Query breakpoints for " .. fname)
   local breaks = proxy:query('info-breakpoints ' .. fname)
@@ -73,23 +73,23 @@ function C.query_breakpoints(fname, proxy)
   return breaks
 end
 
--- @type CommandMap
+---@type CommandMap
 C.command_map = {
   delete_breakpoints = 'delete',
   breakpoint = 'break',
   ['info breakpoints'] = 'info breakpoints',
 }
 
--- @return string[]
+---@return string[]
 function C.get_error_formats()
   -- Return the list of errorformats for backtrace, breakpoints.
   return {[[%m\ at\ %f:%l]], [[%m\ %f:%l]]}
 end
 
--- @param client_cmd string[] @original debugger command
--- @param tmp_dir string @path to the session state directory
--- @param proxy_addr string @full path to the file with the udp port in the session state directory
--- @return string[] @command to launch the debugger with termopen()
+---@param client_cmd string[] original debugger command
+---@param tmp_dir string path to the session state directory
+---@param proxy_addr string full path to the file with the udp port in the session state directory
+---@return string[] command to launch the debugger with termopen()
 function C.get_launch_cmd(client_cmd, tmp_dir, proxy_addr)
 
   -- Assuming the first argument is path to gdb, the rest are arguments.

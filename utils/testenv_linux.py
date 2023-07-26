@@ -17,10 +17,11 @@ class Setup:
 
         subprocess.run(
             r'''
-# Make sure to install a recent version of LLDB
-sudo bash -c "$(wget -O - https://apt.llvm.org/llvm.sh)"
 sudo apt-get update
-sudo apt-get install libfuse2 gdb cmake file --no-install-recommends
+sudo apt-get install libfuse2 gdb lldb python3-lldb-14 cmake file --no-install-recommends
+# Fix lldb python path mismatch
+sudo mkdir -p /usr/lib/local/lib/python3.10
+sudo ln -s /usr/lib/llvm-14/lib/python3.10/dist-packages /usr/lib/local/lib/python3.10/dist-packages
             ''',
             shell=True, check=True
         )

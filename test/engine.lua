@@ -1,5 +1,9 @@
 local thr = require'thread'
+local utils = require'nvimgdb.utils'
+
 local E = {}
+
+E.common_timeout = (vim.env.GITHUB_WORKFLOW ~= nil or utils.is_windows) and 10000 or 5000
 
 ---Feed keys to Neovim
 ---@param keys string @keystrokes
@@ -20,11 +24,11 @@ end
 ---Wait until the query passes the check
 ---@param query function
 ---@param check function
----@param timeout_ms? number timeout in milliseconds (5000 if omitted)
+---@param timeout_ms? number timeout in milliseconds (E.common_timeout if omitted)
 ---@return boolean|any
 function E.wait_for(query, check, timeout_ms)
   if timeout_ms == nil then
-    timeout_ms = 5000
+    timeout_ms = E.common_timeout
   end
   local deadline = E.get_time_ms() + timeout_ms
   local value = nil
@@ -38,10 +42,11 @@ function E.wait_for(query, check, timeout_ms)
   return value
 end
 
----Wait until the debugger gets into the paused state
+---Wait until the debugger gets into the desired state
+---@param state boolean true for paused, false for running
 ---@param timeout_ms? number Timeout in milliseconds
 ---@return boolean
-function E.wait_paused(timeout_ms)
+function E.wait_state(state, timeout_ms)
   if timeout_ms == nil then
     timeout_ms = 5000
   end
@@ -52,32 +57,50 @@ function E.wait_paused(timeout_ms)
     local parser = NvimGdb.i().parser
     return type(parser) == 'table' and parser:is_paused()
   end
-  local function is_true(v)
-    return v
-  end
-  return E.wait_for(query, is_true, timeout_ms)
+  return E.wait_for(query, function(is_paused) return is_paused == state end, timeout_ms)
 end
 
-function E.count_buffers_impl(pred)
-  local count = 0
+---Wait until the debugger gets into the paused state
+---@param timeout_ms? number Timeout in milliseconds
+---@return boolean
+function E.wait_paused(timeout_ms)
+  return E.wait_state(true, timeout_ms)
+end
+
+---Wait until the debugger gets into the running state
+---@param timeout_ms? number Timeout in milliseconds
+---@return boolean
+function E.wait_running(timeout_ms)
+  return E.wait_state(false, timeout_ms)
+end
+
+---Get buffers satisfying the predicate
+---@param pred function(buf: number): boolean condition for a buffer to be reported
+---@return table<number, string> map of buffer number to name
+function E.get_buffers_impl(pred)
+  local buffers = {}
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
     if pred(buf) then
-      count = count + 1
+      buffers[buf] = vim.api.nvim_buf_get_name(buf)
     end
   end
-  return count
+  return buffers
 end
 
-function E.count_buffers()
+---Get all the loaded buffers
+---@return table<number, string> map of buffer number to name
+function E.get_buffers()
   -- Determine how many terminal buffers are there.
-  return E.count_buffers_impl(function(buf)
+  return E.get_buffers_impl(function(buf)
     return vim.api.nvim_buf_is_loaded(buf)
   end)
 end
 
-function E.count_termbuffers()
+---Get all the terminal buffers
+---@return table<number, string> map of buffer number to name
+function E.get_termbuffers()
   -- Determine how many terminal buffers are there.
-  return E.count_buffers_impl(function(buf)
+  return E.get_buffers_impl(function(buf)
     return vim.api.nvim_buf_is_loaded(buf) and vim.api.nvim_buf_get_option(buf, 'buftype') == 'terminal'
   end)
 end
@@ -96,6 +119,9 @@ function E.get_signs()
           local sname = signs.name
           if sname == 'GdbCurrentLine' then
             local bname = vim.api.nvim_buf_get_name(buf):match("[^/\\]+$")
+            if bname == nil then
+              bname = vim.api.nvim_buf_get_name(buf)
+            end
             if ret.cur == nil then
               ret.cur = bname .. ':' .. signs.lnum
             else

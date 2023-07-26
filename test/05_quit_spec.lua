@@ -6,10 +6,7 @@ local utils = require'nvimgdb.utils'
 
 local function mysetup(backend, action)
   eng.feed(string.format(backend.launchF, ""))
-  assert.is_true(eng.wait_paused(5000))
-  if utils.is_windows and backend.name == 'lldb' then
-    thr.y(500)
-  end
+  assert.is_true(eng.wait_paused())
   eng.feed("<esc>")
 
   action(backend)
@@ -18,11 +15,15 @@ local function mysetup(backend, action)
 end
 
 local function mysetup_bufcheck(backend, action)
-  local num_bufs = eng.count_buffers()
+  local buffers = eng.get_buffers()
 
   mysetup(backend, action)
 
-  assert.are.equal(num_bufs, eng.count_buffers(), "No new rogue buffers")
+  eng.wait_for(
+    function() return eng.get_buffers() end,
+    function(r) return vim.deep_equal(buffers, r) end
+  )
+  assert.are.same(buffers, eng.get_buffers(), "No new rogue buffers")
 end
 
 describe("quit", function()
@@ -72,7 +73,7 @@ describe("quit", function()
         if utils.is_windows and backend.name == 'lldb' then
           thr.y(500)
         end
-        assert.is_true(eng.wait_paused(5000))
+        assert.is_true(eng.wait_paused())
         eng.feed('<esc>')
         eng.feed(":tabclose<cr>")
         eng.feed(":GdbDebugStop<cr>")

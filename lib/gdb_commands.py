@@ -3,11 +3,21 @@ to the plugin."""
 
 import gdb
 import json
+import logging
 import os
 import re
 import socket
 import sys
 import threading
+
+
+logger = logging.getLogger("gdb")
+logger.setLevel(logging.DEBUG)
+lhandl = logging.NullHandler() if not os.environ.get('CI') \
+    else logging.FileHandler("gdb.log", encoding='utf-8')
+fmt = "%(asctime)s [%(levelname)s]: %(message)s"
+lhandl.setFormatter(logging.Formatter(fmt))
+logger.addHandler(lhandl)
 
 
 class NvimGdbInit(gdb.Command):
@@ -33,66 +43,76 @@ class NvimGdbInit(gdb.Command):
         _, port = sock.getsockname()
         with open(server_address, 'w') as f:
             f.write(f"{port}")
+        logger.info("Start listening for commands at port %d", port)
         try:
             while not self.quit:
                 try:
                     data, addr = sock.recvfrom(65536)
                 except TimeoutError:
                     continue
-                command = re.split(r"\s+", data.decode("utf-8"))
-                req_id = int(command[0])
-                request = command[1]
-                args = command[2:]
-                if request == "info-breakpoints":
-                    fname = args[0]
-                    response = {
-                        "request": req_id,
-                        "response": self._get_breaks(os.path.normpath(fname))
-                    }
-                    sock.sendto(json.dumps(response).encode("utf-8"), 0, addr)
-                elif request == "get-current-frame-location":
-                    response = {
-                        "request": req_id,
-                        "response": self._get_current_frame_location()
-                    }
-                    sock.sendto(json.dumps(response).encode("utf-8"), 0, addr)
-                elif request == "handle-command":
-                    # pylint: disable=broad-except
-                    try:
-                        if args[0] == 'nvim-gdb-info-breakpoints':
-                            # Fake a command info-breakpoins for
-                            # GdbLopenBreakpoins
-                            response = {
-                                "request": req_id,
-                                "response": self._get_all_breaks()
-                            }
-                            sock.sendto(json.dumps(response).encode("utf-8"),
-                                        0, addr)
-                            return
-                        gdb_command = " ".join(args)
-                        if sys.version_info.major < 3:
-                            gdb_command = gdb_command.encode("utf-8")
-                        try:
-                            result = gdb.execute(gdb_command, False, True)
-                        except RuntimeError as err:
-                            result = str(err)
-                        if result is None:
-                            result = ""
-                        response = {
-                            "request": req_id,
-                            "response": result.strip()
-                        }
-                        result = b"" if result is None else \
-                            result.encode("utf-8")
-                        sock.sendto(json.dumps(response).encode('utf-8'),
-                                    0, addr)
-                    except Exception as ex:
-                        print("Exception: " + str(ex))
+                command = data.decode("utf-8")
+                self._handle_command(command, sock, addr)
         finally:
+            logger.info("Stop listening for commands")
             try:
                 os.unlink(server_address)
             except OSError:
                 pass
+
+    def _handle_command(self, command, sock, addr):
+        logger.debug("Got command: %s", command)
+        command = re.split(r"\s+", command)
+        req_id = int(command[0])
+        request = command[1]
+        args = command[2:]
+        if request == "info-breakpoints":
+            fname = args[0]
+            response = {
+                "request": req_id,
+                "response": self._get_breaks(os.path.normpath(fname))
+            }
+            self._send_response(response, sock, addr)
+        elif request == "get-current-frame-location":
+            response = {
+                "request": req_id,
+                "response": self._get_current_frame_location()
+            }
+            self._send_response(response, sock, addr)
+        elif request == "handle-command":
+            # pylint: disable=broad-except
+            try:
+                if args[0] == 'nvim-gdb-info-breakpoints':
+                    # Fake a command info-breakpoins for
+                    # GdbLopenBreakpoins
+                    response = {
+                        "request": req_id,
+                        "response": self._get_all_breaks()
+                    }
+                    self._send_response(response, sock, addr)
+                    return
+                gdb_command = " ".join(args)
+                if sys.version_info.major < 3:
+                    gdb_command = gdb_command.encode("utf-8")
+                try:
+                    result = gdb.execute(gdb_command, False, True)
+                except RuntimeError as err:
+                    result = str(err)
+                if result is None:
+                    result = ""
+                response = {
+                    "request": req_id,
+                    "response": result.strip()
+                }
+                result = b"" if result is None else \
+                    result.encode("utf-8")
+                self._send_response(response, sock, addr)
+            except Exception as ex:
+                logger.error("Exception: %s", ex)
+
+    def _send_response(self, response, sock, addr):
+        response = json.dumps(response).encode("utf-8")
+        logger.debug("Sending response: %s", response)
+        sock.sendto(response, 0, addr)
 
     def _get_current_frame_location(self):
         try:
