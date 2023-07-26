@@ -11,6 +11,7 @@ local uv = vim.loop
 ---@field private server_port number UDP port of the proxy
 ---@field private request_id number sequential request number
 ---@field private responses table<number, any> received responses
+---@field private responses_size number count of responses being waited
 local Proxy = {}
 Proxy.__index = Proxy
 
@@ -31,6 +32,7 @@ function Proxy.new(client)
 
   self.request_id = 0
   self.responses = {}
+  self.responses_size = 0
 
   return self
 end
@@ -68,6 +70,7 @@ function Proxy:_ensure_connected()
     elseif data ~= nil then
       local response = vim.json.decode(data)
       self.responses[response.request] = response
+      self.responses_size = self.responses_size + 1
     end
   end)
   if res == nil then
@@ -96,17 +99,20 @@ function Proxy:query(request)
     return nil
   end
 
-  if #self.responses > 16 then
+  if self.responses_size > 16 then
     log.debug({"Cleaning obsolete responses count=", #self.responses})
     local cleaned_responses = {}
+    local cleaned_responses_size = 0
     local deadline_id = self.request_id - 16
     for id, resp in pairs(self.responses) do
       if id >= deadline_id then
         cleaned_responses[id] = resp
+        cleaned_responses_size = cleaned_responses_size + 1
       end
     end
     self.responses = cleaned_responses
-    log.debug({"Responses after cleanup count=", #self.responses})
+    self.responses_size = cleaned_responses_size
+    log.debug({"Responses after cleanup count=", self.responses_size})
   end
 
   local request_id = self.request_id
@@ -120,12 +126,14 @@ function Proxy:query(request)
   local res, errmsg = uv.udp_send(self.sock, request_id .. " " .. request, '127.0.0.1', self.server_port, function(err)
     if err ~= nil then
       self.responses[request_id] = {response = {}}
+      self.responses_size = self.responses_size + 1
       return
     end
   end)
   if res == nil then
     log.error({"Failed to send to proxy", errmsg})
     self.responses[request_id] = {response = {}}
+    self.responses_size = self.responses_size + 1
   end
 
   local function response_ready()
@@ -136,6 +144,7 @@ function Proxy:query(request)
   if success then
     local response = self.responses[request_id].response
     self.responses[request_id] = nil
+    self.responses_size = self.responses_size - 1
     return response
   end
 
