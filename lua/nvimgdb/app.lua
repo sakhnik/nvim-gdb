@@ -152,6 +152,18 @@ function App:cleanup(tab)
   end
 end
 
+---Expose the parser object
+---@return ParserImpl
+function App:get_parser()
+  return self.parser
+end
+
+---Expose the Win object
+---@return Win
+function App:get_win()
+  return self.win
+end
+
 ---Send a command to the debugger.
 ---@param cmd string command template
 ---@param a1 string? parameter 1 if command has format placeholders
