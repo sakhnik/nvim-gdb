@@ -18,7 +18,7 @@ ParserImpl.__index = ParserImpl
 ---Initialization
 ---@param actions ParserActions parser callbacks
 function ParserImpl:_init(actions)
-  log.debug({"ParserImpl:_init", actions = actions})
+  log.debug({"ParserImpl:_init"})
   self.actions = actions
   self.running = {}
   self.paused = {}

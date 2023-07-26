@@ -116,6 +116,8 @@ function Config.new()
 
   self:_apply_overrides(key_to_func)
   self:_define_signs()
+
+  log.info({"Resolved configuration", self.config})
   return self
 end
 

@@ -24,7 +24,7 @@ Win.__index = Win
 ---@param edited_buf number buffer handle that needs to be loaded by default
 ---@return Win new instance
 function Win.new(config, keymaps, cursor, client, breakpoint, start_win, edited_buf)
-  log.debug({"Win.new", config = config, keymaps = keymaps, cursor = cursor, client = client, breakpoint = breakpoint, start_win = start_win, edited_buf = edited_buf})
+  log.debug({"Win.new", start_win = start_win, edited_buf = edited_buf})
   local self = setmetatable({}, Win)
   self.config = config
   self.keymaps = keymaps

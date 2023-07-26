@@ -11,7 +11,7 @@ Keymaps.__index = Keymaps
 ---@param config Config resolved configuration
 ---@return Keymaps new instance of Keymaps
 function Keymaps.new(config)
-  log.debug({"Keymaps.new", config = config})
+  log.debug({"Keymaps.new"})
   local self = setmetatable({}, Keymaps)
   self.config = config
   self.dispatch_active = true

@@ -25,7 +25,7 @@ Client.__index = Client
 ---@param client_cmd string[] command to launch the debugger
 ---@return Client new instance
 function Client.new(config, backend, client_cmd)
-  log.debug({"Client.new", config = config, client_cmd = client_cmd})
+  log.debug({"Client.new", client_cmd = client_cmd})
   local self = setmetatable({}, Client)
   self.config = config
   log.info("termwin_command", config:get('termwin_command'))

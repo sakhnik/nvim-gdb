@@ -15,7 +15,7 @@ Cursor.__index = Cursor
 ---@param config Config resolved configuration
 ---@return Cursor new instance
 function Cursor.new(config)
-  log.debug({"Cursor.new", config = config})
+  log.debug({"Cursor.new"})
   local self = setmetatable({}, Cursor)
   self.config = config
   self.buf = -1

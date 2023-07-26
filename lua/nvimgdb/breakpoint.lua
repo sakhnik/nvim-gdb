@@ -21,7 +21,7 @@ Breakpoint.__index = Breakpoint
 ---@param query_impl QueryBreakpoints @function to query breakpoints
 ---@return Breakpoint @new instance
 function Breakpoint.new(config, proxy, query_impl)
-  log.debug({"Breakpoint.new", config = config, proxy = proxy, query_impl = query_impl})
+  log.debug({"Breakpoint.new", query_impl = query_impl})
   local self = setmetatable({}, Breakpoint)
   self.config = config
   self.proxy = proxy

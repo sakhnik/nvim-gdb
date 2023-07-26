@@ -18,7 +18,7 @@ Proxy.__index = Proxy
 ---@param client Client debugger terminal job
 ---@return Proxy
 function Proxy.new(client)
-  log.debug({"Proxy.new", client = client})
+  log.debug({"Proxy.new"})
   local self = setmetatable({}, Proxy)
   self.client = client
   self.proxy_addr = client:get_proxy_addr()
