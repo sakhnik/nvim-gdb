@@ -4,21 +4,21 @@
 local log = require'nvimgdb.log'
 local uv = vim.loop
 
--- @class Proxy @proxy to the side channel
--- @field private client Client @debugger terminal job
--- @field private proxy_addr string @path to the file with proxy port
--- @field private sock any @UDP socket used to communicate with the proxy
--- @field private server_port number @UDP port of the proxy
--- @field private request_id number @sequential request number
--- @field private responses table<number, any> @received responses
+---@class Proxy proxy to the side channel
+---@field private client Client debugger terminal job
+---@field private proxy_addr string path to the file with proxy port
+---@field private sock any UDP socket used to communicate with the proxy
+---@field private server_port number UDP port of the proxy
+---@field private request_id number sequential request number
+---@field private responses table<number, any> received responses
 local Proxy = {}
 Proxy.__index = Proxy
 
--- Constructor
--- @param client Client @debugger terminal job
--- @return Proxy
+---Constructor
+---@param client Client debugger terminal job
+---@return Proxy
 function Proxy.new(client)
-  log.debug({"function Proxy.new(", client, ")"})
+  log.debug({"Proxy.new"})
   local self = setmetatable({}, Proxy)
   self.client = client
   self.proxy_addr = client:get_proxy_addr()
@@ -35,9 +35,9 @@ function Proxy.new(client)
   return self
 end
 
--- Destructor
+---Destructor
 function Proxy:cleanup()
-  log.debug({"function Proxy:cleanup()"})
+  log.debug({"Proxy:cleanup"})
   if self.port ~= nil then
     uv.udp_recv_stop(self.sock)
     self.port = nil
@@ -48,8 +48,8 @@ function Proxy:cleanup()
   end
 end
 
--- Get the proxy port to prepare for communication
--- @return boolean @true if the port is available -- the proxy is ready
+---Get the proxy port to prepare for communication
+---@return boolean true if the port is available -- the proxy is ready
 function Proxy:_ensure_connected()
   log.debug({"function Proxy:_ensure_connected()"})
   if self.server_port ~= nil then
@@ -61,7 +61,7 @@ function Proxy:_ensure_connected()
     return false
   end
   local line = assert(lines())
-  self.server_port = tonumber(line)
+  self.server_port = assert(tonumber(line))
   local res, errmsg = uv.udp_recv_start(self.sock, function(err, data, --[[addr]]_, --[[flags]]_)
     if err ~= nil then
       log.error({"Failed to receive response", err})
@@ -78,15 +78,14 @@ function Proxy:_ensure_connected()
   return true
 end
 
--- Send a request to the proxy and wait for the response.
--- @param request string @command to the debugger proxy
--- @return string @response from the debugger proxy
+---Send a request to the proxy and wait for the response.
+---@param request string command to the debugger proxy
+---@return any response from the debugger proxy
 function Proxy:query(request)
-  log.debug({"function Proxy:query(", request, ")"})
-  log.info("Query " .. request)
+  log.info({"Proxy:query", request = request})
 
   if not self.client.is_active then
-    return ''
+    return nil
   end
 
   -- It takes time for the proxy to open a side channel.
@@ -94,7 +93,7 @@ function Proxy:query(request)
   -- the first query.
   if not self:_ensure_connected() then
     log.error("Server port isn't known yet")
-    return ''
+    return nil
   end
 
   if #self.responses > 16 then
@@ -115,7 +114,7 @@ function Proxy:query(request)
 
   if self.sock == nil then
     log.error({"No socket, likely a bug"})
-    return {}
+    return nil
   end
 
   local res, errmsg = uv.udp_send(self.sock, request_id .. " " .. request, '127.0.0.1', self.server_port, function(err)
@@ -141,7 +140,7 @@ function Proxy:query(request)
   end
 
   log.warn("Timeout querying")
-  return {}
+  return nil
 end
 
 return Proxy

@@ -1,0 +1,34 @@
+{
+    "$schema": "https://lnav.org/schemas/format-v1.schema.json",
+    "nvimgdb": {
+        "description": "Format file generated from regex101 entry -- https://regex101.com/r/A6H7q7/1",
+        "regex": {
+            "std": {
+                "pattern": "^(?<timestamp>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}[,.]\\d{3}) \\[(?<level>\\w+)\\] (?<file>.?:?[^:]+):(?<line>[^:]+): +(?<body>.*)$"
+            }
+        },
+        "level": {
+            "error": "ERROR",
+            "warning": "WARN",
+            "info": "INFO",
+            "debug": "DEBUG"
+        },
+        "value": {
+            "file": {
+                "kind": "string",
+                "identifier": true
+            },
+            "line": {
+                "kind": "integer"
+            }
+        },
+        "sample": [
+            {
+                "line": "2023-07-24 09:01:54,879 [DEBUG] /Users/runner/work/nvim-gdb/nvim-gdb/lua/nvimgdb/config.lua:186:       { \"function Config:get(\", \"key_finish\", \")\" }"
+            },
+            {
+                "line": "2023-07-24 21:01:33,409 [DEBUG] C:\\tools\\msys64\\home\\user\\nvim-gdb/lua/nvimgdb/keymaps.lua:44:         { \"function Keymaps:set()\" }"
+            }
+        ]
+    }
+}

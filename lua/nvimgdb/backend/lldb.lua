@@ -2,25 +2,25 @@
 -- vim: set et ts=2 sw=2:
 
 local log = require'nvimgdb.log'
-local Common = require'nvimgdb.backend.common'
+local Backend = require'nvimgdb.backend'
 local ParserImpl = require'nvimgdb.parser_impl'
 local utils = require'nvimgdb.utils'
 
--- @class BackendLldb:Backend @specifics of LLDB
+---@class BackendLldb: Backend specifics of LLDB
 local C = {}
 C.__index = C
-setmetatable(C, {__index = Common})
+setmetatable(C, {__index = Backend})
 
--- @return BackendLldb @new instance
+---@return BackendLldb new instance
 function C.new()
   local self = setmetatable({}, C)
   return self
 end
 
--- Create a parser to recognize state changes and code jumps
--- @param actions ParserActions @callbacks for the parser
--- @param proxy Proxy @side channel connection to the debugger
--- @return ParserImpl @new parser instance
+---Create a parser to recognize state changes and code jumps
+---@param actions ParserActions callbacks for the parser
+---@param proxy Proxy side channel connection to the debugger
+---@return ParserImpl new parser instance
 function C.create_parser(actions, proxy)
   local P = {}
   P.__index = P
@@ -30,21 +30,23 @@ function C.create_parser(actions, proxy)
   self:_init(actions)
 
   function P:query_paused()
-    local location = proxy:query('get-current-frame-location')
-    log.debug({"current frame location", location})
-    if #location == 2 then
-      local fname = location[1]
-      local line = location[2]
-      self.actions:jump_to_source(fname, line)
+    local process_state = proxy:query('get-process-state')
+    log.debug({"process state", process_state})
+    if process_state == 'stopped' then
+      -- A frame and thread are selected when the process gets stopped
+      local location = proxy:query('get-current-frame-location')
+      log.debug({"current frame location", location})
+      if #location == 2 then
+        local fname = location[1]
+        local line = location[2]
+        self.actions:jump_to_source(fname, line)
+      end
     end
     self.actions:query_breakpoints()
-    return self.paused
+    return process_state == 'running' and self.running or self.paused
   end
 
-  local re_prompt = '%s%(lldb%) %(lldb%) $'
-  if utils.is_windows then
-    re_prompt = '%(lldb%) *$'
-  end
+  local re_prompt = '$'
   self.add_trans(self.paused, 'Process %d+ resuming', self._paused_continue)
   self.add_trans(self.paused, 'Process %d+ launched', self._paused_continue)
   self.add_trans(self.paused, 'Process %d+ exited', self._paused_continue)
@@ -57,9 +59,9 @@ function C.create_parser(actions, proxy)
   return self
 end
 
--- @param fname string @full path to the source
--- @param proxy Proxy @connection to the side channel
--- @return FileBreakpoints @collection of actual breakpoints
+---@param fname string full path to the source
+---@param proxy Proxy connection to the side channel
+---@return FileBreakpoints collection of actual breakpoints
 function C.query_breakpoints(fname, proxy)
   log.info("Query breakpoints for " .. fname)
   local breaks = proxy:query('info-breakpoints ' .. fname)
@@ -76,7 +78,7 @@ function C.query_breakpoints(fname, proxy)
   return breaks
 end
 
--- @type CommandMap
+---@type CommandMap
 C.command_map = {
   delete_breakpoints = 'breakpoint delete',
   breakpoint = 'b',
@@ -84,7 +86,7 @@ C.command_map = {
   ['info breakpoints'] = 'nvim-gdb-info-breakpoints',
 }
 
--- @return string[]
+---@return string[]
 function C.get_error_formats()
   -- Return the list of errorformats for backtrace, breakpoints.
   -- Breakpoint list is queried specifically with a custom command
@@ -92,10 +94,10 @@ function C.get_error_formats()
   return {[[%m\ at\ %f:%l]], [[%f:%l\ %m]]}
 end
 
--- @param client_cmd string[] @original debugger command
--- @param tmp_dir string @path to the session state directory
--- @param proxy_addr string @full path to the file with the udp port in the session state directory
--- @return string[] @command to launch the debugger with termopen()
+---@param client_cmd string[] original debugger command
+---@param tmp_dir string path to the session state directory
+---@param proxy_addr string full path to the file with the udp port in the session state directory
+---@return string[] command to launch the debugger with termopen()
 function C.get_launch_cmd(client_cmd, tmp_dir, proxy_addr)
 
   -- Assuming the first argument is path to lldb, the rest are arguments.

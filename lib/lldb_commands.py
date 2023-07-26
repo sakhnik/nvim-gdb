@@ -1,13 +1,23 @@
 """The program injected into LLDB to provide a side channel
 to the plugin."""
 
-import threading
-import os
-import socket
-import sys
-import re
 import json
 import lldb  # type: ignore
+import logging
+import os
+import re
+import socket
+import sys
+import threading
+
+
+logger = logging.getLogger("lldb")
+logger.setLevel(logging.DEBUG)
+lhandl = logging.NullHandler() if not os.environ.get('CI') \
+    else logging.FileHandler("lldb.log", encoding='utf-8')
+fmt = "%(asctime)s [%(levelname)s]: %(message)s"
+lhandl.setFormatter(logging.Formatter(fmt))
+logger.addHandler(lhandl)
 
 
 def get_current_frame_location(debugger: lldb.SBDebugger):
@@ -27,6 +37,17 @@ def get_current_frame_location(debugger: lldb.SBDebugger):
             return [filepath, line]
 
     return []
+
+
+def get_process_state(debugger: lldb.SBDebugger):
+    target = debugger.GetSelectedTarget()
+    process = target.GetProcess()
+    state = process.GetState()
+    if state == lldb.eStateRunning:
+        return "running"
+    elif state == lldb.eStateStopped:
+        return "stopped"
+    return "other"
 
 
 # Get list of enabled breakpoints for a given source file
@@ -86,13 +107,21 @@ def _server(server_address: str, debugger: lldb.SBDebugger):
     _, port = sock.getsockname()
     with open(server_address, 'w') as f:
         f.write(f"{port}")
+    logger.info("Start listening for commands at port %d", port)
 
     # debugger = lldb.SBDebugger_FindDebuggerWithID(debugger_id)
+
+    def send_response(response, addr):
+        response = json.dumps(response).encode("utf-8")
+        logger.debug("Sending response: %s", response)
+        sock.sendto(response, 0, addr)
 
     try:
         while True:
             data, addr = sock.recvfrom(65536)
-            command = re.split(r"\s+", data.decode("utf-8"))
+            command = data.decode("utf-8")
+            logger.debug("Got command: %s", command)
+            command = re.split(r"\s+", command)
             req_id = int(command[0])
             request = command[1]
             args = command[2:]
@@ -103,13 +132,19 @@ def _server(server_address: str, debugger: lldb.SBDebugger):
                     "request": req_id,
                     "response": _get_breaks(os.path.normpath(fname), debugger)
                 }
-                sock.sendto(json.dumps(response).encode("utf-8"), 0, addr)
+                send_response(response, addr)
+            elif request == "get-process-state":
+                response = {
+                    "request": req_id,
+                    "response": get_process_state(debugger)
+                }
+                send_response(response, addr)
             elif request == "get-current-frame-location":
                 response = {
                     "request": req_id,
                     "response": get_current_frame_location(debugger)
                 }
-                sock.sendto(json.dumps(response).encode("utf-8"), 0, addr)
+                send_response(response, addr)
             elif request == "handle-command":
                 # pylint: disable=broad-except
                 try:
@@ -119,8 +154,8 @@ def _server(server_address: str, debugger: lldb.SBDebugger):
                             "request": req_id,
                             "response": _get_all_breaks(debugger)
                         }
-                        sock.sendto(json.dumps(response).encode("utf-8"),
-                                    0, addr)
+                        sock.sendto(json.dumps(response).encode("utf-8"), 0,
+                                    addr)
                         return
                     command_to_handle = " ".join(args)
                     if sys.version_info.major < 3:
@@ -139,10 +174,11 @@ def _server(server_address: str, debugger: lldb.SBDebugger):
                         "response": "" if result is None else result.strip()
                     }
                     result = b"" if result is None else result.encode("utf-8")
-                    sock.sendto(json.dumps(response).encode('utf-8'), 0, addr)
+                    send_response(response, addr)
                 except Exception as ex:
-                    print("Exception: " + str(ex))
+                    logger.error("Exception: %s", ex)
     finally:
+        logger.info("Stop listening for commands")
         try:
             os.unlink(server_address)
         except OSError:

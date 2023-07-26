@@ -1,6 +1,7 @@
 local thr = require'thread'
 local runner = require'busted.runner'
 local result = require'result'
+local config = require'config'
 
 arg = {'.'}
 if vim.g.busted_arg ~= nil and #vim.g.busted_arg > 0 then
@@ -16,7 +17,7 @@ local function report_result()
     f:write(test_log)
     f:close()
   end
-  if require'config'.exit_after_tests then
+  if config.exit_after_tests then
     os.exit(result.failures > 0 and 1 or 0)
   end
   vim.cmd("noswap tabnew test.log")
