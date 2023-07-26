@@ -181,10 +181,11 @@ function App:send(cmd, a1, a2, a3)
 end
 
 ---Execute a custom debugger command and return its output.
+---@async
 ---@param cmd string debugger command to execute
 ---@return string fetched debugger output
-function App:custom_command(cmd)
-  log.debug({"App:custom_command", cmd = cmd})
+function App:custom_command_async(cmd)
+  log.debug({"App:custom_command_async", cmd = cmd})
   local response = self.proxy:query('handle-command ' .. cmd)
   if type(response) == 'string' then
     return response
@@ -193,6 +194,25 @@ function App:custom_command(cmd)
     return ''
   end
   return tostring(response)
+end
+
+---Execute a custom debugger command and return its output.
+---@deprecated
+---@param cmd string debugger command to execute
+---@return string fetched debugger output
+function App:custom_command(cmd)
+  log.debug({"App:custom_command", cmd = cmd})
+  local done = false
+  local response = nil
+  coroutine.resume(coroutine.create(function()
+    response = self:custom_command_async(cmd)
+    done = true
+  end))
+  if vim.wait(500, function() return done end) then
+    return response
+  end
+  log.error("Custom command timed out")
+  return ''
 end
 
 ---Create a window to watch for a debugger expression.
@@ -229,10 +249,13 @@ function App:create_watch(cmd, mods)
     pattern = "NvimGdbQuery",
     group = augid,
     callback = function()
-      -- The buffer may have been unloaded already
-      if vim.api.nvim_buf_is_loaded(buf) then
-        vim.api.nvim_buf_set_lines(buf, 0, -1, 0, vim.fn.split(NvimGdb.i():custom_command(cmd), '\r*\n'))
-      end
+      coroutine.resume(coroutine.create(function()
+        local response = NvimGdb.i():custom_command_async(cmd)
+        -- The buffer may have been unloaded already
+        if vim.api.nvim_buf_is_loaded(buf) then
+          vim.api.nvim_buf_set_lines(buf, 0, -1, 0, vim.fn.split(response, '\r*\n'))
+        end
+      end))
     end
   })
 
@@ -312,7 +335,9 @@ function App:on_buf_enter()
   if vim.bo.filetype ~= 'nvimgdb' and self.win:is_jump_window_active() then
     self.keymaps:dispatch_set()
     -- Ensure breakpoints are shown if are queried dynamically
-    self.win:query_breakpoints()
+    coroutine.resume(coroutine.create(function()
+      self.win:query_breakpoints()
+    end))
   end
 end
 
@@ -356,11 +381,12 @@ function App:lopen(kind, mods)
 end
 
 ---Split command output into lines for llist
+---@async
 ---@param cmd string debugger command to execute
 ---@return string[] output lines
 function App:get_for_llist(cmd)
   log.debug({"App:get_for_llist", cmd = cmd})
-  local output = self:custom_command(cmd)
+  local output = self:custom_command_async(cmd)
   local lines = {}
   for line in output:gmatch("[^\r\n]+") do
     lines[#lines + 1] = line

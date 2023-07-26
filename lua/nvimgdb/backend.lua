@@ -14,6 +14,7 @@ function C.create_parser(actions, proxy)
   return assert(nil, "Not implemented")
 end
 
+---@async
 ---@param fname string full path to the source
 ---@param proxy Proxy connection to the side channel
 ---@return FileBreakpoints collection of actual breakpoints

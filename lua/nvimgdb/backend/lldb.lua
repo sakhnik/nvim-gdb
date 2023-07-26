@@ -30,20 +30,24 @@ function C.create_parser(actions, proxy)
   self:_init(actions)
 
   function P:query_paused()
-    local process_state = proxy:query('get-process-state')
-    log.debug({"process state", process_state})
-    if process_state == 'stopped' then
-      -- A frame and thread are selected when the process gets stopped
-      local location = proxy:query('get-current-frame-location')
-      log.debug({"current frame location", location})
-      if #location == 2 then
-        local fname = location[1]
-        local line = location[2]
-        self.actions:jump_to_source(fname, line)
+    coroutine.resume(coroutine.create(function()
+      local process_state = proxy:query('get-process-state')
+      log.debug({"process state", process_state})
+      if process_state == 'stopped' then
+        -- A frame and thread are selected when the process gets stopped
+        local location = proxy:query('get-current-frame-location')
+        log.debug({"current frame location", location})
+        if #location == 2 then
+          local fname = location[1]
+          local line = location[2]
+          self.actions:jump_to_source(fname, line)
+        end
       end
-    end
-    self.actions:query_breakpoints()
-    return process_state == 'running' and self.running or self.paused
+      self.actions:query_breakpoints()
+      self.state = process_state == 'running' and self.running or self.paused
+    end))
+    -- Don't change the state yet
+    return self.state
   end
 
   local re_prompt = '$'
@@ -59,6 +63,7 @@ function C.create_parser(actions, proxy)
   return self
 end
 
+---@async
 ---@param fname string full path to the source
 ---@param proxy Proxy connection to the side channel
 ---@return FileBreakpoints collection of actual breakpoints

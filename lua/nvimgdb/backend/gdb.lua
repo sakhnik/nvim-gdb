@@ -30,14 +30,20 @@ function C.create_parser(actions, proxy)
   self:_init(actions)
 
   function P:query_paused()
-    local location = proxy:query('get-current-frame-location')
-    log.debug({"current frame location", location})
-    if #location == 2 then
-      local fname = location[1]
-      local line = location[2]
-      self.actions:jump_to_source(fname, line)
-    end
-    self.actions:query_breakpoints()
+    coroutine.resume(coroutine.create(function()
+      local location = proxy:query('get-current-frame-location')
+      log.debug({"current frame location", location})
+      if #location == 2 then
+        local fname = location[1]
+        local line = location[2]
+        self.actions:jump_to_source(fname, line)
+      end
+    end))
+
+    coroutine.resume(coroutine.create(function()
+      self.actions:query_breakpoints()
+    end))
+
     return self.paused
   end
 
@@ -54,6 +60,7 @@ function C.create_parser(actions, proxy)
   return self
 end
 
+---@async
 ---@param fname string full path to the source
 ---@param proxy Proxy connection to the side channel
 ---@return FileBreakpoints collection of actual breakpoints
