@@ -349,10 +349,26 @@ NvimGdbCleanup          Fired before the debugging session ends.
 ==============================================================================
 Section 6: Functions                                        *NvimgdbFunctions*
 
-The plugin is implemented Lua.
+The plugin is implemented Lua. Debugger application is associated with a
+tabpage. The App object can be accessed the following way: >
 
-                                                          *GdbCustomCommand()*
-GdbCustomCommand("cmd")
+    require'nvimgdb'.i(0)
+<
+For example, to execute a custom command: >
+
+    coroutine.resume(coroutine.create(function()
+      local app = require'nvimgdb'.i(0)
+      local output = app:custom_command_async("info registers")
+      -- Do whatever is required to process the output
+    end))
+<
+Note that the processing is asynchronous, because the network communication
+with the debugger proxy will be performed to obtain the result. It's possible
+to use `vim.wait()` to get the result synchronously, but this may have impact
+on the Neovim UI.
+
+                                               *deprecated-GdbCustomCommand()*
+GdbCustomCommand("cmd")  *DEPRECATED*
                         Execute debugger command and return the output of the
                         command.  This can be combined with `NvimgdbEvents` to
                         implement watch expressions. For instance, the
@@ -369,6 +385,8 @@ you created a new window displaying the buffer bufnum. Then try the following:
     :autocmd User NvimGdbQuery call nvim_buf_set_lines(bufnum, 0, -1, 0,
         \ split(GdbCustomCommand("info locals"), "\n"))
 <
+The function is executed synchronously and therefore is deprecated in favour
+of Lua `app:custom_command_async(cmd)`.
 
 ==============================================================================
 Section 7: Backends                                          *NvimgdbBackends*

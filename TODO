@@ -1,4 +1,3 @@
-# MinGW support
 - Git rid of the custom frame format in lldb (test_70_quickfix)
 - Port vimscript to lua: nvimgdb.vim
 - Detect whether the debugged process is running using side channel: prompt -> paused, query on output feed timeout (test_interrupt, test_command)
@@ -8,6 +7,5 @@
 - pty resizing with neovim
 - Port cmake completion to lua, extend it to suggest shell commands
 - run-tests.lua output cut in win32: probably, on_exit is handled before last on_stdout chunks
-- deprecate and retire GdbCustomCommand in favour of custom_command_async()
 
 Store and load breakpoints between sessions

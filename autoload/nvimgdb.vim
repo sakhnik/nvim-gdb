@@ -40,6 +40,7 @@ function! nvimgdb#GlobalInit()
   command! GdbLopenBreakpoints call luaeval("NvimGdb.i():lopen(require'nvimgdb.app'.lopen_kind.breakpoints, '<mods>')")
 
   function! GdbCustomCommand(cmd)
+    echo "GdbCustomCommand() is deprecated, use Lua `require'nvimgdb'.i(0):custom_command_async()`"
     return luaeval("NvimGdb.i():custom_command(_A[1])", [a:cmd])
   endfunction
 
