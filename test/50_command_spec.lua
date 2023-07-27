@@ -49,35 +49,33 @@ describe("command", function()
 
   it('custom command in PDB', function()
     conf.post_terminal_end(function()
-      conf.count_stops(function(count_stops)
-        eng.feed(' dp<cr>')
-        assert.is_true(count_stops.wait(1))
-        eng.feed('b _foo<cr>')
-        assert.is_true(count_stops.wait(2))
-        eng.feed('cont<cr>')
-        assert.is_true(eng.wait_signs({cur = 'main.py:9', brk = {[1] = {8}}}))
+      eng.feed(' dp<cr>')
+      assert.is_true(eng.wait_signs({cur = 'main.py:1'}))
+      eng.feed('b _foo<cr>')
+      assert.is_true(eng.wait_signs({cur = 'main.py:1', brk = {[1] = {8}}}))
+      eng.feed('cont<cr>')
+      assert.is_true(eng.wait_signs({cur = 'main.py:9', brk = {[1] = {8}}}))
 
-        local result = {}
-        custom_command('print(num)', result)
-        assert.is_true(
-          eng.wait_for(
-            function() return result.output end,
-            function(out) return "0" == out end
-          )
+      local result = {}
+      custom_command('print(num)', result)
+      assert.is_true(
+        eng.wait_for(
+          function() return result.output end,
+          function(out) return "0" == out end
         )
+      )
 
-        eng.feed('cont<cr>')
-        assert.is_true(eng.wait_signs({cur = 'main.py:9', brk = {[1] = {8}}}))
+      eng.feed('cont<cr>')
+      assert.is_true(eng.wait_signs({cur = 'main.py:9', brk = {[1] = {8}}}))
 
-        result = {}
-        custom_command('print(num)', result)
-        assert.is_true(
-          eng.wait_for(
-            function() return result.output end,
-            function(out) return "1" == out end
-          )
+      result = {}
+      custom_command('print(num)', result)
+      assert.is_true(
+        eng.wait_for(
+          function() return result.output end,
+          function(out) return "1" == out end
         )
-      end)
+      )
     end)
   end)
 
