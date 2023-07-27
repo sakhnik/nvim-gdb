@@ -2,30 +2,34 @@
 
 local log = require 'nvimgdb.log'
 
+-- I don't know why lua-language-server complains, but this static class isn't standard indeed
+---@diagnostic disable: duplicate-doc-field
+---@diagnostic disable: duplicate-set-field
+
 ---@class NvimGdb globally accessible plugin entry point
 ---@field public efmmgr EfmMgr errorformat manager
 ---@field private apps table<number, App> collection of debugger sessions {tabpage -> App}
 ---@field private apps_size number count of running debugger sessions
-local C = {
+--
+-- Global instance
+NvimGdb = {
   efmmgr = require 'nvimgdb.efmmgr',
   apps = {},
   apps_size = 0,
 }
 
--- Global instance
-NvimGdb = C
 
 ---Create a new instance of the debugger in the current tabpage.
 ---@param backend_name string debugger kind
 ---@param client_cmd string[] debugger launch command
-function C.new(backend_name, client_cmd)
+function NvimGdb.new(backend_name, client_cmd)
   log.info({"NvimGdb.new", backend_name = backend_name, client_cmd = client_cmd})
   local app = require'nvimgdb.app'.new(backend_name, client_cmd)
   local tab = vim.api.nvim_get_current_tabpage()
   log.info({"Tabpage", tab})
-  C.apps[tab] = app
-  C.apps_size = C.apps_size + 1
-  if C.apps_size == 1 then
+  NvimGdb.apps[tab] = app
+  NvimGdb.apps_size = NvimGdb.apps_size + 1
+  if NvimGdb.apps_size == 1 then
     -- Initialize the UI commands, autocommands etc
     log.info("Calling nvimgdb#GlobalInit()")
     vim.fn["nvimgdb#GlobalInit"]()
@@ -58,9 +62,9 @@ setmetatable(SilentTrap, TrapClass)
 ---Access debugger instance in current tabpage.
 ---@param silent any? false|0 to not complain to the log if no debugging in this tabpage
 ---@return App?
-function C.i(silent)
+function NvimGdb.i(silent)
   local tab = vim.api.nvim_get_current_tabpage()
-  local inst = C.apps[tab]
+  local inst = NvimGdb.apps[tab]
   if inst ~= nil then
     return inst
   end
@@ -70,8 +74,8 @@ end
 ---Process debugger output
 ---@param tab number tabpage number
 ---@param lines string[]
-function C.parser_feed(tab, lines)
-  local app = C.apps[tab]
+function NvimGdb.parser_feed(tab, lines)
+  local app = NvimGdb.apps[tab]
   app:get_parser():feed(lines)
 end
 
@@ -93,19 +97,19 @@ end
 
 ---Cleanup the current instance.
 ---@param tab number tabpage handle
-function C.cleanup(tab)
+function NvimGdb.cleanup(tab)
   log.info({"NvimGdb.cleanup", tab = tab})
-  local app = C.apps[tab]
+  local app = NvimGdb.apps[tab]
 
   if app ~= nil then
-    C.apps[tab] = nil
-    C.apps_size = C.apps_size - 1
+    NvimGdb.apps[tab] = nil
+    NvimGdb.apps_size = NvimGdb.apps_size - 1
     with_saved_hidden(function()
-      if C.apps_size == 0 then
+      if NvimGdb.apps_size == 0 then
         -- Cleanup commands, autocommands etc
         log.info("Calling nvimgdb#GlobalCleanup()")
         vim.fn["nvimgdb#GlobalCleanup"]()
-        C.efmmgr.cleanup()
+        NvimGdb.efmmgr.cleanup()
         app:get_win():unset_keymaps()
       end
       app:cleanup(tab)
@@ -115,31 +119,31 @@ end
 
 ---Peek into the application count for testing
 ---@return number count of debugger sessions
-function C.get_app_count()
-  return C.apps_size
+function NvimGdb.get_app_count()
+  return NvimGdb.apps_size
 end
 
 ---Handle the function GdbHandleTabClosed
-function C.on_tab_closed()
+function NvimGdb.on_tab_closed()
   log.info({"NvimGdb.on_tab_closed"})
   local active_tabs = vim.api.nvim_list_tabpages()
   local active_tabs_set = {}
   for _, tab in ipairs(active_tabs) do
     active_tabs_set[tab] = true
   end
-  for tab, _ in pairs(C.apps) do
+  for tab, _ in pairs(NvimGdb.apps) do
     if active_tabs_set[tab] == nil then
-      C.cleanup(tab)
+      NvimGdb.cleanup(tab)
     end
   end
 end
 
 ---Handle function GdbHandleVimLeavePre
-function C.on_vim_leave_pre()
+function NvimGdb.on_vim_leave_pre()
   log.info({"NvimGdb.on_vim_leave_pre"})
-  for tab, _ in pairs(C.apps) do
-    C.cleanup(tab)
+  for tab, _ in pairs(NvimGdb.apps) do
+    NvimGdb.cleanup(tab)
   end
 end
 
-return C
+return NvimGdb
