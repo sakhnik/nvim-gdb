@@ -114,11 +114,11 @@ describe("pdb", function()
       assert.is_true(eng.wait_signs({cur = 'main.py:16'}))
 
       eng.feed('^<f9>')
-      assert.equals('print(_foo)', NvimGdb.i()._last_command)
+      assert.equals('print(_foo)', NvimGdb.here._last_command)
 
       eng.feed('viW')
       eng.feed(':GdbEvalRange<cr>')
-      assert.equals('print(_foo(i))', NvimGdb.i()._last_command)
+      assert.equals('print(_foo(i))', NvimGdb.here._last_command)
     end)
   end)
 

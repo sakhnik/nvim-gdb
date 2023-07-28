@@ -12,7 +12,16 @@ NvimGdb = {
   efmmgr = require 'nvimgdb.efmmgr',
   apps = {},
   apps_size = 0,
+  mt = {},
 }
+
+setmetatable(NvimGdb, NvimGdb.mt)
+
+NvimGdb.mt.__index = function(self, key)
+  if key == 'here' then
+    return self.i()
+  end
+end
 
 ---Create a new instance of the debugger in the current tabpage.
 ---@param backend_name string debugger kind

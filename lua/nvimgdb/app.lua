@@ -250,7 +250,7 @@ function App:create_watch(cmd, mods)
     group = augid,
     callback = function()
       coroutine.resume(coroutine.create(function()
-        local response = NvimGdb.i():custom_command_async(cmd)
+        local response = NvimGdb.here:custom_command_async(cmd)
         -- The buffer may have been unloaded already
         if vim.api.nvim_buf_is_loaded(buf) then
           vim.api.nvim_buf_set_lines(buf, 0, -1, 0, vim.fn.split(response, '\r*\n'))

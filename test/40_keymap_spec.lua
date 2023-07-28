@@ -23,7 +23,7 @@ describe("keymaps", function()
 
     -- A hook function to set keymaps in the terminal window
     local function my_set_tkeymaps()
-      NvimGdb.i().keymaps:set_t()
+      NvimGdb.here.keymaps:set_t()
       vim.cmd([[tnoremap <buffer> <silent> ~tkm <c-\><c-n>:let g:test_tkeymap = 1<cr>i]])
     end
 
@@ -31,7 +31,7 @@ describe("keymaps", function()
     -- Will be called every time the code window is entered
     local function my_set_keymaps()
       -- First set up the stock keymaps
-      NvimGdb.i().keymaps:set()
+      NvimGdb.here.keymaps:set()
 
       -- Then there can follow any additional custom keymaps. For example,
       -- One custom programmable keymap needed in some tests
@@ -45,7 +45,7 @@ describe("keymaps", function()
       vim.cmd([[nunmap <buffer> ~tn]])
 
       -- Then unset the stock keymaps
-      NvimGdb.i().keymaps:unset()
+      NvimGdb.here.keymaps:unset()
     end
 
     -- Declare in the configuration that there are custom keymap handlers
@@ -84,7 +84,7 @@ describe("keymaps", function()
       eng.feed(backend.launchF:format(""))
 
       local count = 0
-      for key, _ in pairs(NvimGdb.i().config.config) do
+      for key, _ in pairs(NvimGdb.here.config.config) do
         if key:match("^key_.*") ~= nil then
           count = count + 1
         end
@@ -102,7 +102,7 @@ describe("keymaps", function()
     config_test(function()
       vim.g.nvimgdb_config_override = {key_next = '<f2>'}
       eng.feed(backend.launchF:format(""))
-      local key = NvimGdb.i().config:get("key_next")
+      local key = NvimGdb.here.config:get("key_next")
       assert.equals('<f2>', key)
     end)
   end)
@@ -111,7 +111,7 @@ describe("keymaps", function()
     config_test(function()
       vim.g.nvimgdb_config_override = {key_next = '<f8>'}
       eng.feed(backend.launchF:format(""))
-      local res = NvimGdb.i().config:get_or("key_breakpoint", 0)
+      local res = NvimGdb.here.config:get_or("key_breakpoint", 0)
       assert.equals(0, res)
     end)
   end)
@@ -120,7 +120,7 @@ describe("keymaps", function()
     config_test(function()
       vim.g.nvimgdb_key_next = '<f3>'
       eng.feed(backend.launchF:format(""))
-      local key = NvimGdb.i().config:get_or("key_next", 0)
+      local key = NvimGdb.here.config:get_or("key_next", 0)
       assert.equals('<f3>', key)
     end)
   end)
@@ -129,7 +129,7 @@ describe("keymaps", function()
     config_test(function()
       vim.g.nvimgdb_key_next = '<f8>'
       eng.feed(backend.launchF:format(""))
-      local res = NvimGdb.i().config:get_or("key_breakpoint", 0)
+      local res = NvimGdb.here.config:get_or("key_breakpoint", 0)
       assert.equals(0, res)
     end)
   end)
@@ -139,9 +139,9 @@ describe("keymaps", function()
       vim.g.nvimgdb_config_override = {key_next = '<f5>'}
       vim.g.nvimgdb_key_step = '<f5>'
       eng.feed(backend.launchF:format(""))
-      assert.equals(0, NvimGdb.i().config:get_or("key_continue", 0))
-      assert.equals(0, NvimGdb.i().config:get_or("key_next", 0))
-      assert.equals('<f5>', NvimGdb.i().config:get_or("key_step", 0))
+      assert.equals(0, NvimGdb.here.config:get_or("key_continue", 0))
+      assert.equals(0, NvimGdb.here.config:get_or("key_next", 0))
+      assert.equals('<f5>', NvimGdb.here.config:get_or("key_step", 0))
     end)
   end)
 

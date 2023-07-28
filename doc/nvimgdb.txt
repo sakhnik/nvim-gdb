@@ -220,9 +220,9 @@ allows overriding the given keys. For example, the default config is: >
       \ 'key_framedown':  '<c-n>',
       \ 'key_eval':       '<f9>',
       \ 'key_quit':       None,
-      \ 'set_tkeymaps':   'function("lua", "NvimGdb.i().keymaps:set_t()")',
-      \ 'set_keymaps':    'function("lua", "NvimGdb.i().keymaps.set()")',
-      \ 'unset_keymaps':  'function("lua", "NvimGdb.i().keymaps.unset()")',
+      \ 'set_tkeymaps':   'function("lua", "NvimGdb.here.keymaps:set_t()")',
+      \ 'set_keymaps':    'function("lua", "NvimGdb.here.keymaps.set()")',
+      \ 'unset_keymaps':  'function("lua", "NvimGdb.here.keymaps.unset()")',
       \ 'sign_current_line': '▶',
       \ 'sign_breakpoint': [ '●', '●²', '●³', '●⁴', '●⁵', '●⁶', '●⁷', '●⁸', '●⁹', '●ⁿ' ],
       \ 'sign_breakpoint_priority': 10,
@@ -350,14 +350,15 @@ NvimGdbCleanup          Fired before the debugging session ends.
 Section 6: Functions                                        *NvimgdbFunctions*
 
 The plugin is implemented Lua. Debugger application is associated with a
-tabpage. The App object can be accessed the following way: >
+tabpage. The App object in the current tabpage can be accessed the following
+way: >
 
-    require'nvimgdb'.i(0)
+    require'nvimgdb'.here
 <
 For example, to execute a custom command: >
 
     coroutine.resume(coroutine.create(function()
-      local app = require'nvimgdb'.i(0)
+      local app = require'nvimgdb'.here
       local output = app:custom_command_async("info registers")
       -- Do whatever is required to process the output
     end))

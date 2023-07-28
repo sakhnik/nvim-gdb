@@ -301,7 +301,7 @@ end
 function Win:lopen(cmd, mods)
   log.debug({"Win:lopen", cmd = cmd, mods = mods})
   coroutine.resume(coroutine.create(function()
-    local llist = NvimGdb.i():get_for_llist(cmd)
+    local llist = NvimGdb.here:get_for_llist(cmd)
     self:_with_saved_mode(function()
       self:_with_saved_win(false, function()
         self:_ensure_jump_window()

@@ -56,7 +56,7 @@ function E.wait_state(state, timeout_ms)
     if NvimGdb == nil then
       return false
     end
-    local parser = NvimGdb.i().parser
+    local parser = NvimGdb.here.parser
     return type(parser) == 'table' and parser:is_paused()
   end
   return E.wait_for(query, function(is_paused) return is_paused == state end, timeout_ms)
