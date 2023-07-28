@@ -11,6 +11,7 @@ local uv = vim.loop
 ---@field private server_port number UDP port of the proxy
 ---@field private request_id number sequential request number
 ---@field private responses table<number, any> received responses
+---@field private responses_size number count of responses being waited
 local Proxy = {}
 Proxy.__index = Proxy
 
@@ -31,6 +32,7 @@ function Proxy.new(client)
 
   self.request_id = 0
   self.responses = {}
+  self.responses_size = 0
 
   return self
 end
@@ -45,6 +47,25 @@ function Proxy:cleanup()
   if self.sock ~= nil then
     self.sock:close()
     self.sock = nil
+  end
+end
+
+function Proxy:respond(response, is_async)
+  local context = self.responses[response.request]
+  if context ~= nil then
+    self.responses_size = self.responses_size - 1
+    self.responses[response.request] = nil
+    context.timer:stop()
+    context.timer:close()
+    if is_async then
+      vim.schedule(function()
+        coroutine.resume(context.co, response.response)
+      end)
+    else
+      return response.response
+    end
+  else
+    log.warn({"Unexpected/outdated response", response = response, async = async})
   end
 end
 
@@ -67,7 +88,7 @@ function Proxy:_ensure_connected()
       log.error({"Failed to receive response", err})
     elseif data ~= nil then
       local response = vim.json.decode(data)
-      self.responses[response.request] = response
+      self:respond(response, true)
     end
   end)
   if res == nil then
@@ -79,6 +100,7 @@ function Proxy:_ensure_connected()
 end
 
 ---Send a request to the proxy and wait for the response.
+---@async
 ---@param request string command to the debugger proxy
 ---@return any response from the debugger proxy
 function Proxy:query(request)
@@ -96,51 +118,58 @@ function Proxy:query(request)
     return nil
   end
 
-  if #self.responses > 16 then
-    log.debug({"Cleaning obsolete responses count=", #self.responses})
-    local cleaned_responses = {}
-    local deadline_id = self.request_id - 16
-    for id, resp in pairs(self.responses) do
-      if id >= deadline_id then
-        cleaned_responses[id] = resp
-      end
-    end
-    self.responses = cleaned_responses
-    log.debug({"Responses after cleanup count=", #self.responses})
-  end
-
-  local request_id = self.request_id
-  self.request_id = self.request_id + 1
-
   if self.sock == nil then
     log.error({"No socket, likely a bug"})
     return nil
   end
 
+  if self.responses_size > 16 then
+    log.debug({"Cleaning obsolete responses count=", #self.responses})
+    local cleaned_responses = {}
+    local cleaned_responses_size = 0
+    local deadline_id = self.request_id - 16
+    for id, resp in pairs(self.responses) do
+      if id >= deadline_id then
+        cleaned_responses[id] = resp
+        cleaned_responses_size = cleaned_responses_size + 1
+      end
+    end
+    self.responses = cleaned_responses
+    self.responses_size = cleaned_responses_size
+    log.debug({"Responses after cleanup count=", self.responses_size})
+  end
+
+  local request_id = self.request_id
+  self.request_id = self.request_id + 1
+
+  local co = coroutine.running()
+  if co == nil then
+    log.error({"Proxy should be used from a coroutine!", trace = debug.traceback()})
+  end
+
+  local timer = uv.new_timer()
+  timer:start(500, 0, function()
+    log.warn({"Request timed out", request_id = request_id})
+    self:respond({request = request_id, response = {}}, true)
+  end)
+
+  self.responses[request_id] = {co = co, timer = timer}
+  self.responses_size = self.responses_size + 1
+
   local res, errmsg = uv.udp_send(self.sock, request_id .. " " .. request, '127.0.0.1', self.server_port, function(err)
     if err ~= nil then
-      self.responses[request_id] = {response = {}}
+      log.warn({"Request failed", request_id = request_id, err = err})
+      self:respond({request = request_id, response = {}}, true)
       return
     end
   end)
   if res == nil then
     log.error({"Failed to send to proxy", errmsg})
-    self.responses[request_id] = {response = {}}
+    return self:respond({request = request_id, response = {}}, false)
   end
 
-  local function response_ready()
-    return self.responses[request_id] ~= nil
-  end
-
-  local success = vim.wait(500, response_ready, 50)
-  if success then
-    local response = self.responses[request_id].response
-    self.responses[request_id] = nil
-    return response
-  end
-
-  log.warn("Timeout querying")
-  return nil
+  local response = coroutine.yield()
+  return response
 end
 
 return Proxy

@@ -6,11 +6,18 @@ local utils = require'nvimgdb.utils'
 describe("command", function()
 
   local tests = {
-      gdb = {{"GdbCustomCommand('print i')", '$1 = 0'},
-              {"GdbCustomCommand('info locals')", 'i = 0'}},
-      lldb = {{"GdbCustomCommand('frame var argc')", "(int) argc = 1"},
-               {"GdbCustomCommand('frame var i')", "(int) i = 0"}},
+      gdb = {{"print i", '$1 = 0'},
+              {"info locals", 'i = 0'}},
+      lldb = {{"frame var argc", "(int) argc = 1"},
+               {"frame var i", "(int) i = 0"}},
   }
+
+  local function custom_command(cmd, result)
+    coroutine.resume(coroutine.create(function()
+      local output = require'nvimgdb'.i(0):custom_command_async(cmd)
+      result.output = output
+    end))
+  end
 
   conf.backend(function(backend)
     it(backend.name .. ' custom command in C++', function()
@@ -27,7 +34,14 @@ describe("command", function()
         end
         for _, test in ipairs(tests[backend.name]) do
           local cmd, exp = unpack(test)
-          assert.equals(exp, vim.fn.eval(cmd))
+          local result = {}
+          custom_command(cmd, result)
+          assert.is_true(
+            eng.wait_for(
+              function() return result.output end,
+              function(out) return exp == out end
+            )
+          )
         end
       end)
     end)
@@ -35,21 +49,33 @@ describe("command", function()
 
   it('custom command in PDB', function()
     conf.post_terminal_end(function()
-      conf.count_stops(function(count_stops)
-        eng.feed(' dp<cr>')
-        assert.is_true(count_stops.wait(1))
-        eng.feed('b _foo<cr>')
-        assert.is_true(count_stops.wait(2))
-        eng.feed('cont<cr>')
+      eng.feed(' dp<cr>')
+      assert.is_true(eng.wait_signs({cur = 'main.py:1'}))
+      eng.feed('b _foo<cr>')
+      assert.is_true(eng.wait_signs({cur = 'main.py:1', brk = {[1] = {8}}}))
+      eng.feed('cont<cr>')
+      assert.is_true(eng.wait_signs({cur = 'main.py:9', brk = {[1] = {8}}}))
 
-        local function print_num()
-          return vim.fn.GdbCustomCommand('print(num)')
-        end
+      local result = {}
+      custom_command('print(num)', result)
+      assert.is_true(
+        eng.wait_for(
+          function() return result.output end,
+          function(out) return "0" == out end
+        )
+      )
 
-        assert.is_true(eng.wait_for(print_num, function(res) return res == "0" end))
-        eng.feed('cont<cr>')
-        assert.is_true(eng.wait_for(print_num, function(res) return res == "1" end))
-      end)
+      eng.feed('cont<cr>')
+      assert.is_true(eng.wait_signs({cur = 'main.py:9', brk = {[1] = {8}}}))
+
+      result = {}
+      custom_command('print(num)', result)
+      assert.is_true(
+        eng.wait_for(
+          function() return result.output end,
+          function(out) return "1" == out end
+        )
+      )
     end)
   end)
 

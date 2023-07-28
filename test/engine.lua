@@ -13,6 +13,8 @@ function E.feed(keys, timeout)
   thr.y(timeout == nil and 200 or timeout)
 end
 
+---Execute a command
+---@param cmd string neovim command
 function E.exe(cmd)
   thr.y(0, vim.cmd(cmd))
 end
@@ -25,7 +27,7 @@ end
 ---@param query function
 ---@param check function
 ---@param timeout_ms? number timeout in milliseconds (E.common_timeout if omitted)
----@return boolean|any
+---@return boolean|any true if the check function returned true, or the result of the query function otherwise
 function E.wait_for(query, check, timeout_ms)
   if timeout_ms == nil then
     timeout_ms = E.common_timeout
@@ -54,7 +56,7 @@ function E.wait_state(state, timeout_ms)
     if NvimGdb == nil then
       return false
     end
-    local parser = NvimGdb.i().parser
+    local parser = NvimGdb.here.parser
     return type(parser) == 'table' and parser:is_paused()
   end
   return E.wait_for(query, function(is_paused) return is_paused == state end, timeout_ms)
@@ -75,8 +77,8 @@ function E.wait_running(timeout_ms)
 end
 
 ---Get buffers satisfying the predicate
----@param pred function(buf: number): boolean condition for a buffer to be reported
----@return table<number, string> map of buffer number to name
+---@param pred function(buf: integer): boolean condition for a buffer to be reported
+---@return table<integer, string> map of buffer number to name
 function E.get_buffers_impl(pred)
   local buffers = {}
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
@@ -88,7 +90,7 @@ function E.get_buffers_impl(pred)
 end
 
 ---Get all the loaded buffers
----@return table<number, string> map of buffer number to name
+---@return table<integer, string> map of buffer number to name
 function E.get_buffers()
   -- Determine how many terminal buffers are there.
   return E.get_buffers_impl(function(buf)
@@ -97,7 +99,7 @@ function E.get_buffers()
 end
 
 ---Get all the terminal buffers
----@return table<number, string> map of buffer number to name
+---@return table<integer, string> map of buffer number to name
 function E.get_termbuffers()
   -- Determine how many terminal buffers are there.
   return E.get_buffers_impl(function(buf)
@@ -105,8 +107,11 @@ function E.get_termbuffers()
   end)
 end
 
+---@alias BreakpointInfo table<integer, integer[]>  # breakpoint ID -> list of lines
+---@alias SignInfo {cur: string, brk: BreakpointInfo}  # information about signs
+
 ---Get current signs: current line and breakpoints
----@return table
+---@return SignInfo
 function E.get_signs()
   -- Get pointer position and list of breakpoints.
   local ret = {}
@@ -148,6 +153,10 @@ function E.get_signs()
   return ret
 end
 
+---Wait until the sign configuration is as expected
+---@param expected_signs SignInfo
+---@param timeout_ms number?
+---@return boolean|SignInfo true if expected_signs realized, actual signs otherwise
 function E.wait_signs(expected_signs, timeout_ms)
   local function query()
     return E.get_signs()
@@ -159,9 +168,9 @@ function E.wait_signs(expected_signs, timeout_ms)
 end
 
 ---Wait until cursor in the current window gets to the given line
----@param line number 1-based line number
+---@param line integer 1-based line number
 ---@param timeout_ms? number timeout in milliseconds
----@return true|number true if successful, the actual line number otherwise
+---@return true|integer true if successful, the actual line number otherwise
 function E.wait_cursor(line, timeout_ms)
   return E.wait_for(
     function() return vim.api.nvim_win_get_cursor(0)[1] end,

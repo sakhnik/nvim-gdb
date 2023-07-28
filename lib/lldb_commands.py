@@ -101,6 +101,57 @@ def _get_all_breaks(debugger: lldb.SBDebugger):
     return "\n".join(breaks)
 
 
+def send_response(response, req_id, sock, addr):
+    response_msg = {
+        "request": req_id,
+        "response": response
+    }
+    response_json = json.dumps(response_msg).encode("utf-8")
+    logger.debug("Sending response: %s", response_json)
+    sock.sendto(response_json, 0, addr)
+
+
+def _execute_command(command, req_id, sock, addr, debugger: lldb.SBDebugger):
+    return_object = lldb.SBCommandReturnObject()
+    debugger.GetCommandInterpreter().HandleCommand(
+        command, return_object
+    )
+    result = ""
+    if return_object.GetError():
+        result += return_object.GetError()
+    if return_object.GetOutput():
+        result += return_object.GetOutput()
+    send_response("" if result is None else result.strip(),
+                  req_id, sock, addr)
+
+
+def _backtrace(req_id, sock, addr, debugger: lldb.SBDebugger):
+    """This is for GdbLopenBacktrace, a custom frame format is required."""
+    try:
+        return_object = lldb.SBCommandReturnObject()
+        debugger.GetCommandInterpreter().HandleCommand(
+            "settings show frame-format", return_object
+        )
+        result = ""
+        if return_object.GetOutput():
+            result = return_object.GetOutput()
+        orig_frame_format = result[result.index('"')+1:-1]
+        debugger.GetCommandInterpreter().HandleCommand(
+            r"settings set frame-format frame #${frame.index}: ${frame.pc}"
+            r"{ ${module.file.basename}{\`${function.name-with-args}"
+            r"{${frame.no-debug}${function.pc-offset}}}}"
+            r"{ at \032\032${line.file.fullpath}:${line.number}}"
+            r"{${function.is-optimized} [opt]}\n",
+            return_object
+        )
+        _execute_command("bt", req_id, sock, addr, debugger)
+    finally:
+        debugger.GetCommandInterpreter().HandleCommand(
+            f"settings set frame-format {orig_frame_format}",
+            return_object
+        )
+
+
 def _server(server_address: str, debugger: lldb.SBDebugger):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind(('127.0.0.1', 0))
@@ -110,11 +161,6 @@ def _server(server_address: str, debugger: lldb.SBDebugger):
     logger.info("Start listening for commands at port %d", port)
 
     # debugger = lldb.SBDebugger_FindDebuggerWithID(debugger_id)
-
-    def send_response(response, addr):
-        response = json.dumps(response).encode("utf-8")
-        logger.debug("Sending response: %s", response)
-        sock.sendto(response, 0, addr)
 
     try:
         while True:
@@ -127,54 +173,29 @@ def _server(server_address: str, debugger: lldb.SBDebugger):
             args = command[2:]
             if request == "info-breakpoints":
                 fname = args[0]
-                # response_addr = command[3]
-                response = {
-                    "request": req_id,
-                    "response": _get_breaks(os.path.normpath(fname), debugger)
-                }
-                send_response(response, addr)
+                send_response(_get_breaks(os.path.normpath(fname), debugger),
+                              req_id, sock, addr)
             elif request == "get-process-state":
-                response = {
-                    "request": req_id,
-                    "response": get_process_state(debugger)
-                }
-                send_response(response, addr)
+                send_response(get_process_state(debugger), req_id, sock, addr)
             elif request == "get-current-frame-location":
-                response = {
-                    "request": req_id,
-                    "response": get_current_frame_location(debugger)
-                }
-                send_response(response, addr)
+                send_response(get_current_frame_location(debugger),
+                              req_id, sock, addr)
             elif request == "handle-command":
                 # pylint: disable=broad-except
                 try:
                     if args[0] == 'nvim-gdb-info-breakpoints':
                         # Fake a command info-breakpoins for GdbLopenBreakpoins
-                        response = {
-                            "request": req_id,
-                            "response": _get_all_breaks(debugger)
-                        }
-                        sock.sendto(json.dumps(response).encode("utf-8"), 0,
-                                    addr)
+                        send_response(_get_all_breaks(debugger),
+                                      req_id, sock, addr)
+                        return
+                    if args[0] == 'bt':
+                        _backtrace(req_id, sock, addr, debugger)
                         return
                     command_to_handle = " ".join(args)
                     if sys.version_info.major < 3:
                         command_to_handle = command_to_handle.encode("ascii")
-                    return_object = lldb.SBCommandReturnObject()
-                    debugger.GetCommandInterpreter().HandleCommand(
-                        command_to_handle, return_object
-                    )
-                    result = ""
-                    if return_object.GetError():
-                        result += return_object.GetError()
-                    if return_object.GetOutput():
-                        result += return_object.GetOutput()
-                    response = {
-                        "request": req_id,
-                        "response": "" if result is None else result.strip()
-                    }
-                    result = b"" if result is None else result.encode("utf-8")
-                    send_response(response, addr)
+                    _execute_command(command_to_handle, req_id, sock, addr,
+                                     debugger)
                 except Exception as ex:
                     logger.error("Exception: %s", ex)
     finally:
