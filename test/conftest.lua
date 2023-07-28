@@ -40,9 +40,9 @@ end
 
 function C.terminal_end(action)
   action()
-  local cursor_line = vim.api.nvim_win_get_cursor(NvimGdb.i().client.win)[1]
-  local last_line = vim.api.nvim_buf_line_count(vim.api.nvim_win_get_buf(NvimGdb.i().client.win))
-  local win_height = vim.api.nvim_win_get_height(NvimGdb.i().client.win)
+  local cursor_line = vim.api.nvim_win_get_cursor(NvimGdb.here.client.win)[1]
+  local last_line = vim.api.nvim_buf_line_count(vim.api.nvim_win_get_buf(NvimGdb.here.client.win))
+  local win_height = vim.api.nvim_win_get_height(NvimGdb.here.client.win)
   busted.assert.is_true(cursor_line >= last_line - win_height, "cursor in the terminal window should be visible")
 end
 

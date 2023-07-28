@@ -38,6 +38,7 @@ function ParserActions:jump_to_source(fname, line)
 end
 
 ---It's high time to query actual breakpoints.
+---@async
 function ParserActions:query_breakpoints()
   log.debug({"ParserActions:query_breakpoints"})
   self.win:query_breakpoints()

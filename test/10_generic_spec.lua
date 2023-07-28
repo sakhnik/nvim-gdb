@@ -138,13 +138,13 @@ describe("generic", function()
         assert.is_true(eng.wait_signs({cur = 'test.cpp:19'}))
 
         eng.feed('^<f9>')
-        assert.equals('print Foo', NvimGdb.i()._last_command)
+        assert.equals('print Foo', NvimGdb.here._last_command)
 
         eng.feed('/Lib::Baz\n')
         assert.is_true(eng.wait_cursor(21))
         eng.feed('vt(')
         eng.feed(':GdbEvalRange\n')
-        assert.equals('print Lib::Baz', NvimGdb.i()._last_command)
+        assert.equals('print Lib::Baz', NvimGdb.here._last_command)
       end)
     end)
 
@@ -196,7 +196,7 @@ describe("generic", function()
           eng.feed('<esc>')
 
           local function check_margin()
-            local jump_win = NvimGdb.i().win.jump_win
+            local jump_win = NvimGdb.here.win.jump_win
             local wininfo = vim.fn.getwininfo(jump_win)[1]
             local curline = vim.api.nvim_win_get_cursor(jump_win)[1]
             local signline = tonumber(vim.split(eng.get_signs().cur, ':')[2])

@@ -118,7 +118,9 @@ end
 ---@return ParserState
 function ParserImpl:_query_b()
   log.info({"ParserImpl:_query_b"})
-  self.actions:query_breakpoints()
+  coroutine.resume(coroutine.create(function()
+    self.actions:query_breakpoints()
+  end))
   return self.paused
 end
 

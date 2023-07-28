@@ -85,7 +85,8 @@ function Client:start()
   self.is_active = true
 
   local cur_tabpage = vim.api.nvim_get_current_tabpage()
-  local app = assert(NvimGdb.i(cur_tabpage))
+  -- TODO: fix app access
+  local app = assert(NvimGdb.apps[cur_tabpage])
 
   self.client_id = vim.fn.termopen(self.command, {
     on_stdout = function(--[[j]]_, lines, --[[name]]_)
@@ -95,7 +96,8 @@ function Client:start()
     end,
     on_exit = function(--[[j]]_, code, --[[name]]_)
       if self.has_interacted and code == 0 then
-        local cur_app = NvimGdb.i(cur_tabpage)
+        -- TODO: fix app access
+        local cur_app = NvimGdb.apps[cur_tabpage]
         -- Deal with the race, check that this client is still working in the same tabpage
         if app == cur_app then
           vim.api.nvim_command("sil! bw!")
