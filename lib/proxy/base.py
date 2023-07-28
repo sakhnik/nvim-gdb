@@ -141,7 +141,16 @@ class Base:
                 StreamFilter(self.get_prompt()),
                 req_id,
                 lambda resp: self.process_handle_command(cmd, resp))
-            return cmd if res else b''
+            if not res:
+                self.logger.debug("Sending reject to %s", self.last_addr)
+                response = {
+                    "request": req_id,
+                    "response": ""
+                }
+                self.sock.sendto(json.dumps(response).encode('utf-8'),
+                                 0, self.last_addr)
+                return b''
+            return cmd
         return command
 
     def _process_reads(self, rfds):
