@@ -2,22 +2,17 @@
 
 local log = require 'nvimgdb.log'
 
--- I don't know why lua-language-server complains, but this static class isn't standard indeed
----@diagnostic disable: duplicate-doc-field
----@diagnostic disable: duplicate-set-field
-
 ---@class NvimGdb globally accessible plugin entry point
 ---@field public efmmgr EfmMgr errorformat manager
 ---@field private apps table<number, App> collection of debugger sessions {tabpage -> App}
 ---@field private apps_size number count of running debugger sessions
---
+
 -- Global instance
 NvimGdb = {
   efmmgr = require 'nvimgdb.efmmgr',
   apps = {},
   apps_size = 0,
 }
-
 
 ---Create a new instance of the debugger in the current tabpage.
 ---@param backend_name string debugger kind
