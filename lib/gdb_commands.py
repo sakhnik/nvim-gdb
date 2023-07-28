@@ -67,28 +67,20 @@ class NvimGdbInit(gdb.Command):
         args = command[2:]
         if request == "info-breakpoints":
             fname = args[0]
-            response = {
-                "request": req_id,
-                "response": self._get_breaks(os.path.normpath(fname))
-            }
-            self._send_response(response, sock, addr)
+            self._send_response(self._get_breaks(os.path.normpath(fname)),
+                                req_id, sock, addr)
         elif request == "get-current-frame-location":
-            response = {
-                "request": req_id,
-                "response": self._get_current_frame_location()
-            }
-            self._send_response(response, sock, addr)
+            self._send_response(self._get_current_frame_location(),
+                                req_id, sock, addr)
         elif request == "handle-command":
             # pylint: disable=broad-except
             try:
+                # TODO Is this used?
                 if args[0] == 'nvim-gdb-info-breakpoints':
                     # Fake a command info-breakpoins for
                     # GdbLopenBreakpoins
-                    response = {
-                        "request": req_id,
-                        "response": self._get_all_breaks()
-                    }
-                    self._send_response(response, sock, addr)
+                    self._send_response(self._get_all_breaks(),
+                                        req_id, sock, addr)
                     return
                 gdb_command = " ".join(args)
                 if sys.version_info.major < 3:
@@ -99,20 +91,18 @@ class NvimGdbInit(gdb.Command):
                     result = str(err)
                 if result is None:
                     result = ""
-                response = {
-                    "request": req_id,
-                    "response": result.strip()
-                }
-                result = b"" if result is None else \
-                    result.encode("utf-8")
-                self._send_response(response, sock, addr)
+                self._send_response(result.strip(), req_id, sock, addr)
             except Exception as ex:
                 logger.error("Exception: %s", ex)
 
-    def _send_response(self, response, sock, addr):
-        response = json.dumps(response).encode("utf-8")
-        logger.debug("Sending response: %s", response)
-        sock.sendto(response, 0, addr)
+    def _send_response(self, response, req_id, sock, addr):
+        response_msg = {
+            "request": req_id,
+            "response": response
+        }
+        response_json = json.dumps(response_msg).encode("utf-8")
+        logger.debug("Sending response: %s", response_json)
+        sock.sendto(response_json, 0, addr)
 
     def _get_current_frame_location(self):
         try:
