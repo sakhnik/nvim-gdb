@@ -63,8 +63,9 @@ class Base:
 
         # Create the filter
         self.filter = [(Filter(), -1, lambda _: None)]
-        # Where was the last command received from?
-        self.last_addr = None
+        # The command queue, the command at the head is being processed
+        # currently.
+        self.command_queue: [(socket.socket, bytes)] = []
 
         # Last user command
         self.last_command = b''
@@ -141,15 +142,7 @@ class Base:
                 StreamFilter(self.get_prompt()),
                 req_id,
                 lambda resp: self.process_handle_command(cmd, resp))
-            if not res:
-                self.logger.debug("Sending reject to %s", self.last_addr)
-                response = {
-                    "request": req_id,
-                    "response": ""
-                }
-                self.sock.sendto(json.dumps(response).encode('utf-8'),
-                                 0, self.last_addr)
-                return b''
+            assert res, "Only one filter is expected to be active at a time"
             return cmd
         return command
 
@@ -165,19 +158,26 @@ class Base:
             data = os.read(sys.stdin.fileno(), 1024)
             self.stdin_read(data)
         elif self.sock in rfds:
-            data, self.last_addr = self.sock.recvfrom(65536)
+            data, sock = self.sock.recvfrom(65536)
             if data[-1] == b'\n':
                 self.logger.warning(
                     "The command ending with <nl>. "
                     "The StreamProxy filter known to fail.")
             self.logger.info("Got command '%s'", data.decode('utf-8'))
-            command = self.filter_command(data)
-            self.logger.info("Translated command '%s'",
-                             command.decode('utf-8'))
-            if command:
-                self.write_master(command)
-                self.write_master(b"\n" if sys.platform != 'win32'
-                                  else b"\r\n")
+            # Append the command to the queue, and kick off the command
+            # processing
+            self.command_queue.append((sock, data))
+            if len(self.command_queue) == 1:
+                self._send_command()
+
+    def _send_command(self):
+        sock, data = self.command_queue[0]
+        command = self.filter_command(data)
+        self.logger.info("Translated command '%s'", command.decode('utf-8'))
+        if command:
+            self.write_master(command)
+            self.write_master(b"\n" if sys.platform != 'win32'
+                              else b"\r\n")
 
     @staticmethod
     def _write(fdesc, data):
@@ -207,13 +207,18 @@ class Base:
             self.filter_changed(False)
             assert callable(handler)
             res = handler(filtered)
-            self.logger.debug("Sending to %s: %s", self.last_addr, res)
+            sock, data = self.command_queue[0]
+            self.command_queue = self.command_queue[1:]
+            self.logger.debug("Sending to %s: %s", sock, res)
             response = {
                 "request": req_id,
                 "response": res.decode('utf-8')
             }
             self.sock.sendto(json.dumps(response).encode('utf-8'),
-                             0, self.last_addr)
+                             0, sock)
+            # Proceed to the next command if any
+            if self.command_queue:
+                self._send_command()
 
     @abc.abstractmethod
     def read_master(self) -> bytes:
