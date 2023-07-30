@@ -26,17 +26,11 @@ local opts = {
 
 local job_id = assert(vim.fn.jobstart({"python", "-m", "pdb", "test/main.py"}, opts))
 
-do  -- Set terminal raw mode
+do  -- Read stdin and pass to the slave
   local stdin = uv.new_tty(0, true)            -- 0 represents stdin file descriptor
   local result, error_msg = stdin:set_mode(1)  -- uv.TTY_MODE_RAW
   assert(result, error_msg)
-end
 
-do  -- Read stdin and pass to the slave
-  local stdin = uv.new_pipe(false)
-  uv.pipe_open(stdin, 0)  -- 0 represents stdin file descriptor
-
-  -- Read data from stdin
   stdin:read_start(vim.schedule_wrap(function(err, chunk)
     assert(not err, err)
 
