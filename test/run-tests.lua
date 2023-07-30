@@ -25,18 +25,22 @@ server:listen(5, function(err)
   end)
 end)
 
+local function assemble_output(_, d, _)
+  -- :help channel-lines: the first and the last chunk of the data
+  -- may belong to the same line
+  local nl = ''
+  for i, chunk in ipairs(d) do
+    if i == 1 and chunk == '' then
+      nl = '\n'
+    end
+    io.stdout:write(nl, chunk)
+    nl = '\n'
+  end
+end
 
 local opts = {
-  on_stdout = function(_, d, _)
-    for _, chunk in ipairs(d) do
-      io.stdout:write(chunk ~= '' and chunk or '\n')
-    end
-  end,
-  on_stderr = function(_, d, _)
-    for _, chunk in ipairs(d) do
-      io.stdout:write(chunk ~= '' and chunk or '\n')
-    end
-  end,
+  on_stdout = assemble_output,
+  on_stderr = assemble_output,
   on_exit = function(_, c, _)
     os.exit(c)
   end
