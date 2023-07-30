@@ -130,15 +130,17 @@ end
 ---@param lines string[] input lines
 function ParserImpl:feed(lines)
   log.debug({"ParserImpl:feed", line = lines})
-  for _, line in ipairs(lines) do
-    if line == nil or line == '' then
-      line = '\n'
-    else
-      -- Filter out control sequences
-      line = line:gsub('\x1B[@-_][0-?]*[ -/]*[@-~]', '')
+  local nl = ''
+  for i, line in ipairs(lines) do
+    if i == 1 and line == '' then
+      nl = '\n'
     end
-    self.buffer = self.buffer .. line
-    self.byte_count = self.byte_count + #line
+    -- Filter out control sequences
+    line = line:gsub('\x1B[@-_][0-?]*[ -/]*[@-~]', '')
+
+    self.buffer = self.buffer .. nl .. line
+    self.byte_count = self.byte_count + #nl + #line
+    nl = '\n'
     log.debug({"buffer", self.buffer})
   end
   self.parsing_progress[#self.parsing_progress + 1] = self.byte_count
