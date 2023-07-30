@@ -55,7 +55,7 @@ local job_nvim = assert(
   }, opts))
 
 local signal = uv.new_signal()
-vim.loop.signal_start(signal, "sigint", vim.schedule_wrap(function(_)
+signal:start("sigint", vim.schedule_wrap(function(_)
   vim.fn.jobstop(job_nvim)
   os.exit(1)
 end))
