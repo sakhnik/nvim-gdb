@@ -1,7 +1,13 @@
 local uv = vim.loop
 
+local is_windows = uv.os_uname().sysname:find('Windows') ~= nil
+local cmd_nl = is_windows and '\r\n' or '\n'
+
 local Proxy = { }
 Proxy.__index = Proxy
+
+-- TODO: comments and docs
+-- TODO: logging
 
 -- Get rid of the script, leave the arguments only
 arg[0] = nil
@@ -10,7 +16,18 @@ function Proxy.new()
   local self = {}
   setmetatable(self, Proxy)
 
+  self.stdin = uv.new_tty(0, true)            -- 0 represents stdin file descriptor
+  local result, error_msg = self.stdin:set_mode(1)  -- uv.TTY_MODE_RAW
+  assert(result, error_msg)
+
   self:init_socket()
+  self.stdout_timer = assert(uv.new_timer())
+  self.command_timer = assert(uv.new_timer())
+  self.command_queue = {}
+  self.command_queue_head = 1
+  self.command_queue_tail = 1
+  self.command = nil
+  self.buffer = ""
   return self
 end
 
@@ -21,18 +38,20 @@ function Proxy:start()
 end
 
 function Proxy:start_job()
+  local width = self.stdin:get_winsize()
+
   local opts = {
     pty = true,
     env = {
       TERM = vim.env.TERM
     },
+    width = width,
 
     on_stdout = function(_, d, _)
       local nl = ''
       for i, chunk in ipairs(d) do
         if chunk ~= '' or i ~= 1 then
-          self:on_stdout(nl)
-          self:on_stdout(chunk)
+          self:on_stdout(nl, chunk)
         end
         nl = '\n'
       end
@@ -47,10 +66,6 @@ function Proxy:start_job()
 end
 
 function Proxy:start_stdin()
-  self.stdin = uv.new_tty(0, true)            -- 0 represents stdin file descriptor
-  local result, error_msg = self.stdin:set_mode(1)  -- uv.TTY_MODE_RAW
-  assert(result, error_msg)
-
   self.stdin:read_start(vim.schedule_wrap(function(err, chunk)
     assert(not err, err)
 
@@ -88,11 +103,64 @@ function Proxy:start_socket()
   end
   self.sock:recv_start(function(err, data, addr)
     assert(not err, err)
+    if data then
+      self.command_queue[self.command_queue_tail] = {data, addr}
+      self.command_queue_tail = self.command_queue_tail + 1
+    end
   end)
 end
 
-function Proxy:on_stdout(data)
-  io.stdout:write(data)
+function Proxy:on_stdout(data1, data2)
+  if self.command ~= nil then
+    self.buffer = self.buffer .. data1 .. data2
+    local plain_buffer = self.buffer:gsub('%[[^a-zA-Z]*[a-zA-Z]', '')
+    local start_index = plain_buffer:find('[\n\r]%(Pdb%+*%) ')
+    if start_index then
+      local response = plain_buffer:sub(1, start_index)
+      local req_id, addr = unpack(self.command)
+      self.command_timer:stop()
+      self:send_response(req_id, response, addr)
+      self.buffer = ''
+      self.command = nil
+      self:process_command()
+    end
+  else
+    io.stdout:write(data1, data2)
+    self.stdout_timer:stop()
+    self.stdout_timer:start(100, 100, vim.schedule_wrap(function()
+      self:process_command()
+    end))
+  end
+end
+
+function Proxy:process_command()
+  if self.command ~= nil or self.command_queue_tail == self.command_queue_head then
+    return
+  end
+  self.stdout_timer:stop()
+  local command = self.command_queue[self.command_queue_head]
+  local addr = command[2]
+  self.command_queue[self.command_queue_head] = nil
+  self.command_queue_head = self.command_queue_head + 1
+  local req_id, _, cmd = command[1]:match('(%d+) ([a-z-]+) (.+)')
+  self.command = {tonumber(req_id), addr}
+  -- \r\n for win32
+  vim.fn.chansend(self.job_id, cmd .. cmd_nl)
+  self.command_timer:start(500, 0, vim.schedule_wrap(function()
+    self.command_timer:stop()
+    self:send_response(req_id, "Timed out", addr)
+    self.command = nil
+    self:on_stdout(self.buffer)
+    self.buffer = nil
+    self:process_command()
+  end))
+end
+
+function Proxy:send_response(req_id, response, addr)
+  local data = vim.fn.json_encode({request = req_id, response = response})
+  self.sock:send(data, addr.ip, addr.port, function(err)
+    assert(not err, err)
+  end)
 end
 
 do
