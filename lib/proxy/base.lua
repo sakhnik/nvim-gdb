@@ -126,11 +126,11 @@ function Proxy:on_stdout(data1, data2)
     end
   else
     io.stdout:write(data1, data2)
-    self.stdout_timer:stop()
-    self.stdout_timer:start(100, 100, vim.schedule_wrap(function()
-      self:process_command()
-    end))
   end
+  self.stdout_timer:stop()
+  self.stdout_timer:start(100, 100, vim.schedule_wrap(function()
+    self:process_command()
+  end))
 end
 
 function Proxy:process_command()
