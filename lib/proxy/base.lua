@@ -134,8 +134,8 @@ function Proxy:on_stdout(data1, data2)
     local plain_buffer = self.buffer:gsub('%[[^a-zA-Z]*[a-zA-Z]', '')
     local start_index = plain_buffer:find('[\n\r]%(Pdb%+*%) ')
     if start_index then
-      local response = plain_buffer:sub(1, start_index)
-      local req_id, addr = unpack(self.current_request)
+      local req_id, cmd, addr = unpack(self.current_request)
+      local response = plain_buffer:sub(#cmd + 1, start_index):match('^%s*(.-)%s*$')
       self.request_timer:stop()
       self:send_response(req_id, response, addr)
       self.buffer = ''
@@ -161,7 +161,7 @@ function Proxy:process_command()
   self.request_queue[self.request_queue_head] = nil
   self.request_queue_head = self.request_queue_head + 1
   local req_id, _, cmd = command[1]:match('(%d+) ([a-z-]+) (.+)')
-  self.current_request = {tonumber(req_id), addr}
+  self.current_request = {tonumber(req_id), cmd, addr}
   -- \r\n for win32
   vim.fn.chansend(self.job_id, cmd .. cmd_nl)
   self.request_timer:start(500, 0, vim.schedule_wrap(function()
