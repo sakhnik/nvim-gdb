@@ -154,7 +154,11 @@ end
 ---@return string[] command to launch the debugger with termopen()
 function C.get_launch_cmd(client_cmd, tmp_dir, proxy_addr)
   local _ = tmp_dir
-  local cmd = {'nvim', '--clean', '-u', 'NONE', '-l', utils.get_plugin_file_path('lib', 'proxy', 'pdb.lua'), '-a', proxy_addr}
+  local cmd = {
+    utils.is_windows and 'nvim.exe' or 'nvim', '--clean', '-u', 'NONE',
+    '-l', utils.get_plugin_file_path('lib', 'proxy', 'pdb.lua'),
+    '-a', proxy_addr
+  }
   -- Append the rest of arguments
   for i = 1, #client_cmd do
     cmd[#cmd + 1] = client_cmd[i]

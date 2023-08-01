@@ -169,8 +169,10 @@ function Proxy:process_command()
     self.request_timer:stop()
     self:send_response(req_id, "Timed out", addr)
     self.current_request = nil
-    self:on_stdout(self.buffer)
-    self.buffer = nil
+    if self.buffer ~= nil then
+      self:on_stdout(self.buffer, '')
+      self.buffer = nil
+    end
     self:process_command()
   end))
 end

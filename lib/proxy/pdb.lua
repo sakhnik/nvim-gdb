@@ -5,6 +5,6 @@ package.path = dir .. '/?.lua;' .. package.path
 
 local Proxy = require'base'
 
-local proxy = Proxy.new('[\n\r]%(Pdb%+*%) ')
+local proxy = Proxy.new('[\n\r]%(Pdb%+*%) *')
 proxy:start()
 vim.wait(10^9, function() return false end)
