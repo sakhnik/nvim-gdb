@@ -21,6 +21,10 @@ function Proxy.new()
   assert(result, error_msg)
 
   self:init_socket()
+
+  self.command_buffer = ''
+  self.last_command = ''
+
   self.stdout_timer = assert(uv.new_timer())
   self.request_timer = assert(uv.new_timer())
   self.request_queue = {}
@@ -70,6 +74,20 @@ function Proxy:start_stdin()
     assert(not err, err)
 
     if chunk then
+      -- Accumulate whatever the user is typing to track the last command entered
+      self.command_buffer = self.command_buffer .. chunk
+      local start_index, end_index = self.command_buffer:find('[\n\r]+')
+      if start_index then
+        if start_index == 1 then
+          -- Send previous command
+          vim.fn.chansend(self.job_id, self.last_command)
+        else
+          -- Remember the command
+          self.last_command = self.command_buffer:sub(1, start_index - 1)
+        end
+        -- Reset the command buffer
+        self.command_buffer = self.command_buffer:sub(end_index + 1)
+      end
       vim.fn.chansend(self.job_id, chunk)
     else
       -- End of input, process the data
