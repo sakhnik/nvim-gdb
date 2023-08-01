@@ -22,11 +22,11 @@ function Proxy.new()
 
   self:init_socket()
   self.stdout_timer = assert(uv.new_timer())
-  self.command_timer = assert(uv.new_timer())
-  self.command_queue = {}
-  self.command_queue_head = 1
-  self.command_queue_tail = 1
-  self.command = nil
+  self.request_timer = assert(uv.new_timer())
+  self.request_queue = {}
+  self.request_queue_head = 1
+  self.request_queue_tail = 1
+  self.current_request = nil
   self.buffer = ""
   return self
 end
@@ -104,24 +104,24 @@ function Proxy:start_socket()
   self.sock:recv_start(function(err, data, addr)
     assert(not err, err)
     if data then
-      self.command_queue[self.command_queue_tail] = {data, addr}
-      self.command_queue_tail = self.command_queue_tail + 1
+      self.request_queue[self.request_queue_tail] = {data, addr}
+      self.request_queue_tail = self.request_queue_tail + 1
     end
   end)
 end
 
 function Proxy:on_stdout(data1, data2)
-  if self.command ~= nil then
+  if self.current_request ~= nil then
     self.buffer = self.buffer .. data1 .. data2
     local plain_buffer = self.buffer:gsub('%[[^a-zA-Z]*[a-zA-Z]', '')
     local start_index = plain_buffer:find('[\n\r]%(Pdb%+*%) ')
     if start_index then
       local response = plain_buffer:sub(1, start_index)
-      local req_id, addr = unpack(self.command)
-      self.command_timer:stop()
+      local req_id, addr = unpack(self.current_request)
+      self.request_timer:stop()
       self:send_response(req_id, response, addr)
       self.buffer = ''
-      self.command = nil
+      self.current_request = nil
       self:process_command()
     end
   else
@@ -134,22 +134,22 @@ function Proxy:on_stdout(data1, data2)
 end
 
 function Proxy:process_command()
-  if self.command ~= nil or self.command_queue_tail == self.command_queue_head then
+  if self.current_request ~= nil or self.request_queue_tail == self.request_queue_head then
     return
   end
   self.stdout_timer:stop()
-  local command = self.command_queue[self.command_queue_head]
+  local command = self.request_queue[self.request_queue_head]
   local addr = command[2]
-  self.command_queue[self.command_queue_head] = nil
-  self.command_queue_head = self.command_queue_head + 1
+  self.request_queue[self.request_queue_head] = nil
+  self.request_queue_head = self.request_queue_head + 1
   local req_id, _, cmd = command[1]:match('(%d+) ([a-z-]+) (.+)')
-  self.command = {tonumber(req_id), addr}
+  self.current_request = {tonumber(req_id), addr}
   -- \r\n for win32
   vim.fn.chansend(self.job_id, cmd .. cmd_nl)
-  self.command_timer:start(500, 0, vim.schedule_wrap(function()
-    self.command_timer:stop()
+  self.request_timer:start(500, 0, vim.schedule_wrap(function()
+    self.request_timer:stop()
     self:send_response(req_id, "Timed out", addr)
-    self.command = nil
+    self.current_request = nil
     self:on_stdout(self.buffer)
     self.buffer = nil
     self:process_command()
