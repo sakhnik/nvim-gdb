@@ -12,9 +12,10 @@ Proxy.__index = Proxy
 -- Get rid of the script, leave the arguments only
 arg[0] = nil
 
-function Proxy.new()
+function Proxy.new(prompt)
   local self = {}
   setmetatable(self, Proxy)
+  self.prompt = prompt
 
   self.stdin = uv.new_tty(0, true)            -- 0 represents stdin file descriptor
   local result, error_msg = self.stdin:set_mode(1)  -- uv.TTY_MODE_RAW
@@ -132,7 +133,7 @@ function Proxy:on_stdout(data1, data2)
   if self.current_request ~= nil then
     self.buffer = self.buffer .. data1 .. data2
     local plain_buffer = self.buffer:gsub('%[[^a-zA-Z]*[a-zA-Z]', '')
-    local start_index = plain_buffer:find('[\n\r]%(Pdb%+*%) ')
+    local start_index = plain_buffer:find(self.prompt)
     if start_index then
       local req_id, cmd, addr = unpack(self.current_request)
       local response = plain_buffer:sub(#cmd + 1, start_index):match('^%s*(.-)%s*$')
@@ -181,8 +182,4 @@ function Proxy:send_response(req_id, response, addr)
   end)
 end
 
-do
-  local proxy = Proxy.new()
-  proxy:start()
-  vim.wait(10^9, function() return false end)
-end
+return Proxy
