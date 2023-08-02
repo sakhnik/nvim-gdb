@@ -40,34 +40,14 @@ do
 
   -- Default log level.
   local current_log_level = log.levels.CRIT
-  local start_time = os.time()
-  local start_time_ms = nil
 
   if vim.api.nvim_eval("$CI") ~= "" then
     current_log_level = log.levels.DEBUG
-
-    -- Calibrate clocks to allow measurement of milliseconds
-    start_time = os.time()
-    while os.time() == start_time do
-      -- wait until the second changes
-    end
-    -- Assume the change happened because the next second has started
-    start_time = os.time()
-    start_time_ms = vim.loop.hrtime() * 1e-6
   end
 
   local function get_timestamp()
-    if start_time_ms == nil then
-      return os.date(log_date_format)
-    end
-    local time_ms = vim.loop.hrtime() * 1e-6
-    local time = os.time()
-    local time_elapsed_ms = time_ms - start_time_ms
-    local time_elapsed = math.floor(time - start_time)
-    local msec = time_elapsed_ms - 1000 * time_elapsed
-    if msec < 0 then msec = 0 end
-    if msec > 999 then msec = 999 end
-    return os.date(log_date_format, time) .. ',' .. string.format("%03d", msec)
+    local sec, usec = vim.loop.gettimeofday()
+    return os.date(log_date_format, sec) .. "," .. string.format("%03d", math.floor(usec / 1000))
   end
 
   for level, levelnr in pairs(log.levels) do
