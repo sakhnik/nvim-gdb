@@ -8,13 +8,12 @@ local Proxy = { }
 Proxy.__index = Proxy
 
 -- TODO: comments and docs
--- TODO: logging
 
 -- Get rid of the script, leave the arguments only
 arg[0] = nil
 
 function Proxy.new(prompt)
-  log.info({"Proxy.new", promp = prompt})
+  log.info({"Proxy.new", promp = prompt, arg = arg})
   local self = {}
   setmetatable(self, Proxy)
   self.prompt = prompt
@@ -39,12 +38,14 @@ function Proxy.new(prompt)
 end
 
 function Proxy:start()
+  log.debug({"Proxy:start"})
   self:start_job()
   self:start_stdin()
   self:start_socket()
 end
 
 function Proxy:start_job()
+  log.debug({"Proxy:start_job"})
   local width = self.stdin:get_winsize()
 
   local opts = {
@@ -73,7 +74,9 @@ function Proxy:start_job()
 end
 
 function Proxy:start_stdin()
+  log.debug({"Proxy:start_stdin"})
   self.stdin:read_start(vim.schedule_wrap(function(err, chunk)
+    log.debug({"stdin:read", err = err, chunk = chunk})
     assert(not err, err)
 
     if chunk then
@@ -83,10 +86,12 @@ function Proxy:start_stdin()
       if start_index then
         if start_index == 1 then
           -- Send previous command
+          log.debug({"send previous", command = self.last_command})
           vim.fn.chansend(self.job_id, self.last_command)
         else
           -- Remember the command
           self.last_command = self.command_buffer:sub(1, start_index - 1)
+          log.debug({"remember command", self.last_command})
         end
         -- Reset the command buffer
         self.command_buffer = self.command_buffer:sub(end_index + 1)
@@ -100,12 +105,14 @@ function Proxy:start_stdin()
 end
 
 function Proxy:init_socket()
+  log.debug({"Proxy:init_socket"})
   if arg[1] ~= '-a' then
     return
   end
   self.sock = assert(uv.new_udp())
   assert(self.sock:bind("127.0.0.1", 0))
   local sockname = self.sock:getsockname()
+  log.info({"Socket port", port = sockname.port})
   local f = assert(io.open(arg[2], 'w'))
   f:write(sockname.port)
   f:close()
@@ -116,13 +123,16 @@ function Proxy:init_socket()
   end
   arg[#arg] = nil
   arg[#arg] = nil
+  log.debug({"shift arg", arg = arg})
 end
 
 function Proxy:start_socket()
+  log.debug({"Proxy:start_socket"})
   if self.sock == nil then
     return
   end
   self.sock:recv_start(function(err, data, addr)
+    log.debug({"recv request", err = err, data = data, addr = addr})
     assert(not err, err)
     if data then
       self.request_queue[self.request_queue_tail] = {data, addr}
@@ -132,6 +142,7 @@ function Proxy:start_socket()
 end
 
 function Proxy:on_stdout(data1, data2)
+  log.debug({"Proxy:on_stdout", data1 = data1, data2 = data2})
   if self.current_request ~= nil then
     self.buffer = self.buffer .. data1 .. data2
     local plain_buffer = self.buffer:gsub('%[[^a-zA-Z]*[a-zA-Z]', '')
@@ -139,6 +150,7 @@ function Proxy:on_stdout(data1, data2)
     if start_index then
       local req_id, cmd, addr = unpack(self.current_request)
       local response = plain_buffer:sub(#cmd + 1, start_index):match('^%s*(.-)%s*$')
+      log.info({"Collected response", response = response})
       self.request_timer:stop()
       self:send_response(req_id, response, addr)
       self.buffer = ''
@@ -155,6 +167,7 @@ function Proxy:on_stdout(data1, data2)
 end
 
 function Proxy:process_command()
+  log.debug({"Proxy:process_command"})
   if self.current_request ~= nil or self.request_queue_tail == self.request_queue_head then
     return
   end
@@ -165,6 +178,7 @@ function Proxy:process_command()
   self.request_queue_head = self.request_queue_head + 1
   local req_id, _, cmd = command[1]:match('(%d+) ([a-z-]+) (.+)')
   self.current_request = {tonumber(req_id), cmd, addr}
+  log.info({"Send request", cmd = cmd})
   -- \r\n for win32
   vim.fn.chansend(self.job_id, cmd .. cmd_nl)
   self.request_timer:start(500, 0, vim.schedule_wrap(function()
@@ -180,6 +194,7 @@ function Proxy:process_command()
 end
 
 function Proxy:send_response(req_id, response, addr)
+  log.debug({"Proxy:send_response", req_id = req_id, response = response, addr = addr})
   local data = vim.fn.json_encode({request = req_id, response = response})
   self.sock:send(data, addr.ip, addr.port, function(err)
     assert(not err, err)

@@ -5,7 +5,7 @@ package.path = dir .. '/?.lua;' .. dir .. '/../../lua/?.lua;' .. package.path
 
 local log = require'nvimgdb.log'
 log.set_filename('pdb.log')
-local Proxy = require'base'
+local Proxy = require'impl'
 
 local proxy = Proxy.new('[\n\r]%(Pdb%+*%) *')
 proxy:start()
