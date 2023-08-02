@@ -1,8 +1,5 @@
 local log = {}
 
--- FIXME: DOC
--- Should be exposed in the vim docs.
---
 -- Log level dictionary with reverse lookup as well.
 --
 -- Can be used to lookup the number from the name or the name from the number.
@@ -18,33 +15,39 @@ log.levels = {
 }
 
 -- Default log level.
-log.current_log_level = log.levels.CRIT
+log.current_log_level = (vim.env.CI == nil) and log.levels.CRIT or log.levels.DEBUG
 
-if vim.api.nvim_eval("$CI") ~= "" then
-  log.current_log_level = log.levels.DEBUG
+local logfilename = 'nvimgdb.log'
+local logfile = nil
+
+--- Returns the log filename.
+---@return string log filename
+function log.get_filename()
+  return logfilename
+end
+
+local get_logfile = function()
+  if logfile == nil then
+    logfile = assert(io.open(logfilename, "a+"))
+  end
+  return logfile
+end
+
+---Set log file name
+---@param filename string new log filename
+function log.set_filename(filename)
+  if filename ~= logfilename then
+    logfilename = filename
+    if logfile ~= nil then
+      logfile:close()
+      logfile = nil
+    end
+  end
 end
 
 local log_date_format = "%F %H:%M:%S"
 
 do
-  local logfilename = 'nvimgdb.log'
-
-  --- Returns the log filename.
-  --@returns (string) log filename
-  function log.get_filename()
-    return logfilename
-  end
-
-  --vim.fn.mkdir(vim.fn.stdpath('cache'), "p")
-  local logfile = nil
-  local get_logfile = function()
-    if logfile == nil then
-      logfile = assert(io.open(logfilename, "a+"))
-    end
-    return logfile
-  end
-
-
   local function get_timestamp()
     local sec, usec = vim.loop.gettimeofday()
     return os.date(log_date_format, sec) .. "," .. string.format("%03d", math.floor(usec / 1000))
@@ -73,8 +76,8 @@ do
       if argc == 0 then return true end
       local info = debug.getinfo(2, "Sl")
       local src = info.short_src
-      -- Chop off the long path prefix, just keep everything relative to lua/
-      local suffix = src:match("lua[/\\].+")
+      -- Chop off the long path prefix, just keep everything relative to lua/ or lib/
+      local suffix = src:match("l[ui][ab][/\\].+")
       if suffix ~= nil then
         src = suffix
       end

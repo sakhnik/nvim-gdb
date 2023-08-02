@@ -1,4 +1,5 @@
 local uv = vim.loop
+local log = require'nvimgdb.log'
 
 local is_windows = uv.os_uname().sysname:find('Windows') ~= nil
 local cmd_nl = is_windows and '\r\n' or '\n'
@@ -13,6 +14,7 @@ Proxy.__index = Proxy
 arg[0] = nil
 
 function Proxy.new(prompt)
+  log.info({"Proxy.new", promp = prompt})
   local self = {}
   setmetatable(self, Proxy)
   self.prompt = prompt
