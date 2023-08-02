@@ -17,6 +17,12 @@ log.levels = {
   CRIT = 5;
 }
 
+-- Default log level.
+log.current_log_level = log.levels.CRIT
+
+if vim.api.nvim_eval("$CI") ~= "" then
+  log.current_log_level = log.levels.DEBUG
+end
 
 local log_date_format = "%F %H:%M:%S"
 
@@ -38,12 +44,6 @@ do
     return logfile
   end
 
-  -- Default log level.
-  local current_log_level = log.levels.CRIT
-
-  if vim.api.nvim_eval("$CI") ~= "" then
-    current_log_level = log.levels.DEBUG
-  end
 
   local function get_timestamp()
     local sec, usec = vim.loop.gettimeofday()
@@ -69,7 +69,7 @@ do
     -- This way you can avoid string allocations if the log level isn't high enough.
     log[level:lower()] = function(...)
       local argc = select("#", ...)
-      if levelnr < current_log_level then return false end
+      if levelnr < log.current_log_level then return false end
       if argc == 0 then return true end
       local info = debug.getinfo(2, "Sl")
       local src = info.short_src
@@ -109,11 +109,11 @@ log.levels[5] = "CRIT"
 --@param level string|number One of `vim.lsp.log.levels`
 function log.set_level(level)
   if type(level) == 'string' then
-    current_log_level = assert(log.levels[level:upper()], string.format("Invalid log level: %q", level))
+    log.current_log_level = assert(log.levels[level:upper()], string.format("Invalid log level: %q", level))
   else
     assert(type(level) == 'number', "level must be a number or string")
     assert(log.levels[level], string.format("Invalid log level: %d", level))
-    current_log_level = level
+    log.current_log_level = level
   end
 end
 
@@ -121,7 +121,7 @@ end
 --@param level number log level
 --@returns (bool) true if would log, false if not
 function log.should_log(level)
-  return level >= current_log_level
+  return level >= log.current_log_level
 end
 
 return log
