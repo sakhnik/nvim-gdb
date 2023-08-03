@@ -163,6 +163,13 @@ function ProxyImpl:start_socket()
     if data then
       self.request_queue[self.request_queue_tail] = {request = data, addr = addr}
       self.request_queue_tail = self.request_queue_tail + 1
+      -- If the user doesn't type anymore, can process the request immediately,
+      -- otherwise, the request will be picked up upon the stdout timer elapse.
+      if self.stdout_timer:get_due_in() == 0 then
+        vim.schedule(function()
+          self:process_request()
+        end)
+      end
     end
   end)
 end
