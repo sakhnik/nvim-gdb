@@ -168,10 +168,13 @@ end
 
 function Proxy:process_command()
   log.debug({"Proxy:process_command"})
-  if self.current_request ~= nil or self.request_queue_tail == self.request_queue_head then
+  if self.current_request ~= nil then
     return
   end
   self.stdout_timer:stop()
+  if self.request_queue_tail == self.request_queue_head then
+    return
+  end
   local command = self.request_queue[self.request_queue_head]
   local addr = command[2]
   self.request_queue[self.request_queue_head] = nil
