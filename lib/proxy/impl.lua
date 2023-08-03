@@ -182,8 +182,10 @@ function ProxyImpl:on_stdout(data1, data2)
   log.debug({"ProxyImpl:on_stdout", data1 = data1, data2 = data2})
   if self.current_request ~= nil then
     self.buffer = self.buffer .. data1 .. data2
-    -- Get rid of the CSEQ
-    local plain_buffer = self.buffer:gsub('%[[^a-zA-Z]*[a-zA-Z]', '')
+    -- First substitute cursor movement with new lines: \27[16;9H
+    local plain_buffer = self.buffer:gsub('%[%d+;%d+H', '\n')
+    -- Get rid of the other CSEQ
+    plain_buffer = plain_buffer:gsub('%[[^a-zA-Z]*[a-zA-Z]', '')
     local start_index = plain_buffer:find(self.prompt)
     if start_index then
       local request = self.current_request
