@@ -5,8 +5,8 @@ package.path = dir .. '/?.lua;' .. dir .. '/../../lua/?.lua;' .. package.path
 
 local log = require'nvimgdb.log'
 log.set_filename('pdb.log')
-local Proxy = require'impl'
+local ProxyImpl = require'impl'
 
-local proxy = Proxy.new('[\n\r]%(Pdb%+*%) *')
+local proxy = ProxyImpl.new('[\n\r]%(Pdb%+*%) *')
 proxy:start()
 vim.wait(10^9, function() return false end)

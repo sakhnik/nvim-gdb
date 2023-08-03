@@ -4,18 +4,35 @@ local log = require'nvimgdb.log'
 local is_windows = uv.os_uname().sysname:find('Windows') ~= nil
 local cmd_nl = is_windows and '\r\n' or '\n'
 
-local Proxy = { }
-Proxy.__index = Proxy
+---@alias Request {req_id: integer, command: string, addr: Address}
+---@alias Address {ip: string, port: integer}
 
--- TODO: comments and docs
+---@class ProxyImpl
+---@field private prompt string prompt pattern to detect end of response
+---@field private stdin userdata uv tty handle
+---@field private sock userdata uv udp handle to receive requests
+---@field private command_buffer string whatever the user is typing after the last newline
+---@field private last_command string the last command executed by user
+---@field private stdout_timer userdata uv timer to detect stdout silence
+---@field private request_timer userdata uv timer to give a request deadline
+---@field private request_queue table<integer, {request: string, addr: Address}> the queue of outstanding requests
+---@field private request_queue_head integer the point of taking from the queue
+---@field private request_queue_tail integer the point of putting to the queue
+---@field private current_request Request the request currently being executed
+---@field private buffer string the stdout output collected for the current request so far
+local ProxyImpl = { }
+ProxyImpl.__index = ProxyImpl
 
 -- Get rid of the script, leave the arguments only
 arg[0] = nil
 
-function Proxy.new(prompt)
-  log.info({"Proxy.new", promp = prompt, arg = arg})
+---Constructor
+---@param prompt string prompt pattern
+---@return ProxyImpl
+function ProxyImpl.new(prompt)
+  log.info({"ProxyImpl.new", promp = prompt, arg = arg})
   local self = {}
-  setmetatable(self, Proxy)
+  setmetatable(self, ProxyImpl)
   self.prompt = prompt
 
   self.stdin = uv.new_tty(0, true)            -- 0 represents stdin file descriptor
@@ -37,15 +54,18 @@ function Proxy.new(prompt)
   return self
 end
 
-function Proxy:start()
-  log.debug({"Proxy:start"})
+---Start operation
+function ProxyImpl:start()
+  log.debug({"ProxyImpl:start"})
   self:start_job()
   self:start_stdin()
   self:start_socket()
 end
 
-function Proxy:start_job()
-  log.debug({"Proxy:start_job"})
+---Start the debugger using the command line arguments
+---@private
+function ProxyImpl:start_job()
+  log.debug({"ProxyImpl:start_job"})
   local width = self.stdin:get_winsize()
 
   local opts = {
@@ -73,8 +93,10 @@ function Proxy:start_job()
   self.job_id = assert(vim.fn.jobstart(arg, opts))
 end
 
-function Proxy:start_stdin()
-  log.debug({"Proxy:start_stdin"})
+---Start listening for the user input
+---@private
+function ProxyImpl:start_stdin()
+  log.debug({"ProxyImpl:start_stdin"})
   self.stdin:read_start(vim.schedule_wrap(function(err, chunk)
     log.debug({"stdin:read", err = err, chunk = chunk})
     assert(not err, err)
@@ -104,8 +126,10 @@ function Proxy:start_stdin()
   end))
 end
 
-function Proxy:init_socket()
-  log.debug({"Proxy:init_socket"})
+---Init the udp socket to receive requests
+---@private
+function ProxyImpl:init_socket()
+  log.debug({"ProxyImpl:init_socket"})
   if arg[1] ~= '-a' then
     return
   end
@@ -126,8 +150,10 @@ function Proxy:init_socket()
   log.debug({"shift arg", arg = arg})
 end
 
-function Proxy:start_socket()
-  log.debug({"Proxy:start_socket"})
+---Start receiving requests via the udp socket
+---@private
+function ProxyImpl:start_socket()
+  log.debug({"ProxyImpl:start_socket"})
   if self.sock == nil then
     return
   end
@@ -135,39 +161,46 @@ function Proxy:start_socket()
     log.debug({"recv request", err = err, data = data, addr = addr})
     assert(not err, err)
     if data then
-      self.request_queue[self.request_queue_tail] = {data, addr}
+      self.request_queue[self.request_queue_tail] = {request = data, addr = addr}
       self.request_queue_tail = self.request_queue_tail + 1
     end
   end)
 end
 
-function Proxy:on_stdout(data1, data2)
-  log.debug({"Proxy:on_stdout", data1 = data1, data2 = data2})
+---Process debugger output: either print on the screen or capture as a response to a request
+---@private
+---@param data1 string part 1 (""|"\n")
+---@param data2 string part 2
+function ProxyImpl:on_stdout(data1, data2)
+  log.debug({"ProxyImpl:on_stdout", data1 = data1, data2 = data2})
   if self.current_request ~= nil then
     self.buffer = self.buffer .. data1 .. data2
+    -- Get rid of the CSEQ
     local plain_buffer = self.buffer:gsub('%[[^a-zA-Z]*[a-zA-Z]', '')
     local start_index = plain_buffer:find(self.prompt)
     if start_index then
-      local req_id, cmd, addr = unpack(self.current_request)
-      local response = plain_buffer:sub(#cmd + 1, start_index):match('^%s*(.-)%s*$')
+      local request = self.current_request
+      self.current_request = nil
+      local response = plain_buffer:sub(#request.command + 1, start_index):match('^%s*(.-)%s*$')
       log.info({"Collected response", response = response})
       self.request_timer:stop()
-      self:send_response(req_id, response, addr)
+      self:send_response(request.req_id, response, request.addr)
       self.buffer = ''
-      self.current_request = nil
-      self:process_command()
+      self:process_request()
     end
   else
     io.stdout:write(data1, data2)
   end
   self.stdout_timer:stop()
   self.stdout_timer:start(100, 100, vim.schedule_wrap(function()
-    self:process_command()
+    self:process_request()
   end))
 end
 
-function Proxy:process_command()
-  log.debug({"Proxy:process_command"})
+---Check if there's an outstanding request and start executing it
+---@private
+function ProxyImpl:process_request()
+  log.debug({"ProxyImpl:process_request"})
   if self.current_request ~= nil then
     return
   end
@@ -176,32 +209,36 @@ function Proxy:process_command()
     return
   end
   local command = self.request_queue[self.request_queue_head]
-  local addr = command[2]
   self.request_queue[self.request_queue_head] = nil
   self.request_queue_head = self.request_queue_head + 1
-  local req_id, _, cmd = command[1]:match('(%d+) ([a-z-]+) (.+)')
-  self.current_request = {tonumber(req_id), cmd, addr}
+  local req_id, _, cmd = command.request:match('(%d+) ([a-z-]+) (.+)')
+  self.current_request = {req_id = assert(tonumber(req_id)), command = cmd, addr = command.addr}
   log.info({"Send request", cmd = cmd})
   -- \r\n for win32
   vim.fn.chansend(self.job_id, cmd .. cmd_nl)
   self.request_timer:start(500, 0, vim.schedule_wrap(function()
     self.request_timer:stop()
-    self:send_response(req_id, "Timed out", addr)
+    self:send_response(req_id, "Timed out", command.addr)
     self.current_request = nil
     if self.buffer ~= nil then
       self:on_stdout(self.buffer, '')
       self.buffer = nil
     end
-    self:process_command()
+    self:process_request()
   end))
 end
 
-function Proxy:send_response(req_id, response, addr)
-  log.debug({"Proxy:send_response", req_id = req_id, response = response, addr = addr})
+---Send a response back to the requester
+---@private
+---@param req_id integer request identifier from the requester
+---@param response any to be encoded in JSON
+---@param addr Address the request origin -- the response destination
+function ProxyImpl:send_response(req_id, response, addr)
+  log.debug({"ProxyImpl:send_response", req_id = req_id, response = response, addr = addr})
   local data = vim.fn.json_encode({request = req_id, response = response})
   self.sock:send(data, addr.ip, addr.port, function(err)
     assert(not err, err)
   end)
 end
 
-return Proxy
+return ProxyImpl
