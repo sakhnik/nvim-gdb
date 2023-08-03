@@ -193,6 +193,8 @@ function ProxyImpl:on_stdout(data1, data2)
       self.request_timer:stop()
       self:send_response(request.req_id, response, request.addr)
       self.buffer = ''
+      -- Resume taking user input
+      self:start_stdin()
       self:process_request()
     end
   else
@@ -231,6 +233,8 @@ function ProxyImpl:process_request()
   self.request_queue_head = self.request_queue_head + 1
   local req_id, _, cmd = command.request:match('(%d+) ([a-z-]+) (.+)')
   self.current_request = {req_id = assert(tonumber(req_id)), command = cmd, addr = command.addr}
+  -- Going to execute a command, suppress user input
+  self.stdin:read_stop()
   log.info({"Send request", cmd = cmd})
   -- \r\n for win32
   vim.fn.chansend(self.job_id, cmd .. cmd_nl)
@@ -242,6 +246,8 @@ function ProxyImpl:process_request()
       self:on_stdout(self.buffer, '')
       self.buffer = nil
     end
+    -- Resume taking user input
+    self:start_stdin()
     self:process_request()
   end))
   return true
