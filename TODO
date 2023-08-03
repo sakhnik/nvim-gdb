@@ -6,5 +6,6 @@
 - pty resizing with neovim
 - Port cmake completion to lua, extend it to suggest shell commands
 - run-tests.lua output cut in win32: probably, on_exit is handled before last on_stdout chunks
+- proxy: when a request comes, stash user typing, execute the request and resume typing
 
 Store and load breakpoints between sessions
