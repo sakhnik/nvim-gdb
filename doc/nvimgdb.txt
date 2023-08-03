@@ -427,13 +427,7 @@ Section 7.3 PDB, BashDB                            *NvimgdbPDB*  *NvimgdbBashDB*
 ==============================================================================
 Section 8: Limitations                                    *NvimgdbLimitations*
 
-- The plugin is sensitive to the debugger settings. If prompt or frame format
-  is changed, random errors may occur.
-
-- LLDB uses the same frame format in multiple different situations. The
-  command "thread backtrace", for instance, will cause jumps in the source
-  code. Workaround: execute "frame info" in the debugger or
-  `:GdbFrameUp` followed by `:GdbFrameDown`.
+- ???
 
 ==============================================================================
 Section 9: Development                                    *NvimgdbDevelopment*

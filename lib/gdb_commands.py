@@ -69,6 +69,9 @@ class NvimGdbInit(gdb.Command):
             fname = args[0]
             self._send_response(self._get_breaks(os.path.normpath(fname)),
                                 req_id, sock, addr)
+        elif request == "get-process-state":
+            self._send_response(self._get_process_state(),
+                                req_id, sock, addr)
         elif request == "get-current-frame-location":
             self._send_response(self._get_current_frame_location(),
                                 req_id, sock, addr)
@@ -103,6 +106,19 @@ class NvimGdbInit(gdb.Command):
         response_json = json.dumps(response_msg).encode("utf-8")
         logger.debug("Sending response: %s", response_json)
         sock.sendto(response_json, 0, addr)
+
+    def _get_process_state(self):
+        try:
+            inferior = gdb.selected_inferior()
+            if inferior.is_valid():
+                threads = inferior.threads()
+                is_running = any((t.is_valid() and t.is_running()
+                                  for t in threads))
+                state = "running" if is_running else "stopped"
+                return state
+        except gdb.error:
+            ...
+        return "other"
 
     def _get_current_frame_location(self):
         try:

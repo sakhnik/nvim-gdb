@@ -1,5 +1,4 @@
 - Port vimscript to lua: nvimgdb.vim
-- Detect whether the debugged process is running using side channel: prompt -> paused, query on output feed timeout (test_interrupt, test_command)
 - handle <up arrow> in pywinpty PDB
 - Press any key to exit: need to unblock msvcrt.getch() somehow
 - cmake test in win32?
