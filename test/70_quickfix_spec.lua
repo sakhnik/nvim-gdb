@@ -77,7 +77,7 @@ describe("quickfix", function()
 
   end)
 
-  it('breakpoint location list in PDB', function()
+  it('breakpoint location list in pdb', function()
     conf.post_terminal_end(function()
       conf.count_stops(function(count_stops)
         eng.feed(' dp<cr>')
@@ -115,7 +115,7 @@ describe("quickfix", function()
     end)
   end)
 
-  it('backtrace location list in PDB', function()
+  it('backtrace location list in pdb', function()
     conf.post_terminal_end(function()
       conf.count_stops(function(count_stops)
         eng.feed(' dp<cr>')

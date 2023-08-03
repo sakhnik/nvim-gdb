@@ -198,22 +198,33 @@ function ProxyImpl:on_stdout(data1, data2)
   else
     io.stdout:write(data1, data2)
   end
-  self.stdout_timer:stop()
-  self.stdout_timer:start(100, 100, vim.schedule_wrap(function()
-    self:process_request()
-  end))
+  local function start_stdout_timer()
+    self.stdout_timer:stop()
+    self.stdout_timer:start(100, 0, vim.schedule_wrap(function()
+      if self:process_request() then
+        self.stdout_timer:stop()
+      else
+        -- There're still requests to be scheduled
+        -- Note, that interval timer returns deceptional get_due_in(),
+        -- which is >0 after the timer has been stopped until the first interval elapses.
+        -- Therefore no intervals, restarting the timer manually
+        start_stdout_timer()
+      end
+    end))
+    start_stdout_timer()
+  end
 end
 
 ---Check if there's an outstanding request and start executing it
 ---@private
+---@return boolean false if there's an outstanding request, but it can't be scheduled at the moment
 function ProxyImpl:process_request()
   log.debug({"ProxyImpl:process_request"})
   if self.current_request ~= nil then
-    return
+    return false
   end
-  self.stdout_timer:stop()
   if self.request_queue_tail == self.request_queue_head then
-    return
+    return true
   end
   local command = self.request_queue[self.request_queue_head]
   self.request_queue[self.request_queue_head] = nil
@@ -233,6 +244,7 @@ function ProxyImpl:process_request()
     end
     self:process_request()
   end))
+  return true
 end
 
 ---Send a response back to the requester
