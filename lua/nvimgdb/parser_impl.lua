@@ -12,6 +12,7 @@ local log = require'nvimgdb.log'
 ---@field private byte_count number monotonously increasing processed byte counter
 ---@field private parsing_progress number[] ordered byte counters to ensure parsing in the right order
 ---@field private timers table<userdata, boolean> scheduled timers
+---@field private output_is_still boolean true if no new output when parsing is delayed
 local ParserImpl = {}
 ParserImpl.__index = ParserImpl
 
@@ -28,6 +29,7 @@ function ParserImpl:_init(actions)
   self.byte_count = 1
   self.parsing_progress = {}
   self.timers = {}
+  self.output_is_still = false
 end
 
 ---Destructor
@@ -130,15 +132,18 @@ end
 ---@param lines string[] input lines
 function ParserImpl:feed(lines)
   log.debug({"ParserImpl:feed", line = lines})
-  for _, line in ipairs(lines) do
-    if line == nil or line == '' then
-      line = '\n'
-    else
-      -- Filter out control sequences
-      line = line:gsub('\x1B[@-_][0-?]*[ -/]*[@-~]', '')
+  self.output_is_still = false
+  local nl = ''
+  for i, line in ipairs(lines) do
+    if i == 1 and line == '' then
+      nl = '\n'
     end
-    self.buffer = self.buffer .. line
-    self.byte_count = self.byte_count + #line
+    -- Filter out control sequences
+    line = line:gsub('\x1B[@-_][0-?]*[ -/]*[@-~]', '')
+
+    self.buffer = self.buffer .. nl .. line
+    self.byte_count = self.byte_count + #nl + #line
+    nl = '\n'
     log.debug({"buffer", self.buffer})
   end
   self.parsing_progress[#self.parsing_progress + 1] = self.byte_count
@@ -166,6 +171,10 @@ end
 ---@return boolean true if a match was found, means repeat searching immediately from a new state
 function ParserImpl:_search(ignore_tail_bytes)
   log.debug({"ParserImpl:_search", ignore_tail_bytes = ignore_tail_bytes})
+  -- If no new lines to parse have been received, mark that the output stabilized
+  if ignore_tail_bytes == 0 then
+    self.output_is_still = true
+  end
   if #self.buffer <= ignore_tail_bytes then
     return false
   end
@@ -203,6 +212,12 @@ function ParserImpl:delay_elapsed(byte_count)
   end
   -- Pop the current mark allowing parsing the next chunk
   table.remove(self.parsing_progress, 1)
+end
+
+---Return true if the output has paused for a while
+---@return boolean true if no new output to parse during the parser delay
+function ParserImpl:is_still()
+  return self.output_is_still
 end
 
 return ParserImpl

@@ -31,28 +31,28 @@ function C.create_parser(actions, proxy)
 
   function P:query_paused()
     coroutine.resume(coroutine.create(function()
-      local location = proxy:query('get-current-frame-location')
-      log.debug({"current frame location", location})
-      if #location == 2 then
-        local fname = location[1]
-        local line = location[2]
-        self.actions:jump_to_source(fname, line)
+      local process_state = proxy:query('get-process-state')
+      log.debug({"process state", process_state})
+      if process_state == 'stopped' then
+        local location = proxy:query('get-current-frame-location')
+        log.debug({"current frame location", location})
+        if #location == 2 then
+          local fname = location[1]
+          local line = location[2]
+          self.actions:jump_to_source(fname, line)
+        end
       end
-    end))
-
-    coroutine.resume(coroutine.create(function()
       self.actions:query_breakpoints()
+      self.state = process_state == 'running' and self.running or self.paused
     end))
-
-    return self.paused
+    -- Don't change the state yet
+    return self.state
   end
 
-  local re_prompt = '%(gdb%) \x1a\x1a\x1a'
+  local re_prompt = '$'
   self.add_trans(self.paused, '[\r\n]Continuing%.', self._paused_continue)
   self.add_trans(self.paused, '[\r\n]Starting program:', self._paused_continue)
   self.add_trans(self.paused, re_prompt, self.query_paused)
-  self.add_trans(self.running, '%sBreakpoint %d+', self.query_paused)
-  self.add_trans(self.running, '%sTemporary breakpoint %d+', self.query_paused)
   self.add_trans(self.running, re_prompt, self.query_paused)
 
   self.state = self.running
@@ -116,7 +116,6 @@ function C.get_launch_cmd(client_cmd, tmp_dir, proxy_addr)
     file:write([[
 set confirm off
 set pagination off
-python gdb.prompt_hook = lambda p: p + ("" if p.endswith("\x01\x1a\x1a\x1a\x02") else "\x01\x1a\x1a\x1a\x02")
 ]])
     file:write("source " .. utils.get_plugin_file_path("lib", "gdb_commands.py") .. "\n")
     file:write("nvim-gdb-init " .. proxy_addr .. "\n")

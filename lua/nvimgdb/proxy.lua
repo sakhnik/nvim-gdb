@@ -25,7 +25,7 @@ function Proxy.new(client)
   self.proxy_addr = client:get_proxy_addr()
 
   self.sock = assert(uv.new_udp())
-  assert(uv.udp_bind(self.sock, "127.0.0.1", 0))
+  assert(self.sock:bind("127.0.0.1", 0))
   -- Will connect to the socket later, when the first query is needed
   -- to be issued.
   self.server_port = nil
@@ -41,7 +41,7 @@ end
 function Proxy:cleanup()
   log.debug({"Proxy:cleanup"})
   if self.port ~= nil then
-    uv.udp_recv_stop(self.sock)
+    self.sock:recv_stop()
     self.port = nil
   end
   if self.sock ~= nil then
@@ -83,7 +83,7 @@ function Proxy:_ensure_connected()
   end
   local line = assert(lines())
   self.server_port = assert(tonumber(line))
-  local res, errmsg = uv.udp_recv_start(self.sock, function(err, data, --[[addr]]_, --[[flags]]_)
+  local res, errmsg = self.sock:recv_start(function(err, data, --[[addr]]_, --[[flags]]_)
     if err ~= nil then
       log.error({"Failed to receive response", err})
     elseif data ~= nil then
@@ -156,7 +156,7 @@ function Proxy:query(request)
   self.responses[request_id] = {co = co, timer = timer}
   self.responses_size = self.responses_size + 1
 
-  local res, errmsg = uv.udp_send(self.sock, request_id .. " " .. request, '127.0.0.1', self.server_port, function(err)
+  local res, errmsg = self.sock:send(request_id .. " " .. request, '127.0.0.1', self.server_port, function(err)
     if err ~= nil then
       log.warn({"Request failed", request_id = request_id, err = err})
       self:respond({request = request_id, response = {}}, true)
