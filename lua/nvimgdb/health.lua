@@ -119,8 +119,6 @@ M.check = function()
   end
   if not utils.is_windows then
     commands.bashdb = {"bashdb", "--version"}
-  else
-    commands.winpty = {"python", "-c", "import winpty; print(f'{winpty.__name__} {winpty.__version__}')"}
   end
 
   local tests = Tests.execute_commands(commands)
@@ -147,10 +145,7 @@ M.check = function()
   end
 
   _start "PDB backend"
-  local has_python = tests:check_version("python", "", stdout_getter(1))
-  if utils.is_windows and has_python then
-    tests:check_version("winpty", "pywinpty", stdout_getter(1))
-  end
+  tests:check_version("python", "", stdout_getter(1))
   if results.bashdb ~= nil then
     _start "BashDB backend"
     local has_bashdb = tests:check_version("bashdb", "", stderr_getter(1))
