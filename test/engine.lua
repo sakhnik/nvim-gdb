@@ -1,5 +1,6 @@
 local thr = require'thread'
 local utils = require'nvimgdb.utils'
+local nvimgdb = require'nvimgdb'
 
 local E = {}
 
@@ -53,20 +54,28 @@ function E.wait_state(state, timeout_ms)
     timeout_ms = 5000
   end
   local query = function()
-    if NvimGdb == nil then
-      return false
-    end
-    local parser = NvimGdb.here.parser
+    local parser = nvimgdb.here.parser
     return type(parser) == 'table' and parser:is_paused()
   end
   return E.wait_for(query, function(is_paused) return is_paused == state end, timeout_ms)
+end
+
+---Wait until the debugger doesn't have new output
+---@param timeout_ms? number Timeout in milliseconds
+---@return boolean
+function E.wait_is_still(timeout_ms)
+  local query = function()
+    local parser = nvimgdb.here.parser
+    return type(parser) == 'table' and parser:is_still()
+  end
+  return E.wait_for(query, function(is_still) return is_still end, timeout_ms)
 end
 
 ---Wait until the debugger gets into the paused state
 ---@param timeout_ms? number Timeout in milliseconds
 ---@return boolean
 function E.wait_paused(timeout_ms)
-  return E.wait_state(true, timeout_ms)
+  return E.wait_is_still(timeout_ms) and E.wait_state(true, timeout_ms)
 end
 
 ---Wait until the debugger gets into the running state
@@ -164,7 +173,7 @@ function E.wait_signs(expected_signs, timeout_ms)
   local function is_expected(signs)
     return vim.deep_equal(expected_signs, signs)
   end
-  return E.wait_for(query, is_expected, timeout_ms)
+  return E.wait_is_still(timeout_ms) and E.wait_for(query, is_expected, timeout_ms)
 end
 
 ---Wait until cursor in the current window gets to the given line

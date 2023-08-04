@@ -1,10 +1,9 @@
 - Port vimscript to lua: nvimgdb.vim
-- Detect whether the debugged process is running using side channel: prompt -> paused, query on output feed timeout (test_interrupt, test_command)
-- handle <up arrow> in pywinpty PDB
 - Press any key to exit: need to unblock msvcrt.getch() somehow
 - cmake test in win32?
 - pty resizing with neovim
 - Port cmake completion to lua, extend it to suggest shell commands
 - run-tests.lua output cut in win32: probably, on_exit is handled before last on_stdout chunks
+- proxy: when a request comes, stash user typing, execute the request and resume typing
 
 Store and load breakpoints between sessions

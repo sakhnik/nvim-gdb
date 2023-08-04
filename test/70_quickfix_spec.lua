@@ -77,78 +77,74 @@ describe("quickfix", function()
 
   end)
 
-  it('breakpoint location list in PDB', function()
+  it('breakpoint location list in pdb', function()
     conf.post_terminal_end(function()
-      conf.count_stops(function(count_stops)
-        eng.feed(' dp<cr>')
-        assert.is_true(count_stops.wait(1))
-        eng.feed('b _main<cr>')
-        assert.is_true(count_stops.wait(2))
-        eng.feed('b _foo<cr>')
-        assert.is_true(count_stops.wait(3))
-        eng.feed('b _bar<cr>')
-        assert.is_true(count_stops.wait(4))
-        eng.feed('<esc>')
-        eng.feed('<c-w>w')
-        eng.feed(':GdbLopenBreakpoints<cr>')
-        assert.is_true(
-          eng.wait_for(
-            function() return #vim.fn.getloclist(0) end,
-            function(r) return r > 0 end
-          )
+      eng.feed(' dp<cr>')
+      assert.is_true(eng.wait_signs({cur = 'main.py:1'}))
+      eng.feed('b _main<cr>')
+      assert.is_true(eng.wait_signs({cur = 'main.py:1', brk = {[1] = {14}}}))
+      eng.feed('b _foo<cr>')
+      assert.is_true(eng.wait_signs({cur = 'main.py:1', brk = {[1] = {8, 14}}}))
+      eng.feed('b _bar<cr>')
+      assert.is_true(eng.wait_signs({cur = 'main.py:1', brk = {[1] = {4, 8, 14}}}))
+      eng.feed('<esc>')
+      eng.feed('<c-w>w')
+      eng.feed(':GdbLopenBreakpoints<cr>')
+      assert.is_true(
+        eng.wait_for(
+          function() return #vim.fn.getloclist(0) end,
+          function(r) return r > 0 end
         )
-        eng.feed('<c-w>j')
-        eng.feed(':ll<cr>')
-        assert.is_true(
-          eng.wait_for(
-            function() return vim.fn.line('.') end,
-            function(r) return r == 14 end
-          )
+      )
+      eng.feed('<c-w>j')
+      eng.feed(':ll<cr>')
+      assert.is_true(
+        eng.wait_for(
+          function() return vim.fn.line('.') end,
+          function(r) return r == 14 end
         )
-        eng.feed(':lnext<cr>')
-        assert.equals(8, vim.fn.line('.'))
-        eng.feed(':lnext<cr>')
-        assert.equals(4, vim.fn.line('.'))
-        eng.feed(':lnext<cr>')
-        assert.equals(4, vim.fn.line('.'))
-      end)
+      )
+      eng.feed(':lnext<cr>')
+      assert.equals(8, vim.fn.line('.'))
+      eng.feed(':lnext<cr>')
+      assert.equals(4, vim.fn.line('.'))
+      eng.feed(':lnext<cr>')
+      assert.equals(4, vim.fn.line('.'))
     end)
   end)
 
-  it('backtrace location list in PDB', function()
+  it('backtrace location list in pdb', function()
     conf.post_terminal_end(function()
-      conf.count_stops(function(count_stops)
-        eng.feed(' dp<cr>')
-        assert.is_true(count_stops.wait(1))
-        eng.feed('b _bar<cr>')
-        assert.is_true(count_stops.wait(2))
-        eng.feed('cont<cr>')
-        assert.is_true(eng.wait_signs({cur = 'main.py:5', brk = {[1] = {4}}}))
-        eng.feed('<esc>')
-        eng.feed('<c-w>w')
-        eng.feed(':GdbLopenBacktrace<cr>')
-        assert.is_true(
-          eng.wait_for(
-            function() return #vim.fn.getloclist(0) end,
-            function(r) return r > 0 end
-          )
+      eng.feed(' dp<cr>')
+      assert.is_true(eng.wait_signs({cur = 'main.py:1'}))
+      eng.feed('b _bar<cr>')
+      assert.is_true(eng.wait_signs({cur = 'main.py:1', brk = {[1] = {4}}}))
+      eng.feed('cont<cr>')
+      assert.is_true(eng.wait_signs({cur = 'main.py:5', brk = {[1] = {4}}}))
+      eng.feed('<esc>')
+      eng.feed('<c-w>w')
+      eng.feed(':GdbLopenBacktrace<cr>')
+      assert.is_true(
+        eng.wait_for(
+          function() return #vim.fn.getloclist(0) end,
+          function(r) return r > 0 end
         )
-        eng.feed('<c-w>j')
-        eng.feed(':lnext<cr>')
-        eng.feed(':lnext<cr>')
-        assert.is_true(
-          eng.wait_for(
-            function() return vim.fn.line('.') end,
-            function(r) return r == 22 end
-          )
+      )
+      eng.feed('<c-w>j')
+      eng.feed(':lnext<cr>')
+      eng.feed(':lnext<cr>')
+      assert.is_true(
+        eng.wait_for(
+          function() return vim.fn.line('.') end,
+          function(r) return r == 22 end
         )
-        eng.feed(':lnext<cr>')
-        assert.equals(16, vim.fn.line('.'))
-        eng.feed(':lnext<cr>')
-        assert.equals(11, vim.fn.line('.'))
-        eng.feed(':lnext<cr>')
-        assert.equals(5, vim.fn.line('.'))
-      end)
+      )
+      eng.feed(':lnext<cr>')
+      assert.equals(16, vim.fn.line('.'))
+      eng.feed(':lnext<cr>')
+      assert.equals(11, vim.fn.line('.'))
+      eng.feed(':lnext<cr>')
+      assert.equals(5, vim.fn.line('.'))
     end)
   end)
 

@@ -419,7 +419,7 @@ Section 7.3 PDB, BashDB                            *NvimgdbPDB*  *NvimgdbBashDB*
 - PDB and BashDB are run via a proxy pty application, which allows executing
   concealed service commands, like "info breakpoints" on each stop. Thus, the
   plugin is able to very carefully display current set of breakpoints with the
-  temporal ones disappearing after hit. Technically, the proxy app is a python
+  temporal ones disappearing after hit. Technically, the proxy app is a lua
   program that launches pdb in a pseudo terminal, listens a UDP socket for
   commands, and processes the output of PDB to filter out service commands.
 
@@ -427,13 +427,7 @@ Section 7.3 PDB, BashDB                            *NvimgdbPDB*  *NvimgdbBashDB*
 ==============================================================================
 Section 8: Limitations                                    *NvimgdbLimitations*
 
-- The plugin is sensitive to the debugger settings. If prompt or frame format
-  is changed, random errors may occur.
-
-- LLDB uses the same frame format in multiple different situations. The
-  command "thread backtrace", for instance, will cause jumps in the source
-  code. Workaround: execute "frame info" in the debugger or
-  `:GdbFrameUp` followed by `:GdbFrameDown`.
+- ???
 
 ==============================================================================
 Section 9: Development                                    *NvimgdbDevelopment*

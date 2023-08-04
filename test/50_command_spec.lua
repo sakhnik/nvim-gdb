@@ -47,7 +47,7 @@ describe("command", function()
     end)
   end)
 
-  it('custom command in PDB', function()
+  it('custom command in pdb', function()
     conf.post_terminal_end(function()
       eng.feed(' dp<cr>')
       assert.is_true(eng.wait_signs({cur = 'main.py:1'}))
