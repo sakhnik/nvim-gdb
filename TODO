@@ -1,5 +1,4 @@
 - Port vimscript to lua: nvimgdb.vim
-- Press any key to exit: need to unblock msvcrt.getch() somehow
 - cmake test in win32?
 - pty resizing with neovim
 - Port cmake completion to lua, extend it to suggest shell commands
