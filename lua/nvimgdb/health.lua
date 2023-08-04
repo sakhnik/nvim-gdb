@@ -148,10 +148,7 @@ M.check = function()
   tests:check_version("python", "", stdout_getter(1))
   if results.bashdb ~= nil then
     _start "BashDB backend"
-    local has_bashdb = tests:check_version("bashdb", "", stderr_getter(1))
-    if has_bashdb then
-      tests:check_version("python", "", stdout_getter(1))
-    end
+    tests:check_version("bashdb", "", stderr_getter(1))
   end
   _start "Test suite"
   tests:check_version("python", "", stdout_getter(1))
