@@ -1,4 +1,3 @@
-- Port vimscript to lua: nvimgdb.vim
 - cmake test in win32?
 - pty resizing with neovim
 - Port cmake completion to lua, extend it to suggest shell commands
