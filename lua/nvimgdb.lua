@@ -226,16 +226,6 @@ function NvimGdb.global_init()
       echo "GdbCustomCommand() is deprecated, use Lua `require'nvimgdb'.i(0):custom_command_async()`"
       return luaeval("NvimGdb.here:custom_command(_A[1])", [a:cmd])
     endfunction
-
-    " Define custom events
-    augroup NvimGdbInternal
-      au!
-      au User NvimGdbQuery ""
-      au User NvimGdbBreak ""
-      au User NvimGdbContinue ""
-      au User NvimGdbStart ""
-      au User NvimGdbCleanup ""
-    augroup END
   ]])
 
   local nvimgdb_auid = vim.api.nvim_create_augroup("NvimGdb", {clear = true})
@@ -269,6 +259,22 @@ function NvimGdb.global_init()
     pattern = {"*"},
     callback = function() require'nvimgdb'.on_vim_leave_pre() end
   })
+
+  local custom_events = {
+      "NvimGdbQuery",
+      "NvimGdbBreak",
+      "NvimGdbContinue",
+      "NvimGdbStart",
+      "NvimGdbCleanup"
+  }
+  local nvimgdb_internal_auid = vim.api.nvim_create_augroup("NvimGdbInternal", {clear = true})
+  for _, event in ipairs(custom_events) do
+    vim.api.nvim_create_autocmd("User", {
+        group = nvimgdb_internal_auid,
+        pattern = event,
+        command = ""
+      })
+  end
 end
 
 ---Shared global state cleanup after the last session ended
@@ -276,13 +282,8 @@ function NvimGdb.global_cleanup()
   log.info({"NvimGdb.global_cleanup"})
 
   vim.api.nvim_del_augroup_by_name("NvimGdb")
+  vim.api.nvim_del_augroup_by_name("NvimGdbInternal")
   vim.cmd([[
-    " Cleanup custom events
-    augroup NvimGdbInternal
-      au!
-    augroup END
-    augroup! NvimGdbInternal
-
     delfunction GdbCustomCommand
   ]])
 
