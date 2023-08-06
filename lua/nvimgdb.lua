@@ -227,16 +227,6 @@ function NvimGdb.global_init()
       return luaeval("NvimGdb.here:custom_command(_A[1])", [a:cmd])
     endfunction
 
-    augroup NvimGdb
-      au!
-      au TabEnter * lua require'nvimgdb'.i(0):on_tab_enter()
-      au TabLeave * lua require'nvimgdb'.i(0):on_tab_leave()
-      au BufEnter * lua require'nvimgdb'.i(0):on_buf_enter()
-      au BufLeave * lua require'nvimgdb'.i(0):on_buf_leave()
-      au TabClosed * lua require'nvimgdb'.on_tab_closed()
-      au VimLeavePre * lua require'nvimgdb'.on_vim_leave_pre()
-    augroup END
-
     " Define custom events
     augroup NvimGdbInternal
       au!
@@ -248,19 +238,46 @@ function NvimGdb.global_init()
     augroup END
   ]])
 
+  local nvimgdb_auid = vim.api.nvim_create_augroup("NvimGdb", {clear = true})
+  vim.api.nvim_create_autocmd("TabEnter", {
+    group = nvimgdb_auid,
+    pattern = {"*"},
+    callback = function() require'nvimgdb'.i(0):on_tab_enter() end
+  })
+  vim.api.nvim_create_autocmd("TabLeave", {
+    group = nvimgdb_auid,
+    pattern = {"*"},
+    callback = function() require'nvimgdb'.i(0):on_tab_leave() end
+  })
+  vim.api.nvim_create_autocmd("BufEnter", {
+    group = nvimgdb_auid,
+    pattern = {"*"},
+    callback = function() require'nvimgdb'.i(0):on_buf_enter() end
+  })
+  vim.api.nvim_create_autocmd("BufLeave", {
+    group = nvimgdb_auid,
+    pattern = {"*"},
+    callback = function() require'nvimgdb'.i(0):on_buf_leave() end
+  })
+  vim.api.nvim_create_autocmd("TabClosed", {
+    group = nvimgdb_auid,
+    pattern = {"*"},
+    callback = function() require'nvimgdb'.on_tab_closed() end
+  })
+  vim.api.nvim_create_autocmd("VimLeavePre", {
+    group = nvimgdb_auid,
+    pattern = {"*"},
+    callback = function() require'nvimgdb'.on_vim_leave_pre() end
+  })
 end
 
 ---Shared global state cleanup after the last session ended
 function NvimGdb.global_cleanup()
   log.info({"NvimGdb.global_cleanup"})
-  vim.cmd([[
-    " Cleanup the autocommands
-    augroup NvimGdb
-      au!
-    augroup END
-    augroup! NvimGdb
 
-  " Cleanup custom events
+  vim.api.nvim_del_augroup_by_name("NvimGdb")
+  vim.cmd([[
+    " Cleanup custom events
     augroup NvimGdbInternal
       au!
     augroup END
