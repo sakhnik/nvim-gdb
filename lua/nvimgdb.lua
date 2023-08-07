@@ -35,8 +35,7 @@ function NvimGdb.new(backend_name, client_cmd)
   NvimGdb.apps_size = NvimGdb.apps_size + 1
   if NvimGdb.apps_size == 1 then
     -- Initialize the UI commands, autocommands etc
-    log.info("Calling nvimgdb#GlobalInit()")
-    vim.fn["nvimgdb#GlobalInit"]()
+    NvimGdb.global_init()
   end
   -- Initialize the rest of the app
   app:postinit()
@@ -111,8 +110,7 @@ function NvimGdb.cleanup(tab)
     with_saved_hidden(function()
       if NvimGdb.apps_size == 0 then
         -- Cleanup commands, autocommands etc
-        log.info("Calling nvimgdb#GlobalCleanup()")
-        vim.fn["nvimgdb#GlobalCleanup"]()
+        NvimGdb.global_cleanup()
         NvimGdb.efmmgr.cleanup()
         app:get_win():unset_keymaps()
       end
@@ -148,6 +146,167 @@ function NvimGdb.on_vim_leave_pre()
   for tab, _ in pairs(NvimGdb.apps) do
     NvimGdb.cleanup(tab)
   end
+end
+
+
+---Shared global state initialization (commands, keymaps etc)
+function NvimGdb.global_init()
+  log.info({"NvimGdb.global_init"})
+  vim.api.nvim_create_user_command('GdbDebugStop',
+    function() NvimGdb.cleanup(vim.api.nvim_get_current_tabpage()) end,
+    {force = true, desc = 'Stop current debugging session'})
+  vim.api.nvim_create_user_command('GdbBreakpointToggle',
+    function() NvimGdb.here:breakpoint_toggle() end,
+    {force = true, desc = 'Toggle a breakpoint in the current line'})
+  vim.api.nvim_create_user_command('GdbBreakpointClearAll',
+    function() NvimGdb.here:breakpoint_clear_all() end,
+    {force = true, desc = 'Clear all breakpoints'})
+  vim.api.nvim_create_user_command('GdbFrame',
+    function() NvimGdb.here:send('f') end,
+    {force = true, desc = 'Go to the current frame'})
+  vim.api.nvim_create_user_command('GdbRun',
+    function() NvimGdb.here:send('run') end,
+    {force = true, desc = 'Run the debugged program'})
+  vim.api.nvim_create_user_command('GdbUntil',
+    function() NvimGdb.here:send('until %s', vim.fn.line('.')) end,
+    {force = true, desc = 'Continue program execution until the current line'})
+  vim.api.nvim_create_user_command('GdbContinue',
+    function() NvimGdb.here:send('c') end,
+    {force = true, desc = 'Continue program execution'})
+  vim.api.nvim_create_user_command('GdbNext',
+    function() NvimGdb.here:send('n') end,
+    {force = true, desc = 'Step over'})
+  vim.api.nvim_create_user_command('GdbStep',
+    function() NvimGdb.here:send('s') end,
+    {force = true, desc = 'Step into'})
+  vim.api.nvim_create_user_command('GdbFinish',
+    function() NvimGdb.here:send('finish') end,
+    {force = true, desc = 'Finish executing current frame'})
+  vim.api.nvim_create_user_command('GdbFrameUp',
+    function() NvimGdb.here:send('up') end,
+    {force = true, desc = 'Up one frame'})
+  vim.api.nvim_create_user_command('GdbFrameDown',
+    function() NvimGdb.here:send('down') end,
+    {force = true, desc = 'Down one frame'})
+  vim.api.nvim_create_user_command('GdbInterrupt',
+    function() NvimGdb.here:send() end,
+    {force = true, desc = 'Interrupt running program'})
+  vim.api.nvim_create_user_command('GdbEvalWord',
+    function() NvimGdb.here:send('print %s', vim.fn.expand('<cword>')) end,
+    {force = true, desc = 'Evaluate the word under cursor'})
+
+  local function get_expression()
+    local _, lnum1, col1 = unpack(vim.fn.getpos("'<"))
+    local _, lnum2, col2 = unpack(vim.fn.getpos("'>"))
+    local lines = vim.fn.getline(lnum1, lnum2)
+    lines[#lines] = lines[#lines]:sub(1, col2)
+    lines[1] = lines[1]:sub(col1)
+    return table.concat(lines, "\n")
+  end
+
+  vim.api.nvim_create_user_command('GdbEvalRange',
+    function() NvimGdb.here:send('print %s', get_expression()) end,
+    {range = true, force = true, desc = 'Evaluate the range'})
+
+  vim.api.nvim_create_user_command('GdbCreateWatch',
+    function(a) NvimGdb.here:create_watch(a.args, a.mods) end,
+    {nargs = 1, force = true, desc = 'Create a window watching an expression'})
+  vim.api.nvim_create_user_command('Gdb',
+    function(a) NvimGdb.here:send(a.args) end,
+    {nargs = "+", force = true, desc = 'Execute debugger command'})
+  vim.api.nvim_create_user_command('GdbLopenBacktrace',
+    function(a) NvimGdb.here:lopen(require'nvimgdb.app'.lopen_kind.backtrace, a.mods) end,
+    {force = true, desc = 'Load backtrace frame locations into the location list'})
+  vim.api.nvim_create_user_command('GdbLopenBreakpoints',
+    function(a) NvimGdb.here:lopen(require'nvimgdb.app'.lopen_kind.breakpoints, a.mods) end,
+    {force = true, desc = 'Load breakpoint locations into the location list'})
+
+  vim.cmd([[
+    function! GdbCustomCommand(cmd)
+      echo "GdbCustomCommand() is deprecated, use Lua `require'nvimgdb'.i(0):custom_command_async()`"
+      return luaeval("NvimGdb.here:custom_command(_A[1])", [a:cmd])
+    endfunction
+  ]])
+
+  local nvimgdb_auid = vim.api.nvim_create_augroup("NvimGdb", {clear = true})
+  vim.api.nvim_create_autocmd("TabEnter", {
+    group = nvimgdb_auid,
+    pattern = {"*"},
+    callback = function() require'nvimgdb'.i(0):on_tab_enter() end
+  })
+  vim.api.nvim_create_autocmd("TabLeave", {
+    group = nvimgdb_auid,
+    pattern = {"*"},
+    callback = function() require'nvimgdb'.i(0):on_tab_leave() end
+  })
+  vim.api.nvim_create_autocmd("BufEnter", {
+    group = nvimgdb_auid,
+    pattern = {"*"},
+    callback = function() require'nvimgdb'.i(0):on_buf_enter() end
+  })
+  vim.api.nvim_create_autocmd("BufLeave", {
+    group = nvimgdb_auid,
+    pattern = {"*"},
+    callback = function() require'nvimgdb'.i(0):on_buf_leave() end
+  })
+  vim.api.nvim_create_autocmd("TabClosed", {
+    group = nvimgdb_auid,
+    pattern = {"*"},
+    callback = function() require'nvimgdb'.on_tab_closed() end
+  })
+  vim.api.nvim_create_autocmd("VimLeavePre", {
+    group = nvimgdb_auid,
+    pattern = {"*"},
+    callback = function() require'nvimgdb'.on_vim_leave_pre() end
+  })
+
+  local custom_events = {
+      "NvimGdbQuery",
+      "NvimGdbBreak",
+      "NvimGdbContinue",
+      "NvimGdbStart",
+      "NvimGdbCleanup"
+  }
+  local nvimgdb_internal_auid = vim.api.nvim_create_augroup("NvimGdbInternal", {clear = true})
+  for _, event in ipairs(custom_events) do
+    vim.api.nvim_create_autocmd("User", {
+        group = nvimgdb_internal_auid,
+        pattern = event,
+        command = ""
+      })
+  end
+end
+
+---Shared global state cleanup after the last session ended
+function NvimGdb.global_cleanup()
+  log.info({"NvimGdb.global_cleanup"})
+
+  vim.api.nvim_del_augroup_by_name("NvimGdb")
+  vim.api.nvim_del_augroup_by_name("NvimGdbInternal")
+  vim.cmd([[
+    delfunction GdbCustomCommand
+  ]])
+
+  -- Cleanup user commands and keymaps
+  vim.api.nvim_del_user_command('GdbDebugStop')
+  vim.api.nvim_del_user_command('GdbBreakpointToggle')
+  vim.api.nvim_del_user_command('GdbBreakpointClearAll')
+  vim.api.nvim_del_user_command('GdbFrame')
+  vim.api.nvim_del_user_command('GdbRun')
+  vim.api.nvim_del_user_command('GdbUntil')
+  vim.api.nvim_del_user_command('GdbContinue')
+  vim.api.nvim_del_user_command('GdbNext')
+  vim.api.nvim_del_user_command('GdbStep')
+  vim.api.nvim_del_user_command('GdbFinish')
+  vim.api.nvim_del_user_command('GdbFrameUp')
+  vim.api.nvim_del_user_command('GdbFrameDown')
+  vim.api.nvim_del_user_command('GdbInterrupt')
+  vim.api.nvim_del_user_command('GdbEvalWord')
+  vim.api.nvim_del_user_command('GdbEvalRange')
+  vim.api.nvim_del_user_command('GdbCreateWatch')
+  vim.api.nvim_del_user_command('Gdb')
+  vim.api.nvim_del_user_command('GdbLopenBacktrace')
+  vim.api.nvim_del_user_command('GdbLopenBreakpoints')
 end
 
 return NvimGdb

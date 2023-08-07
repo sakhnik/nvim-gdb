@@ -48,7 +48,7 @@ function Win.new(config, keymaps, cursor, client, breakpoint, start_win, edited_
   return self
 end
 
----Only make sense if nvimgdb#GlobalCleanup is called
+---Only makes sense if NvimGdb.global_cleanup() is called
 function Win:unset_keymaps()
   log.debug({"Win:unset_keymaps"})
   if self:_has_jump_win() then
