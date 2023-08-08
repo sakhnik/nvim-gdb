@@ -45,7 +45,7 @@ describe("cmake", function()
 
   it("find", function()
     check_skip()
-    local execs = vim.fn.ExecsCompletion('../', '', '')
+    local execs = vim.fn.ExecsCompletion('../')
     assert.are.same({'build/cmake_test_exec', '../a.out'}, execs)
   end)
 end)

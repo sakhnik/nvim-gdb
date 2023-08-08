@@ -14,8 +14,8 @@ function! s:Spawn(backend, client_cmd)
   call luaeval("require'nvimgdb'.new(_A[1], _A[2])", [a:backend, cmd])
 endfunction
 
-command! -nargs=+ -complete=customlist,ExecsCompletion GdbStart call s:Spawn('gdb', [<f-args>])
-command! -nargs=+ -complete=customlist,ExecsCompletion GdbStartLLDB call s:Spawn('lldb', [<f-args>])
+command! -nargs=+ -complete=shellcmd GdbStart call s:Spawn('gdb', [<f-args>])
+command! -nargs=+ -complete=shellcmd GdbStartLLDB call s:Spawn('lldb', [<f-args>])
 command! -nargs=+ -complete=shellcmd GdbStartPDB call s:Spawn('pdb', [<f-args>])
 command! -nargs=+ -complete=shellcmd GdbStartBashDB call s:Spawn('bashdb', [<f-args>])
 command! GdbStartRR call s:Spawn('gdb', ['rr-replay.py'])
@@ -32,27 +32,51 @@ if !exists("g:nvimgdb_use_cmake_to_find_executables")
   let g:nvimgdb_use_cmake_to_find_executables=1
 endif
 
-function ExecsCompletion(ArgLead, CmdLine, CursorPos)
+function ExecsCompletion(lead)
   " Use `find`
-  let find_cmd="find " . a:ArgLead . '* -type f -not -path "**/CMakeFiles/**"'
-  echom "find_cmd: '" . find_cmd . "'"
+  let find_cmd="find " . a:lead . '* -type f -not -path "**/CMakeFiles/**"'
+  "echom "find_cmd: '" . find_cmd . "'"
   let found_executables = g:nvimgdb_use_find_executables ? 
         \systemlist(find_cmd) : []
   if v:shell_error
     let found_executables = []
   endif
   call filter(found_executables, {idx, exec -> IsExec(exec)})
-  echom "found_executables: " . join(found_executables, ', ')
+  "echom "found_executables: " . join(found_executables, ', ')
   call filter(found_executables, {idx, exec -> match(systemlist('file --brief --mime-encoding ' . exec)[0], 'binary')>=0})
   call map(found_executables, {idx, exec -> substitute(exec, '/\{2,}', '/', 'g')})
-  echom "after filter: found_executables: " . join(found_executables, ', ')
+  "echom "after filter: found_executables: " . join(found_executables, ', ')
 
   " Use CMake
   let cmake_executables = g:nvimgdb_use_cmake_to_find_executables ? 
-        \guess_executable_cmake#ExecutablesOfBuffer(a:ArgLead) : []
-  echom "Cmake Execs: "  cmake_executables
+        \guess_executable_cmake#ExecutablesOfBuffer(a:lead) : []
+  "echom "Cmake Execs: "  cmake_executables
   return extend(cmake_executables, found_executables)
 endfunction
+
+function SelectExecutable()
+  let curcmd = getcmdline()
+  let pos = getcmdpos()
+  let lead = ''
+  while pos > 0 && curcmd[pos] != ' '
+    let lead = curcmd[pos] . lead
+    let pos -= 1
+  endwhile
+  let execs = ExecsCompletion(lead)
+  let msg = ["Select executable:"]
+  let i = 0
+  while i < len(execs)
+    let msg += ['' . (i + 1) . '. ' . execs[i]]
+    let i += 1
+  endwhile
+  let idx = inputlist(msg)
+  if idx == 0 || idx > len(execs)
+    return ''
+  end
+  return execs[idx - 1]
+endfunction
+
+cnoremap <silent> <c-e> <C-r>=SelectExecutable()<cr>
 
 if !exists('g:nvimgdb_disable_start_keymaps') || !g:nvimgdb_disable_start_keymaps
   nnoremap <leader>dd :GdbStart gdb -q 
