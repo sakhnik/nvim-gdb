@@ -1,14 +1,3 @@
-function GetArtifactPaths(targets)
-        return map(a:targets, {idx, target-> map(target.artifacts, {idx, artifact -> artifact.path})})
-endfunction
-
-function ArtifactsOfFiles(targets, file_name)
-        " Filter down to targets that use file_name
-        let filtered_targets = luaeval("require'nvimgdb.cmake'.targets_that_use_files(_A[1], _A[2])", [a:targets, a:file_name])
-        " Get all artifact paths in that target
-        return flatten(GetArtifactPaths(filtered_targets))
-endfunction
-
 function InCMakeDir(path)
         " normalize path
         "echom "Is " . a:path . " in a CMake Directory?"
@@ -86,7 +75,7 @@ function ExecutableOfFileHelper(targets, file_name, depth)
         let tabs=repeat("  ", a:depth)
         "echom tabs.a:file_name
         if match(a:file_name, '\(\.c$\|\.cpp$\|\.a$\|\.so$\)') >= 0
-                let artifacts = ArtifactsOfFiles(copy(a:targets), a:file_name)
+                let artifacts = luaeval("require'nvimgdb.cmake'.artifacts_of_files(_A[1], _A[2])", [a:targets, a:file_name])
         else " assume executable found
                 "echom tabs."found executable: " . a:file_name
                 return [a:file_name]

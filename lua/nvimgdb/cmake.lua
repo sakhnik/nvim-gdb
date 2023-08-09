@@ -101,34 +101,37 @@ end
 ---Filter targets keeping those that reference the given file_name
 ---@param targets table
 ---@param file_name string
----@return table
-function CMake.targets_that_use_files(targets, file_name)
-  if string.find(file_name, '%.cp?p?$') then
-    local ret = {}
+---@return string[] artifact paths
+function CMake.artifacts_of_files(targets, file_name)
+  local artifacts = {}
+  local function filter_targets(pred)
     for _, target in ipairs(targets) do
+      if pred(target) then
+        for _, artifact in ipairs(target.artifacts) do
+          artifacts[#artifacts+1] = artifact.path
+        end
+      end
+    end
+  end
+  if string.find(file_name, '%.cp?p?$') then
+    filter_targets(function(target)
       for _, source in ipairs(target.sources) do
         if vim.fn.match(source.path, file_name) >= 0 then
-          ret[#ret+1] = target
-          break
+          return true
         end
       end
-    end
-    return ret
-  end
-  if string.match(file_name, '%.so$') or string.match(file_name, '%.a$') then
+    end)
+  elseif string.match(file_name, '%.so$') or string.match(file_name, '%.a$') then
     local basename = file_name:find('([^/\\]+)$')
-    local ret = {}
-    for _, target in ipairs(targets) do
+    filter_targets(function(target)
       for _, command_fragment in ipairs(target.link.commandFragments) do
         if vim.fn.match(command_fragment.fragment, basename) >= 0 then
-          ret[#ret+1] = target
-          break
+          return true
         end
       end
-    end
-    return ret
+    end)
   end
-  return {}
+  return artifacts
 end
 
 return CMake
