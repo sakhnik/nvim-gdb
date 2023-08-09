@@ -1,26 +1,10 @@
-" targets structure is:
-" [{artifacts:[...], 
-"   link: {commandFragments: [{fragment:"<file_name>", ...}, ...], ...}, 
-"   sources: [{path:"<file_name>", ...}...]
-"  }, ...]
-" Library files (*.a, *.so) are in commandFragments and source files (*.c,
-" *.cpp) are in sources
-function TargetsThatUseFiles(targets, file_name)
-        if match(a:file_name, '\(\.c$\|\.cpp$\)') >= 0
-                let Filter_lambda = {idx, val -> match(map(get(val, "sources", []), {idx, source -> source.path}), a:file_name) >= 0}
-        elseif match(a:file_name, '\(\.a$\|\.so$\)') >= 0
-                let Filter_lambda = {idx, val -> match(map(get(get(val, "link", {}),"commandFragments", []), {idx, commandFragment -> commandFragment.fragment}), split(a:file_name,'/')[-1]) >= 0}
-        endif
-        return filter(a:targets, Filter_lambda ) 
-endfunction
-
 function GetArtifactPaths(targets)
         return map(a:targets, {idx, target-> map(target.artifacts, {idx, artifact -> artifact.path})})
 endfunction
 
 function ArtifactsOfFiles(targets, file_name)
         " Filter down to targets that use file_name
-        let filtered_targets = TargetsThatUseFiles(a:targets, a:file_name)
+        let filtered_targets = luaeval("require'nvimgdb.cmake'.targets_that_use_files(_A[1], _A[2])", [a:targets, a:file_name])
         " Get all artifact paths in that target
         return flatten(GetArtifactPaths(filtered_targets))
 endfunction

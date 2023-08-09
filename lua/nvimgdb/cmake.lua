@@ -91,4 +91,44 @@ function CMake.get_executables(prefix)
   return execs
 end
 
+-- targets structure is:
+-- [{artifacts:[...], 
+--   link: {commandFragments: [{fragment:"<file_name>", ...}, ...], ...}, 
+--   sources: [{path:"<file_name>", ...}...]
+--  }, ...]
+-- Library files (*.a, *.so) are in commandFragments and source files (*.c,
+-- *.cpp) are in sources
+---Filter targets keeping those that reference the given file_name
+---@param targets table
+---@param file_name string
+---@return table
+function CMake.targets_that_use_files(targets, file_name)
+  if string.find(file_name, '%.cp?p?$') then
+    local ret = {}
+    for _, target in ipairs(targets) do
+      for _, source in ipairs(target.sources) do
+        if vim.fn.match(source.path, file_name) >= 0 then
+          ret[#ret+1] = target
+          break
+        end
+      end
+    end
+    return ret
+  end
+  if string.match(file_name, '%.so$') or string.match(file_name, '%.a$') then
+    local basename = file_name:find('([^/\\]+)$')
+    local ret = {}
+    for _, target in ipairs(targets) do
+      for _, command_fragment in ipairs(target.link.commandFragments) do
+        if vim.fn.match(command_fragment.fragment, basename) >= 0 then
+          ret[#ret+1] = target
+          break
+        end
+      end
+    end
+    return ret
+  end
+  return {}
+end
+
 return CMake
