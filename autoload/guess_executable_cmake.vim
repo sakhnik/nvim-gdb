@@ -1,22 +1,3 @@
-function InCMakeDir(path)
-        " normalize path
-        "echom "Is " . a:path . " in a CMake Directory?"
-        let path=systemlist('perl -e ''use Cwd "abs_path"; print abs_path(shift)'' ' . a:path)[0]
-        " check if a CMake Directory
-        let idx = 0
-        while and('/' != path,  idx < 70)
-                "echom repeat("  ", idx) . path
-                let idx = idx + 1
-                if glob(path . '/CMakeCache.txt') != ''
-                        "echom repeat("  ", idx) . "yes"
-                        return path
-                endif
-                let path=systemlist('perl -e ''use Cwd "abs_path"; print abs_path(shift)'' ' . path . '/../')[0]
-        endwhile
-        "echom repeat("  ", idx) . "No"
-        return ''
-endfunction
-
 function guess_executable_cmake#ExecutablesOfBuffer(ArgLead)
         " Test ArgLead for CMake directories
         let arg_lead_glob = './' . trim(a:ArgLead) . '*'
@@ -31,7 +12,7 @@ function guess_executable_cmake#ExecutablesOfBuffer(ArgLead)
         endif
         " Filter non-CMake directories out
         "echom "Possible CMake Directories: " cmake_dirs
-        call map(cmake_dirs, {idx, dir -> InCMakeDir(dir)})
+        call map(cmake_dirs, {idx, dir -> luaeval("require'nvimgdb.cmake'.in_cmake_dir(_A[1])", [dir])})
         call filter(cmake_dirs, {idx, dir -> !empty(dir)})
         " Look for CMake directories below this one
         let cmake_dirs = extend(cmake_dirs, GetCMakeDirs(glob_base_dir))

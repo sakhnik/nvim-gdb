@@ -134,4 +134,21 @@ function CMake.artifacts_of_files(targets, file_name)
   return artifacts
 end
 
+---Get cmake build directory for a given path
+---@param path string
+---@return string full path
+function CMake.in_cmake_dir(path)
+  -- normalize path
+  --"echom "Is " . a:path . " in a CMake Directory?"
+  path = uv.fs_realpath(path)
+  -- check if a CMake Directory
+  while '/' ~= path do
+    if uv.fs_access(path .. '/CMakeCache.txt', 'R') then
+      return path
+    end
+    path = uv.fs_realpath(path .. '/..')
+  end
+  return ''
+end
+
 return CMake
