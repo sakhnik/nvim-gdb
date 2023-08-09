@@ -30,7 +30,7 @@ function CMake.select_executable()
   if idx <= 0 or idx > #execs then
     return ''
   end
-  return execs[idx]
+  return execs[idx]:sub(pref_end - pref_start + 1)
 end
 
 ---Find executables with the given path prefix
@@ -55,9 +55,14 @@ function CMake.find_executables(prefix)
   end
   local escaped_prefix_path = string.gsub(prefix_path, "[%(%)%.%%%+%-%*%?%[%]%^%$]", "%%%1")
 
+  local progress_path = ''
   local found_executables = vim.fs.find(function(name, path)
     if path:find('[/\\]CMakeFiles[/\\]') then
       return false
+    end
+    if progress_path ~= path then
+      print("Scanning " .. path)
+      progress_path = path
     end
     local file_path = path .. '/' .. name
     if not file_path:find(escaped_prefix_path) then
