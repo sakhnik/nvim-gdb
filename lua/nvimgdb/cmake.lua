@@ -9,17 +9,8 @@ function CMake.select_executable()
   log.debug({"CMake.select_executable"})
   -- Identify the prefix of the required executable path: scan to the left until the nearest space
   local curcmd = vim.fn.getcmdline()
-  local pref_end = vim.fn.getcmdpos()
-  local pref_start = pref_end
-  while pref_start > 1 do
-    local ch = curcmd:sub(pref_start, pref_start)
-    if ch == ' ' then
-      pref_start = pref_start + 1
-      break
-    end
-    pref_start = pref_start - 1
-  end
-  local prefix = curcmd:sub(pref_start, pref_end)
+  local pref_end = vim.fn.getcmdpos() - 1
+  local prefix = curcmd:sub(1, pref_end):match('.*%s(.*)')
   log.debug({"prefix", prefix})
   local msg = {"Select executable:"}
   local execs = CMake.get_executables(prefix)
@@ -28,9 +19,11 @@ function CMake.select_executable()
   end
   local idx = vim.fn.inputlist(msg)
   if idx <= 0 or idx > #execs then
-    return ''
+    return curcmd
   end
-  return execs[idx]:sub(pref_end - pref_start + 1)
+  local selection = execs[idx]
+  vim.fn.setcmdpos(pref_end - #prefix + 1 + #selection)
+  return curcmd:sub(1, pref_end - #prefix) .. selection .. curcmd:sub(pref_end + 1)
 end
 
 ---Find executables with the given path prefix

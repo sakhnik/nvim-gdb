@@ -329,7 +329,7 @@ function NvimGdb.setup()
     function() spawn('gdb', {'rr-replay.py'}) end,
     {force = true, desc = 'Start rr debugging'})
 
-  vim.api.nvim_set_keymap('c', '<c-e>', "<C-r>=v:lua.require'nvimgdb.cmake'.select_executable()<cr>", { noremap = true, silent = true })
+  vim.api.nvim_set_keymap('c', '<c-e>', "<C-\\>ev:lua.require'nvimgdb.cmake'.select_executable()<cr>", { noremap = true, silent = true })
 
   if vim.g.nvimgdb_disable_start_keymaps == nil or not vim.g.nvimgdb_disable_start_keymaps then
     vim.api.nvim_set_keymap('n', '<leader>dd', ':GdbStart gdb -q ', { noremap = true })
