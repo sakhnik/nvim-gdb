@@ -155,4 +155,28 @@ function CMake.get_cmake_reply_dir(cmake_build_dir)
   return cmake_build_dir .. '/.cmake/api/v1/reply/'
 end
 
+local function is_dir_empty(path)
+  local dir = assert(uv.fs_opendir(path, nil, 1))
+  if dir:readdir() then
+    return false
+  end
+  return true
+end
+
+function CMake.query(cmake_build_dir)
+  if is_dir_empty(cmake_build_dir) then
+    return 1
+  end
+  local cmake_api_query_dir = cmake_build_dir .. '/.cmake/api/v1/query/client-nvim-gdb/'
+  vim.fn.mkdir(cmake_api_query_dir, "p")
+  local cmake_api_query_file = cmake_api_query_dir .. "query.json"
+  local cmake_api_query = {'{ "requests": [ { "kind": "codemodel" , "version": 2 } ] }'}
+  vim.fn.writefile(cmake_api_query, cmake_api_query_file)
+  local reply_dir = CMake.get_cmake_reply_dir(cmake_build_dir)
+  if is_dir_empty(reply_dir) then
+    vim.fn.system("cmake -B " .. cmake_build_dir)
+  end
+  return vim.v.shell_error
+end
+
 return CMake

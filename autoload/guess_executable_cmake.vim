@@ -35,7 +35,7 @@ function GetCMakeDirs(proj_dir)
 endfunction
 
 function ExecutableOfBuffer(cmake_build_dir)
-        if CMakeQuery(a:cmake_build_dir) 
+        if luaeval("require'nvimgdb.cmake'.query(_A[1])", [a:cmake_build_dir])
                 return []
         endif
         let reply_dir = luaeval("require'nvimgdb.cmake'.get_cmake_reply_dir(_A[1])", [a:cmake_build_dir])
@@ -62,20 +62,4 @@ function ExecutableOfFileHelper(targets, file_name, depth)
         "echom tabs."recurse with artifacts: ".join(artifacts,', ')
         call map(artifacts, {idx, artifact -> ExecutableOfFileHelper(a:targets, artifact, a:depth+1)})
         return flatten(artifacts)
-endfunction
-
-function CMakeQuery(cmake_build_dir)
-        if empty(glob(a:cmake_build_dir))
-                return v:shell_error
-        endif
-        let cmake_api_query_dir=a:cmake_build_dir . "/.cmake/api/v1/query/client-nvim-gdb/"
-        call mkdir(cmake_api_query_dir, "p")
-        let cmake_api_query_file=cmake_api_query_dir."query.json"
-        let cmake_api_query=['{ "requests": [ { "kind": "codemodel" , "version": 2 } ] }']
-        call writefile(cmake_api_query, cmake_api_query_file)
-        let reply_dir = luaeval("require'nvimgdb.cmake'.get_cmake_reply_dir(_A[1])", [a:cmake_build_dir])
-        if empty(glob(reply_dir))
-                call system("cmake -B ".a:cmake_build_dir)
-        endif
-        return v:shell_error
 endfunction
