@@ -213,4 +213,53 @@ function CMake.executable_of_file_helper(targets, file_name)
   return ret
 end
 
+local function readfile(file_path)
+  local file = io.open(file_path, "r")
+  if file then
+    local content = file:read("*all")
+    file:close()
+    return content
+  else
+    return nil
+  end
+end
+
+local function get_relative_path(file_path, base_dir)
+  local base_len = #base_dir
+  if base_len > 0 then
+    if base_dir:sub(-1) ~= "/" then
+      base_dir = base_dir .. "/"
+      base_len = base_len + 1
+    end
+    if file_path:sub(1, base_len) == base_dir then
+      return file_path:sub(base_len + 1)
+    end
+  end
+  return nil
+end
+
+function CMake.executable_of_buffer(cmake_build_dir)
+  if CMake.query(cmake_build_dir) ~= 0 then
+    return {}
+  end
+  local reply_dir = CMake.get_cmake_reply_dir(cmake_build_dir)
+  -- Decode all target_file JSONS into Dictionaries
+  local targets = vim.fn.split(vim.fn.glob(reply_dir .. "target*"))
+  for i, target in ipairs(targets) do
+    targets[i] = vim.json.decode(readfile(target))
+  end
+  local cmake_source = vim.json.decode(readfile(vim.fn.glob(reply_dir .. "codemodel*json"))).paths.source
+  -- Get the source relative path
+  local buffer_path = uv.fs_realpath(vim.fn.bufname())
+  if not buffer_path then
+    return {}
+  end
+  local buffer_base_name = get_relative_path(buffer_path, uv.fs_realpath(cmake_source))
+  local execs = CMake.executable_of_file_helper(targets, buffer_base_name)
+  for i, exe in ipairs(execs) do
+    execs[i] = cmake_build_dir .. '/' .. exe
+  end
+  return execs
+end
+
 return CMake
