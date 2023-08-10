@@ -34,22 +34,7 @@ function ExecutableOfBuffer(cmake_build_dir)
         call map(targets, {idx, val -> json_decode(readfile(val))})
         let cmake_source = json_decode(readfile(glob(reply_dir . "codemodel*json"))).paths.source
         let buffer_base_name = systemlist('perl -e ''use File::Spec; use Cwd "abs_path"; print File::Spec->abs2rel(abs_path(shift), abs_path(shift))'' ' . bufname() ." ". cmake_source )[0]
-        let execs = ExecutableOfFileHelper(targets, buffer_base_name, 0)
+        let execs = luaeval("require'nvimgdb.cmake'.executable_of_file_helper(_A[1], _A[2])", [targets, buffer_base_name])
         call map(execs, {idx, val -> a:cmake_build_dir . '/' . val})
         return empty(execs) ? [] : execs
-endfunction
-
-function ExecutableOfFileHelper(targets, file_name, depth)
-        let tabs=repeat("  ", a:depth)
-        "echom tabs.a:file_name
-        if match(a:file_name, '\(\.c$\|\.cpp$\|\.a$\|\.so$\)') >= 0
-                let artifacts = luaeval("require'nvimgdb.cmake'.artifacts_of_files(_A[1], _A[2])", [a:targets, a:file_name])
-        else " assume executable found
-                "echom tabs."found executable: " . a:file_name
-                return [a:file_name]
-        endif
-        " recurse on all artifacts until executable is found
-        "echom tabs."recurse with artifacts: ".join(artifacts,', ')
-        call map(artifacts, {idx, artifact -> ExecutableOfFileHelper(a:targets, artifact, a:depth+1)})
-        return flatten(artifacts)
 endfunction

@@ -197,4 +197,20 @@ function CMake.get_cmake_dirs(proj_dir)
   return cmake_dirs
 end
 
+function CMake.executable_of_file_helper(targets, file_name)
+  if not (file_name:find('%.c$') or file_name:find('%.cpp$') or file_name:find('%.a$') or file_name:find('%.so$')) then
+    -- assume executable found
+    return {file_name}
+  end
+  -- recurse on all artifacts until executable is found
+  local ret = {}
+  local artifacts = CMake.artifacts_of_files(targets, file_name)
+  for _, artifact in ipairs(artifacts) do
+    for _, a in ipairs(CMake.executable_of_file_helper(targets, artifact)) do
+      ret[#ret+1] = a
+    end
+  end
+  return ret
+end
+
 return CMake
