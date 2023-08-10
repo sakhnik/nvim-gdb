@@ -179,4 +179,21 @@ function CMake.query(cmake_build_dir)
   return vim.v.shell_error
 end
 
+function CMake.get_cmake_dirs(proj_dir)
+  local cmake_cache_txt = 'CMakeCache.txt'
+  local progress_path = ''
+  local cache_files = vim.fs.find(function(name, path)
+    if progress_path ~= path then
+      print("Scanning " .. path)
+      progress_path = path
+    end
+    return name == cmake_cache_txt
+  end, {limit = 1000, type = 'file', path = proj_dir})
+  local cmake_dirs = {}
+  for _, cache_file in ipairs(cache_files) do
+    cmake_dirs[#cmake_dirs+1] = cache_file:sub(1, -(1 + #cmake_cache_txt))
+  end
+  return cmake_dirs
+end
+
 return CMake

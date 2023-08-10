@@ -15,23 +15,13 @@ function guess_executable_cmake#ExecutablesOfBuffer(ArgLead)
         call map(cmake_dirs, {idx, dir -> luaeval("require'nvimgdb.cmake'.in_cmake_dir(_A[1])", [dir])})
         call filter(cmake_dirs, {idx, dir -> !empty(dir)})
         " Look for CMake directories below this one
-        let cmake_dirs = extend(cmake_dirs, GetCMakeDirs(glob_base_dir))
+        let cmake_dirs = extend(cmake_dirs, luaeval("require'nvimgdb.cmake'.get_cmake_dirs(_A[1])", [glob_base_dir]))
         let cmake_dirs = uniq(sort(cmake_dirs))
         " get binaries from CMake directories
         let execs = flatten(map(cmake_dirs, {idx, cmake_dir -> ExecutableOfBuffer(cmake_dir)}))
        call map(execs, {idx, exec -> systemlist('perl -e ''use File::Spec "abs2rel"; use Cwd "abs_path"; print File::Spec->abs2rel(abs_path(shift),abs_path("."))'' '. exec)})
         let execs = uniq(sort(execs))
         return flatten(execs)
-endfunction
-
-function GetCMakeDirs(proj_dir)
-        let find_cmd="find " . a:proj_dir . ' -type f -name CMakeCache.txt'
-        "echom "find_cmd: '" . find_cmd . "'"
-        let cmake_dirs = systemlist(find_cmd)
-        "echom cmake_dirs
-        call map(cmake_dirs, {idx, cmake_dir -> trim(system("dirname " . cmake_dir))})
-        "echom "cmake dirnames: " cmake_dirs
-        return cmake_dirs
 endfunction
 
 function ExecutableOfBuffer(cmake_build_dir)
