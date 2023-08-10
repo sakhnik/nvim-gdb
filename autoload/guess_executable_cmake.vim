@@ -34,18 +34,15 @@ function GetCMakeDirs(proj_dir)
         return cmake_dirs
 endfunction
 
-function GetCMakeReplyDir(cmake_build_dir)
-        return a:cmake_build_dir . "/.cmake/api/v1/reply/"
-endfunction
-
 function ExecutableOfBuffer(cmake_build_dir)
         if CMakeQuery(a:cmake_build_dir) 
                 return []
         endif
+        let reply_dir = luaeval("require'nvimgdb.cmake'.get_cmake_reply_dir(_A[1])", [a:cmake_build_dir])
         " Decode all target_file JSONS into Dictionaries
-        let targets=split(glob(GetCMakeReplyDir(a:cmake_build_dir) . "target*"))
+        let targets=split(glob(reply_dir . "target*"))
         call map(targets, {idx, val -> json_decode(readfile(val))})
-        let cmake_source = json_decode(readfile(glob(GetCMakeReplyDir(a:cmake_build_dir) . "codemodel*json"))).paths.source
+        let cmake_source = json_decode(readfile(glob(reply_dir . "codemodel*json"))).paths.source
         let buffer_base_name = systemlist('perl -e ''use File::Spec; use Cwd "abs_path"; print File::Spec->abs2rel(abs_path(shift), abs_path(shift))'' ' . bufname() ." ". cmake_source )[0]
         let execs = ExecutableOfFileHelper(targets, buffer_base_name, 0)
         call map(execs, {idx, val -> a:cmake_build_dir . '/' . val})
@@ -76,7 +73,8 @@ function CMakeQuery(cmake_build_dir)
         let cmake_api_query_file=cmake_api_query_dir."query.json"
         let cmake_api_query=['{ "requests": [ { "kind": "codemodel" , "version": 2 } ] }']
         call writefile(cmake_api_query, cmake_api_query_file)
-        if empty(glob(GetCMakeReplyDir(a:cmake_build_dir)))
+        let reply_dir = luaeval("require'nvimgdb.cmake'.get_cmake_reply_dir(_A[1])", [a:cmake_build_dir])
+        if empty(glob(reply_dir))
                 call system("cmake -B ".a:cmake_build_dir)
         endif
         return v:shell_error

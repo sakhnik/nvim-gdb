@@ -151,4 +151,8 @@ function CMake.in_cmake_dir(path)
   return ''
 end
 
+function CMake.get_cmake_reply_dir(cmake_build_dir)
+  return cmake_build_dir .. '/.cmake/api/v1/reply/'
+end
+
 return CMake
