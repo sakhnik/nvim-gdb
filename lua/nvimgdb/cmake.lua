@@ -156,7 +156,8 @@ function CMake.get_cmake_reply_dir(cmake_build_dir)
 end
 
 local function is_dir_empty(path)
-  local dir = assert(uv.fs_opendir(path, nil, 1))
+  local dir = uv.fs_opendir(path, nil, 1)
+  if not dir then return true end
   if dir:readdir() then
     return false
   end
