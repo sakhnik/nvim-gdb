@@ -12,8 +12,12 @@ function CMake.select_executable()
   local pref_end = vim.fn.getcmdpos() - 1
   local prefix = curcmd:sub(1, pref_end):match('.*%s(.*)')
   log.debug({"prefix", prefix})
-  local msg = {"Select executable:"}
   local execs = CMake.get_executables(prefix)
+  if not next(execs) then
+    print("No relevant executable detected")
+    return curcmd
+  end
+  local msg = {"Select executable:"}
   for i, exe in ipairs(execs) do
     msg[#msg+1] = i .. '. ' .. exe
   end
