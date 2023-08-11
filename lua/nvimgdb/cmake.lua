@@ -18,8 +18,10 @@ function CMake.select_executable()
     return curcmd
   end
   local msg = {"Select executable:"}
-  for i, exe in ipairs(execs) do
+  local i = 1
+  for exe, _ in pairs(execs) do
     msg[#msg+1] = i .. '. ' .. exe
+    i = i + 1
   end
   local idx = vim.fn.inputlist(msg)
   if idx <= 0 or idx > #execs then
@@ -75,22 +77,24 @@ function CMake.find_executables(prefix)
     return true
   end, {limit = 1000, type = 'file', path = prefix_dir})
 
-  for i, e in ipairs(found_executables) do
-    found_executables[i] = e:gsub(escaped_prefix_path, prefix)
+  local execs = {}
+  for _, e in ipairs(found_executables) do
+    local exe = e:gsub(escaped_prefix_path, prefix)
+    execs[exe] = true
   end
-  return found_executables
+  return execs
 end
 
 ---Get paths of executables from both cmake and directory scanning
 ---@param prefix string path prefix
----@return string[] list of found executables
+---@return {[string]: boolean} set of found executables
 function CMake.get_executables(prefix)
   log.debug({'CMake.get_executables', prefix = prefix})
   -- Use CMake
-  local execs = vim.fn["guess_executable_cmake#ExecutablesOfBuffer"](prefix)
+  local execs = CMake.executables_of_buffer(prefix)
   local found = CMake.find_executables(prefix)
-  for _, exe in ipairs(found) do
-    execs[#execs+1] = exe
+  for exe, _ in pairs(found) do
+    execs[exe] = true
   end
   return execs
 end
@@ -140,7 +144,7 @@ end
 
 ---Get cmake build directory for a given path
 ---@param path string
----@return string full path
+---@return string? full path
 function CMake.in_cmake_dir(path)
   -- normalize path
   --"echom "Is " . a:path . " in a CMake Directory?"
@@ -152,7 +156,7 @@ function CMake.in_cmake_dir(path)
     end
     path = uv.fs_realpath(path .. '/..')
   end
-  return ''
+  return nil
 end
 
 function CMake.get_cmake_reply_dir(cmake_build_dir)
@@ -184,6 +188,9 @@ function CMake.query(cmake_build_dir)
   return vim.v.shell_error
 end
 
+---Find cmake directories by scanning proj_dir
+---@param proj_dir string path to the directory to scan
+---@return {[string]: boolean }
 function CMake.get_cmake_dirs(proj_dir)
   local cmake_cache_txt = 'CMakeCache.txt'
   local progress_path = ''
@@ -196,7 +203,8 @@ function CMake.get_cmake_dirs(proj_dir)
   end, {limit = 1000, type = 'file', path = proj_dir})
   local cmake_dirs = {}
   for _, cache_file in ipairs(cache_files) do
-    cmake_dirs[#cmake_dirs+1] = cache_file:sub(1, -(1 + #cmake_cache_txt))
+    local cmake_dir = cache_file:sub(1, -(2 + #cmake_cache_txt))
+    cmake_dirs[cmake_dir] = true
   end
   return cmake_dirs
 end
@@ -262,6 +270,54 @@ function CMake.executable_of_buffer(cmake_build_dir)
   local execs = CMake.executable_of_file_helper(targets, buffer_base_name)
   for i, exe in ipairs(execs) do
     execs[i] = cmake_build_dir .. '/' .. exe
+  end
+  return execs
+end
+
+function CMake.executables_of_buffer(prefix)
+  -- Test prefix for CMake directories
+  local this_dir = uv.fs_realpath('.')
+
+  local prefix_dir = prefix:match('(.*)[/\\].*')
+  local prefix_base = prefix
+  if prefix_dir then
+    prefix_base = prefix:sub(#prefix_dir + 2)
+  else
+    prefix_dir = '.'
+  end
+  prefix_dir = uv.fs_realpath(prefix_dir)
+  local progress_path = ''
+  local dirs = vim.fs.find(function(name, path)
+    if progress_path ~= path then
+      print("Scanning " .. path)
+      progress_path = path
+    end
+    -- depth = 0
+    if path:sub(#prefix_dir + 1):find('[/\\]') then
+      return false
+    end
+    return name:sub(1, #prefix_base) == prefix_base
+  end, {limit = 1000, type = 'directory', path = prefix_dir})
+
+  -- Filter non-CMake directories out
+  ---@type {[string]: boolean}
+  local cmake_dirs = {}
+  for _, dir in ipairs(dirs) do
+    local cmake_dir = CMake.in_cmake_dir(dir)
+    if cmake_dir then
+      cmake_dirs[cmake_dir] = true
+    end
+  end
+  -- Look for CMake directories below this one
+  for dir in pairs(CMake.get_cmake_dirs(prefix_dir)) do
+    cmake_dirs[dir] = true
+  end
+  -- Get binaries from CMake directories
+  local execs = {}
+  for dir, _ in pairs(cmake_dirs) do
+    for _, exe in ipairs(CMake.executable_of_buffer(dir)) do
+      execs[get_relative_path(exe, this_dir)] = true
+    end
   end
   return execs
 end
