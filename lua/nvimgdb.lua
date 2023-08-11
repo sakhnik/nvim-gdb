@@ -309,4 +309,35 @@ function NvimGdb.global_cleanup()
   vim.api.nvim_del_user_command('GdbLopenBreakpoints')
 end
 
+---Setup the plugin
+function NvimGdb.setup()
+
+  local function spawn(backend, client_cmd)
+    -- Expand words in the client_cmd to support %, <word> etc
+    for i, v in ipairs(client_cmd) do
+      client_cmd[i] = vim.fn.expand(v)
+    end
+    NvimGdb.new(backend, client_cmd)
+  end
+
+  for backend, suffix in pairs({gdb = '', lldb = 'LLDB', pdb = 'PDB', bashdb = 'BashDB'}) do
+    vim.api.nvim_create_user_command('GdbStart' .. suffix,
+      function(a) spawn(backend, a.fargs) end,
+      {nargs = "+", complete = "shellcmd", force = true, desc = 'Start ' .. backend .. ' debugging'})
+  end
+  vim.api.nvim_create_user_command('GdbStartRR',
+    function() spawn('gdb', {'rr-replay.py'}) end,
+    {force = true, desc = 'Start rr debugging'})
+
+  vim.api.nvim_set_keymap('c', '<c-e>', "<C-\\>ev:lua.require'nvimgdb.cmake'.select_executable()<cr>", { noremap = true, silent = true })
+
+  if vim.g.nvimgdb_disable_start_keymaps == nil or not vim.g.nvimgdb_disable_start_keymaps then
+    vim.api.nvim_set_keymap('n', '<leader>dd', ':GdbStart gdb -q ', { noremap = true })
+    vim.api.nvim_set_keymap('n', '<leader>dl', ':GdbStartLLDB lldb ', { noremap = true })
+    vim.api.nvim_set_keymap('n', '<leader>dp', ':GdbStartPDB python -m pdb main.py', { noremap = true })
+    vim.api.nvim_set_keymap('n', '<leader>db', ':GdbStartBashDB bashdb main.sh', { noremap = true })
+    vim.api.nvim_set_keymap('n', '<leader>dr', ':GdbStartRR', { noremap = true })
+  end
+end
+
 return NvimGdb

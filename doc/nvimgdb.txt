@@ -36,11 +36,12 @@ parameter: >
 or alternatively `:GdbStartLLDB` with LLDB launch string as parameter: >
 
     :GdbStartLLDB lldb a.out
-
-The two commands above support command-completion which uses CMake and `find`
-to locate executables associated with the current buffer, and `find` which
-locates all executables in the current path or below. This behavior can be
-disabled by the user via variables. See the |NvimgdbVariables| section below.
+.
+                                                                   *c_<C-E>*
+The two commands above allow choosing executable either querying from from
+CMake or guessing with the `find` command. Press <C-E> when entering or
+editing the command, and the project will be searched for available
+executables.
 
 To debug prerecorded execution using `rr replay`, execute the following
 command: >
@@ -249,9 +250,9 @@ The key `sign_breakpoint_priority` defines the sign priority for the
 breakpoint. The sign priority for the current line is always one greater than
 breakpoint's.
 
-The `find` program will be used to locate all executables and populate the
-|:command-completion-custom| for `:GdbStart` and `:GdbStartLLDB`. To disable
-this set `g:nvimgdb_use_find_executables` to 0.
+The `find` program will be used to locate all executables to select with |c_<C-E>|
+for `:GdbStart` and `:GdbStartLLDB`. To disable this set
+`g:nvimgdb_use_find_executables` to 0.
 
 This plugin will also search for any executables associated with the current
 buffer via the CMake API if there is a CMake directory present and the `cmake`
