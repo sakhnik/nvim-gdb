@@ -1,7 +1,29 @@
 local uv = vim.loop
 local log = require'nvimgdb.log'
+local utils = require'nvimgdb.utils'
 
 local CMake = {}
+
+---Split prefix into dir and base
+---@param prefix string user input, partial file path
+---@return string prefix_dir
+---@return string prefix_base
+local function split_prefix(prefix)
+  local prefix_dir = prefix:match('(.*)[/\\].*')
+  local prefix_base = prefix
+  if prefix_dir then
+    prefix_base = prefix:sub(#prefix_dir + 2)
+  else
+    prefix_dir = '.'
+  end
+  prefix_dir = uv.fs_realpath(prefix_dir)
+  log.debug({prefix_dir = prefix_dir, prefix_base = prefix_base})
+  return prefix_dir, prefix_base
+end
+
+local function get_verbatim_pattern(str)
+  return string.gsub(str, "[%(%)%.%%%+%-%*%?%[%]%^%$]", "%%%1")
+end
 
 ---Select executables when editing command line
 ---@return string user decision
@@ -17,11 +39,20 @@ function CMake.select_executable()
     print("No relevant executable detected")
     return curcmd
   end
+
+  do
+    -- Convert to an array
+    local execs2 = {}
+    for exe, _ in pairs(execs) do
+      table.insert(execs2, exe)
+    end
+    execs = execs2
+    table.sort(execs)
+  end
+
   local msg = {"Select executable:"}
-  local i = 1
-  for exe, _ in pairs(execs) do
-    msg[#msg+1] = i .. '. ' .. exe
-    i = i + 1
+  for i, exe in ipairs(execs) do
+    table.insert(msg, i .. '. ' .. exe)
   end
   local idx = vim.fn.inputlist(msg)
   if idx <= 0 or idx > #execs then
@@ -44,15 +75,9 @@ function CMake.find_executables(prefix)
     end
     return false
   end
-  if #prefix == 0 then
-    prefix = './'
-  end
-  local prefix_path = uv.fs_realpath(prefix)
-  local prefix_dir = vim.fs.dirname(prefix_path)
-  if prefix:sub(#prefix):match('[/\\]') then
-    prefix_path = prefix_path .. prefix:sub(#prefix)
-  end
-  local escaped_prefix_path = string.gsub(prefix_path, "[%(%)%.%%%+%-%*%?%[%]%^%$]", "%%%1")
+
+  local prefix_dir, prefix_base = split_prefix(prefix)
+  local prefix_pattern = get_verbatim_pattern(prefix_dir) .. '[/\\]' .. get_verbatim_pattern(prefix_base)
 
   local progress_path = ''
   local found_executables = vim.fs.find(function(name, path)
@@ -63,23 +88,30 @@ function CMake.find_executables(prefix)
       print("Scanning " .. path)
       progress_path = path
     end
-    local file_path = path .. '/' .. name
-    if not file_path:find(escaped_prefix_path) then
+    local file_path = utils.path_join(path, name)
+    if not file_path:find(prefix_pattern) then
       return false
     end
-    if not is_executable(file_path) then
-      return false
-    end
-    local mime = vim.fn.system({'file', '--brief', '--mime-encoding', file_path})
-    if not mime:match('binary') then
-      return false
+    if not utils.is_windows then
+      if not is_executable(file_path) then
+        return false
+      end
+      local mime = vim.fn.system({'file', '--brief', '--mime-encoding', file_path})
+      if not mime:match('binary') then
+        return false
+      end
+    else
+      local lname = name:lower()
+      if not (lname:find('%.exe$') or lname:find('%.com$')) then
+        return false
+      end
     end
     return true
   end, {limit = 1000, type = 'file', path = prefix_dir})
 
   local execs = {}
   for _, e in ipairs(found_executables) do
-    local exe = e:gsub(escaped_prefix_path, prefix)
+    local exe = uv.fs_realpath(e):gsub(prefix_pattern, prefix)
     execs[exe] = true
   end
   return execs
@@ -146,15 +178,19 @@ end
 ---@param path string
 ---@return string? full path
 function CMake.in_cmake_dir(path)
+  log.debug({"CMake.in_cmake_dir", path = path})
   -- normalize path
   --"echom "Is " . a:path . " in a CMake Directory?"
   path = uv.fs_realpath(path)
   -- check if a CMake Directory
-  while '/' ~= path do
+  while true do
     if uv.fs_access(path .. '/CMakeCache.txt', 'R') then
+      log.debug({"Found", path = path})
       return path
     end
-    path = uv.fs_realpath(path .. '/..')
+    local path2 = uv.fs_realpath(path .. '/..')
+    if path2 == path then break end
+    path = path2
   end
   return nil
 end
@@ -192,6 +228,7 @@ end
 ---@param proj_dir string path to the directory to scan
 ---@return {[string]: boolean }
 function CMake.get_cmake_dirs(proj_dir)
+  log.debug({"CMake.get_cmake_dirs", proj_dir = proj_dir})
   local cmake_cache_txt = 'CMakeCache.txt'
   local progress_path = ''
   local cache_files = vim.fs.find(function(name, path)
@@ -275,17 +312,12 @@ function CMake.executable_of_buffer(cmake_build_dir)
 end
 
 function CMake.executables_of_buffer(prefix)
+  log.debug({"CMake.executables_of_buffer", prefix = prefix})
   -- Test prefix for CMake directories
   local this_dir = uv.fs_realpath('.')
 
-  local prefix_dir = prefix:match('(.*)[/\\].*')
-  local prefix_base = prefix
-  if prefix_dir then
-    prefix_base = prefix:sub(#prefix_dir + 2)
-  else
-    prefix_dir = '.'
-  end
-  prefix_dir = uv.fs_realpath(prefix_dir)
+  local prefix_dir, prefix_base = split_prefix(prefix)
+
   local progress_path = ''
   local dirs = vim.fs.find(function(name, path)
     if progress_path ~= path then
