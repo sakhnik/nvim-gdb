@@ -256,7 +256,9 @@ function CMake.executable_of_file_helper(targets, file_name)
   local artifacts = CMake.artifacts_of_files(targets, file_name)
   for _, artifact in ipairs(artifacts) do
     for _, a in ipairs(CMake.executable_of_file_helper(targets, artifact)) do
-      ret[#ret+1] = a
+      if not utils.is_windows or a:lower():find('%.exe$') then
+        table.insert(ret, a)
+      end
     end
   end
   return ret
@@ -276,8 +278,8 @@ end
 local function get_relative_path(file_path, base_dir)
   local base_len = #base_dir
   if base_len > 0 then
-    if base_dir:sub(-1) ~= "/" then
-      base_dir = base_dir .. "/"
+    if not base_dir:find('[/\\]$') then
+      base_dir = base_dir .. utils.fs_separator
       base_len = base_len + 1
     end
     if file_path:sub(1, base_len) == base_dir then
@@ -288,6 +290,7 @@ local function get_relative_path(file_path, base_dir)
 end
 
 function CMake.executable_of_buffer(cmake_build_dir)
+  log.debug({"CMake.executable_of_buffer", cmake_build_dir = cmake_build_dir})
   if CMake.query(cmake_build_dir) ~= 0 then
     return {}
   end
@@ -298,15 +301,18 @@ function CMake.executable_of_buffer(cmake_build_dir)
     targets[i] = vim.json.decode(readfile(target))
   end
   local cmake_source = vim.json.decode(readfile(vim.fn.glob(reply_dir .. "codemodel*json"))).paths.source
+  cmake_source = uv.fs_realpath(cmake_source)
   -- Get the source relative path
   local buffer_path = uv.fs_realpath(vim.fn.bufname())
   if not buffer_path then
     return {}
   end
+  -- cmake directory exists by now, normalize it's path
+  cmake_build_dir = uv.fs_realpath(cmake_build_dir)
   local buffer_base_name = get_relative_path(buffer_path, uv.fs_realpath(cmake_source))
   local execs = CMake.executable_of_file_helper(targets, buffer_base_name)
   for i, exe in ipairs(execs) do
-    execs[i] = cmake_build_dir .. '/' .. exe
+    execs[i] = utils.path_join(cmake_build_dir, exe)
   end
   return execs
 end
