@@ -146,15 +146,19 @@ end
 ---@param path string
 ---@return string? full path
 function CMake.in_cmake_dir(path)
+  log.debug({"CMake.in_cmake_dir", path = path})
   -- normalize path
   --"echom "Is " . a:path . " in a CMake Directory?"
   path = uv.fs_realpath(path)
   -- check if a CMake Directory
-  while '/' ~= path do
+  while true do
     if uv.fs_access(path .. '/CMakeCache.txt', 'R') then
+      log.debug({"Found", path = path})
       return path
     end
-    path = uv.fs_realpath(path .. '/..')
+    local path2 = uv.fs_realpath(path .. '/..')
+    if path2 == path then break end
+    path = path2
   end
   return nil
 end
@@ -192,6 +196,7 @@ end
 ---@param proj_dir string path to the directory to scan
 ---@return {[string]: boolean }
 function CMake.get_cmake_dirs(proj_dir)
+  log.debug({"CMake.get_cmake_dirs", proj_dir = proj_dir})
   local cmake_cache_txt = 'CMakeCache.txt'
   local progress_path = ''
   local cache_files = vim.fs.find(function(name, path)
@@ -275,6 +280,7 @@ function CMake.executable_of_buffer(cmake_build_dir)
 end
 
 function CMake.executables_of_buffer(prefix)
+  log.debug({"CMake.executables_of_buffer", prefix = prefix})
   -- Test prefix for CMake directories
   local this_dir = uv.fs_realpath('.')
 
@@ -286,6 +292,7 @@ function CMake.executables_of_buffer(prefix)
     prefix_dir = '.'
   end
   prefix_dir = uv.fs_realpath(prefix_dir)
+  log.debug({prefix_dir = prefix_dir, prefix_base = prefix_base})
   local progress_path = ''
   local dirs = vim.fs.find(function(name, path)
     if progress_path ~= path then
