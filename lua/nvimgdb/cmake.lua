@@ -39,6 +39,17 @@ function CMake.select_executable()
     print("No relevant executable detected")
     return curcmd
   end
+
+  do
+    -- Convert to an array
+    local execs2 = {}
+    for exe, _ in pairs(execs) do
+      table.insert(execs2, exe)
+    end
+    execs = execs2
+    table.sort(execs)
+  end
+
   local msg = {"Select executable:"}
   for i, exe in ipairs(execs) do
     table.insert(msg, i .. '. ' .. exe)
@@ -108,7 +119,7 @@ end
 
 ---Get paths of executables from both cmake and directory scanning
 ---@param prefix string path prefix
----@return string[] list of found executables
+---@return {[string]: boolean} set of found executables
 function CMake.get_executables(prefix)
   log.debug({'CMake.get_executables', prefix = prefix})
   -- Use CMake
@@ -117,11 +128,7 @@ function CMake.get_executables(prefix)
   for exe, _ in pairs(found) do
     execs[exe] = true
   end
-  local ret = {}
-  for exe, _ in pairs(execs) do
-    table.insert(ret, exe)
-  end
-  return ret
+  return execs
 end
 
 -- targets structure is:

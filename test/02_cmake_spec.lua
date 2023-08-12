@@ -48,7 +48,7 @@ describe("cmake", function()
   it("get executables", function()
     check_skip()
     local execs = require'nvimgdb.cmake'.get_executables('../')
-    assert.are.same({'build/cmake_test_exec', '../a.out'}, execs)
+    assert.are.same({['build/cmake_test_exec'] = true, ['../a.out'] = true}, execs)
   end)
 end)
 
