@@ -1,5 +1,6 @@
 local uv = vim.loop
 local log = require'nvimgdb.log'
+local utils = require'nvimgdb.utils'
 
 local CMake = {}
 
@@ -39,10 +40,8 @@ function CMake.select_executable()
     return curcmd
   end
   local msg = {"Select executable:"}
-  local i = 1
-  for exe, _ in pairs(execs) do
-    msg[#msg+1] = i .. '. ' .. exe
-    i = i + 1
+  for i, exe in ipairs(execs) do
+    table.insert(msg, i .. '. ' .. exe)
   end
   local idx = vim.fn.inputlist(msg)
   if idx <= 0 or idx > #execs then
@@ -78,23 +77,30 @@ function CMake.find_executables(prefix)
       print("Scanning " .. path)
       progress_path = path
     end
-    local file_path = path .. '/' .. name
+    local file_path = utils.path_join(path, name)
     if not file_path:find(prefix_pattern) then
       return false
     end
-    if not is_executable(file_path) then
-      return false
-    end
-    local mime = vim.fn.system({'file', '--brief', '--mime-encoding', file_path})
-    if not mime:match('binary') then
-      return false
+    if not utils.is_windows then
+      if not is_executable(file_path) then
+        return false
+      end
+      local mime = vim.fn.system({'file', '--brief', '--mime-encoding', file_path})
+      if not mime:match('binary') then
+        return false
+      end
+    else
+      local lname = name:lower()
+      if not (lname:find('%.exe$') or lname:find('%.com$')) then
+        return false
+      end
     end
     return true
   end, {limit = 1000, type = 'file', path = prefix_dir})
 
   local execs = {}
   for _, e in ipairs(found_executables) do
-    local exe = e:gsub(prefix_pattern, prefix)
+    local exe = uv.fs_realpath(e):gsub(prefix_pattern, prefix)
     execs[exe] = true
   end
   return execs
@@ -102,7 +108,7 @@ end
 
 ---Get paths of executables from both cmake and directory scanning
 ---@param prefix string path prefix
----@return {[string]: boolean} set of found executables
+---@return string[] list of found executables
 function CMake.get_executables(prefix)
   log.debug({'CMake.get_executables', prefix = prefix})
   -- Use CMake
@@ -111,7 +117,11 @@ function CMake.get_executables(prefix)
   for exe, _ in pairs(found) do
     execs[exe] = true
   end
-  return execs
+  local ret = {}
+  for exe, _ in pairs(execs) do
+    table.insert(ret, exe)
+  end
+  return ret
 end
 
 -- targets structure is:

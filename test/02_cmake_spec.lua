@@ -40,10 +40,15 @@ describe("cmake", function()
     assert.are.same(test_exec, execs)
   end)
 
-  it("find", function()
+  it("find executables", function()
+    local execs = require'nvimgdb.cmake'.find_executables('../')
+    assert.are.same({['../' .. conftest.aout] = true}, execs)
+  end)
+
+  it("get executables", function()
     check_skip()
     local execs = require'nvimgdb.cmake'.get_executables('../')
-    assert.are.same({['build/cmake_test_exec'] = true, ['../a.out'] = true}, execs)
+    assert.are.same({'build/cmake_test_exec', '../a.out'}, execs)
   end)
 end)
 
