@@ -1,5 +1,4 @@
 - run-tests.lua output cut in win32: probably, on_exit is handled before last on_stdout chunks
-- cmake test in win32?
 - pty resizing with neovim
 - proxy: when a request comes, stash user typing, execute the request and resume typing
 

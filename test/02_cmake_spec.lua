@@ -6,9 +6,11 @@ local function check_skip()
   if conftest.backend_names.cmake == nil then
     pending("CMake not configured")
   end
-  if utils.is_windows then
-    pending("CMake tests aren't supported in Windows")
-  end
+end
+
+local cmake_test_exec = 'build/cmake_test_exec'
+if utils.is_windows then
+  cmake_test_exec = 'build\\cmake_test_exec.exe'
 end
 
 describe("cmake", function()
@@ -24,7 +26,7 @@ describe("cmake", function()
 
   it("guess", function()
     check_skip()
-    local test_exec = {['build/cmake_test_exec'] = true}
+    local test_exec = {[cmake_test_exec] = true}
     local executables_of_buffer = require'nvimgdb.cmake'.executables_of_buffer
     local execs = executables_of_buffer('')
     assert.are.same(test_exec, execs)
@@ -48,7 +50,7 @@ describe("cmake", function()
   it("get executables", function()
     check_skip()
     local execs = require'nvimgdb.cmake'.get_executables('../')
-    assert.are.same({['build/cmake_test_exec'] = true, ['../a.out'] = true}, execs)
+    assert.are.same({[cmake_test_exec] = true, ['../' .. conftest.aout] = true}, execs)
   end)
 end)
 

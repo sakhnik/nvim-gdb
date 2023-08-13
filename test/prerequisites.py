@@ -23,12 +23,16 @@ class Prerequisites():
             bashdb = self.check_exe('bashdb', '5')
             if bashdb:
                 bf.write("bashdb\n")
-            if sys.platform != 'win32':
-                cmake = self.check_exe('cmake', '3.14.7')  # need File API
-                if cmake:
-                    bf.write("cmake\n")
-                    self.echo("Running CMake\n")
-                    subprocess.run(['cmake', 'src', '-B', 'src/build'])
+            cmake = self.check_exe('cmake', '3.14.7')  # need File API
+            if cmake:
+                bf.write("cmake\n")
+                self.echo("Running CMake\n")
+                generator = []
+                if sys.platform == 'win32':
+                    # Prefer ninja to Visual Studio
+                    generator = ['-G', 'Ninja']
+                subprocess.run(['cmake'] + generator +
+                               ['src', '-B', 'src/build'])
 
         self.compile_src()
 
