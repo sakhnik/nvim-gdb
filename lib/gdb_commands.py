@@ -48,7 +48,7 @@ class NvimGdbInit(gdb.Command):
             while not self.quit:
                 try:
                     data, addr = sock.recvfrom(65536)
-                except TimeoutError:
+                except socket.timeout:
                     continue
                 command = data.decode("utf-8")
                 self._handle_command(command, sock, addr)
