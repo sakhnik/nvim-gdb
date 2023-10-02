@@ -107,7 +107,7 @@ class SpyUI:
             for col in range(self.width):
                 self.grid[row][col] = ' '
 
-    def _grid_line(self, gr, row, col, cells):
+    def _grid_line(self, gr, row, col, cells, wrap, *args):
         assert gr == 1
         for cell in cells:
             text = cell[0]
