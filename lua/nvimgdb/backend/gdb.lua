@@ -30,6 +30,7 @@ function C.create_parser(actions, proxy)
   self:_init(actions)
 
   function P:query_paused()
+    log.debug({"P:query_paused"})
     coroutine.resume(coroutine.create(function()
       local process_state = proxy:query('get-process-state')
       log.debug({"process state", process_state})

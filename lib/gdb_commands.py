@@ -28,6 +28,15 @@ class NvimGdbInit(gdb.Command):
         self.quit = True
         self.thrd = None
         self.fallback_to_parsing = False
+        self.state = "stopped"
+
+        def handle_continue(event):
+            self.state = "running"
+        gdb.events.cont.connect(handle_continue)
+        def handle_stop(event):
+            self.state = "stopped"
+        gdb.events.stop.connect(handle_stop)
+        gdb.events.exited.connect(handle_stop)
 
     def invoke(self, arg, from_tty):
         if not self.thrd:
@@ -108,17 +117,7 @@ class NvimGdbInit(gdb.Command):
         sock.sendto(response_json, 0, addr)
 
     def _get_process_state(self):
-        try:
-            inferior = gdb.selected_inferior()
-            if inferior.is_valid():
-                threads = inferior.threads()
-                is_running = any((t.is_valid() and t.is_running()
-                                  for t in threads))
-                state = "running" if is_running else "stopped"
-                return state
-        except gdb.error:
-            ...
-        return "other"
+        return self.state
 
     def _get_current_frame_location(self):
         try:
