@@ -65,7 +65,7 @@ function Proxy:respond(response, is_async)
       return response.response
     end
   else
-    log.warn({"Unexpected/outdated response", response = response, async = async})
+    log.warn({"Unexpected/outdated response", response = response, is_async = is_async})
   end
 end
 

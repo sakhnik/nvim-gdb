@@ -21,6 +21,8 @@ class Setup:
                        ' mingw-w64-x86_64-gcc'
                        ' mingw-w64-x86_64-gdb'
                        ' mingw-w64-x86_64-lldb'
+                       ' mingw-w64-x86_64-cmake'
+                       ' mingw-w64-x86_64-ninja'
                        ' mingw-w64-x86_64-lua51',
                        shell=True, check=True)
         # c:\tools\msys64\mingw64\bin is appended to PATH in all.py
