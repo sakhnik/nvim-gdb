@@ -68,6 +68,12 @@ function Client:get_client_buf()
   return self.client_buf
 end
 
+---Return true if the client is active
+---@return boolean
+function Client:get_is_active()
+  return self.is_active
+end
+
 function Client:_cleanup_buf_hidden()
   log.debug({"Client:_cleanup_buf_hidden"})
   if self.buf_hidden_auid ~= -1 then

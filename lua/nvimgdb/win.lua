@@ -9,7 +9,7 @@ local log = require'nvimgdb.log'
 ---@field private cursor Cursor current line sign manager
 ---@field private client Client debugger terminal job
 ---@field private breakpoint Breakpoint breakpoint sign manager
----@field private jump_win number window handle that will be displaying the current file
+---@field private jump_win number? window handle that will be displaying the current file
 ---@field private buffers table<number,boolean> set of opened buffers to close automatically
 local Win = {}
 Win.__index = Win
@@ -20,8 +20,8 @@ Win.__index = Win
 ---@param cursor Cursor current line sign manager
 ---@param client Client debugger terminal job
 ---@param breakpoint Breakpoint breakpoint sign manager
----@param start_win number window handle that could be used as the jump window
----@param edited_buf number buffer handle that needs to be loaded by default
+---@param start_win number? window handle that could be used as the jump window
+---@param edited_buf number? buffer handle that needs to be loaded by default
 ---@return Win new instance
 function Win.new(config, keymaps, cursor, client, breakpoint, start_win, edited_buf)
   log.debug({"Win.new", start_win = start_win, edited_buf = edited_buf})
