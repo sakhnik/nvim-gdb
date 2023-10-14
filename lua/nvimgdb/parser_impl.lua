@@ -11,7 +11,7 @@ local log = require'nvimgdb.log'
 ---@field private buffer string debugger output collected so far
 ---@field private byte_count number monotonously increasing processed byte counter
 ---@field private parsing_progress number[] ordered byte counters to ensure parsing in the right order
----@field private timers table<userdata, boolean> scheduled timers
+---@field private timers table<unknown, boolean> scheduled timers
 ---@field private output_is_still boolean true if no new output when parsing is delayed
 local ParserImpl = {}
 ParserImpl.__index = ParserImpl

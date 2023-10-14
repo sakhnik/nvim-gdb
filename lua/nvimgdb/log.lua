@@ -93,7 +93,7 @@ do
         end
       end
       get_logfile():write(table.concat(parts, '\t'), "\n")
-      logfile:flush()
+      get_logfile():flush()
     end
   end
 end

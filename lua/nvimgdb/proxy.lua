@@ -106,7 +106,7 @@ end
 function Proxy:query(request)
   log.info({"Proxy:query", request = request})
 
-  if not self.client.is_active then
+  if not self.client:get_is_active() then
     return nil
   end
 

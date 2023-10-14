@@ -199,7 +199,7 @@ end
 ---Execute a custom debugger command and return its output.
 ---@deprecated
 ---@param cmd string debugger command to execute
----@return string fetched debugger output
+---@return string? fetched debugger output
 function App:custom_command(cmd)
   log.debug({"App:custom_command", cmd = cmd})
   local done = false
