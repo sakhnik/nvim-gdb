@@ -125,7 +125,7 @@ class NvimGdbInit(gdb.Command):
             if frame is not None:
                 symtab_and_line = frame.find_sal()
                 if symtab_and_line.symtab is not None:
-                    filename = symtab_and_line.symtab.filename
+                    filename = symtab_and_line.symtab.fullname()
                     line = symtab_and_line.line
                     return [filename, line]
         except gdb.error:
