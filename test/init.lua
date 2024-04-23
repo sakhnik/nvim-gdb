@@ -1,4 +1,7 @@
-vim.cmd("language C")
+if vim.loop.os_uname().sysname:find('Darwin') == nil then
+  -- Command not available in nvim-macos
+  vim.cmd("language C")
+end
 local plugin_dir = vim.loop.fs_realpath('..')
 vim.o.rtp = vim.env.VIMRUNTIME .. ',' .. plugin_dir
 vim.g.mapleader = ' '

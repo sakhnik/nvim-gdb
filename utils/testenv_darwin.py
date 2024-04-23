@@ -7,8 +7,12 @@ class Setup:
     def __init__(self, url: str):
         bindir = os.path.join(os.getenv('HOME'), 'bin')
         subprocess.run(f'mkdir -p {bindir}', shell=True, check=True)
-        with open(os.getenv("GITHUB_PATH"), 'a') as f:
-            f.write(f'{bindir}\n')
+        github_path = os.getenv("GITHUB_PATH")
+        if github_path:
+            with open(github_path, 'a') as f:
+                f.write(f'{bindir}\n')
+        else:
+            print(f"Ensure {bindir} is in PATH")
 
         subprocess.run('pip install --user six', shell=True, check=True)
 
