@@ -1,4 +1,5 @@
 import os
+import platform
 import subprocess
 import urllib.request
 
@@ -16,14 +17,17 @@ class Setup:
 
         subprocess.run('pip install --user six', shell=True, check=True)
 
-        urllib.request.urlretrieve(f"{url}/nvim-macos.tar.gz",
-                                   "nvim-macos.tar.gz")
+        # Macos may be running on arm64
+        machine = platform.machine()
+
+        urllib.request.urlretrieve(f"{url}/nvim-macos-{machine}.tar.gz",
+                                   f"nvim-macos-{machine}.tar.gz")
         subprocess.run(
-            r'''
-tar -xf nvim-macos.tar.gz
+            f'''
+tar -xf nvim-macos-{machine}.tar.gz
 cat >"$HOME/bin/nvim" <<EOF
 #!/bin/bash
-$(pwd)/nvim-macos/bin/nvim "\$@"
+$(pwd)/nvim-macos-{machine}/bin/nvim "\\$@"
 EOF
 chmod +x "$HOME/bin/nvim"
             ''',

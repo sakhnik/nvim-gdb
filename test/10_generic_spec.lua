@@ -31,7 +31,13 @@ describe("generic", function()
 
         local function check_signs(signs)
           -- different for different compilers
-          return vim.deep_equal(signs, {cur = 'test.cpp:17'}) or vim.deep_equal(signs, {cur = 'test.cpp:19'})
+          local lines = {17, 19, 20}
+          for _, line in ipairs(lines) do
+            if vim.deep_equal(signs, {cur = 'test.cpp:' .. line}) then
+              return true
+            end
+          end
+          return false
         end
         assert.is_true(eng.wait_for(eng.get_signs, check_signs))
 
@@ -70,7 +76,7 @@ describe("generic", function()
         eng.feed('<esc>')
         assert.is_true(eng.wait_running(5000))
         eng.feed(':GdbInterrupt\n')
-        if not utils.is_windows then
+        if utils.is_linux then
           assert.is_true(eng.wait_signs({cur = 'test.cpp:22'}))
         else
           -- Most likely to break in the kernel code
@@ -180,7 +186,22 @@ describe("generic", function()
         eng.feed('n<cr>')
         assert.is_true(eng.wait_signs({cur = 'test.cpp:19'}))
         eng.feed('<cr>')
-        assert.is_true(eng.wait_signs({cur = 'test.cpp:17'}))
+
+        if utils.is_darwin then
+          local function check_signs(signs)
+            -- different for different compilers
+            local lines = {17, 20}
+            for _, line in ipairs(lines) do
+              if vim.deep_equal(signs, {cur = 'test.cpp:' .. line}) then
+                return true
+              end
+            end
+            return false
+          end
+          assert.is_true(eng.wait_for(eng.get_signs, check_signs))
+        else
+          assert.is_true(eng.wait_signs({cur = 'test.cpp:17'}))
+        end
       end)
     end)
 

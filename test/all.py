@@ -36,6 +36,8 @@ with tempfile.TemporaryDirectory() as tmp_dir:
     Prerequisites()
 
     test_cmd = ["nvim", "-l", "run-tests.lua", ".", "--no-keep-going"]
+    # Use the following command to see neovim screen
+    # test_cmd = ["python", "nvim.py", "+luafile main.lua"]
     print(f"Run `{' '.join(test_cmd)}`")
     res = subprocess.run(test_cmd)
     if res.returncode != 0:
