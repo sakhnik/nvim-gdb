@@ -145,7 +145,7 @@ class NvimGdbInit(gdb.Command):
 
         try:
             for path, line, bid in self._get_breaks_provider():
-                if fname == os.path.normpath(path):
+                if fname.endswith(os.path.normpath(path)):
                     breaks.setdefault(line, []).append(bid)
         except AttributeError:
             self.fallback_to_parsing = True
@@ -178,15 +178,41 @@ class NvimGdbInit(gdb.Command):
         # on the second line if the screen is too narrow.
         bid = None
         response = gdb.execute('info breakpoints', False, True)
-        for line in re.split(r"[\n\r]+", response):
-            fields = re.split(r"[\s]+", line)
 
-            if len(fields) >= 5 and re.match("0x[0-9a-zA-Z]+", fields[4]):
-                if fields[3] != 'y':    # Is enabled?
-                    bid = None
-                else:
-                    bid = re.match("[^.]+", fields[0]).group(0)
+        column_idx = {}
+        header = response.splitlines()[0]
+        contents = response.splitlines()[1:]
 
+        for f in re.finditer(r"(\w+)\s*", header):
+            s, e, str = f.start(), f.end(), f.group(1)
+            e = None if e == len(header) else e
+            column_idx[str] = (s, e)
+
+        def get_column_value(line, column_name):
+            if column_name not in column_idx:
+                return ""
+            s, e = column_idx[column_name]
+            return line[s:e].strip()
+
+        last_enabled = False
+
+        for line in contents:
+            bid, enabled, address, what = (
+                get_column_value(line, "Num"),
+                get_column_value(line, "Enb"),
+                get_column_value(line, "Address"),
+                get_column_value(line, "What"),
+            )
+
+            if enabled == '':
+                enabled = last_enabled
+
+            if not bid or enabled != 'y' or re.match(r"0x[0-9a-zA-Z]+", address) is None:
+                continue
+
+            bid = bid.split(".")[0]
+
+            fields = re.split(r"\s+", what)
             if len(fields) >= 2 and fields[-2] == "at":
                 # file.cpp:line
                 m = re.match(r"^([^:]+):(\d+)$", fields[-1])
