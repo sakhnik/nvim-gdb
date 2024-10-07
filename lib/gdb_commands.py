@@ -45,13 +45,13 @@ class NvimGdbInit(gdb.Command):
             self.thrd.daemon = True
             self.thrd.start()
 
-    def _server(self, server_address: str):
+    def _server(self, server_address):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.bind(('127.0.0.1', 0))
         sock.settimeout(0.25)
         _, port = sock.getsockname()
         with open(server_address, 'w') as f:
-            f.write(f"{port}")
+            f.write(str(port))
         logger.info("Start listening for commands at port %d", port)
         try:
             while not self.quit:
@@ -129,7 +129,7 @@ class NvimGdbInit(gdb.Command):
                     line = symtab_and_line.line
                     return [filename, line]
         except gdb.error:
-            ...
+            pass
         return []
 
     def _get_breaks_provider(self):
@@ -139,7 +139,7 @@ class NvimGdbInit(gdb.Command):
             return self._enum_breaks()
         return self._enum_breaks_fallback()
 
-    def _get_breaks(self, fname: str):
+    def _get_breaks(self, fname):
         """Get list of enabled breakpoints for a given source file."""
         breaks = {}
 
@@ -226,7 +226,7 @@ class NvimGdbInit(gdb.Command):
         breaks = []
         try:
             for path, line, bid in self._get_breaks_provider():
-                breaks.append(f"{path}:{line} breakpoint {bid}")
+                breaks.append(str(path) + ':' + str(line) + ' breakpoint ' + str(bid))
         except AttributeError:
             self.fallback_to_parsing = True
             return self._get_all_breaks()
