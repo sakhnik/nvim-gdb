@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 import asyncio
-import pipes
 import sys
 import shlex
+import re
 
 # rr replay refuses to run outside of a pty. But it allows
 # attaching a gdb remotely.
@@ -33,9 +33,11 @@ async def run(cmd):
         cmd,
         stderr=asyncio.subprocess.PIPE)
 
+    header_regex = re.compile(b'Launch \\w+ with$')
+
     # Check it launched
     header = await rr_proc.stderr.readline()
-    if header != b'Launch debugger with\n':
+    if not header_regex.match(header):
         rest = await rr_proc.stderr.read()
         raise RuntimeError(f"Unexpected: {header.decode()}{rest.decode()}")
 
