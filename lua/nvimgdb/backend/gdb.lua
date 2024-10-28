@@ -104,10 +104,20 @@ function C.get_launch_cmd(client_cmd, tmp_dir, proxy_addr)
   -- We'd like to ensure gdb is launched with our custom initialization
   -- injected.
 
-  -- Check for rr-replay.py
-  local gdb = client_cmd[1]
-  if gdb == "rr-replay.py" then
-    gdb = utils.get_plugin_file_path("lib", "rr-replay.py")
+  local cmd_arg = "-ix"
+  local rest_arg_idx = 2
+  local cmd = {client_cmd[1]}
+  if cmd[1] == "rr-replay.py" then
+    -- Check for rr-replay.py
+    cmd = {utils.get_plugin_file_path("lib", "rr-replay.py")}
+  elseif cmd[1] == "cargo-debug" then
+    -- Check for cargo
+    cmd_arg = "--command-file"
+  elseif cmd[1] == "cargo" then
+    -- the 2nd arg is the cargo's subcommand, should be 'debug' here
+    cmd = {'cargo', client_cmd[2]}
+    cmd_arg = "--command-file"
+    rest_arg_idx = 3
   end
 
   local gdb_init = utils.path_join(tmp_dir, "gdb_init")
@@ -127,9 +137,10 @@ set pagination off
     file:close()
   end
 
-  local cmd = {gdb, '-ix', gdb_init}
+  table.insert(cmd, cmd_arg)
+  table.insert(cmd, gdb_init)
   -- Append the rest of arguments
-  for i = 2, #client_cmd do
+  for i = rest_arg_idx, #client_cmd do
     cmd[#cmd + 1] = client_cmd[i]
   end
   return cmd
