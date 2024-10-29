@@ -400,6 +400,10 @@ Section 7.1 GDB, LLDB                                *NvimgdbGDB*  *NvimgdbLLDB*
   is injected into GDB/LLDB. It spawns a thread listening for commands via a
   UDP socket, executes them and sends a JSON response back.
 
+- To debug with cargo-debug (https://github.com/cargo-bins/cargo-debug), use
+  `Gdbstart cargo debug` for gdb backend, or `GdbStartLLDB cargo debug` for
+  the lldb backend.
+
 ------------------------------------------------------------------------------
 Section 7.2 rr                                                     *NvimgdbRR*
 

@@ -109,7 +109,18 @@ function C.get_launch_cmd(client_cmd, tmp_dir, proxy_addr)
   -- We'd like to ensure gdb is launched with our custom initialization
   -- injected.
 
-  local lldb = client_cmd[1]
+  local cmd_args = {'--source-quietly', '-S'}
+  local rest_arg_idx = 2
+  local cmd = {client_cmd[1]}
+  if cmd[1] == "cargo-debug" then
+    -- Check for cargo
+    cmd_args = {'--debugger', 'lldb', '--command-file'}
+  elseif cmd[1] == "cargo" then
+    -- the 2nd arg is the cargo's subcommand, should be 'debug' here
+    cmd = {'cargo', client_cmd[2]}
+    cmd_args = {'--debugger', 'lldb', '--command-file'}
+    rest_arg_idx = 3
+  end
 
   local lldb_init = utils.path_join(tmp_dir, "lldb_init")
   local file = io.open(lldb_init, "w")
@@ -129,9 +140,13 @@ function C.get_launch_cmd(client_cmd, tmp_dir, proxy_addr)
   end
 
   -- Execute lldb finally with our custom initialization script
-  local cmd = {lldb, '--source-quietly', '-S', lldb_init}
+  for _, arg in ipairs(cmd_args) do
+    table.insert(cmd, arg)
+  end
+  table.insert(cmd, lldb_init)
+
   -- Append the rest of arguments
-  for i = 2, #client_cmd do
+  for i = rest_arg_idx, #client_cmd do
     cmd[#cmd + 1] = client_cmd[i]
   end
   return cmd
