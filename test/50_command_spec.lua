@@ -52,9 +52,9 @@ describe("command", function()
       eng.feed(' dp<cr>')
       assert.is_true(eng.wait_signs({cur = 'main.py:1'}))
       eng.feed('b _foo<cr>')
-      assert.is_true(eng.wait_signs({cur = 'main.py:1', brk = {[1] = {8}}}))
+      assert.is_true(eng.wait_signs({cur = 'main.py:1', brk = {[1] = {9}}}))
       eng.feed('cont<cr>')
-      assert.is_true(eng.wait_signs({cur = 'main.py:9', brk = {[1] = {8}}}))
+      assert.is_true(eng.wait_signs({cur = 'main.py:9', brk = {[1] = {9}}}))
 
       local result = {}
       custom_command('print(num)', result)
@@ -66,7 +66,7 @@ describe("command", function()
       )
 
       eng.feed('cont<cr>')
-      assert.is_true(eng.wait_signs({cur = 'main.py:9', brk = {[1] = {8}}}))
+      assert.is_true(eng.wait_signs({cur = 'main.py:9', brk = {[1] = {9}}}))
 
       result = {}
       custom_command('print(num)', result)
