@@ -44,7 +44,7 @@ function C.create_parser(actions, proxy)
           local fname = location[1]
           local line = location[2]
           if (fname ~= self.prev_fname or line ~= self.prev_line) or
-              proxy:query('has-exited') then
+              proxy:query('has-exited-or-ran') then
             self.prev_line = line
             self.prev_fname = fname
             self.actions:jump_to_source(fname, line)
