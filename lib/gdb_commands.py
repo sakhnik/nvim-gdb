@@ -29,14 +29,19 @@ class NvimGdbInit(gdb.Command):
         self.thrd = None
         self.fallback_to_parsing = False
         self.state = "stopped"
+        self.exited_or_ran = False
 
         def handle_continue(event):
             self.state = "running"
+            self.exited_or_ran = True
         gdb.events.cont.connect(handle_continue)
         def handle_stop(event):
             self.state = "stopped"
+        def handle_exit(event):
+            self.state = "stopped"
+            self.exited_or_ran = True
         gdb.events.stop.connect(handle_stop)
-        gdb.events.exited.connect(handle_stop)
+        gdb.events.exited.connect(handle_exit)
 
     def invoke(self, arg, from_tty):
         if not self.thrd:
@@ -84,6 +89,9 @@ class NvimGdbInit(gdb.Command):
         elif request == "get-current-frame-location":
             self._send_response(self._get_current_frame_location(),
                                 req_id, sock, addr)
+        elif request == "has-exited-or-ran":
+            self._send_response(self._get_reset_exited_or_ran(),
+                                req_id, sock, addr)
         elif request == "handle-command":
             # pylint: disable=broad-except
             try:
@@ -118,6 +126,12 @@ class NvimGdbInit(gdb.Command):
 
     def _get_process_state(self):
         return self.state
+
+    def _get_reset_exited_or_ran(self):
+        if (self.exited_or_ran):
+            self.exited_or_ran = False
+            return True
+        return False
 
     def _get_current_frame_location(self):
         try:

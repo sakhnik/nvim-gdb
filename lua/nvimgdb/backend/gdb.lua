@@ -29,6 +29,9 @@ function C.create_parser(actions, proxy)
   local self = setmetatable({}, P)
   self:_init(actions)
 
+  P.prev_fname = nil
+  P.prev_line = nil
+
   function P:query_paused()
     log.debug({"P:query_paused"})
     coroutine.resume(coroutine.create(function()
@@ -40,7 +43,12 @@ function C.create_parser(actions, proxy)
         if #location == 2 then
           local fname = location[1]
           local line = location[2]
-          self.actions:jump_to_source(fname, line)
+          if (fname ~= self.prev_fname or line ~= self.prev_line) or
+              proxy:query('has-exited-or-ran') then
+            self.prev_line = line
+            self.prev_fname = fname
+            self.actions:jump_to_source(fname, line)
+          end
         end
       end
       self.actions:query_breakpoints()
