@@ -401,7 +401,7 @@ Section 7.1 GDB, LLDB                                *NvimgdbGDB*  *NvimgdbLLDB*
   UDP socket, executes them and sends a JSON response back.
 
 - To debug with cargo-debug (https://github.com/cargo-bins/cargo-debug), use
-  `Gdbstart cargo debug` for gdb backend, or `GdbStartLLDB cargo debug` for
+  `GdbStart cargo debug` for gdb backend, or `GdbStartLLDB cargo debug` for
   the lldb backend.
 
 ------------------------------------------------------------------------------
