@@ -43,8 +43,11 @@ function C.create_parser(actions, proxy)
         if #location == 2 then
           local fname = location[1]
           local line = location[2]
-          if (fname ~= self.prev_fname or line ~= self.prev_line) or
-              proxy:query('has-exited-or-ran') then
+          -- The "exited or ran" check is stateful, call it every time
+          -- before any other check to ensure the state is reset.
+          if proxy:query('has-exited-or-ran')
+              or (fname ~= self.prev_fname or line ~= self.prev_line)
+          then
             self.prev_line = line
             self.prev_fname = fname
             self.actions:jump_to_source(fname, line)
