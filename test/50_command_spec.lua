@@ -38,7 +38,7 @@ describe("command", function()
           custom_command(cmd, result)
           assert.is_true(
             eng.wait_for(
-              function() return result.output end,
+              function() return result.output and result.output:gsub("%s+$", "") or nil end,
               function(out) return exp == out end
             )
           )
