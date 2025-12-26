@@ -77,16 +77,35 @@ describe("quickfix", function()
 
   end)
 
+  local function check_signs(signs, expected)
+    -- different for different compilers
+    for _, s in ipairs(expected) do
+      if vim.deep_equal(signs, s) then
+        return true
+      end
+    end
+    return false
+  end
+
   it('breakpoint location list in pdb', function()
     conf.post_terminal_end(function()
       eng.feed(' dp<cr>')
       assert.is_true(eng.wait_signs({cur = 'main.py:1'}))
       eng.feed('b _main<cr>')
-      assert.is_true(eng.wait_signs({cur = 'main.py:1', brk = {[1] = {14}}}))
+      assert.is_true(eng.wait_for(eng.get_signs, function(signs)
+        return check_signs(signs, {{cur = 'main.py:1', brk = {[1] = {14}}},
+                                   {cur = 'main.py:1', brk = {[1] = {15}}}})
+      end))
       eng.feed('b _foo<cr>')
-      assert.is_true(eng.wait_signs({cur = 'main.py:1', brk = {[1] = {8, 14}}}))
+      assert.is_true(eng.wait_for(eng.get_signs, function(signs)
+        return check_signs(signs, {{cur = 'main.py:1', brk = {[1] = {8, 14}}},
+                                   {cur = 'main.py:1', brk = {[1] = {9, 15}}}})
+      end))
       eng.feed('b _bar<cr>')
-      assert.is_true(eng.wait_signs({cur = 'main.py:1', brk = {[1] = {4, 8, 14}}}))
+      assert.is_true(eng.wait_for(eng.get_signs, function(signs)
+        return check_signs(signs, {{cur = 'main.py:1', brk = {[1] = {4, 8, 14}}},
+                                   {cur = 'main.py:1', brk = {[1] = {5, 9, 15}}}})
+      end))
       eng.feed('<esc>')
       eng.feed('<c-w>w')
       eng.feed(':GdbLopenBreakpoints<cr>')
@@ -101,15 +120,18 @@ describe("quickfix", function()
       assert.is_true(
         eng.wait_for(
           function() return vim.fn.line('.') end,
-          function(r) return r == 14 end
+          function(r) return r == 14 or r == 15 end
         )
       )
       eng.feed(':lnext<cr>')
-      assert.equals(8, vim.fn.line('.'))
+      local l = vim.fn.line('.')
+      assert.is_true(l == 8 or l == 9)
       eng.feed(':lnext<cr>')
-      assert.equals(4, vim.fn.line('.'))
+      l = vim.fn.line('.')
+      assert.is_true(l == 4 or l == 5)
       eng.feed(':lnext<cr>')
-      assert.equals(4, vim.fn.line('.'))
+      l = vim.fn.line('.')
+      assert.is_true(l == 4 or l == 5)
     end)
   end)
 
@@ -118,9 +140,15 @@ describe("quickfix", function()
       eng.feed(' dp<cr>')
       assert.is_true(eng.wait_signs({cur = 'main.py:1'}))
       eng.feed('b _bar<cr>')
-      assert.is_true(eng.wait_signs({cur = 'main.py:1', brk = {[1] = {4}}}))
+      assert.is_true(eng.wait_for(eng.get_signs, function(signs)
+        return check_signs(signs, {{cur = 'main.py:1', brk = {[1] = {4}}},
+                                   {cur = 'main.py:1', brk = {[1] = {5}}}})
+      end))
       eng.feed('cont<cr>')
-      assert.is_true(eng.wait_signs({cur = 'main.py:5', brk = {[1] = {4}}}))
+      assert.is_true(eng.wait_for(eng.get_signs, function(signs)
+        return check_signs(signs, {{cur = 'main.py:5', brk = {[1] = {4}}},
+                                   {cur = 'main.py:5', brk = {[1] = {5}}}})
+      end))
       eng.feed('<esc>')
       eng.feed('<c-w>w')
       eng.feed(':GdbLopenBacktrace<cr>')
