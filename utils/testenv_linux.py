@@ -5,7 +5,7 @@ import urllib.request
 
 class Setup:
     def __init__(self, url: str):
-        urllib.request.urlretrieve(f"{url}/nvim.appimage", "nvim.appimage")
+        urllib.request.urlretrieve(f"{url}/nvim-linux-x86_64.appimage", "nvim.appimage")
         os.chmod("nvim.appimage", 0o755)
         bindir = os.path.join(os.getenv('HOME'), 'bin')
         os.mkdir(bindir)
