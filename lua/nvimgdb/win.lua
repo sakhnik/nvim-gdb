@@ -306,16 +306,8 @@ function Win:lopen(cmd, mods)
       self:_with_saved_win(false, function()
         self:_ensure_jump_window()
         vim.api.nvim_win_call(self.jump_win, function()
-          log.debug({win = self.jump_win, valid = vim.api.nvim_win_is_valid(self.jump_win), llist = llist})
-          log.debug({
-            lang = vim.env.LANG,
-            lc_all = vim.env.LC_ALL,
-            llist = llist,
-          })
-          local res = vim.fn.setloclist(self.jump_win, {}, 'r', {lines = llist})
-          log.debug({res = res, loclist = vim.fn.getloclist(self.jump_win, {lines = 1})})
+          vim.fn.setloclist(0, {}, 'r', {lines = llist})
           vim.cmd(mods .. ' lopen')
-          log.debug({win = vim.api.nvim_get_current_win(), loclist = vim.fn.getloclist(vim.api.nvim_get_current_win())})
         end)
       end)
     end)
