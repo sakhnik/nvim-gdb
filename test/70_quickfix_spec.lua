@@ -20,7 +20,7 @@ describe("quickfix", function()
           eng.feed(':aboveleft GdbLopenBreakpoints\n')
           assert.is_true(
             eng.wait_for(
-              function() return #vim.fn.getloclist(0) end,
+              function() return #vim.fn.getloclist(NvimGdb.here.win.jump_win) end,
               function(r) return r > 0 end
             )
           )
