@@ -1,6 +1,6 @@
 import sys
 
-NVIM_RELEASE_URL = 'https://github.com/neovim/neovim/releases/download/v0.10.4'
+NVIM_RELEASE_URL = 'https://github.com/neovim/neovim/releases/latest/download'
 
 
 if __name__ == "__main__":
