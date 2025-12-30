@@ -19,10 +19,9 @@ class Prerequisites():
             gdb = self.check_exe('gdb', '9')
             if gdb:
                 bf.write("gdb\n")
-            else:
-                lldb = self.check_exe('lldb', '9')
-                if lldb:
-                    bf.write("lldb\n")
+            lldb = self.check_exe('lldb', '9')
+            if lldb:
+                bf.write("lldb\n")
             #bashdb = self.check_exe('bashdb', '5')
             #if bashdb:
             #    bf.write("bashdb\n")
