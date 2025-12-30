@@ -23,9 +23,9 @@ class Prerequisites():
                 lldb = self.check_exe('lldb', '9')
                 if lldb:
                     bf.write("lldb\n")
-            bashdb = self.check_exe('bashdb', '5')
-            if bashdb:
-                bf.write("bashdb\n")
+            #bashdb = self.check_exe('bashdb', '5')
+            #if bashdb:
+            #    bf.write("bashdb\n")
             cmake = self.check_exe('cmake', '3.14.7')  # need File API
             if cmake:
                 bf.write("cmake\n")
