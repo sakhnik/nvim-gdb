@@ -85,7 +85,7 @@ function CMake.find_executables(prefix)
       return false
     end
     if progress_path ~= path then
-      print("Scanning " .. path)
+      vim.notify("Scanning " .. path)
       progress_path = path
     end
     local file_path = utils.path_join(path, name)
@@ -233,7 +233,7 @@ function CMake.get_cmake_dirs(proj_dir)
   local progress_path = ''
   local cache_files = vim.fs.find(function(name, path)
     if progress_path ~= path then
-      print("Scanning " .. path)
+      vim.notify("Scanning " .. path)
       progress_path = path
     end
     return name == cmake_cache_txt
@@ -327,7 +327,7 @@ function CMake.executables_of_buffer(prefix)
   local progress_path = ''
   local dirs = vim.fs.find(function(name, path)
     if progress_path ~= path then
-      print("Scanning " .. path)
+      vim.notify("Scanning " .. path)
       progress_path = path
     end
     -- depth = 0

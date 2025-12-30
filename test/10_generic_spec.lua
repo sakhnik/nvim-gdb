@@ -76,7 +76,7 @@ describe("generic", function()
         eng.feed('<esc>')
         assert.is_true(eng.wait_running(5000))
         eng.feed(':GdbInterrupt\n')
-        if utils.is_linux then
+        if utils.is_linux and backend.name == 'gdb' then
           assert.is_true(eng.wait_signs({cur = 'test.cpp:22'}))
         else
           -- Most likely to break in the kernel code

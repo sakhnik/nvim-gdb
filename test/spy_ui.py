@@ -34,10 +34,13 @@ class SpyUI:
 
     def run(self):
         """Run the loop."""
-        def _req(name, arg):
-            # print("req", name, arg, file=sys.stderr)
-            pass
-        self.nvim.run_loop(_req, self._not)
+        try:
+            def _req(name, arg):
+                # print("req", name, arg, file=sys.stderr)
+                pass
+            self.nvim.run_loop(_req, self._not)
+        except EOFError:
+            ...
 
     def close(self):
         """Break from the UI loop."""
