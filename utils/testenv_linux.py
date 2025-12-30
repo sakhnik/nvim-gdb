@@ -5,23 +5,34 @@ import urllib.request
 
 class Setup:
     def __init__(self, url: str):
-        urllib.request.urlretrieve(f"{url}/nvim.appimage", "nvim.appimage")
+        urllib.request.urlretrieve(f"{url}/nvim-linux-x86_64.appimage", "nvim.appimage")
         os.chmod("nvim.appimage", 0o755)
         bindir = os.path.join(os.getenv('HOME'), 'bin')
-        os.mkdir(bindir)
-        os.symlink(os.path.realpath("nvim.appimage"),
-                   os.path.join(bindir, "nvim"))
+        os.makedirs(bindir, exist_ok=True)
+        try:
+            os.symlink(os.path.realpath("nvim.appimage"),
+                       os.path.join(bindir, "nvim"))
+        except FileExistsError:
+            ...
 
-        with open(os.getenv("GITHUB_PATH"), 'a') as f:
-            f.write(f'{bindir}\n')
+        try:
+            with open(os.getenv("GITHUB_PATH"), 'a') as f:
+                f.write(f'{bindir}\n')
+        except Exception:
+            ...
 
         subprocess.run(
             r'''
 sudo apt-get update
-sudo apt-get install libfuse2 gdb lldb python3-lldb-14 cmake file --no-install-recommends
+sudo apt-get install libfuse2 gdb lldb python3-lldb-18 cmake file --no-install-recommends
+sudo apt-get install -y tzdata locales
+sudo locale-gen en_US.UTF-8
+sudo localectl set-locale LANG="en_US.UTF-8"
+export LANG="en_US.UTF-8"
+sudo update-locale
 # Fix lldb python path mismatch
-sudo mkdir -p /usr/lib/local/lib/python3.10
-sudo ln -s /usr/lib/llvm-14/lib/python3.10/dist-packages /usr/lib/local/lib/python3.10/dist-packages
+#sudo mkdir -p /usr/lib/local/lib/python3.12
+#sudo ln -s /usr/lib/llvm-18/lib/python3.12/dist-packages /usr/lib/local/lib/python3.12/dist-packages
             ''',
             shell=True, check=True
         )

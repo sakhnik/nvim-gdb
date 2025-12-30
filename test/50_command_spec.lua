@@ -38,7 +38,7 @@ describe("command", function()
           custom_command(cmd, result)
           assert.is_true(
             eng.wait_for(
-              function() return result.output end,
+              function() return result.output and result.output:gsub("%s+$", "") or nil end,
               function(out) return exp == out end
             )
           )
@@ -49,12 +49,28 @@ describe("command", function()
 
   it('custom command in pdb', function()
     conf.post_terminal_end(function()
+      local function check_signs(signs, expected)
+        -- different for different compilers
+        for _, s in ipairs(expected) do
+          if vim.deep_equal(signs, s) then
+            return true
+          end
+        end
+        return false
+      end
+
       eng.feed(' dp<cr>')
       assert.is_true(eng.wait_signs({cur = 'main.py:1'}))
       eng.feed('b _foo<cr>')
-      assert.is_true(eng.wait_signs({cur = 'main.py:1', brk = {[1] = {8}}}))
+      assert.is_true(eng.wait_for(eng.get_signs, function(signs)
+        return check_signs(signs, {{cur = 'main.py:1', brk = {[1] = {8}}},
+                                   {cur = 'main.py:1', brk = {[1] = {9}}}})
+      end))
       eng.feed('cont<cr>')
-      assert.is_true(eng.wait_signs({cur = 'main.py:9', brk = {[1] = {8}}}))
+      assert.is_true(eng.wait_for(eng.get_signs, function(signs)
+        return check_signs(signs, {{cur = 'main.py:9', brk = {[1] = {8}}},
+                                   {cur = 'main.py:9', brk = {[1] = {9}}}})
+      end))
 
       local result = {}
       custom_command('print(num)', result)
@@ -66,7 +82,10 @@ describe("command", function()
       )
 
       eng.feed('cont<cr>')
-      assert.is_true(eng.wait_signs({cur = 'main.py:9', brk = {[1] = {8}}}))
+      assert.is_true(eng.wait_for(eng.get_signs, function(signs)
+        return check_signs(signs, {{cur = 'main.py:9', brk = {[1] = {8}}},
+                                   {cur = 'main.py:9', brk = {[1] = {9}}}})
+      end))
 
       result = {}
       custom_command('print(num)', result)

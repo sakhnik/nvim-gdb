@@ -13,6 +13,9 @@ vim.o.hidden = true
 vim.o.ruler = false
 vim.o.showcmd = false
 
+-- Avoid messages being echoed to minimize the risk of hit-enter
+vim.notify = function() end
+
 vim.cmd("runtime! plugin/*.vim")
 
 local rocks_dir = plugin_dir .. '/lua_modules/share/lua/5.1'

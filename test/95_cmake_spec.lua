@@ -17,6 +17,8 @@ describe("cmake", function()
   setup(function()
     eng.exe("cd src")
     eng.exe("e test.cpp")
+    -- Restore cmdheight just in case it was reset in one of the previous tests
+    eng.exe("set cmdheight=5")
   end)
 
   teardown(function()

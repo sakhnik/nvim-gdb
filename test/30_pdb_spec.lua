@@ -3,12 +3,24 @@ local eng = require'engine'
 
 describe("pdb", function()
 
+  local function check_signs_tbreak_main(signs)
+    -- different for different compilers
+    local lines = {14, 15}
+    for _, line in ipairs(lines) do
+      if vim.deep_equal(signs, {cur = 'main.py:1', brk = {[1] = {line}}}) then
+        return true
+      end
+    end
+    return false
+  end
+
   it('generic use case', function()
     conf.post_terminal_end(function()
       eng.feed(' dp<cr>')
       assert.is_true(eng.wait_signs({cur = 'main.py:1'}))
       eng.feed('tbreak _main<cr>')
-      assert.is_true(eng.wait_signs({cur = 'main.py:1', brk = {[1] = {14}}}))
+      assert.is_true(eng.wait_for(eng.get_signs, check_signs_tbreak_main))
+
       eng.feed('cont<cr>')
       assert.is_true(eng.wait_signs({cur = 'main.py:15'}))
       eng.feed('<esc>')
@@ -87,7 +99,7 @@ describe("pdb", function()
       eng.feed(' dp<cr>')
       assert.is_true(eng.wait_signs({cur = 'main.py:1'}))
       eng.feed('tbreak _main<cr>')
-      assert.is_true(eng.wait_signs({cur = 'main.py:1', brk = {[1] = {14}}}))
+      assert.is_true(eng.wait_for(eng.get_signs, check_signs_tbreak_main))
       eng.feed('cont<cr>')
       assert.is_true(eng.wait_signs({cur = 'main.py:15'}))
       eng.feed('<esc>')
@@ -105,7 +117,7 @@ describe("pdb", function()
       eng.feed(' dp<cr>')
       assert.is_true(eng.wait_signs({cur = 'main.py:1'}))
       eng.feed('tbreak _main<cr>')
-      assert.is_true(eng.wait_signs({cur = 'main.py:1', brk = {[1] = {14}}}))
+      assert.is_true(eng.wait_for(eng.get_signs, check_signs_tbreak_main))
       eng.feed('cont<cr>')
       assert.is_true(eng.wait_signs({cur = 'main.py:15'}))
       eng.feed('<esc>')
@@ -141,7 +153,7 @@ describe("pdb", function()
       eng.feed(' dp<cr>')
       assert.is_true(eng.wait_signs({cur = 'main.py:1'}))
       eng.feed('tbreak _main<cr>')
-      assert.is_true(eng.wait_signs({cur = 'main.py:1', brk = {[1] = {14}}}))
+      assert.is_true(eng.wait_for(eng.get_signs, check_signs_tbreak_main))
       eng.feed('cont<cr>')
       assert.is_true(eng.wait_signs({cur = 'main.py:15'}))
 
