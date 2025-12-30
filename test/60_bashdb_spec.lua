@@ -4,7 +4,7 @@ local eng = require'engine'
 describe("bashdb", function()
 
   if conf.backend_names.bashdb == nil then
-    return
+    pending("bashdb not configured")
   end
 
   it('generic use case', function()
