@@ -5,12 +5,14 @@ import urllib.request
 
 class Setup:
     def __init__(self, url: str):
-        urllib.request.urlretrieve(f"{url}/nvim-linux-x86_64.appimage", "nvim.appimage")
-        os.chmod("nvim.appimage", 0o755)
+        fname = 'nvim-linux64'
+        subprocess.run(f'tar -xvf {fname}.tar.gz', shell=True, check=True)
+        #urllib.request.urlretrieve(f"{url}/nvim-linux-x86_64.appimage", "nvim.appimage")
+        #os.chmod("nvim.appimage", 0o755)
         bindir = os.path.join(os.getenv('HOME'), 'bin')
         os.makedirs(bindir, exist_ok=True)
         try:
-            os.symlink(os.path.realpath("nvim.appimage"),
+            os.symlink(os.path.realpath(f"{fname}/bin/nvim"),
                        os.path.join(bindir, "nvim"))
         except FileExistsError:
             ...
@@ -24,7 +26,7 @@ class Setup:
         subprocess.run(
             r'''
 sudo apt-get update
-sudo apt-get install libfuse2 gdb lldb python3-lldb-18 cmake file --no-install-recommends
+sudo apt-get install libvterm0 libfuse2 gdb lldb python3-lldb-18 cmake file --no-install-recommends
 sudo apt-get install -y tzdata locales
 sudo locale-gen en_US.UTF-8
 sudo localectl set-locale LANG="en_US.UTF-8"
