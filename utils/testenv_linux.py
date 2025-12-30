@@ -25,6 +25,11 @@ class Setup:
             r'''
 sudo apt-get update
 sudo apt-get install libfuse2 gdb lldb python3-lldb-18 cmake file --no-install-recommends
+sudo apt-get install -y tzdata locales
+sudo locale-gen en_US.UTF-8
+sudo localectl set-locale LANG="en_US.UTF-8"
+export LANG="en_US.UTF-8"
+sudo update-locale
 # Fix lldb python path mismatch
 #sudo mkdir -p /usr/lib/local/lib/python3.12
 #sudo ln -s /usr/lib/llvm-18/lib/python3.12/dist-packages /usr/lib/local/lib/python3.12/dist-packages

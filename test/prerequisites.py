@@ -5,10 +5,12 @@ import re
 import subprocess
 import sys
 from packaging import version
+import locale
 
 
 class Prerequisites():
     def __init__(self):
+        print("Current locale", locale.getlocale())
         # Check the prerequisites
         self.check_exe_required('nvim', '0.7.2')
         self.check_exe_required('python', '3.9')
