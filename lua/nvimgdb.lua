@@ -3,13 +3,11 @@
 local log = require 'nvimgdb.log'
 
 ---@class NvimGdb globally accessible plugin entry point
----@field public efmmgr EfmMgr errorformat manager
 ---@field private apps table<number, App> collection of debugger sessions {tabpage -> App}
 ---@field private apps_size number count of running debugger sessions
 
 -- Global instance
 NvimGdb = {
-  efmmgr = require 'nvimgdb.efmmgr',
   apps = {},
   apps_size = 0,
   mt = {},
@@ -111,7 +109,6 @@ function NvimGdb.cleanup(tab)
       if NvimGdb.apps_size == 0 then
         -- Cleanup commands, autocommands etc
         NvimGdb.global_cleanup()
-        NvimGdb.efmmgr.cleanup()
         app:get_win():unset_keymaps()
       end
       app:cleanup(tab)

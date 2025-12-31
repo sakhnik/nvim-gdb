@@ -306,11 +306,16 @@ function Win:lopen(cmd, mods)
       self:_with_saved_win(false, function()
         self:_ensure_jump_window()
         vim.api.nvim_win_call(self.jump_win, function()
+          local efmmgr = require 'nvimgdb.efmmgr'
+          local backend = NvimGdb.here.backend
+          -- Setup 'errorformat' for the given backend. Do it locally because 'efm' can change be reset when editing files.
+          efmmgr.setup(backend.get_error_formats())
           log.debug({win = self.jump_win, valid = vim.api.nvim_win_is_valid(self.jump_win), llist = llist})
           local res = vim.fn.setloclist(0, {}, ' ', {lines = llist})
           log.debug({res = res, loclist = vim.fn.getloclist(0, {lines = 1})})
           vim.cmd(mods .. ' lopen')
           log.debug({win = vim.api.nvim_get_current_win(), loclist = vim.fn.getloclist(vim.api.nvim_get_current_win())})
+          efmmgr.teardown(backend.get_error_formats())
         end)
       end)
     end)

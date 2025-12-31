@@ -16,7 +16,6 @@ local NvimGdb = require'nvimgdb'
 ---@field private parser ParserImpl debugger output parser
 ---@field private tabpage_created boolean indicates whether the tabpage was created and needs to be closed during cleanup
 local App = {}
-App.efmmgr = require 'nvimgdb.efmmgr'
 App.__index = App
 
 ---Create a new instance of the debugger in the current tabpage.
@@ -85,9 +84,6 @@ function App.new(backend_name, client_cmd)
   local parser_actions = require'nvimgdb.parser_actions'.new(self.cursor, self.win)
   self.parser = self.backend.create_parser(parser_actions, self.proxy)
 
-  -- Setup 'errorformat' for the given backend.
-  App.efmmgr.setup(self.backend.get_error_formats())
-
   return self
 end
 
@@ -116,9 +112,6 @@ function App:cleanup(tab)
   for _, destr in pairs(self.destructors) do
     destr()
   end
-
-  -- Remove from 'errorformat' for the given backend.
-  App.efmmgr.teardown(self.backend.get_error_formats())
 
   -- Destroy the parser
   self.parser:cleanup()
