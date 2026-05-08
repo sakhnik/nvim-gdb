@@ -32,7 +32,10 @@ function CMake.select_executable()
   -- Identify the prefix of the required executable path: scan to the left until the nearest space
   local curcmd = vim.fn.getcmdline()
   local pref_end = vim.fn.getcmdpos() - 1
-  local prefix = curcmd:sub(1, pref_end):match('.*%s(.*)')
+  local prefix = curcmd:sub(1, pref_end):match('Gdb.*%s(.*)')
+  if prefix == nil then
+    return curcmd
+  end
   log.debug({"prefix", prefix})
   local execs = CMake.get_executables(prefix)
   if not next(execs) then
