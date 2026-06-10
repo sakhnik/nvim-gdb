@@ -195,7 +195,7 @@ function Win:jump(file, line)
   if target_buf == self.client:get_buf() then
     self:_with_saved_win(true, function()
       vim.api.nvim_set_current_win(self.jump_win)
-      target_buf = self:_open_file("noswapfile view " .. file)
+      target_buf = self:_open_file("noswapfile view " .. vim.fn.fnameescape(file))
     end)
   end
 
@@ -207,7 +207,7 @@ function Win:jump(file, line)
         end
         -- Hide the current line sign when navigating away.
         self.cursor:hide()
-        target_buf = self:_open_file("noswap e " .. file)
+        target_buf = self:_open_file("noswap e " .. vim.fn.fnameescape(file))
       end)
     end)
   end
